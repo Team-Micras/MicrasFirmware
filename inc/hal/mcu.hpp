@@ -16,8 +16,8 @@
 extern "C"
 {
 /**
- * @brief Initializes System Clock.
- * @note  Defined by cube.
+ * @brief Initializes System Clock
+ * @note  Defined by cube
  */
 void SystemClock_Config(void);
 }
@@ -26,19 +26,19 @@ namespace hal {
 class mcu {
     public:
         /**
-         * @brief Initializes MCU and some peripherals.
+         * @brief Initializes MCU and some peripherals
          */
         static void init(void);
 
         /**
-         * @brief Put the MCU to sleep.
+         * @brief Put the MCU to sleep
          *
          * @param ms  Sleep time in milliseconds
          */
         static void sleep(uint32_t ms);
 
         /**
-         * @brief Toggles LED.
+         * @brief Toggles LED
          */
         static void led_toggle(void);
 };

@@ -1,14 +1,9 @@
 /**
  * @file gpio.cpp
  *
- * @author Comp ThundeRatz <comp@thunderatz.org>
+ * @brief HAL GPIO class source
  *
- * @brief HAL GPIO class source.
- *
- * @date 01/2024
- *
- * @copyright MIT License - Copyright (c) 2024 ThundeRatz
- *
+ * @date 03/2024
  */
 
 #include "hal/gpio.hpp"

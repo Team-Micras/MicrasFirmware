@@ -1,14 +1,9 @@
 /**
  * @file gpio.hpp
  *
- * @author Comp ThundeRatz <comp@thunderatz.org>
+ * @brief HAL GPIO class header
  *
- * @brief HAL GPIO class header.
- *
- * @date 01/2024
- *
- * @copyright MIT License - Copyright (c) 2024 ThundeRatz
- *
+ * @date 03/2024
  */
 
 #ifndef __GPIO_HPP__
@@ -18,19 +13,19 @@
 
 namespace hal {
 /**
- * @brief Class for controlling GPIO pins on STM32 microcontrollers.
+ * @brief Class for controlling GPIO pins on STM32 microcontrollers
  */
 class Gpio {
     private:
         /**
-         * @brief Structure representing a GPIO port.
+         * @brief Structure representing a GPIO port
          */
         struct GpioPort {
             GPIO_TypeDef* port;
         };
 
         /**
-         * @brief Structure representing a GPIO pin.
+         * @brief Structure representing a GPIO pin
          */
         struct GpioPin {
             uint16_t pin;
@@ -38,7 +33,7 @@ class Gpio {
 
     public:
         /**
-         * @brief Configuration structure for GPIO pin.
+         * @brief Configuration structure for GPIO pin
          */
         struct Config {
             GpioPort port;
@@ -46,7 +41,7 @@ class Gpio {
         };
 
         /**
-         * @brief Structure representing GPIO ports.
+         * @brief Structure representing GPIO ports
          */
         struct Port {
 #ifdef GPIOA
@@ -88,7 +83,7 @@ class Gpio {
         };
 
         /**
-         * @brief Structure representing GPIO pins.
+         * @brief Structure representing GPIO pins
          */
         struct Pin {
 #ifdef GPIO_PIN_0
@@ -142,28 +137,33 @@ class Gpio {
         };
 
         /**
-         * @brief Constructor for the Gpio class.
+         * @brief Constructor for the Gpio class
          *
-         * @param gpio_config Configuration for the GPIO pin.
+         * @param gpio_config Configuration for the GPIO pin
          */
         Gpio(const Config& gpio_config);
 
         /**
-         * @brief Read the current state of the GPIO pin.
+         * @brief Destroy the Gpio object
+         */
+        ~Gpio() = default;
+
+        /**
+         * @brief Read the current state of the GPIO pin
          *
-         * @return The current state of the GPIO pin (true for high, false for low).
+         * @return The current state of the GPIO pin (true for high, false for low)
          */
         bool read() const;
 
         /**
-         * @brief Write a new state to the GPIO pin.
+         * @brief Write a new state to the GPIO pin
          *
-         * @param pin_state The state to be written (true for high, false for low).
+         * @param pin_state The state to be written (true for high, false for low)
          */
         void write(bool state);
 
         /**
-         * @brief Toggle the state of the GPIO pin.
+         * @brief Toggle the state of the GPIO pin
          */
         void toggle();
 

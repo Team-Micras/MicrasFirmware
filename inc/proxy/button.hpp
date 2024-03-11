@@ -1,14 +1,9 @@
 /**
  * @file button.hpp
  *
- * @author Comp ThundeRatz <comp@thunderatz.org>
+ * @brief Proxy Button class header
  *
- * @brief Proxy Button class header.
- *
- * @date 01/2024
- *
- * @copyright MIT License - Copyright (c) 2024 ThundeRatz
- *
+ * @date 03/2024
  */
 
 #ifndef __BUTTON_HPP__
@@ -18,28 +13,33 @@
 
 namespace proxy {
 /**
- * @brief Class for controlling Button.
+ * @brief Class for controlling Button
  */
 class Button {
     public:
         /**
-         * @brief configuration structure for button.
+         * @brief configuration structure for button
          */
         struct Config {
             hal::Gpio::Config gpio_config;
         };
 
         /**
-         * @brief Constructor for the Button class.
+         * @brief Constructor for the Button class
          *
-         * @param button_config Configuration for the button.
+         * @param button_config Configuration for the button
          */
-        Button(Config button_config);
+        Button(const Config& button_config);
 
         /**
-         * @brief Get the button state.
+         * @brief Destroy the Button object
+         */
+        ~Button() = default;
+
+        /**
+         * @brief Get the button state
          *
-         * @return true if the button is pressed, false otherwise.
+         * @return true if the button is pressed, false otherwise
          */
         bool get_state();
 

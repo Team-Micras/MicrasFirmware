@@ -1,20 +1,16 @@
 /**
  * @file button.cpp
  *
- * @author Comp ThundeRatz <comp@thunderatz.org>
+ * @brief Proxy Button class source
  *
- * @brief Proxy Button class source.
- *
- * @date 01/2024
- *
- * @copyright MIT License - Copyright (c) 2024 ThundeRatz
+ * @date 03/2024
  *
  */
 
 #include "proxy/button.hpp"
 
 namespace proxy {
-Button::Button(Config button_config) : button_gpio(button_config.gpio_config) {
+Button::Button(const Config& button_config) : button_gpio(button_config.gpio_config) {
 }
 
 bool Button::get_state() {
