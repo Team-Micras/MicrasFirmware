@@ -20,11 +20,6 @@ class MicrasController {
         MicrasController();
 
         /**
-         * @brief Destroy the Micras Controller object
-         */
-        ~MicrasController() = default;
-
-        /**
          * @brief Runs the controller loop once
          */
         void run();

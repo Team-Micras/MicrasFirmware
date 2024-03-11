@@ -32,11 +32,6 @@ class Button {
         Button(const Config& button_config);
 
         /**
-         * @brief Destroy the Button object
-         */
-        ~Button() = default;
-
-        /**
          * @brief Get the button state
          *
          * @return true if the button is pressed, false otherwise

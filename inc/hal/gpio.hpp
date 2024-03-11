@@ -144,11 +144,6 @@ class Gpio {
         Gpio(const Config& gpio_config);
 
         /**
-         * @brief Destroy the Gpio object
-         */
-        ~Gpio() = default;
-
-        /**
          * @brief Read the current state of the GPIO pin
          *
          * @return The current state of the GPIO pin (true for high, false for low)
