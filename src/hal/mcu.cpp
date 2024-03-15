@@ -6,7 +6,7 @@
 
 #include <stdint.h>
 
-#include "mcu.hpp"
+#include "hal/mcu.hpp"
 
 #include "gpio.h"
 #include "main.h"
