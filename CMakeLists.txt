@@ -22,17 +22,17 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_BUILD_TYPE Debug)
 
 # Cube file name without .ioc extension
-project(stm32_project_template C CXX ASM)
+project(micras C CXX ASM)
 
 # Set the board version to an empty string if your board doesn't have a version
-set(BOARD_VERSION "")
+set(BOARD_VERSION v0)
 
 # Device Configuration
-set(DEVICE_CORTEX F3)
-set(DEVICE_FAMILY STM32F3xx)
-set(DEVICE_TYPE STM32F303xx)
-set(DEVICE_DEF STM32F303xE)
-set(DEVICE STM32F303RE)
+set(DEVICE_CORTEX G4)
+set(DEVICE_FAMILY STM32G4xx)
+set(DEVICE_TYPE STM32G474xx)
+set(DEVICE_DEF STM32G474xE)
+set(DEVICE STM32G474RE)
 
 # DEVICE_FAMILY_COMPACT is the same as DEVICE_FAMILY but without the STM32 prefix
 string(REPLACE "STM32" "" DEVICE_FAMILY_COMPACT ${DEVICE})
