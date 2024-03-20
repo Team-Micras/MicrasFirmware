@@ -13,41 +13,44 @@
 
 namespace proxy {
 /**
- * @brief Class for controlling Led.
+ * @brief Class for controlling an LED
  */
 class Led {
     public:
         /**
-         * @brief configuration structure for led
+         * @brief Configuration structure for LED
          */
         struct Config {
-            hal::Gpio::Config gpio_config;
+            hal::Gpio::Config gpio;
         };
 
         /**
          * @brief Constructor for the Led class
          *
-         * @param led_config Configuration for the led
+         * @param led_config Configuration for the LED
          */
         Led(const Config& led_config);
 
         /**
-         * @brief Turn the led on
+         * @brief Turn the LED on
          */
         void turn_on();
 
         /**
-         * @brief Turn the led off
+         * @brief Turn the LED off
          */
         void turn_off();
 
         /**
-         * @brief Toggle led
+         * @brief Toggle the LED
          */
         void toggle();
 
     private:
-        hal::Gpio led_gpio;
+        /**
+         * @brief Gpio object for the LED
+         */
+        hal::Gpio gpio;
 };
 }  // namespace proxy
 
