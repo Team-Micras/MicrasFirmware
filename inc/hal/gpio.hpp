@@ -9,6 +9,8 @@
 #ifndef __GPIO_HPP__
 #define __GPIO_HPP__
 
+#include <cstdint>
+
 #include "gpio.h"
 
 namespace hal {
@@ -52,8 +54,15 @@ class Gpio {
         void toggle();
 
     private:
-        uint16_t pin;
+        /**
+         * @brief The port of the GPIO
+         */
         GPIO_TypeDef* port;
+
+        /**
+         * @brief The pin number of the GPIO
+         */
+        uint16_t pin;
 };
 }  // namespace hal
 

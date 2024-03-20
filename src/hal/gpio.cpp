@@ -9,7 +9,7 @@
 #include "hal/gpio.hpp"
 
 namespace hal {
-Gpio::Gpio(const Config& gpio_config) : pin(gpio_config.pin), port(gpio_config.port) {
+Gpio::Gpio(const Config& gpio_config) : port{gpio_config.port}, pin{gpio_config.pin} {
 }
 
 bool Gpio::read(void) const {
@@ -17,7 +17,7 @@ bool Gpio::read(void) const {
 }
 
 void Gpio::write(bool state) {
-    HAL_GPIO_WritePin(this->port, this->pin, (GPIO_PinState) state);
+    HAL_GPIO_WritePin(this->port, this->pin, std::static_cast<GPIO_PinState>(state));
 }
 
 void Gpio::toggle(void) {
