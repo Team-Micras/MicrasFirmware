@@ -9,17 +9,18 @@
 #ifndef __BUTTON_HPP__
 #define __BUTTON_HPP__
 
+#include <cstdint>
+
 #include "hal/gpio.hpp"
-#include <stdint.h>
 
 namespace proxy {
 /**
- * @brief Class for controlling buttons.
+ * @brief Class for controlling a button
  */
 class Button {
     public:
         /**
-         * @brief Enum for button status.
+         * @brief Enum for button status
          */
         enum Status {
             NO_PRESS,
@@ -29,7 +30,7 @@ class Button {
         };
 
         /**
-         * @brief Enum for button pull resistor.
+         * @brief Enum for button pull resistor
          */
         enum PullResistor {
             PULL_UP,
@@ -37,113 +38,106 @@ class Button {
         };
 
         /**
-         * @brief Configuration structure for button.
+         * @brief Configuration structure for button
          */
         struct Config {
-            hal::Gpio::Config gpio_config;
+            hal::Gpio::Config gpio;
             PullResistor      pull_resistor;
-            uint16_t          debounce_delay_ms = 10;
-            uint16_t          long_press_delay_ms = 1000;
-            uint16_t          extra_long_press_delay_ms = 5000;
+            uint16_t          debounce_delay = 10;
+            uint16_t          long_press_delay = 1000;
+            uint16_t          extra_long_press_delay = 5000;
         };
 
         /**
-         * @brief Constructor for Button class.
+         * @brief Constructor for Button class
          *
-         * @param button_config Button configuration.
+         * @param button_config Button configuration
          */
         Button(const Config& button_config);
 
         /**
-         * @brief Get button status.
+         * @brief Check if button is pressed
          *
-         * @return Button status.
-         */
-        Status get_status();
-
-        /**
-         * @brief Check if button is pressed.
-         *
-         * @return True if button is pressed, false otherwise.
+         * @return True if button is pressed, false otherwise
          */
         bool is_pressed();
 
         /**
-         * @brief Check if button is released.
+         * @brief Get button status
          *
-         * @return True if button is released, false otherwise.
+         * @return Button status
          */
-        bool is_released();
-
-        /**
-         * @brief Check if button was just pressed.
-         *
-         * @return True if button was just pressed, false otherwise.
-         */
-        bool is_rising_edge() const;
-
-        /**
-         * @brief Check if button was just released.
-         *
-         * @return True if button was just released, false otherwise.
-         */
-        bool is_falling_edge() const;
+        Status get_status();
 
     private:
         /**
-         * @brief Update button state.
-         */
-        void update_state();
-
-        /**
-         * @brief Get raw button reading.
+         * @brief Get raw button reading
          *
-         * @return Button reading.
+         * @return Button reading
          */
         bool get_raw_reading() const;
 
         /**
-         * @brief Button pressing delays.
+         * @brief Update button state
          */
-        const uint16_t debounce_delay_ms;
-        const uint16_t long_press_delay_ms;
-        const uint16_t extra_long_press_delay_ms;
+        void update_state();
 
         /**
-         * @brief Gpio object for button.
+         * @brief Check if button was just pressed
+         *
+         * @return True if button was just pressed, false otherwise
          */
-        hal::Gpio gpio;
+        bool is_rising_edge() const;
 
         /**
-         * @brief pull resistor configuration
+         * @brief Check if button was just released
+         *
+         * @return True if button was just released, false otherwise
+         */
+        bool is_falling_edge() const;
+
+        /**
+         * @brief Button pressing delays in ms
+         */
+        const uint16_t debounce_delay;
+        const uint16_t long_press_delay;
+        const uint16_t extra_long_press_delay;
+
+        /**
+         * @brief Gpio object for button
+         */
+        const hal::Gpio gpio;
+
+        /**
+         * @brief Pull resistor configuration
          */
         PullResistor pull_resistor;
 
         /**
-         * @brief timer to check if button is debouncing
+         * @brief Timer to check if button is debouncing
          */
         uint32_t debounce_timer = 0;
 
         /**
-         * @brief timer to determine type of button press
+         * @brief Timer to determine type of button press
          */
         uint32_t status_timer = 0;
 
         /**
-         * @brief flag to know when button is debouncing
+         * @brief Flag to know when button is debouncing
          */
         bool is_debouncing = false;
 
         /**
-         * @brief flag to know if button was being pressed
+         * @brief Flag to know if button was being pressed
          */
         bool previous_state = false;
 
         /**
-         * @brief flag to know if button is being pressed
+         * @brief Flag to know if button is being pressed
          */
         bool current_state = false;
-};  // class Button
+};
 }  // namespace proxy
 
 #endif // __BUTTON_HPP__
