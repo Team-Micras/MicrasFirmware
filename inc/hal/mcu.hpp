@@ -33,14 +33,24 @@ class mcu {
         /**
          * @brief Put the MCU to sleep
          *
-         * @param ms  Sleep time in milliseconds
+         * @param ms Sleep time in milliseconds
          */
         static void sleep(uint32_t ms);
 
         /**
-         * @brief Toggles LED
+         * @brief Reset timer.
+         *
+         * @param tim_counter Timer counter to reset.
          */
-        static void led_toggle(void);
+        static void reset_timer(uint32_t& tim_counter);
+
+        /**
+         * @brief Get timer value in milliseconds.
+         *
+         * @param tim_counter Timer counter to get value from.
+         * @return Timer value in milliseconds.
+         */
+        static uint32_t get_timer_ms(uint32_t tim_counter);
 };
 };
 #endif // __MCU_HPP__

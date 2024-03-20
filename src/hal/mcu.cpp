@@ -27,4 +27,12 @@ void mcu::init(void) {
 void mcu::sleep(uint32_t ms) {
     HAL_Delay(ms);
 }
+
+void mcu::reset_timer(uint32_t& ticks) {
+    ticks = HAL_GetTick();
+}
+
+uint32_t mcu::get_timer_ms(uint32_t ticks) {
+    return HAL_GetTick() - ticks;
+}
 }
