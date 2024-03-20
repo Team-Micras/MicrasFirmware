@@ -13,7 +13,7 @@ MicrasController::MicrasController() : button(button_config), led(led_config) {
 }
 
 void MicrasController::run() {
-    if (button.get_state()) {
+    if (button.get_status() == proxy::Button::SHORT_PRESS) {
         led.turn_on();
     } else {
         led.turn_off();
