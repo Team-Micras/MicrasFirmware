@@ -6,15 +6,18 @@
  * @date 03/2024
  */
 
+#ifndef __DIP_SWITCH_CPP__
+#define __DIP_SWITCH_CPP__
+
 #include "hal/mcu.hpp"
 #include "proxy/dip_switch.hpp"
 
 namespace proxy {
 template <uint8_t num_of_sensors>
-DipSwitch<num_of_sensors>::DipSwitch(Config& dip_switch_config) {
-    for (uint8_t i = 0; i < num_of_sensors; i++) {
-        this->gpio_array[i] = dip_switch_config.gpio_array[i];
-    }
+DipSwitch<num_of_sensors>::DipSwitch(Config& dip_switch_config) :
+    gpio_array([&]<std::size_t... I> (std::index_sequence<I...>) -> std::array<hal::Gpio, num_of_sensors> {
+        return {hal::Gpio{dip_switch_config.gpio_array[I]}...};
+    }(std::make_index_sequence<num_of_sensors>())) {
 }
 
 template <uint8_t num_of_sensors>
@@ -33,3 +36,5 @@ uint8_t DipSwitch<num_of_sensors>::get_switches_value() const {
     return switches_value;
 }
 }  // namespace proxy
+
+#endif // __DIP_SWITCH_CPP__

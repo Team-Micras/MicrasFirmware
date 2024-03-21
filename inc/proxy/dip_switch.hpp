@@ -59,4 +59,6 @@ class DipSwitch {
 };
 }  // namespace proxy
 
+#include "../src/proxy/dip_switch.cpp"
+
 #endif // __DIP_SWITCH_HPP__
