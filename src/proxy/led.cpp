@@ -13,14 +13,14 @@ Led::Led(const Config& led_config) : gpio{led_config.gpio} {
 }
 
 void Led::turn_on() {
-    this->led_gpio.write(true);
+    this->gpio.write(true);
 }
 
 void Led::turn_off() {
-    this->led_gpio.write(false);
+    this->gpio.write(false);
 }
 
 void Led::toggle() {
-    this->led_gpio.toggle();
+    this->gpio.toggle();
 }
 }  // namespace proxy
