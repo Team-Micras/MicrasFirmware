@@ -9,6 +9,7 @@
 #ifndef __IMU_HPP__
 #define __IMU_HPP__
 
+#include <array>
 #include <cstdint>
 #include <lsm6dsv_reg.h>
 
