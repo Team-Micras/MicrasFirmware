@@ -11,7 +11,6 @@
 
 #include <adc.h>
 #include <cstdint>
-#include <functional>
 
 namespace hal {
 /**

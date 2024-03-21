@@ -10,7 +10,6 @@
 #define __TIMER_HPP__
 
 #include <cstdint>
-#include <functional>
 #include <tim.h>
 
 namespace hal {

@@ -10,7 +10,6 @@
 #define __SPI_HPP__
 
 #include <cstdint>
-#include <functional>
 #include <spi.h>
 
 #include "hal/gpio.hpp"
