@@ -4,16 +4,10 @@
  * @brief MCU related
  */
 
-#include <stdint.h>
+#include <gpio.h>
+#include <main.h>
 
 #include "hal/mcu.hpp"
-
-#include "gpio.h"
-#include "main.h"
-
-/*****************************************
- * Public Function Body Definitions
- *****************************************/
 
 namespace hal {
 void mcu::init(void) {
