@@ -9,10 +9,9 @@
 #ifndef __HAL_ADC_DMA_HPP__
 #define __HAL_ADC_DMA_HPP__
 
+#include <adc.h>
 #include <cstdint>
 #include <functional>
-
-#include "adc.h"
 
 namespace hal {
 /**
@@ -33,7 +32,7 @@ class AdcDma {
          *
          * @param adc_config ADC DMA configuration struct
          */
-        AdcDma(Config& adc_config);
+        AdcDma(const Config& adc_config);
 
         /**
          * @brief Enable ADC, start conversion of regular group and transfer result through DMA

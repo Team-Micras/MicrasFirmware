@@ -10,11 +10,7 @@
 #include "hal/adc_dma.hpp"
 
 namespace hal {
-/*****************************************
- * Public Methods Bodies Definitions.
- *****************************************/
-
-AdcDma::AdcDma(Config& adc_config) : handle(adc_config.handle) {
+AdcDma::AdcDma(const Config& adc_config) : handle{adc_config.handle} {
     MX_DMA_Init();
     adc_config.init_function();
 }
