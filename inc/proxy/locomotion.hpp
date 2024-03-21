@@ -1,13 +1,13 @@
 /**
- * @file dual_motor_driver.hpp
+ * @file locomotion.hpp
  *
- * @brief Proxy DualMotorDriver class declaration
+ * @brief Proxy Locomotion class declaration
  *
  * @date 03/2024
  */
 
-#ifndef __DUAL_MOTOR_DRIVER_HPP__
-#define __DUAL_MOTOR_DRIVER_HPP__
+#ifndef __DUAL_LOCOMOTION_HPP__
+#define __DUAL_LOCOMOTION_HPP__
 
 #include <cstdint>
 
@@ -16,12 +16,12 @@
 
 namespace proxy {
 /**
- * @brief Class for controlling a dual motor driver
+ * @brief Class for controlling the locomotion
  */
-class DualMotorDriver {
+class Locomotion {
     public:
         /**
-         * @brief Configuration structure for the dual motor driver
+         * @brief Configuration structure for the locomotion
          */
         struct Config {
             hal::Pwm::Config  pwm_left_fwd;
@@ -32,11 +32,11 @@ class DualMotorDriver {
         };
 
         /**
-         * @brief Construct a new Dual Motor Driver object
+         * @brief Construct a new locomotion object
          *
-         * @param dual_motor_driver_config
+         * @param locomotion_config
          */
-        DualMotorDriver(Config& dual_motor_driver_config);
+        Locomotion(Config& locomotion_config);
 
         /**
          * @brief Enable the motor driver
@@ -99,4 +99,4 @@ class DualMotorDriver {
 };
 }  // namespace proxy
 
-#endif // __DUAL_MOTOR_DRIVER_HPP__
+#endif // __DUAL_LOCOMOTION_HPP__

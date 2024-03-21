@@ -99,7 +99,7 @@ proxy::Fan::Config fan_config = {
     }
 };
 
-proxy::DualMotorDriver::Config loc_motor_driver_config = {
+proxy::Locomotion::Config locomotion_config = {
     .pwm_left_fwd = {
         .timer = {
             .handle = &htim4,
