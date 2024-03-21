@@ -10,7 +10,14 @@
 #define __MICRAS_CONTROLLER_HPP__
 
 #include "proxy/button.hpp"
+#include "proxy/buzzer.hpp"
+#include "proxy/current_sensors.hpp"
+#include "proxy/dip_switch.hpp"
+#include "proxy/distance_sensors.hpp"
+#include "proxy/fan.hpp"
+#include "proxy/imu.hpp"
 #include "proxy/led.hpp"
+#include "proxy/locomotion.hpp"
 
 class MicrasController {
     public:
@@ -26,7 +33,14 @@ class MicrasController {
 
     private:
         proxy::Button button;
+        proxy::Buzzer buzzer;
+        proxy::CurrentSensors<2> current_sensors;
+        proxy::DipSwitch<4> dip_switch;
+        proxy::DistanceSensors<4> distance_sensors;
+        proxy::Fan fan;
+        proxy::Imu imu;
         proxy::Led led;
+        proxy::Locomotion locomotion;
 };
 
 #endif // __MICRAS_CONTROLLER_HPP__

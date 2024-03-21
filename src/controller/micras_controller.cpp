@@ -9,7 +9,10 @@
 #include "controller/micras_controller.hpp"
 #include "target.hpp"
 
-MicrasController::MicrasController() : button(button_config), led(led_config) {
+MicrasController::MicrasController() : button{button_config}, buzzer{buzzer_config},
+    current_sensors{current_sensors_config},
+    dip_switch{dip_switch_config}, distance_sensors{distance_sensors_config}, fan{fan_config}, imu{imu_config},
+    led{led_config}, locomotion{locomotion_config} {
 }
 
 void MicrasController::run() {
