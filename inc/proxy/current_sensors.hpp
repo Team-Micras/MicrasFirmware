@@ -9,6 +9,7 @@
 #ifndef __CURRENT_SENSORS_HPP__
 #define __CURRENT_SENSORS_HPP__
 
+#include <array>
 #include <cstdint>
 
 #include "hal/adc_dma.hpp"
@@ -41,7 +42,7 @@ class CurrentSensors {
          * @param sensor_index Index of the sensor
          * @return float Current reading from the sensor
          */
-        float get_current(uint8_t sensor_index);
+        float get_current(uint8_t sensor_index) const;
 
         /**
          * @brief Get the raw reading from the current sensor
@@ -49,7 +50,7 @@ class CurrentSensors {
          * @param sensor_index Index of the sensor
          * @return uint16_t Current reading from the sensor
          */
-        uint32_t get_current_raw(uint8_t sensor_index);
+        uint32_t get_current_raw(uint8_t sensor_index) const;
 
     private:
         /**
