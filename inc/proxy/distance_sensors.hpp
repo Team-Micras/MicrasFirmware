@@ -9,6 +9,7 @@
 #ifndef __DISTANCE_SENSORS_HPP__
 #define __DISTANCE_SENSORS_HPP__
 
+#include <array>
 #include <cstdint>
 
 #include "hal/adc_dma.hpp"
