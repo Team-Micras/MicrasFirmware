@@ -29,9 +29,9 @@ Button::Status Button::get_status() {
     if (this->is_rising_edge()) {
         hal::mcu::reset_timer(this->status_timer);
     } else if (this->is_falling_edge()) {
-        if (hal::mcu::get_timer(this->status_timer) > extra_long_press_delay) {
+        if (hal::mcu::get_timer_ms(this->status_timer) > extra_long_press_delay) {
             return EXTRA_LONG_PRESS;
-        } else if (hal::mcu::get_timer(this->status_timer) > long_press_delay) {
+        } else if (hal::mcu::get_timer_ms(this->status_timer) > long_press_delay) {
             return LONG_PRESS;
         } else {
             return SHORT_PRESS;
@@ -51,7 +51,7 @@ void Button::update_state() {
     if ((raw_reading != this->current_state) and not this->is_debouncing) {
         this->is_debouncing = true;
         hal::mcu::reset_timer(this->debounce_timer);
-    } else if ((hal::mcu::get_timer(this->debounce_timer) < debounce_delay) and this->is_debouncing) {
+    } else if ((hal::mcu::get_timer_ms(this->debounce_timer) < debounce_delay) and this->is_debouncing) {
         if (this->current_state == raw_reading) {
             this->is_debouncing = false;
         }
