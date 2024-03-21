@@ -61,13 +61,19 @@ class CurrentSensors {
         /**
          * @brief Buffer to store the ADC values
          */
-        volatile std::array<uint32_t, num_of_sensors> dma_buffer;
+        std::array<uint32_t, num_of_sensors> buffer;
 
         /**
          * @brief Value of the shunt resistor in ohms
          */
         float shunt_resistor;
+
+        static constexpr float reference_voltage{3.3f};
+
+        static constexpr uint32_t max_adc_reading{4095};
 };
 }  // namespace proxy
+
+#include "../src/proxy/current_sensors.cpp"
 
 #endif // __CURRENT_SENSORS_HPP__
