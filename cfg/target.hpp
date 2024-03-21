@@ -8,6 +8,10 @@
 #include "proxy/distance_sensors.hpp"
 #include "proxy/current_sensors.hpp"
 #include "proxy/dip_switch.hpp"
+#include "proxy/buzzer.hpp"
+#include "proxy/motor_driver.hpp"
+#include "proxy/dual_motor_driver.hpp"
+#include "proxy/imu.hpp"
 
 proxy::Led::Config led_config = {
     .gpio = {
@@ -24,7 +28,7 @@ proxy::Button::Config button_config = {
     .pull_resistor = proxy::Button::PullResistor::PULL_UP
 };
 
-proxy::DistanceSensors<4>::Config distance_sensor_config = {
+proxy::DistanceSensors<4>::Config distance_sensors_config = {
     .adc = {
         .handle = &hadc1,
         .init_function = MX_ADC1_Init
@@ -38,7 +42,7 @@ proxy::DistanceSensors<4>::Config distance_sensor_config = {
     }
 };
 
-proxy::CurrentSensors<2>::Config current_sensor_config = {
+proxy::CurrentSensors<2>::Config current_sensors_config = {
     .adc = {
         .handle = &hadc2,
         .init_function = MX_ADC2_Init
@@ -65,6 +69,90 @@ proxy::DipSwitch<4>::Config dip_switch_config = {
             .pin = GPIO_PIN_13
         }
     }}
+};
+
+proxy::Buzzer::Config buzzer_config = {
+    .pwm = {
+        .timer = {
+            .handle = &htim4,
+            .init_function = MX_TIM4_Init
+        },
+        .timer_channel = TIM_CHANNEL_1
+    }
+};
+
+proxy::MotorDriver::Config vent_motor_driver_config = {
+    .pwm = {
+        .timer = {
+            .handle = &htim17,
+            .init_function = MX_TIM17_Init
+        },
+        .timer_channel = TIM_CHANNEL_1
+    },
+    .direction_gpio = {
+        .port = GPIOC,
+        .pin = GPIO_PIN_13
+    },
+    .enable_gpio = {
+        .port = GPIOB,
+        .pin = GPIO_PIN_7
+    }
+};
+
+proxy::DualMotorDriver::Config loc_motor_driver_config = {
+    .pwm_left_fwd = {
+        .timer = {
+            .handle = &htim4,
+            .init_function = MX_TIM4_Init
+        },
+        .timer_channel = TIM_CHANNEL_4
+    },
+    .pwm_left_bwd = {
+        .timer = {
+            .handle = &htim4,
+            .init_function = MX_TIM4_Init
+        },
+        .timer_channel = TIM_CHANNEL_3
+    },
+    .pwm_right_fwd = {
+        .timer = {
+            .handle = &htim1,
+            .init_function = MX_TIM1_Init
+        },
+        .timer_channel = TIM_CHANNEL_2
+    },
+    .pwm_right_bwd = {
+        .timer = {
+            .handle = &htim1,
+            .init_function = MX_TIM1_Init
+        },
+        .timer_channel = TIM_CHANNEL_1
+    },
+    .enable_gpio = {
+        .port = GPIOA,
+        .pin = GPIO_PIN_10
+    }
+};
+
+proxy::Imu::Config imu_config = {
+    .spi = {
+        .handle = &hspi1,
+        .init_function = MX_SPI1_Init,
+        .gpio_array = {{
+            {
+                .port = GPIOB,
+                .pin = GPIO_PIN_6
+            },  // IMU
+            {
+                .port = GPIOA,
+                .pin = GPIO_PIN_6
+            },  // Encoder Left
+            {
+                .port = GPIOB,
+                .pin = GPIO_PIN_1
+            }  // Encoder Right
+        }}
+    },
 };
 
 #endif // __TARGET_HPP__
