@@ -1,13 +1,13 @@
 /**
- * @file motor_driver.hpp
+ * @file fan.hpp
  *
- * @brief Proxy MotorDriver class declaration
+ * @brief Proxy Fan class declaration
  *
  * @date 03/2024
  */
 
-#ifndef __MOTOR_DRIVER_HPP__
-#define __MOTOR_DRIVER_HPP__
+#ifndef __FAN_HPP__
+#define __FAN_HPP__
 
 #include <cstdint>
 
@@ -16,12 +16,12 @@
 
 namespace proxy {
 /**
- * @brief Class for controlling a motor driver
+ * @brief Class for controlling the fan
  */
-class MotorDriver {
+class Fan {
     public:
         /**
-         * @brief Configuration structure for the motor driver
+         * @brief Configuration structure for the fan
          */
         struct Config {
             hal::Pwm::Config  pwm;
@@ -38,57 +38,57 @@ class MotorDriver {
         };
 
         /**
-         * @brief Construct a new  Motor Driver object
+         * @brief Construct a new fan object
          *
-         * @param motor_driver_config
+         * @param fan_config
          */
-        MotorDriver(Config& motor_driver_config);
+        Fan(Config& fan_config);
 
         /**
-         * @brief Enable the motor driver
+         * @brief Enable the fan
          */
         void enable();
 
         /**
-         * @brief Disable the motor driver
+         * @brief Disable the fan
          */
         void disable();
 
         /**
-         * @brief Set the speed of the motors
+         * @brief Set the speed of the fans
          *
-         * @param speed Speed percentage of the motor
+         * @param speed Speed percentage of the fan
          */
         void set_speed(float speed);
 
         /**
-         * @brief Stop the motors
+         * @brief Stop the fan
          */
         void stop();
 
     private:
         /**
-         * @brief Set the rotation direction of the motor
+         * @brief Set the rotation direction of the fan
          *
          * @param direction Rotation direction
          */
         void set_direction(RotationDirection direction);
 
         /**
-         * @brief PWM object for controlling the motor speed
+         * @brief PWM object for controlling the fan speed
          */
         hal::Pwm pwm;
 
         /**
-         * @brief GPIO object for controlling the motor rotation direction
+         * @brief GPIO object for controlling the fan rotation direction
          */
         hal::Gpio direction_gpio;
 
         /**
-         * @brief GPIO handle for the motor driver enable pin
+         * @brief GPIO handle for the fan enable pin
          */
         hal::Gpio enable_gpio;
 };
 }  // namespace proxy
 
-#endif // __MOTOR_DRIVER_HPP__
+#endif // __FAN_HPP__

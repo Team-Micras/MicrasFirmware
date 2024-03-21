@@ -81,7 +81,7 @@ proxy::Buzzer::Config buzzer_config = {
     }
 };
 
-proxy::MotorDriver::Config vent_motor_driver_config = {
+proxy::Fan::Config fan_config = {
     .pwm = {
         .timer = {
             .handle = &htim17,

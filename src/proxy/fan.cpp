@@ -1,31 +1,31 @@
 /**
- * @file motor_driver.cpp
+ * @file fan.cpp
  *
- * @brief Proxy MotorDriver class source
+ * @brief Proxy Fan class source
  *
  * @date 03/2024
  */
 
-#include "proxy/motor_driver.hpp"
+#include "proxy/fan.hpp"
 
 namespace proxy {
-MotorDriver::MotorDriver(Config& motor_driver_config) :
-    pwm{motor_driver_config.pwm},
-    direction_gpio{motor_driver_config.direction_gpio},
-    enable_gpio{motor_driver_config.enable_gpio} {
+Fan::Fan(Config& fan_config) :
+    pwm{fan_config.pwm},
+    direction_gpio{fan_config.direction_gpio},
+    enable_gpio{fan_config.enable_gpio} {
     this->enable();
     this->stop();
 }
 
-void MotorDriver::enable() {
+void Fan::enable() {
     this->enable_gpio.write(true);
 }
 
-void MotorDriver::disable() {
+void Fan::disable() {
     this->enable_gpio.write(false);
 }
 
-void MotorDriver::set_speed(float speed) {
+void Fan::set_speed(float speed) {
     if (speed > 0.0f) {
         this->pwm.set_duty_cycle(speed);
         this->set_direction(RotationDirection::FORWARD);
@@ -37,11 +37,11 @@ void MotorDriver::set_speed(float speed) {
     }
 }
 
-void MotorDriver::stop() {
+void Fan::stop() {
     this->set_speed(0.0f);
 }
 
-void MotorDriver::set_direction(RotationDirection direction) {
+void Fan::set_direction(RotationDirection direction) {
     this->direction_gpio.write(static_cast<bool>(direction));
 }
 }  // namespace proxy
