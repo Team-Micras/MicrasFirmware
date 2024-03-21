@@ -70,7 +70,7 @@ class Spi {
         SPI_HandleTypeDef* handle;
 
         /**
-         * @brief Array of GPIOs for the switches
+         * @brief GPIO for the chip select pin
          */
         hal::Gpio gpio;
 };
