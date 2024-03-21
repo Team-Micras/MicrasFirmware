@@ -115,13 +115,12 @@ set(DEPENDENCIES
 
 # Add libraries .c files here
 set(LIB_SOURCES
-    # lib/lib_name/src/file1.c
-    # lib/lib_name/src/file2.c
+    lib/lsm6dsv-pid/lsm6dsv_reg.c
 )
 
 # Add libraries include directories here
 set(LIB_INCLUDE_DIRECTORIES
-    # lib/lib_name/inc/
+    lib/lsm6dsv-pid
 )
 
 ###############################################################################
