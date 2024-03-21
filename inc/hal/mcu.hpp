@@ -2,12 +2,14 @@
  * @file mcu.hpp
  *
  * @brief MCU related
+ *
+ * @date 03/2024
  */
 
 #ifndef __MCU_HPP__
 #define __MCU_HPP__
 
-#include <stdint.h>
+#include <cstdint>
 
 /*****************************************
  * Public Function Prototypes
@@ -38,19 +40,19 @@ class mcu {
         static void sleep(uint32_t ms);
 
         /**
-         * @brief Reset timer.
+         * @brief Reset timer
          *
-         * @param tim_counter Timer counter to reset.
+         * @param tim_counter Timer counter to reset
          */
         static void reset_timer(uint32_t& tim_counter);
 
         /**
-         * @brief Get timer value in milliseconds.
+         * @brief Get timer value in milliseconds
          *
-         * @param tim_counter Timer counter to get value from.
-         * @return Timer value in milliseconds.
+         * @param tim_counter Timer counter to get value from
+         * @return Timer value in milliseconds
          */
         static uint32_t get_timer_ms(uint32_t tim_counter);
 };
-};
+};  // namespace hal
 #endif // __MCU_HPP__
