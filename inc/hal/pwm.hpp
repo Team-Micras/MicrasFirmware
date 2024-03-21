@@ -10,7 +10,6 @@
 #define __PWM_HPP__
 
 #include <cstdint>
-#include <functional>
 
 #include "hal/timer.hpp"
 
@@ -33,7 +32,7 @@ class Pwm {
          *
          * @param pwm_config Configuration for the PWM
          */
-        Pwm(Config& pwm_config);
+        Pwm(const Config& pwm_config);
 
         /**
          * @brief Set the PWM duty cycle
@@ -45,7 +44,7 @@ class Pwm {
         /**
          * @brief Set the PWM frequency
          *
-         * @param frequency Frequency value
+         * @param frequency Frequency value in Hz
          */
         void set_frequency(uint32_t frequency);
 
