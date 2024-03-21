@@ -17,7 +17,7 @@ bool Gpio::read(void) const {
 }
 
 void Gpio::write(bool state) {
-    HAL_GPIO_WritePin(this->port, this->pin, (GPIO_PinState) state);
+    HAL_GPIO_WritePin(this->port, this->pin, static_cast<GPIO_PinState>(state));
 }
 
 void Gpio::toggle(void) {

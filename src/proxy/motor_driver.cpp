@@ -42,6 +42,6 @@ void MotorDriver::stop() {
 }
 
 void MotorDriver::set_direction(RotationDirection direction) {
-    this->direction_gpio.write((bool) direction);
+    this->direction_gpio.write(static_cast<bool>(direction));
 }
 }  // namespace proxy
