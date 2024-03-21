@@ -61,7 +61,6 @@ class Locomotion {
          */
         void stop();
 
-    private:
         /**
          * @brief Stop the left motor
          */
@@ -72,6 +71,7 @@ class Locomotion {
          */
         void stop_right_motor();
 
+    private:
         /**
          * @brief PWM handle for the left motor forward
          */
