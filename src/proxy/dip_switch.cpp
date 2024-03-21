@@ -13,17 +13,17 @@ namespace proxy {
 template <uint8_t num_of_sensors>
 DipSwitch<num_of_sensors>::DipSwitch(const Config& dip_switch_config) {
     for (uint8_t i = 0; i < num_of_sensors; i++) {
-        gpio_array[i] = dip_switch_config.gpio_array[i];
+        this->gpio_array[i] = dip_switch_config.gpio_array[i];
     }
 }
 
 template <uint8_t num_of_sensors>
-bool DipSwitch<num_of_sensors>::get_switch_state(uint8_t switch_index) {
+bool DipSwitch<num_of_sensors>::get_switch_state(uint8_t switch_index) const {
     return gpio_array.at(switch_index).read();
 }
 
 template <uint8_t num_of_sensors>
-uint8_t DipSwitch<num_of_sensors>::get_switches_value() {
+uint8_t DipSwitch<num_of_sensors>::get_switches_value() const {
     uint8_t switches_value = 0;
 
     for (uint8_t i = 0; i < num_of_sensors; i++) {
