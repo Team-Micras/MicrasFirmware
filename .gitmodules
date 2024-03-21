@@ -2,3 +2,7 @@
 	path = lib/stm32-cmake
 	url = git@github.com:ThundeRatz/stm32-cmake.git
 	branch = master
+[submodule "lib/lsm6dsv-pid"]
+	path = lib/lsm6dsv-pid
+	url = git@github.com:STMicroelectronics/lsm6dsv-pid.git
+	branch = master
