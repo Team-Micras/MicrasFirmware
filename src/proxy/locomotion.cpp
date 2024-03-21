@@ -15,8 +15,8 @@ Locomotion::Locomotion(Config& locomotion_config) :
     pwm_right_fwd{locomotion_config.pwm_right_fwd},
     pwm_right_bwd{locomotion_config.pwm_right_bwd},
     enable_gpio{locomotion_config.enable_gpio} {
-    this->enable();
     this->stop();
+    this->enable();
 }
 
 void Locomotion::enable() {

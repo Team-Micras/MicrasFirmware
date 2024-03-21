@@ -13,8 +13,8 @@ Fan::Fan(Config& fan_config) :
     pwm{fan_config.pwm},
     direction_gpio{fan_config.direction_gpio},
     enable_gpio{fan_config.enable_gpio} {
-    this->enable();
     this->stop();
+    this->enable();
 }
 
 void Fan::enable() {
@@ -27,11 +27,11 @@ void Fan::disable() {
 
 void Fan::set_speed(float speed) {
     if (speed > 0.0f) {
-        this->pwm.set_duty_cycle(speed);
         this->set_direction(RotationDirection::FORWARD);
+        this->pwm.set_duty_cycle(speed);
     } else if (speed < 0.0f) {
-        this->pwm.set_duty_cycle(-speed);
         this->set_direction(RotationDirection::BACKWARD);
+        this->pwm.set_duty_cycle(-speed);
     } else {
         this->stop();
     }
