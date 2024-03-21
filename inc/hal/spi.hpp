@@ -19,16 +19,15 @@ namespace hal {
 /**
  * @brief Class to handle SPI peripheral on STM32 microcontrollers
  */
-template <uint8_t num_of_devices>
 class Spi {
     public:
         /**
          * @brief SPI configuration struct
          */
         struct Config {
-            SPI_HandleTypeDef*                            handle;
-            std::function<void(void)>                     init_function;
-            std::array<hal::Gpio::Config, num_of_devices> gpio_array;
+            SPI_HandleTypeDef* handle;
+            void               (* init_function)(void);
+            hal::Gpio::Config  gpio;
         };
 
         /**
@@ -36,17 +35,17 @@ class Spi {
          *
          * @param spi_config Configuration for the SPI
          */
-        Spi(const Config& spi_config);
+        Spi(Config& spi_config);
 
         /**
-         * @brief Activate the chip select for a device
+         * @brief Activate the chip select
          */
-        void select_device(uint8_t device);
+        void select_device();
 
         /**
-         * @brief Deactivate the chip select for a device
+         * @brief Deactivate the chip select
          */
-        void unselect_device(uint8_t device);
+        void unselect_device();
 
         /**
          * @brief Transmit data over SPI
@@ -73,7 +72,7 @@ class Spi {
         /**
          * @brief Array of GPIOs for the switches
          */
-        std::array<hal::Gpio, num_of_devices> gpio_array;
+        hal::Gpio gpio;
 };
 }  // namespace hal
 

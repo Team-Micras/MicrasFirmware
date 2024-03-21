@@ -138,21 +138,11 @@ proxy::Imu::Config imu_config = {
     .spi = {
         .handle = &hspi1,
         .init_function = MX_SPI1_Init,
-        .gpio_array = {{
-            {
-                .port = GPIOB,
-                .pin = GPIO_PIN_6
-            },  // IMU
-            {
-                .port = GPIOA,
-                .pin = GPIO_PIN_6
-            },  // Encoder Left
-            {
-                .port = GPIOB,
-                .pin = GPIO_PIN_1
-            }  // Encoder Right
-        }}
-    },
+        .gpio = {
+            .port = GPIOB,
+            .pin = GPIO_PIN_6
+        }
+    }
 };
 
 #endif // __TARGET_HPP__

@@ -10,6 +10,7 @@
 #define __IMU_HPP__
 
 #include <cstdint>
+#include <lsm6dsv_reg.h>
 
 #include "hal/spi.hpp"
 
@@ -23,7 +24,7 @@ class Imu {
          * @brief IMU configuration struct
          */
         struct Config {
-            hal::Spi<3>::Config spi;  // nossa nossa nossa nossa, que tristeza T.T
+            hal::Spi::Config spi;
         };
 
         /**
@@ -31,13 +32,18 @@ class Imu {
          *
          * @param imu_config Configuration for the IMU
          */
-        Imu(const Config& imu_config);
+        Imu(Config& imu_config);
 
     private:
         /**
          * @brief SPI for the IMU communication
          */
-        hal::Spi<3> spi;  // nossa nossa nossa nossa, que tristeza T.T
+        hal::Spi spi;
+
+        /**
+         * @brief Device context for the IMU library
+         */
+        stmdev_ctx_t dev_ctx;
 };
 }  // namespace proxy
 
