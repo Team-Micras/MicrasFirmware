@@ -9,7 +9,7 @@
 #include "proxy/dual_motor_driver.hpp"
 
 namespace proxy {
-DualMotorDriver::DualMotorDriver(const Config& motor_driver_config) :
+DualMotorDriver::DualMotorDriver(Config& motor_driver_config) :
     pwm_left_fwd{motor_driver_config.pwm_left_fwd},
     pwm_left_bwd{motor_driver_config.pwm_left_bwd},
     pwm_right_fwd{motor_driver_config.pwm_right_fwd},

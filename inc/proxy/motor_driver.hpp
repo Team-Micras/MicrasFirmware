@@ -42,7 +42,7 @@ class MotorDriver {
          *
          * @param motor_driver_config
          */
-        MotorDriver(const Config& motor_driver_config);
+        MotorDriver(Config& motor_driver_config);
 
         /**
          * @brief Enable the motor driver

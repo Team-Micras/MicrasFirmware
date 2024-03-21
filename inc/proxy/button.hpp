@@ -53,7 +53,7 @@ class Button {
          *
          * @param button_config Button configuration
          */
-        Button(const Config& button_config);
+        Button(Config& button_config);
 
         /**
          * @brief Check if button is pressed

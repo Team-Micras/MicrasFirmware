@@ -31,7 +31,7 @@ class Buzzer {
          *
          * @param buzzer_config Configuration for the buzzer
          */
-        Buzzer(const Config& buzzer_config);
+        Buzzer(Config& buzzer_config);
 
         /**
          * @brief Play a tone for a duration

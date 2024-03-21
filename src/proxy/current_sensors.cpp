@@ -14,7 +14,7 @@ static constexpr float reference_voltage{3.3f};
 static constexpr uint32_t max_adc_reading{4095};
 
 template <uint8_t num_of_sensors>
-CurrentSensors<num_of_sensors>::CurrentSensors(const Config& current_sensors_config) :
+CurrentSensors<num_of_sensors>::CurrentSensors(Config& current_sensors_config) :
     adc{current_sensors_config.adc_config}, shunt_resistor{current_sensors_config.shunt_resistor} {
     this->adc.start_dma(this->adc_buffer.data(), num_of_sensors);
     this->adc.start_dma(this->adc_buffer.data(), num_of_sensors);

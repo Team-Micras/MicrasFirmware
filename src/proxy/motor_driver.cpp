@@ -9,7 +9,7 @@
 #include "proxy/motor_driver.hpp"
 
 namespace proxy {
-MotorDriver::MotorDriver(const Config& motor_driver_config) :
+MotorDriver::MotorDriver(Config& motor_driver_config) :
     pwm{motor_driver_config.pwm},
     direction_gpio{motor_driver_config.direction_gpio},
     enable_gpio{motor_driver_config.enable_gpio} {

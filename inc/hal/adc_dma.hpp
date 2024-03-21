@@ -1,7 +1,7 @@
 /**
  * @file adc_dma.hpp
  *
- * @brief STM32 ADC DMA HAL wrapper
+ * @brief ADC DMA HAL header
  *
  * @date 03/2024
  */
@@ -20,11 +20,11 @@ namespace hal {
 class AdcDma {
     public:
         /**
-         * @brief ADC DMA configuration struct
+         * @brief Configuration structure for ADC DMA
          */
         struct Config {
-            ADC_HandleTypeDef*        handle;
-            std::function<void(void)> init_function;
+            ADC_HandleTypeDef* handle;
+            void               (* init_function)(void);
         };
 
         /**
@@ -32,7 +32,7 @@ class AdcDma {
          *
          * @param adc_config ADC DMA configuration struct
          */
-        AdcDma(const Config& adc_config);
+        AdcDma(Config& adc_config);
 
         /**
          * @brief Enable ADC, start conversion of regular group and transfer result through DMA

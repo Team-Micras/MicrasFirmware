@@ -36,7 +36,7 @@ class DualMotorDriver {
          *
          * @param dual_motor_driver_config
          */
-        DualMotorDriver(const Config& dual_motor_driver_config);
+        DualMotorDriver(Config& dual_motor_driver_config);
 
         /**
          * @brief Enable the motor driver

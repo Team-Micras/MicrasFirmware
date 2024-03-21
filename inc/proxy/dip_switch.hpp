@@ -33,7 +33,7 @@ class DipSwitch {
          *
          * @param dip_switch_config Configuration struct for DipSwitch
          */
-        DipSwitch(const Config& dip_switch_config);
+        DipSwitch(Config& dip_switch_config);
 
         /**
          * @brief Get the state of a switch

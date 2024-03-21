@@ -23,8 +23,8 @@ class Timer {
          * @brief Timer configuration struct
          */
         struct Config {
-            TIM_HandleTypeDef*        handle;
-            std::function<void(void)> init_function;
+            TIM_HandleTypeDef* handle;
+            void               (* init_function)(void);
         };
 
         /**
@@ -32,7 +32,7 @@ class Timer {
          *
          * @param timer_config Configuration for timer handler
          */
-        Timer(const Config& timer_config);
+        Timer(Config& timer_config);
 
         /**
          * @brief Initialize timer base generation

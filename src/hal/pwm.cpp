@@ -9,7 +9,7 @@
 #include "hal/pwm.hpp"
 
 namespace hal {
-Pwm::Pwm(const Config& pwm_config) : timer{pwm_config.timer}, channel{pwm_config.timer_channel} {
+Pwm::Pwm(Config& pwm_config) : timer{pwm_config.timer}, channel{pwm_config.timer_channel} {
     this->timer.pwm_start(this->channel);
     this->timer.set_compare(this->channel, 0);
 }

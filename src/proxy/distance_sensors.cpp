@@ -14,7 +14,7 @@ static constexpr float max_distance{0.3f};
 static constexpr uint32_t max_adc_reading{4095};
 
 template <uint8_t num_of_sensors>
-DistanceSensors<num_of_sensors>::DistanceSensors(const Config& distance_sensor_config) :
+DistanceSensors<num_of_sensors>::DistanceSensors(Config& distance_sensor_config) :
     distance_sensor_adc{distance_sensor_config.sensor_adc_config}, infrared_pwm{distance_sensor_config.infrared_pwm} {
     this->distance_sensor_adc.start_dma(this->adc_buffer.data(), num_of_sensors);
     this->infrared_pwm.set_duty_cycle(100.0f);

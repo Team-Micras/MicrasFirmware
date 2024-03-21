@@ -11,7 +11,7 @@
 
 namespace proxy {
 template <uint8_t num_of_sensors>
-DipSwitch<num_of_sensors>::DipSwitch(const Config& dip_switch_config) {
+DipSwitch<num_of_sensors>::DipSwitch(Config& dip_switch_config) {
     for (uint8_t i = 0; i < num_of_sensors; i++) {
         this->gpio_array[i] = dip_switch_config.gpio_array[i];
     }
