@@ -4,14 +4,14 @@
 #include <cstdint>
 
 #include "proxy/button.hpp"
-#include "proxy/led.hpp"
-#include "proxy/distance_sensors.hpp"
+#include "proxy/buzzer.hpp"
 #include "proxy/current_sensors.hpp"
 #include "proxy/dip_switch.hpp"
-#include "proxy/buzzer.hpp"
-#include "proxy/motor_driver.hpp"
-#include "proxy/dual_motor_driver.hpp"
+#include "proxy/distance_sensors.hpp"
+#include "proxy/fan.hpp"
 #include "proxy/imu.hpp"
+#include "proxy/led.hpp"
+#include "proxy/locomotion.hpp"
 
 proxy::Led::Config led_config = {
     .gpio = {
