@@ -33,7 +33,7 @@ proxy::DistanceSensors<4>::Config distance_sensors_config = {
         .handle = &hadc1,
         .init_function = MX_ADC1_Init
     },
-    .infrared_pwm = {
+    .led_pwm = {
         .timer = {
             .handle = &htim15,
             .init_function = MX_TIM15_Init

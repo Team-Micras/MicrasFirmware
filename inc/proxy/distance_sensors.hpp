@@ -27,7 +27,7 @@ class DistanceSensors {
          */
         struct Config {
             hal::AdcDma::Config adc;
-            hal::Pwm::Config    infrared_pwm;
+            hal::Pwm::Config    led_pwm;
         };
 
         /**
@@ -38,11 +38,11 @@ class DistanceSensors {
         DistanceSensors(Config& distance_sensor_config);
 
         /**
-         * @brief Set the infrared DistanceSensors intensity
+         * @brief Set the distance sensors led intensity
          *
          * @param intensity Intensity percentage of the infrared LED
          */
-        void set_infrared_led_intensity(float intensity);
+        void set_led_intensity(float intensity);
 
         /**
          * @brief Get the distance from a sensor
@@ -64,18 +64,24 @@ class DistanceSensors {
         /**
          * @brief ADC DMA handle
          */
-        hal::AdcDma distance_sensor_adc;
+        hal::AdcDma adc;
 
         /**
          * @brief PWM handle for infrared LED
          */
-        hal::Pwm infrared_pwm;
+        hal::Pwm led_pwm;
 
         /**
          * @brief Buffer to store the ADC values
          */
-        volatile std::array<uint32_t, num_of_sensors> dma_buffer;
+        std::array<uint32_t, num_of_sensors> buffer;
+
+        static constexpr float max_distance{0.3f};
+
+        static constexpr uint32_t max_adc_reading{4095};
 };
 }  // namespace proxy
+
+#include "../src/proxy/distance_sensors.cpp"
 
 #endif // __DISTANCE_SENSORS_HPP__

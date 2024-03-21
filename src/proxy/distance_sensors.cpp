@@ -6,32 +6,33 @@
  * @date 03/2024
  */
 
+#ifndef __DISTANCE_SENSORS_CPP__
+#define __DISTANCE_SENSORS_CPP__
+
 #include "proxy/distance_sensors.hpp"
 
 namespace proxy {
-static constexpr float max_distance{0.3f};
-
-static constexpr uint32_t max_adc_reading{4095};
-
 template <uint8_t num_of_sensors>
 DistanceSensors<num_of_sensors>::DistanceSensors(Config& distance_sensor_config) :
-    distance_sensor_adc{distance_sensor_config.sensor_adc_config}, infrared_pwm{distance_sensor_config.infrared_pwm} {
-    this->distance_sensor_adc.start_dma(this->adc_buffer.data(), num_of_sensors);
-    this->infrared_pwm.set_duty_cycle(100.0f);
+    adc{distance_sensor_config.adc}, led_pwm{distance_sensor_config.led_pwm} {
+    this->adc.start_dma(this->buffer.data(), num_of_sensors);
+    this->led_pwm.set_duty_cycle(100.0f);
 }
 
 template <uint8_t num_of_sensors>
-void DistanceSensors<num_of_sensors>::set_infrared_led_intensity(float intensity) {
-    this->infrared_pwm.set_duty_cycle(intensity);
+void DistanceSensors<num_of_sensors>::set_led_intensity(float intensity) {
+    this->led_pwm.set_duty_cycle(intensity);
 }
 
 template <uint8_t num_of_sensors>
 float DistanceSensors<num_of_sensors>::get_distance(uint8_t sensor_index) const {
-    return max_distance * this->adc_buffer.at(sensor_index) / max_adc_reading;
+    return this->max_distance * this->buffer.at(sensor_index) / this->max_adc_reading;
 }
 
 template <uint8_t num_of_sensors>
 uint32_t DistanceSensors<num_of_sensors>::get_distance_raw(uint8_t sensor_index) const {
-    return this->adc_buffer.at(sensor_index);
+    return this->buffer.at(sensor_index);
 }
 }  // namespace proxy
+
+#endif // __DISTANCE_SENSORS_HPP__
