@@ -34,6 +34,40 @@ class Imu {
          */
         Imu(Config& imu_config);
 
+        enum Axis {
+            W,
+            X,
+            Y,
+            Z
+        };
+
+        /**
+         * @brief Get the IMU orientation over an axis
+         *
+         * @param axis Axis to get the orientation from
+         *
+         * @return Orientation over the desired axis using quaternions
+         */
+        float get_orientation(Axis axis);
+
+        /**
+         * @brief Get the IMU angular velocity over an axis
+         *
+         * @param axis Axis to get the angular velocity from
+         *
+         * @return Angular velocity over the desired axis in rad/s
+         */
+        float get_angular_velocity(Axis axis);
+
+        /**
+         * @brief Get the IMU linear acceleration over an axis
+         *
+         * @param axis Axis to get the linear acceleration from
+         *
+         * @return Linear acceleration over the desired axis in m/s²
+         */
+        float get_linear_acceleration(Axis axis);
+
     private:
         /**
          * @brief SPI for the IMU communication
@@ -44,6 +78,10 @@ class Imu {
          * @brief Device context for the IMU library
          */
         stmdev_ctx_t dev_ctx;
+
+        std::array<int16_t, 3> angular_velocity;
+
+        std::array<int16_t, 3> linear_acceleration;
 };
 }  // namespace proxy
 
