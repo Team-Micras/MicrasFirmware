@@ -49,7 +49,7 @@ class DistanceSensors {
          * @param sensor_index Index of the sensor
          * @return float Distance reading from the sensors
          */
-        float get_distance(uint8_t sensor_index);
+        float get_distance(uint8_t sensor_index) const;
 
         /**
          * @brief Get the distance from a sensor
@@ -57,7 +57,7 @@ class DistanceSensors {
          * @param sensor_index Index of the sensor
          * @return uint32_t Raw reading from the distance sensor
          */
-        uint32_t get_distance_raw(uint8_t sensor_index);
+        uint32_t get_distance_raw(uint8_t sensor_index) const;
 
     private:
         /**
