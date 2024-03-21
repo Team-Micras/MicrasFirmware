@@ -9,7 +9,7 @@
 #include "hal/timer.hpp"
 
 namespace hal {
-Timer::Timer(Config& tim_config) : handle(tim_config.handle) {
+Timer::Timer(const Config& tim_config) : handle{tim_config.handle} {
     tim_config.init_function();
 }
 

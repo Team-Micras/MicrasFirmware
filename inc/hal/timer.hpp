@@ -11,8 +11,7 @@
 
 #include <cstdint>
 #include <functional>
-
-#include "tim.h"
+#include <tim.h>
 
 namespace hal {
 /**
@@ -33,7 +32,7 @@ class Timer {
          *
          * @param timer_config Configuration for timer handler
          */
-        Timer(Config& timer_config);
+        Timer(const Config& timer_config);
 
         /**
          * @brief Initialize timer base generation
