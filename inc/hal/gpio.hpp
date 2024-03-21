@@ -10,8 +10,7 @@
 #define __GPIO_HPP__
 
 #include <cstdint>
-
-#include "gpio.h"
+#include <gpio.h>
 
 namespace hal {
 /**
