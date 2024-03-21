@@ -1,7 +1,7 @@
 /**
  * @file adc_dma.cpp
  *
- * @brief STM32 ADC DMA HAL wrapper.
+ * @brief STM32 ADC DMA HAL wrapper
  *
  * @date 03/2024
  */
@@ -19,7 +19,7 @@ AdcDma::AdcDma(Config& adc_config) : handle(adc_config.handle) {
     adc_config.init_function();
 }
 
-void AdcDma::start_dma(uint32_t* buffer, uint32_t size) {
+void AdcDma::start_dma(uint32_t buffer[], uint32_t size) {
     HAL_ADC_Start_DMA(this->handle, buffer, size);
 }
 

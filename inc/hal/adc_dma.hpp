@@ -1,7 +1,7 @@
 /**
  * @file adc_dma.hpp
  *
- * @brief STM32 ADC DMA HAL wrapper.
+ * @brief STM32 ADC DMA HAL wrapper
  *
  * @date 03/2024
  */
@@ -16,12 +16,12 @@
 
 namespace hal {
 /**
- * @brief Class to handle ADC DMA peripheral on STM32 microcontrollers.
+ * @brief Class to handle ADC DMA peripheral on STM32 microcontrollers
  */
 class AdcDma {
     public:
         /**
-         * @brief ADC DMA configuration struct.
+         * @brief ADC DMA configuration struct
          */
         struct Config {
             ADC_HandleTypeDef*        handle;
@@ -29,28 +29,28 @@ class AdcDma {
         };
 
         /**
-         * @brief Construct a new AdcDma object.
+         * @brief Construct a new AdcDma object
          *
-         * @param adc_config ADC DMA configuration struct.
+         * @param adc_config ADC DMA configuration struct
          */
         AdcDma(Config& adc_config);
 
         /**
-         * @brief Enable ADC, start conversion of regular group and transfer result through DMA.
+         * @brief Enable ADC, start conversion of regular group and transfer result through DMA
          *
-         * @param buffer Destination Buffer address.
-         * @param size Number of data to be transferred from ADC DMA peripheral to memory.
+         * @param buffer Destination Buffer address
+         * @param size Number of data to be transferred from ADC DMA peripheral to memory
          */
-        void start_dma(uint32_t* buffer, uint32_t size);
+        void start_dma(uint32_t buffer[], uint32_t size);
 
         /**
-         * @brief Stop ADC conversion of regular group (and injected group in case of auto_injection mode).
+         * @brief Stop ADC conversion of regular group (and injected group in case of auto_injection mode)
          */
         void stop_dma();
 
     private:
         /**
-         * @brief ADC DMA handle.
+         * @brief ADC DMA handle
          */
         ADC_HandleTypeDef* handle;
 };
