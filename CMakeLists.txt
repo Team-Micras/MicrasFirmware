@@ -32,7 +32,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 project(micras C CXX ASM)
 
 # Set the board version to an empty string if your board doesn't have a version
-set(BOARD_VERSION v0)
+set(BOARD_VERSION "")
 
 # Device Configuration
 set(DEVICE_CORTEX G4)
