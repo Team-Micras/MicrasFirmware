@@ -11,10 +11,6 @@
 
 #include <cstdint>
 
-/*****************************************
- * Public Function Prototypes
- *****************************************/
-
 extern "C"
 {
 /**
@@ -25,34 +21,15 @@ void SystemClock_Config(void);
 }
 
 namespace hal {
-class mcu {
+/**
+ * @brief Microcontroller unit class
+ */
+class Mcu {
     public:
         /**
          * @brief Initializes MCU and some peripherals
          */
         static void init(void);
-
-        /**
-         * @brief Put the MCU to sleep
-         *
-         * @param ms Sleep time in milliseconds
-         */
-        static void sleep(uint32_t ms);
-
-        /**
-         * @brief Reset timer
-         *
-         * @param tim_counter Timer counter to reset
-         */
-        static void reset_timer(uint32_t& tim_counter);
-
-        /**
-         * @brief Get timer value in milliseconds
-         *
-         * @param tim_counter Timer counter to get value from
-         * @return Timer value in milliseconds
-         */
-        static uint32_t get_timer_ms(uint32_t tim_counter);
 };
 };  // namespace hal
 #endif // __MCU_HPP__
