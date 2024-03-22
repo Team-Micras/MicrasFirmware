@@ -40,7 +40,7 @@ class CurrentSensors {
          * @brief Get the current from the sensor
          *
          * @param sensor_index Index of the sensor
-         * @return float Current reading from the sensor
+         * @return float Current reading from the sensor in amps
          */
         float get_current(uint8_t sensor_index) const;
 
@@ -66,7 +66,7 @@ class CurrentSensors {
         /**
          * @brief Value of the shunt resistor in ohms
          */
-        float shunt_resistor;
+        const float shunt_resistor;
 };
 }  // namespace proxy
 
