@@ -8,6 +8,13 @@
 
 #include "target.hpp"
 
+proxy::Battery::Config battery_config = {
+    .adc = {
+        .handle = &hadc3,
+        .init_function = MX_ADC3_Init
+    }
+};
+
 proxy::Button::Config button_config = {
     .gpio = {
         .port = GPIOA,

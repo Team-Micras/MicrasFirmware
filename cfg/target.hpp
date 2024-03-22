@@ -9,6 +9,7 @@
 #ifndef __TARGET_HPP__
 #define __TARGET_HPP__
 
+#include "proxy/battery.hpp"
 #include "proxy/button.hpp"
 #include "proxy/buzzer.hpp"
 #include "proxy/current_sensors.hpp"
@@ -19,6 +20,7 @@
 #include "proxy/led.hpp"
 #include "proxy/locomotion.hpp"
 
+extern proxy::Battery::Config battery_config;
 extern proxy::Button::Config button_config;
 extern proxy::Buzzer::Config buzzer_config;
 extern proxy::CurrentSensors<2>::Config current_sensors_config;
