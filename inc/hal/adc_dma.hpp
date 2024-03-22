@@ -46,12 +46,6 @@ class AdcDma {
          */
         void stop_dma();
 
-    private:
-        /**
-         * @brief ADC DMA handle
-         */
-        ADC_HandleTypeDef* handle;
-
         /**
          * @brief Reference voltage for the ADC measurement
          */
@@ -61,6 +55,12 @@ class AdcDma {
          * @brief Maximum ADC reading
          */
         static constexpr uint32_t max_reading{4095};
+
+    private:
+        /**
+         * @brief ADC DMA handle
+         */
+        ADC_HandleTypeDef* handle;
 };
 }
 
