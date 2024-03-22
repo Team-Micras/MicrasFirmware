@@ -6,7 +6,6 @@
  * @date 03/2024
  */
 
-#include "hal/mcu.hpp"
 #include "proxy/buzzer.hpp"
 
 namespace proxy {
