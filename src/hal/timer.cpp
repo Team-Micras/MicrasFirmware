@@ -15,7 +15,7 @@ Timer::Timer(Config& timer_config) : handle{timer_config.handle} {
     uint32_t base_freq = HAL_RCC_GetPCLK1Freq();
     uint32_t prescaler = this->handle->Instance->PSC;
 
-    if (base_freq / (prescaler + 1) == 1000000 and __HAL_TIM_GetAutoreload(this->handle) == 1000) {
+    if (base_freq / (prescaler + 1) == 1000000 and __HAL_TIM_GetAutoreload(this->handle) == 999) {
         this->enable_microseconds = true;
     }
 }
