@@ -67,10 +67,6 @@ class CurrentSensors {
          * @brief Value of the shunt resistor in ohms
          */
         float shunt_resistor;
-
-        static constexpr float reference_voltage{3.3f};
-
-        static constexpr uint32_t max_adc_reading{4095};
 };
 }  // namespace proxy
 

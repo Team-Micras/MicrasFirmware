@@ -51,6 +51,16 @@ class AdcDma {
          * @brief ADC DMA handle
          */
         ADC_HandleTypeDef* handle;
+
+        /**
+         * @brief Reference voltage for the ADC measurement
+         */
+        static constexpr float reference_voltage{3.3f};
+
+        /**
+         * @brief Maximum ADC reading
+         */
+        static constexpr uint32_t max_reading{4095};
 };
 }
 

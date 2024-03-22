@@ -76,9 +76,10 @@ class DistanceSensors {
          */
         std::array<uint32_t, num_of_sensors> buffer;
 
+        /**
+         * @brief Maximum distance reading in meters
+         */
         static constexpr float max_distance{0.3f};
-
-        static constexpr uint32_t max_adc_reading{4095};
 };
 }  // namespace proxy
 
