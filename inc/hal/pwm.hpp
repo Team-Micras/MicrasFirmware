@@ -10,8 +10,7 @@
 #define __PWM_HPP__
 
 #include <cstdint>
-
-#include "hal/timer.hpp"
+#include <tim.h>
 
 namespace hal {
 /**
@@ -23,8 +22,9 @@ class Pwm {
          * @brief PWM configuration struct
          */
         struct Config {
-            Timer::Config timer;
-            uint32_t      timer_channel;
+            TIM_HandleTypeDef* handle;
+            void               (* init_function)(void);
+            uint32_t           timer_channel;
         };
 
         /**
@@ -50,9 +50,9 @@ class Pwm {
 
     private:
         /**
-         * @brief Timer object
+         * @brief Timer handle
          */
-        Timer timer;
+        TIM_HandleTypeDef* handle;
 
         /**
          * @brief Channel number of the timer
