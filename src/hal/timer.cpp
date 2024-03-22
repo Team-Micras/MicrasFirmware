@@ -9,55 +9,58 @@
 #include "hal/timer.hpp"
 
 namespace hal {
-Timer::Timer(Config& tim_config) : handle{tim_config.handle} {
-    tim_config.init_function();
+Timer::Timer(Config& timer_config) : handle{timer_config.handle} {
+    timer_config.init_function();
+
+    uint32_t base_freq = HAL_RCC_GetPCLK1Freq();
+    uint32_t prescaler = this->handle->Instance->PSC;
+
+    if (base_freq / (prescaler + 1) == 1000000 and __HAL_TIM_GetAutoreload(this->handle) == 1000) {
+        this->enable_microseconds = true;
+    }
 }
 
-void Timer::base_start() {
-    HAL_TIM_Base_Start(this->handle);
+void Timer::reset_ms() {
+    this->counter = this->get_counter_ms();
 }
 
-void Timer::base_stop() {
-    HAL_TIM_Base_Stop(this->handle);
+void Timer::reset_us() {
+    this->counter = this->get_counter_us();
 }
 
-void Timer::set_counter(uint32_t counter) {
-    __HAL_TIM_SET_COUNTER(this->handle, counter);
+uint32_t Timer::elapsed_time_ms() const {
+    return this->get_counter_ms() - this->counter;
 }
 
-uint32_t Timer::get_counter() {
-    return __HAL_TIM_GET_COUNTER(this->handle);
+uint32_t Timer::elapsed_time_us() const {
+    return this->get_counter_us() - this->counter;
 }
 
-void Timer::pwm_start(uint32_t channel) {
-    HAL_TIM_PWM_Start(this->handle, channel);
+void Timer::sleep_ms(uint32_t time) {
+    uint32_t start = HAL_GetTick();
+
+    while (HAL_GetTick() - start < time) {
+        continue;
+    }
 }
 
-void Timer::pwm_stop(uint32_t channel) {
-    HAL_TIM_PWM_Stop(this->handle, channel);
+void Timer::sleep_us(uint32_t time) const {
+    uint32_t start = this->get_counter_us();
+
+    while (this->get_counter_us() - start < time) {
+        continue;
+    }
 }
 
-void Timer::set_prescaler(uint32_t prescaler) {
-    __HAL_TIM_SET_PRESCALER(this->handle, prescaler);
+uint32_t Timer::get_counter_ms() const {
+    return HAL_GetTick();
 }
 
-uint32_t Timer::get_prescaler() {
-    return this->handle->Instance->PSC;
-}
+uint32_t Timer::get_counter_us() const {
+    if (this->enable_microseconds) {
+        return 1000 * HAL_GetTick() + __HAL_TIM_GET_COUNTER(this->handle);
+    }
 
-void Timer::set_compare(uint32_t channel, uint32_t compare) {
-    __HAL_TIM_SET_COMPARE(this->handle, channel, compare);
-}
-
-uint32_t Timer::get_autoreload() {
-    return __HAL_TIM_GET_AUTORELOAD(this->handle);
-}
-
-void Timer::set_autoreload(uint32_t autoreload) {
-    __HAL_TIM_SET_AUTORELOAD(this->handle, autoreload);
-}
-
-uint32_t Timer::get_timer_clock_freq() {
-    return HAL_RCC_GetPCLK1Freq();
+    return 1000 * HAL_GetTick();
 }
 }  // namespace hal

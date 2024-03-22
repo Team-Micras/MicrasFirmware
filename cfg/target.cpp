@@ -18,10 +18,8 @@ proxy::Button::Config button_config = {
 
 proxy::Buzzer::Config buzzer_config = {
     .pwm = {
-        .timer = {
-            .handle = &htim4,
-            .init_function = MX_TIM4_Init
-        },
+        .handle = &htim4,
+        .init_function = MX_TIM4_Init,
         .timer_channel = TIM_CHANNEL_1
     }
 };
@@ -61,20 +59,16 @@ proxy::DistanceSensors<4>::Config distance_sensors_config = {
         .init_function = MX_ADC1_Init
     },
     .led_pwm = {
-        .timer = {
-            .handle = &htim15,
-            .init_function = MX_TIM15_Init
-        },
+        .handle = &htim15,
+        .init_function = MX_TIM15_Init,
         .timer_channel = TIM_CHANNEL_1
     }
 };
 
 proxy::Fan::Config fan_config = {
     .pwm = {
-        .timer = {
-            .handle = &htim17,
-            .init_function = MX_TIM17_Init
-        },
+        .handle = &htim17,
+        .init_function = MX_TIM17_Init,
         .timer_channel = TIM_CHANNEL_1
     },
     .direction_gpio = {
@@ -107,31 +101,23 @@ proxy::Led::Config led_config = {
 
 proxy::Locomotion::Config locomotion_config = {
     .pwm_left_fwd = {
-        .timer = {
-            .handle = &htim4,
-            .init_function = MX_TIM4_Init
-        },
+        .handle = &htim4,
+        .init_function = MX_TIM4_Init,
         .timer_channel = TIM_CHANNEL_4
     },
     .pwm_left_bwd = {
-        .timer = {
-            .handle = &htim4,
-            .init_function = MX_TIM4_Init
-        },
+        .handle = &htim4,
+        .init_function = MX_TIM4_Init,
         .timer_channel = TIM_CHANNEL_3
     },
     .pwm_right_fwd = {
-        .timer = {
-            .handle = &htim1,
-            .init_function = MX_TIM1_Init
-        },
+        .handle = &htim1,
+        .init_function = MX_TIM1_Init,
         .timer_channel = TIM_CHANNEL_2
     },
     .pwm_right_bwd = {
-        .timer = {
-            .handle = &htim1,
-            .init_function = MX_TIM1_Init
-        },
+        .handle = &htim1,
+        .init_function = MX_TIM1_Init,
         .timer_channel = TIM_CHANNEL_1
     },
     .enable_gpio = {

@@ -21,12 +21,12 @@ void Buzzer::play(uint32_t frequency, uint32_t duration) {
 
     if (duration > 0) {
         this->duration = duration;
-        hal::mcu::reset_timer(this->timer);
+        this->timer.reset_ms();
     }
 }
 
 void Buzzer::update() {
-    if (this->is_playing and hal::mcu::get_timer_ms(this->timer) > this->duration) {
+    if (this->is_playing and this->timer.elapsed_time_ms() > this->duration) {
         this->stop();
     }
 }

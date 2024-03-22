@@ -12,6 +12,7 @@
 #include <cstdint>
 
 #include "hal/gpio.hpp"
+#include "hal/timer.hpp"
 
 namespace proxy {
 /**
@@ -116,12 +117,12 @@ class Button {
         /**
          * @brief Timer to check if button is debouncing
          */
-        uint32_t debounce_timer = 0;
+        hal::Timer debounce_timer;
 
         /**
          * @brief Timer to determine type of button press
          */
-        uint32_t status_timer = 0;
+        hal::Timer status_timer;
 
         /**
          * @brief Flag to know when button is debouncing

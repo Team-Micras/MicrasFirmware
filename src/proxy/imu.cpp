@@ -6,7 +6,7 @@
  * @date 03/2024
  */
 
-#include "hal/mcu.hpp"
+#include "hal/timer.hpp"
 #include "proxy/imu.hpp"
 
 namespace proxy {
@@ -38,7 +38,7 @@ Imu::Imu(Config& imu_config) : spi{imu_config.spi} {
 
     this->dev_ctx.handle = &imu_config.spi;
 
-    hal::mcu::sleep(10);
+    hal::Timer::sleep_ms(10);
 
     lsm6dsv_reset_set(&(this->dev_ctx), LSM6DSV_RESTORE_CTRL_REGS);
 

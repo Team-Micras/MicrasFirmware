@@ -27,98 +27,84 @@ class Timer {
         };
 
         /**
-         * @brief Constructor for the Timer class
+         * @brief Construct a new Timer object
+         */
+        Timer() = default;
+
+        /**
+         * @brief Construct a new Timer object
          *
-         * @param timer_config Configuration for timer handler
+         * @param timer_config Configuration for the timer
          */
         Timer(Config& timer_config);
 
         /**
-         * @brief Initialize timer base generation
+         * @brief Reset the timer counter in milliseconds
          */
-        void base_start();
+        void reset_ms();
 
         /**
-         * @brief Stop timer base generation
+         * @brief Reset the timer counter in microseconds
          */
-        void base_stop();
+        void reset_us();
 
         /**
-         * @brief Set timer counter
+         * @brief Get the time elapsed since the last reset
          *
-         * @param counter Counter value
+         * @return uint32_t Time elapsed in miliseconds
          */
-        void set_counter(uint32_t counter);
+        uint32_t elapsed_time_ms() const;
 
         /**
-         * @brief Get timer counter
+         * @brief Get the time elapsed since the last reset
          *
-         * @return uint32_t Counter value
+         * @return uint32_t Time elapsed in microseconds
          */
-        uint32_t get_counter();
+        uint32_t elapsed_time_us() const;
 
         /**
-         * @brief Start PWM generation
+         * @brief Sleep for a given amount of time
          *
-         * @param channel Timer channel to be enabled
+         * @param time Time to sleep in milliseconds
          */
-        void pwm_start(uint32_t channel);
+        static void sleep_ms(uint32_t time);
 
         /**
-         * @brief Stop PWM generation
+         * @brief Sleep for a given amount of time
          *
-         * @param channel Timer channel to be disabled
+         * @param time Time to sleep in microseconds
          */
-        void pwm_stop(uint32_t channel);
-
-        /**
-         * @brief Set timer prescaler
-         *
-         * @param prescaler Prescaler new value
-         */
-        void set_prescaler(uint32_t prescaler);
-
-        /**
-         * @brief Get the timer prescaler
-         *
-         * @return uint32_t The value of the prescaler
-         */
-        uint32_t get_prescaler();
-
-        /**
-         * @brief Set the timer Capture Compare Register value
-         *
-         * @param channel Timer channel to be configured
-         * @param compare Compare register new value
-         */
-        void set_compare(uint32_t channel, uint32_t compare);
-
-        /**
-         * @brief Get the Autoreload register value
-         *
-         * @return uint32_t The value of the Autoreload register
-         */
-        uint32_t get_autoreload();
-
-        /**
-         * @brief Set the Autoreload register value
-         *
-         * @param autoreload New value for the Autoreload register
-         */
-        void set_autoreload(uint32_t autoreload);
-
-        /**
-         * @brief Get the timer clock frequency
-         *
-         * @return uint32_t Timer clock frequency
-         */
-        uint32_t get_timer_clock_freq();
+        void sleep_us(uint32_t time) const;
 
     private:
         /**
-         * @brief Timer handler
+         * @brief Get the current timer counter
+         *
+         * @return uint32_t Current timer counter in milliseconds
+         */
+        uint32_t get_counter_ms() const;
+
+        /**
+         * @brief Get the current timer counter
+         *
+         * @return uint32_t Current timer counter in microseconds
+         */
+        uint32_t get_counter_us() const;
+
+        /**
+         * @brief Timer handle
          */
         TIM_HandleTypeDef* handle;
+
+        /**
+         * @brief Timer counter
+         */
+        uint32_t counter;
+
+        /**
+         * @brief Flag to enable microseconds
+         */
+        bool enable_microseconds = false;
 };
 }  // namespace hal
 

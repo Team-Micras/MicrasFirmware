@@ -14,7 +14,7 @@
  *****************************************/
 
 int main(void) {
-    hal::mcu::init();
+    hal::Mcu::init();
     MicrasController micras_controller;
 
     while (true) {

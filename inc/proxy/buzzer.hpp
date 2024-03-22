@@ -12,6 +12,7 @@
 #include <cstdint>
 
 #include "hal/pwm.hpp"
+#include "hal/timer.hpp"
 
 namespace proxy {
 /**
@@ -60,7 +61,7 @@ class Buzzer {
         /**
          * @brief Timer to play the sound
          */
-        uint32_t timer = 0;
+        hal::Timer timer;
 
         /**
          * @brief Flag to check if the buzzer is playing
