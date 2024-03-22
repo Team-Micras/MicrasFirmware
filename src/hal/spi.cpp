@@ -13,6 +13,10 @@ Spi::Spi(Config& spi_config) : handle{spi_config.handle}, gpio{spi_config.gpio} 
 }
 
 void Spi::select_device() {
+    if (this->handle->Lock == HAL_LOCKED) {
+        return;
+    }
+
     this->gpio.write(false);
 }
 
