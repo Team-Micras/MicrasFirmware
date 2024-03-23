@@ -80,8 +80,14 @@ class Imu {
          */
         stmdev_ctx_t dev_ctx;
 
+        /**
+         * @brief Current angular velocity on each axis
+         */
         std::array<int16_t, 3> angular_velocity;
 
+        /**
+         * @brief Current linear acceleration on each axis
+         */
         std::array<int16_t, 3> linear_acceleration;
 };
 }  // namespace proxy

@@ -24,7 +24,7 @@ class TorqueSensors {
          * @brief configuration structure for torque sensors
          */
         struct Config {
-            typename CurrentSensors<num_of_sensors>::Config current_sensor;
+            typename CurrentSensors<num_of_sensors>::Config current_sensors;
         };
 
         /**
