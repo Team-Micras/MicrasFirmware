@@ -11,7 +11,8 @@ cmake_minimum_required(VERSION 3.16)
 ###############################################################################
 
 set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/lib/stm32-cmake/cmake/stm32_gcc.cmake)
-set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 # # Cube generated FreeRTOS path
 # set(FREERTOS_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cube/Middlewares/Third_Party/FreeRTOS/Source)
 # set(FREERTOS_SOURCE ${FREERTOS_PATH})
