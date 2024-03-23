@@ -31,14 +31,6 @@ proxy::Buzzer::Config buzzer_config = {
     }
 };
 
-proxy::CurrentSensors<2>::Config current_sensors_config = {
-    .adc = {
-        .handle = &hadc2,
-        .init_function = MX_ADC2_Init
-    },
-    .shunt_resistor = 0.04f
-};
-
 proxy::DipSwitch<4>::Config dip_switch_config = {
     .gpio_array = {{
         {
@@ -130,5 +122,49 @@ proxy::Locomotion::Config locomotion_config = {
     .enable_gpio = {
         .port = GPIOA,
         .pin = GPIO_PIN_10
+    }
+};
+
+proxy::RotarySensor::Config rotary_sensor_left_config = {
+    .spi = {
+        .handle = &hspi1,
+        .init_function = MX_SPI1_Init,
+        .gpio = {
+            .port = GPIOA,
+            .pin = GPIO_PIN_6
+        }
+    },
+    .encoder = {
+        .handle = &htim2,
+        .init_function = MX_TIM2_Init,
+        .timer_channel = TIM_CHANNEL_ALL
+    },
+    .resolution = 4096
+};
+
+proxy::RotarySensor::Config rotary_sensor_right_config = {
+    .spi = {
+        .handle = &hspi1,
+        .init_function = MX_SPI1_Init,
+        .gpio = {
+            .port = GPIOB,
+            .pin = GPIO_PIN_1
+        }
+    },
+    .encoder = {
+        .handle = &htim5,
+        .init_function = MX_TIM5_Init,
+        .timer_channel = TIM_CHANNEL_ALL
+    },
+    .resolution = 4096
+};
+
+proxy::TorqueSensors<2>::Config torque_sensors_config = {
+    .current_sensors = {
+        .adc = {
+            .handle = &hadc2,
+            .init_function = MX_ADC2_Init
+        },
+        .shunt_resistor = 0.04f
     }
 };

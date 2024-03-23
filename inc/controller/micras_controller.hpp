@@ -9,15 +9,17 @@
 #ifndef __MICRAS_CONTROLLER_HPP__
 #define __MICRAS_CONTROLLER_HPP__
 
+#include "proxy/battery.hpp"
 #include "proxy/button.hpp"
 #include "proxy/buzzer.hpp"
-#include "proxy/current_sensors.hpp"
 #include "proxy/dip_switch.hpp"
 #include "proxy/distance_sensors.hpp"
 #include "proxy/fan.hpp"
 #include "proxy/imu.hpp"
 #include "proxy/led.hpp"
 #include "proxy/locomotion.hpp"
+#include "proxy/rotary_sensor.hpp"
+#include "proxy/torque_sensors.hpp"
 
 class MicrasController {
     public:
@@ -32,15 +34,18 @@ class MicrasController {
         void run();
 
     private:
+        proxy::Battery battery;
         proxy::Button button;
         proxy::Buzzer buzzer;
-        proxy::CurrentSensors<2> current_sensors;
         proxy::DipSwitch<4> dip_switch;
         proxy::DistanceSensors<4> distance_sensors;
         proxy::Fan fan;
         proxy::Imu imu;
         proxy::Led led;
         proxy::Locomotion locomotion;
+        proxy::RotarySensor rotary_sensor_left;
+        proxy::RotarySensor rotary_sensor_right;
+        proxy::TorqueSensors<2> torque_sensors;
 };
 
 #endif // __MICRAS_CONTROLLER_HPP__
