@@ -24,7 +24,7 @@ class TorqueSensors {
          * @brief configuration structure for torque sensors
          */
         struct Config {
-            CurrentSensors<num_of_sensors>::Config current_sensor;
+            typename CurrentSensors<num_of_sensors>::Config current_sensor;
         };
 
         /**
@@ -59,7 +59,7 @@ class TorqueSensors {
         /**
          * @brief Current sensors object
          */
-        template CurrentSensors<num_of_sensors> current_sensors;
+        CurrentSensors<num_of_sensors> current_sensors;
 };
 }  // namespace proxy
 

@@ -19,7 +19,7 @@ TorqueSensors<num_of_sensors>::TorqueSensors(Config& torque_sensors_config) :
 
 template <uint8_t num_of_sensors>
 float TorqueSensors<num_of_sensors>::get_torque(uint8_t sensor_index) const {
-    return this->current_sensors.get_current_raw(sensor_index) * TorqueSensor::max_torque / hal::AdcDma::max_reading;
+    return this->current_sensors.get_current_raw(sensor_index) * TorqueSensors::max_torque / hal::AdcDma::max_reading;
 }
 
 template <uint8_t num_of_sensors>
