@@ -47,6 +47,14 @@ class PwmDma {
          */
         void stop_dma();
 
+        /**
+         * @brief Get the compare value for ad duty cycle
+         *
+         * @param duty_cycle Duty cycle to get the compare value for
+         * @return uint32_t Compare value for the duty cycle
+         */
+        uint32_t get_compare(float duty_cycle);
+
     private:
         /**
          * @brief Timer handle
