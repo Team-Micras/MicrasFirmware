@@ -87,7 +87,8 @@ proxy::Imu::Config imu_config = {
         .gpio = {
             .port = GPIOB,
             .pin = GPIO_PIN_6
-        }
+        },
+        .timeout = 2
     }
 };
 
@@ -132,7 +133,8 @@ proxy::RotarySensor::Config rotary_sensor_left_config = {
         .gpio = {
             .port = GPIOA,
             .pin = GPIO_PIN_6
-        }
+        },
+        .timeout = 2
     },
     .encoder = {
         .handle = &htim2,
@@ -149,7 +151,8 @@ proxy::RotarySensor::Config rotary_sensor_right_config = {
         .gpio = {
             .port = GPIOB,
             .pin = GPIO_PIN_1
-        }
+        },
+        .timeout = 2
     },
     .encoder = {
         .handle = &htim5,

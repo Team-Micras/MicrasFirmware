@@ -27,6 +27,7 @@ class Spi {
             SPI_HandleTypeDef* handle;
             void               (* init_function)(void);
             hal::Gpio::Config  gpio;
+            uint32_t           timeout;
         };
 
         /**
@@ -72,6 +73,11 @@ class Spi {
          * @brief GPIO for the chip select pin
          */
         hal::Gpio gpio;
+
+        /**
+         * @brief Timeout for the SPI operations in ms
+         */
+        uint32_t timeout;
 };
 }  // namespace hal
 
