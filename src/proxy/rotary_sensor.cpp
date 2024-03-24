@@ -16,6 +16,6 @@ RotarySensor::RotarySensor(Config& rotary_sensor_config) :
 }
 
 float RotarySensor::get_position() {
-    return 2 * std::numbers::pi_v<float> * encoder.get_counter() *  / this->resolution;
+    return 2 * std::numbers::pi_v<float> * encoder.get_counter() / this->resolution;
 }
 }  // namespace proxy
