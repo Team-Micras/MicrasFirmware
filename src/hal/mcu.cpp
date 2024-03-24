@@ -4,6 +4,7 @@
  * @brief MCU related
  */
 
+#include <dma.h>
 #include <gpio.h>
 #include <main.h>
 
@@ -16,5 +17,6 @@ void Mcu::init(void) {
     SystemClock_Config();
 
     MX_GPIO_Init();
+    MX_DMA_Init();
 }
 }

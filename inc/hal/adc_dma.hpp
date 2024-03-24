@@ -14,7 +14,7 @@
 
 namespace hal {
 /**
- * @brief Class to handle ADC DMA peripheral on STM32 microcontrollers
+ * @brief Class to handle ADC peripheral on STM32 microcontrollers using DMA
  */
 class AdcDma {
     public:
@@ -58,7 +58,7 @@ class AdcDma {
 
     private:
         /**
-         * @brief ADC DMA handle
+         * @brief ADC handle
          */
         ADC_HandleTypeDef* handle;
 };

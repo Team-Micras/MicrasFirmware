@@ -6,12 +6,10 @@
  * @date 03/2024
  */
 
-#include "dma.h"
 #include "hal/adc_dma.hpp"
 
 namespace hal {
 AdcDma::AdcDma(Config& adc_config) : handle{adc_config.handle} {
-    MX_DMA_Init();
     adc_config.init_function();
 }
 
