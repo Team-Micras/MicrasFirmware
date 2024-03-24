@@ -63,29 +63,4 @@ uint32_t Timer::get_counter_us() const {
 
     return 1000 * HAL_GetTick();
 }
-
-constexpr uint32_t Timer::get_channel_from_active(HAL_TIM_ActiveChannel active_channel) {
-    switch (active_channel) {
-        case HAL_TIM_ACTIVE_CHANNEL_1:
-            return TIM_CHANNEL_1;
-
-        case HAL_TIM_ACTIVE_CHANNEL_2:
-            return TIM_CHANNEL_2;
-
-        case HAL_TIM_ACTIVE_CHANNEL_3:
-            return TIM_CHANNEL_3;
-
-        case HAL_TIM_ACTIVE_CHANNEL_4:
-            return TIM_CHANNEL_4;
-
-        case HAL_TIM_ACTIVE_CHANNEL_5:
-            return TIM_CHANNEL_5;
-
-        case HAL_TIM_ACTIVE_CHANNEL_6:
-            return TIM_CHANNEL_6;
-
-        default:
-            return TIM_CHANNEL_ALL;
-    }
-}
 }  // namespace hal

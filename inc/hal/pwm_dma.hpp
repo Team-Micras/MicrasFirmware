@@ -12,8 +12,6 @@
 #include <cstdint>
 #include <tim.h>
 
-#include "hal/timer.hpp"
-
 namespace hal {
 /**
  * @brief Class to handle PWM peripheral on STM32 microcontrollers using DMA
@@ -61,10 +59,4 @@ class PwmDma {
         uint32_t channel;
 };
 }  // namespace hal
-
-extern "C" {
-void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef* htim) {
-    HAL_TIM_PWM_Stop_DMA(htim, hal::Timer::get_channel_from_active(HAL_TIM_GetActiveChannel(htim)));
-}
-}
 #endif // __PWM_DMA_HPP__
