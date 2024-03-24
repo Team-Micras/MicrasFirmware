@@ -76,6 +76,14 @@ class Timer {
          */
         void sleep_us(uint32_t time) const;
 
+        /**
+         * @brief Get the channel number from the active channel flag
+         *
+         * @param active_channel Active channel flag
+         * @return uint32_t Channel number
+         */
+        static constexpr uint32_t get_channel_from_active(HAL_TIM_ActiveChannel active_channel);
+
     private:
         /**
          * @brief Get the current timer counter
