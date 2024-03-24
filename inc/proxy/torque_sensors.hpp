@@ -50,16 +50,16 @@ class TorqueSensors {
          */
         float get_current(uint8_t sensor_index) const;
 
-        /**
-         * @brief Maximum torque that can be measured by the sensor
-         */
-        static constexpr float max_torque = 50.0f;
-
     private:
         /**
          * @brief Current sensors object
          */
         CurrentSensors<num_of_sensors> current_sensors;
+
+        /**
+         * @brief Maximum torque that can be measured by the sensor
+         */
+        static constexpr float max_torque = 50.0f;
 };
 }  // namespace proxy
 

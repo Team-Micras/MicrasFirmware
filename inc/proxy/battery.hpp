@@ -47,11 +47,6 @@ class Battery {
          */
         uint32_t get_voltage_raw();
 
-        /**
-         * @brief Voltage divider ratio
-         */
-        static constexpr float voltage_divider{3.0f};
-
     private:
         /**
          * @brief Adc object
@@ -62,6 +57,11 @@ class Battery {
          * @brief Raw reading from the battery
          */
         uint32_t raw_reading;
+
+        /**
+         * @brief Voltage divider ratio
+         */
+        static constexpr float voltage_divider{3.0f};
 };
 }  // namespace proxy
 
