@@ -23,13 +23,4 @@ class Mcu {
         static void init(void);
 };
 };  // namespace hal
-
-extern "C"
-{
-/**
- * @brief Initializes System Clock
- * @note  Defined by cube
- */
-void SystemClock_Config(void);
-}
 #endif // __MCU_HPP__

@@ -10,6 +10,14 @@
 
 #include "hal/mcu.hpp"
 
+extern "C" {
+/**
+ * @brief Initializes System Clock
+ * @note  Defined by cube
+ */
+void SystemClock_Config(void);
+}
+
 namespace hal {
 void Mcu::init(void) {
     HAL_Init();
