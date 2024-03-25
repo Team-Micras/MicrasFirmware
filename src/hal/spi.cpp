@@ -13,7 +13,7 @@ Spi::Spi(Config& config) : handle{config.handle}, gpio{config.gpio}, timeout{con
 }
 
 bool Spi::select_device() {
-    if (this->handle->Lock == HAL_LOCKED) {
+    if (HAL_SPI_GetState(this->handle) != HAL_SPI_STATE_READY) {
         return false;
     }
 
