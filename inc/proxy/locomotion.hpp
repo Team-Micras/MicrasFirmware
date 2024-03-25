@@ -39,22 +39,30 @@ class Locomotion {
         Locomotion(Config& config);
 
         /**
-         * @brief Enable the motor driver
+         * @brief Enable the locomotion driver
          */
         void enable();
 
         /**
-         * @brief Disable the motor driver
+         * @brief Disable the locomotion driver
          */
         void disable();
 
         /**
-         * @brief Set the speed of the motors
+         * @brief Set the speed of the wheels
          *
-         * @param left_speed Speed of the left motor
-         * @param right_speed Speed of the right motor
+         * @param left_speed Speed of the left wheels
+         * @param right_speed Speed of the right wheels
          */
-        void set_speed(float left_speed, float right_speed);
+        void set_wheel_speed(float left_speed, float right_speed);
+
+        /**
+         * @brief Set the linear and angular speeds of the robot
+         *
+         * @param linear Linear speed of the robot
+         * @param angular Angular speed of the robot
+         */
+        void set_speed(float linear, float angular);
 
         /**
          * @brief Stop the motors
@@ -64,12 +72,12 @@ class Locomotion {
         /**
          * @brief Stop the left motor
          */
-        void stop_left_motor();
+        void stop_left();
 
         /**
          * @brief Stop the right motor
          */
-        void stop_right_motor();
+        void stop_right();
 
     private:
         /**

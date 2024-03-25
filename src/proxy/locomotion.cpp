@@ -6,6 +6,8 @@
  * @date 03/2024
  */
 
+#include <cmath>
+
 #include "proxy/locomotion.hpp"
 
 namespace proxy {
@@ -25,7 +27,7 @@ void Locomotion::disable() {
     this->enable_gpio.write(false);
 }
 
-void Locomotion::set_speed(float left_speed, float right_speed) {
+void Locomotion::set_wheel_speed(float left_speed, float right_speed) {
     if (left_speed > 0.0f) {
         this->pwm_left_fwd.set_duty_cycle(left_speed);
         this->pwm_left_bwd.set_duty_cycle(0.0f);
@@ -33,7 +35,7 @@ void Locomotion::set_speed(float left_speed, float right_speed) {
         this->pwm_left_fwd.set_duty_cycle(0.0f);
         this->pwm_left_bwd.set_duty_cycle(-left_speed);
     } else {
-        this->stop_left_motor();
+        this->stop_left();
     }
 
     if (right_speed > 0.0f) {
@@ -43,21 +45,38 @@ void Locomotion::set_speed(float left_speed, float right_speed) {
         this->pwm_right_fwd.set_duty_cycle(0.0f);
         this->pwm_right_bwd.set_duty_cycle(-right_speed);
     } else {
-        this->stop_right_motor();
+        this->stop_right();
     }
 }
 
-void Locomotion::stop() {
-    this->stop_left_motor();
-    this->stop_right_motor();
+void Locomotion::set_speed(float linear, float angular) {
+    float left_speed = linear - angular;
+    float right_speed = linear + angular;
+
+    if (std::abs(left_speed) > 100.0f) {
+        left_speed *= 100.0f / std::abs(left_speed);
+        right_speed *= 100.0f / std::abs(left_speed);
+    }
+
+    if (std::abs(right_speed) > 100.0f) {
+        left_speed *= 100.0f / std::abs(right_speed);
+        right_speed *= 100.0f / std::abs(right_speed);
+    }
+
+    this->set_wheel_speed(left_speed, right_speed);
 }
 
-void Locomotion::stop_left_motor() {
+void Locomotion::stop() {
+    this->stop_left();
+    this->stop_right();
+}
+
+void Locomotion::stop_left() {
     this->pwm_left_fwd.set_duty_cycle(0.0f);
     this->pwm_left_bwd.set_duty_cycle(0.0f);
 }
 
-void Locomotion::stop_right_motor() {
+void Locomotion::stop_right() {
     this->pwm_right_fwd.set_duty_cycle(0.0f);
     this->pwm_right_bwd.set_duty_cycle(0.0f);
 }
