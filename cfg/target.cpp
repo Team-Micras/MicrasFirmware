@@ -8,6 +8,14 @@
 
 #include "target.hpp"
 
+proxy::Argb<2>::Config argb_config = {
+    .pwm = {
+        .handle = &htim8,
+        .init_function = MX_TIM8_Init,
+        .timer_channel = TIM_CHANNEL_1
+    }
+};
+
 proxy::Battery::Config battery_config = {
     .adc = {
         .handle = &hadc3,

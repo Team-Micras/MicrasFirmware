@@ -9,6 +9,7 @@
 #ifndef __TARGET_HPP__
 #define __TARGET_HPP__
 
+#include "proxy/argb.hpp"
 #include "proxy/battery.hpp"
 #include "proxy/button.hpp"
 #include "proxy/buzzer.hpp"
@@ -21,6 +22,7 @@
 #include "proxy/rotary_sensor.hpp"
 #include "proxy/torque_sensors.hpp"
 
+extern proxy::Argb<2>::Config argb_config;
 extern proxy::Battery::Config battery_config;
 extern proxy::Button::Config button_config;
 extern proxy::Buzzer::Config buzzer_config;

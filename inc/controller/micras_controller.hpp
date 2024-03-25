@@ -9,6 +9,7 @@
 #ifndef __MICRAS_CONTROLLER_HPP__
 #define __MICRAS_CONTROLLER_HPP__
 
+#include "proxy/argb.hpp"
 #include "proxy/battery.hpp"
 #include "proxy/button.hpp"
 #include "proxy/buzzer.hpp"
@@ -34,6 +35,7 @@ class MicrasController {
         void run();
 
     private:
+        proxy::Argb<2> argb;
         proxy::Battery battery;
         proxy::Button button;
         proxy::Buzzer buzzer;
