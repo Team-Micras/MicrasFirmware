@@ -72,6 +72,12 @@ class Argb {
         void turn_off();
 
     private:
+        /**
+         * @brief Encode a color into the data buffer
+         *
+         * @param color The color to encode
+         * @param index The index to encode the color at
+         */
         void encode_color(const Color& color, uint8_t index);
 
         /**
