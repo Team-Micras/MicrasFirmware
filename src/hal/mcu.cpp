@@ -26,5 +26,6 @@ void Mcu::init(void) {
 
     MX_GPIO_Init();
     MX_DMA_Init();
+    MX_CRC_Init();
 }
 }

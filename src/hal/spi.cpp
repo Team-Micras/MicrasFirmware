@@ -10,6 +10,7 @@
 
 namespace hal {
 Spi::Spi(Config& config) : handle{config.handle}, gpio{config.gpio}, timeout{config.timeout} {
+    config.init_function();
 }
 
 bool Spi::select_device() {

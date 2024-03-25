@@ -17,8 +17,8 @@ static constexpr float mdps_to_radps{std::numbers::pi_v<float> / 180000};
 
 Imu::Imu(Config& config) :
     convert_ang_vel{config.convert_ang_vel}, convert_lin_acc{config.convert_lin_acc}, spi{config.spi} {
-    this->dev_ctx.read_reg = Imu::platform_read;
-    this->dev_ctx.write_reg = Imu::platform_write;
+    this->dev_ctx.read_reg = platform_read;
+    this->dev_ctx.write_reg = platform_write;
     this->dev_ctx.handle = &config.spi;
 
     hal::Timer::sleep_ms(10);
