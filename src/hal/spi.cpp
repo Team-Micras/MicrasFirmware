@@ -12,12 +12,13 @@ namespace hal {
 Spi::Spi(Config& config) : handle{config.handle}, gpio{config.gpio}, timeout{config.timeout} {
 }
 
-void Spi::select_device() {
+bool Spi::select_device() {
     if (this->handle->Lock == HAL_LOCKED) {
-        return;
+        return false;
     }
 
     this->gpio.write(false);
+    return true;
 }
 
 void Spi::unselect_device() {
