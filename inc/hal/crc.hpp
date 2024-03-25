@@ -39,7 +39,7 @@ class Crc {
          *
          * @return CRC value
          */
-        uint32_t Crc::calculate(uint32_t data[], uint32_t size);
+        uint32_t calculate(uint32_t data[], uint32_t size);
 
     private:
         /**
