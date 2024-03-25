@@ -12,7 +12,8 @@ proxy::Battery::Config battery_config = {
     .adc = {
         .handle = &hadc3,
         .init_function = MX_ADC3_Init
-    }
+    },
+    .voltage_divider = 3.0f
 };
 
 proxy::Button::Config button_config = {
@@ -61,7 +62,8 @@ proxy::DistanceSensors<4>::Config distance_sensors_config = {
         .handle = &htim15,
         .init_function = MX_TIM15_Init,
         .timer_channel = TIM_CHANNEL_1
-    }
+    },
+    .max_distance = 0.3f
 };
 
 proxy::Fan::Config fan_config = {
@@ -169,5 +171,6 @@ proxy::TorqueSensors<2>::Config torque_sensors_config = {
             .init_function = MX_ADC2_Init
         },
         .shunt_resistor = 0.04f
-    }
+    },
+    .max_torque = 0.5f
 };

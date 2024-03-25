@@ -11,8 +11,8 @@
 #include "hal/pwm_dma.hpp"
 
 namespace hal {
-PwmDma::PwmDma(Config& pwm_config) : handle{pwm_config.handle}, channel{pwm_config.timer_channel} {
-    pwm_config.init_function();
+PwmDma::PwmDma(Config& config) : handle{config.handle}, channel{config.timer_channel} {
+    config.init_function();
 }
 
 void PwmDma::start_dma(uint32_t buffer[], uint32_t size) {

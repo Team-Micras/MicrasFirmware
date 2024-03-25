@@ -11,11 +11,10 @@
 #include "proxy/rotary_sensor.hpp"
 
 namespace proxy {
-RotarySensor::RotarySensor(Config& rotary_sensor_config) :
-    spi{rotary_sensor_config.spi}, encoder{rotary_sensor_config.encoder} {
+RotarySensor::RotarySensor(Config& config) : spi{config.spi}, encoder{config.encoder}, resolution{config.resolution} {
 }
 
 float RotarySensor::get_position() {
-    return 2 * std::numbers::pi_v<float> * encoder.get_counter() / this->resolution;
+    return encoder.get_counter() * 2 * std::numbers::pi_v<float> / this->resolution;
 }
 }  // namespace proxy

@@ -30,9 +30,9 @@ class Pwm {
         /**
          * @brief Construct a new Pwm object
          *
-         * @param pwm_config Configuration for the PWM
+         * @param config Configuration for the PWM
          */
-        Pwm(Config& pwm_config);
+        Pwm(Config& config);
 
         /**
          * @brief Set the PWM duty cycle

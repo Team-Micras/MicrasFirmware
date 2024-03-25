@@ -9,8 +9,8 @@
 #include "hal/adc_dma.hpp"
 
 namespace hal {
-AdcDma::AdcDma(Config& adc_config) : handle{adc_config.handle} {
-    adc_config.init_function();
+AdcDma::AdcDma(Config& config) : handle{config.handle} {
+    config.init_function();
 }
 
 void AdcDma::start_dma(uint32_t buffer[], uint32_t size) {

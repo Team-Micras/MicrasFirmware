@@ -16,7 +16,7 @@
 
 namespace proxy {
 /**
- * @brief Class for controlling the fan
+ * @brief Class for controlling the fan driver
  */
 class Fan {
     public:
@@ -40,9 +40,9 @@ class Fan {
         /**
          * @brief Construct a new fan object
          *
-         * @param fan_config
+         * @param config Configuration for the fan driver
          */
-        Fan(Config& fan_config);
+        Fan(Config& config);
 
         /**
          * @brief Enable the fan

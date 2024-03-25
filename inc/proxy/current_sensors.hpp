@@ -32,9 +32,9 @@ class CurrentSensors {
         /**
          * @brief Constructor for the CurrentSensors class
          *
-         * @param current_sensors_config Configuration for the current sensors
+         * @param config Configuration for the current sensors
          */
-        CurrentSensors(Config& current_sensors_config);
+        CurrentSensors(Config& config);
 
         /**
          * @brief Get the current from the sensor

@@ -34,9 +34,9 @@ class Timer {
         /**
          * @brief Construct a new Timer object
          *
-         * @param timer_config Configuration for the timer
+         * @param config Configuration for the timer
          */
-        Timer(Config& timer_config);
+        Timer(Config& config);
 
         /**
          * @brief Reset the timer counter in milliseconds
@@ -104,7 +104,7 @@ class Timer {
         /**
          * @brief Flag to enable microseconds
          */
-        bool enable_microseconds = false;
+        bool enable_microseconds{false};
 };
 }  // namespace hal
 

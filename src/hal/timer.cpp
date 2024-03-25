@@ -9,8 +9,8 @@
 #include "hal/timer.hpp"
 
 namespace hal {
-Timer::Timer(Config& timer_config) : handle{timer_config.handle} {
-    timer_config.init_function();
+Timer::Timer(Config& config) : handle{config.handle} {
+    config.init_function();
 
     uint32_t base_freq = HAL_RCC_GetPCLK1Freq();
     uint32_t prescaler = this->handle->Instance->PSC;

@@ -29,9 +29,9 @@ class Gpio {
         /**
          * @brief Constructor for the Gpio class
          *
-         * @param gpio_config Configuration for the GPIO pin
+         * @param config Configuration for the GPIO pin
          */
-        Gpio(Config& gpio_config);
+        Gpio(Config& config);
 
         /**
          * @brief Read the current state of the GPIO pin

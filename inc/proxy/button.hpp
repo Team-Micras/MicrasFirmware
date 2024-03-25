@@ -52,9 +52,9 @@ class Button {
         /**
          * @brief Constructor for Button class
          *
-         * @param button_config Button configuration
+         * @param config Button configuration
          */
-        Button(Config& button_config);
+        Button(Config& config);
 
         /**
          * @brief Check if button is pressed

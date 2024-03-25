@@ -24,14 +24,15 @@ class Battery {
          */
         struct Config {
             hal::AdcDma::Config adc;
+            float               voltage_divider;
         };
 
         /**
          * @brief Constructor for the Battery class
          *
-         * @param battery_config Configuration for the battery
+         * @param config Configuration for the battery
          */
-        Battery(Config& battery_config);
+        Battery(Config& config);
 
         /**
          * @brief Get the battery voltage
@@ -61,7 +62,7 @@ class Battery {
         /**
          * @brief Voltage divider ratio
          */
-        static constexpr float voltage_divider{3.0f};
+        const float voltage_divider;
 };
 }  // namespace proxy
 

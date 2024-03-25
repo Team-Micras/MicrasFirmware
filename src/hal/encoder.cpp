@@ -9,9 +9,9 @@
 #include "hal/encoder.hpp"
 
 namespace hal {
-Encoder::Encoder(Config& encoder_config) : handle{encoder_config.handle} {
-    encoder_config.init_function();
-    HAL_TIM_Encoder_Start(this->handle, encoder_config.timer_channel);
+Encoder::Encoder(Config& config) : handle{config.handle} {
+    config.init_function();
+    HAL_TIM_Encoder_Start(this->handle, config.timer_channel);
 }
 
 int32_t Encoder::get_counter() {

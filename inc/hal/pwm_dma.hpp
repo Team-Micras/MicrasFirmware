@@ -30,9 +30,9 @@ class PwmDma {
         /**
          * @brief Construct a new PwmDma object
          *
-         * @param pwm_config Configuration for the PWM
+         * @param config Configuration for the PWM
          */
-        PwmDma(Config& pwm_config);
+        PwmDma(Config& config);
 
         /**
          * @brief Start PWM and DMA transfer

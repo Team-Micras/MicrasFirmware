@@ -13,8 +13,8 @@
 
 namespace proxy {
 template <uint8_t num_of_sensors>
-DistanceSensors<num_of_sensors>::DistanceSensors(Config& distance_sensor_config) :
-    adc{distance_sensor_config.adc}, led_pwm{distance_sensor_config.led_pwm} {
+DistanceSensors<num_of_sensors>::DistanceSensors(Config& config) :
+    adc{config.adc}, led_pwm{config.led_pwm}, max_distance{config.max_distance} {
     this->adc.start_dma(this->buffer.data(), num_of_sensors);
     this->led_pwm.set_duty_cycle(100.0f);
 }
@@ -26,7 +26,7 @@ void DistanceSensors<num_of_sensors>::set_led_intensity(float intensity) {
 
 template <uint8_t num_of_sensors>
 float DistanceSensors<num_of_sensors>::get_distance(uint8_t sensor_index) const {
-    return DistanceSensors::max_distance * this->buffer.at(sensor_index) / hal::AdcDma::max_reading;
+    return this->max_distance * this->buffer.at(sensor_index) / hal::AdcDma::max_reading;
 }
 
 template <uint8_t num_of_sensors>

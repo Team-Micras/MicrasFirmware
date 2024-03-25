@@ -9,7 +9,7 @@
 #include "proxy/led.hpp"
 
 namespace proxy {
-Led::Led(Config& led_config) : gpio{led_config.gpio} {
+Led::Led(Config& config) : gpio{config.gpio} {
 }
 
 void Led::turn_on() {

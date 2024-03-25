@@ -16,7 +16,7 @@
 
 namespace proxy {
 /**
- * @brief Class for controlling the locomotion
+ * @brief Class for controlling the locomotion driver
  */
 class Locomotion {
     public:
@@ -34,9 +34,9 @@ class Locomotion {
         /**
          * @brief Construct a new locomotion object
          *
-         * @param locomotion_config
+         * @param config Configuration for the locomotion driver
          */
-        Locomotion(Config& locomotion_config);
+        Locomotion(Config& config);
 
         /**
          * @brief Enable the motor driver

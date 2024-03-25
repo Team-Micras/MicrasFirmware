@@ -13,8 +13,7 @@
 
 namespace proxy {
 template <uint8_t num_of_sensors>
-CurrentSensors<num_of_sensors>::CurrentSensors(Config& current_sensors_config) :
-    adc{current_sensors_config.adc}, shunt_resistor{current_sensors_config.shunt_resistor} {
+CurrentSensors<num_of_sensors>::CurrentSensors(Config& config) : adc{config.adc}, shunt_resistor{config.shunt_resistor} {
     this->adc.start_dma(this->buffer.data(), num_of_sensors);
 }
 

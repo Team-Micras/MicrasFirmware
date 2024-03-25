@@ -9,7 +9,7 @@
 #include "hal/spi.hpp"
 
 namespace hal {
-Spi::Spi(Config& spi_config) : handle{spi_config.handle}, gpio{spi_config.gpio}, timeout{spi_config.timeout} {
+Spi::Spi(Config& config) : handle{config.handle}, gpio{config.gpio}, timeout{config.timeout} {
 }
 
 void Spi::select_device() {

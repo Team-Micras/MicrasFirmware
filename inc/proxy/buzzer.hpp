@@ -30,9 +30,9 @@ class Buzzer {
         /**
          * @brief Constructor for the Buzzer class
          *
-         * @param buzzer_config Configuration for the buzzer
+         * @param config Configuration for the buzzer
          */
-        Buzzer(Config& buzzer_config);
+        Buzzer(Config& config);
 
         /**
          * @brief Play a tone for a duration
@@ -66,12 +66,12 @@ class Buzzer {
         /**
          * @brief Flag to check if the buzzer is playing
          */
-        bool is_playing = false;
+        bool is_playing{false};
 
         /**
          * @brief Duration of the sound
          */
-        uint32_t duration = 0;
+        uint32_t duration{0};
 };
 }  // namespace proxy
 

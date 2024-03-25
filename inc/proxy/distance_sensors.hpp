@@ -28,14 +28,15 @@ class DistanceSensors {
         struct Config {
             hal::AdcDma::Config adc;
             hal::Pwm::Config    led_pwm;
+            float               max_distance;
         };
 
         /**
          * @brief Constructor for the DistanceSensors class
          *
-         * @param distance_sensor_config Configuration for the distance sensors
+         * @param config Configuration for the distance sensors
          */
-        DistanceSensors(Config& distance_sensor_config);
+        DistanceSensors(Config& config);
 
         /**
          * @brief Set the distance sensors led intensity
@@ -79,7 +80,7 @@ class DistanceSensors {
         /**
          * @brief Maximum distance reading in meters
          */
-        static constexpr float max_distance{0.3f};
+        const float max_distance;
 };
 }  // namespace proxy
 

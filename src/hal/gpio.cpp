@@ -9,7 +9,7 @@
 #include "hal/gpio.hpp"
 
 namespace hal {
-Gpio::Gpio(Config& gpio_config) : port{gpio_config.port}, pin{gpio_config.pin} {
+Gpio::Gpio(Config& config) : port{config.port}, pin{config.pin} {
 }
 
 bool Gpio::read(void) const {

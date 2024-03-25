@@ -9,12 +9,12 @@
 #include "proxy/button.hpp"
 
 namespace proxy {
-Button::Button(Config& button_config) :
-    debounce_delay{button_config.debounce_delay},
-    long_press_delay{button_config.long_press_delay},
-    extra_long_press_delay{button_config.extra_long_press_delay},
-    gpio{button_config.gpio},
-    pull_resistor{button_config.pull_resistor} {
+Button::Button(Config& config) :
+    debounce_delay{config.debounce_delay},
+    long_press_delay{config.long_press_delay},
+    extra_long_press_delay{config.extra_long_press_delay},
+    gpio{config.gpio},
+    pull_resistor{config.pull_resistor} {
 }
 
 bool Button::is_pressed() {

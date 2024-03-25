@@ -10,7 +10,7 @@
 #include "proxy/imu.hpp"
 
 namespace proxy {
-Imu::Imu(Config& imu_config) : spi{imu_config.spi} {
+Imu::Imu(Config& config) : spi{config.spi} {
     this->dev_ctx.write_reg =
         [](void* handle, uint8_t reg, const uint8_t* bufp, uint16_t len) -> int32_t {
             auto spi = static_cast<hal::Spi*>(handle);
@@ -36,7 +36,7 @@ Imu::Imu(Config& imu_config) : spi{imu_config.spi} {
             return 0;
         };
 
-    this->dev_ctx.handle = &imu_config.spi;
+    this->dev_ctx.handle = &config.spi;
 
     hal::Timer::sleep_ms(10);
 

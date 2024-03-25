@@ -25,14 +25,15 @@ class TorqueSensors {
          */
         struct Config {
             typename CurrentSensors<num_of_sensors>::Config current_sensors;
+            float                                           max_torque;
         };
 
         /**
          * @brief Constructor for the TorqueSensors class
          *
-         * @param torque_sensors_config Configuration for the torque sensors
+         * @param config Configuration for the torque sensors
          */
-        TorqueSensors(Config& torque_sensors_config);
+        TorqueSensors(Config& config);
 
         /**
          * @brief Get the torque from the sensor
@@ -59,7 +60,7 @@ class TorqueSensors {
         /**
          * @brief Maximum torque that can be measured by the sensor
          */
-        static constexpr float max_torque = 50.0f;
+        const float max_torque;
 };
 }  // namespace proxy
 

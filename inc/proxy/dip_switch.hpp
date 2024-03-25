@@ -31,9 +31,9 @@ class DipSwitch {
         /**
          * @brief Construct a new Dip Switch object
          *
-         * @param dip_switch_config Configuration struct for DipSwitch
+         * @param config Configuration struct for DipSwitch
          */
-        DipSwitch(Config& dip_switch_config);
+        DipSwitch(Config& config);
 
         /**
          * @brief Get the state of a switch

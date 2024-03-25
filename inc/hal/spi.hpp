@@ -33,9 +33,9 @@ class Spi {
         /**
          * @brief Construct a new Spi object
          *
-         * @param spi_config Configuration for the SPI
+         * @param config Configuration for the SPI
          */
-        Spi(Config& spi_config);
+        Spi(Config& config);
 
         /**
          * @brief Activate the chip select

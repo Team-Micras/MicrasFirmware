@@ -27,9 +27,9 @@ class Led {
         /**
          * @brief Constructor for the Led class
          *
-         * @param led_config Configuration for the LED
+         * @param config Configuration for the LED
          */
-        Led(Config& led_config);
+        Led(Config& config);
 
         /**
          * @brief Turn the LED on

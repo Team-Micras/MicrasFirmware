@@ -31,9 +31,9 @@ class Imu {
         /**
          * @brief Construct a new Imu object
          *
-         * @param imu_config Configuration for the IMU
+         * @param config Configuration for the IMU
          */
-        Imu(Config& imu_config);
+        Imu(Config& config);
 
         enum Axis {
             W,

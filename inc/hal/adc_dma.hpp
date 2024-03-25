@@ -24,14 +24,16 @@ class AdcDma {
         struct Config {
             ADC_HandleTypeDef* handle;
             void               (* init_function)(void);
+            uint32_t           max_reading;
+            float              reference_voltage;
         };
 
         /**
          * @brief Construct a new AdcDma object
          *
-         * @param adc_config ADC DMA configuration struct
+         * @param config ADC DMA configuration struct
          */
-        AdcDma(Config& adc_config);
+        AdcDma(Config& config);
 
         /**
          * @brief Enable ADC, start conversion of regular group and transfer result through DMA
@@ -46,21 +48,21 @@ class AdcDma {
          */
         void stop_dma();
 
-        /**
-         * @brief Reference voltage for the ADC measurement
-         */
-        static constexpr float reference_voltage{3.3f};
-
-        /**
-         * @brief Maximum ADC reading
-         */
-        static constexpr uint32_t max_reading{4095};
-
     private:
         /**
          * @brief ADC handle
          */
         ADC_HandleTypeDef* handle;
+
+        /**
+         * @brief Maximum ADC reading
+         */
+        const uint32_t max_reading;
+
+        /**
+         * @brief Reference voltage for the ADC measurement
+         */
+        const float reference_voltage;
 };
 }
 

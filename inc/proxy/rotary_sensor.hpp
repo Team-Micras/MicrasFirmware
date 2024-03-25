@@ -32,9 +32,9 @@ class RotarySensor {
         /**
          * @brief Construct a new RotarySensor object
          *
-         * @param rotary_sensor_config Configuration for the rotary sensor
+         * @param config Configuration for the rotary sensor
          */
-        RotarySensor(Config& rotary_sensor_config);
+        RotarySensor(Config& config);
 
         /**
          * @brief Get the rotary sensor position over an axis

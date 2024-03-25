@@ -29,9 +29,9 @@ class Encoder {
         /**
          * @brief Construct a new Encoder object
          *
-         * @param encoder_config Configuration for the encoder
+         * @param config Configuration for the encoder
          */
-        Encoder(Config& encoder_config);
+        Encoder(Config& config);
 
         /**
          * @brief Get the counter value
