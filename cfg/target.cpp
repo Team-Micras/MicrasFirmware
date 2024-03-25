@@ -148,7 +148,47 @@ proxy::Locomotion::Config locomotion_config = {
     }
 };
 
-proxy::RotarySensor::Registers rotary_sensor_reg_config;
+proxy::RotarySensor::Registers rotary_sensor_reg_config = {
+    .disable = {{
+        .UVW_off = 1,
+        .ABI_off = 0,
+        .na = 0,
+        .FILTER_disable = 0
+    }},
+    .zposm = {{
+        .ZPOSM = 0
+    }},
+    .zpos = {{
+        .ZPOSL = 0,
+        .Dia1_en = 0,
+        .Dia2_en = 0
+    }},
+    .settings1 = {{
+        .K_max = 0,
+        .K_min = 0,
+        .Dia3_en = 0,
+        .Dia4_en = 0
+    }},
+    .settings2 = {{
+        .IWIDTH = 0,
+        .NOISESET = 0,
+        .DIR = 0,
+        .UVW_ABI = 0,
+        .DAECDIS = 0,
+        .ABI_DEC = 0,
+        .Data_select = 0,
+        .PWMon = 0
+    }},
+    .settings3 = {{
+        .UVWPP = 0,
+        .HYS = 0,
+        .ABIRES = 0b100
+    }},
+    .ecc = {{
+        .ECC_chsum = 0,
+        .ECC_en = 0
+    }}
+};
 
 proxy::RotarySensor::Config rotary_sensor_left_config = {
     .spi = {

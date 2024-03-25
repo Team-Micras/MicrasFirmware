@@ -14,43 +14,46 @@
 
 struct Registers {
     union Disable {
-        uint8_t raw;
         struct __attribute__((packed)) {
             uint8_t UVW_off : 1;
             uint8_t ABI_off : 1;
             uint8_t na : 4;
             uint8_t FILTER_disable : 1;
         };
+
+        uint8_t raw;
     };
 
     union Zposm {
-        uint8_t raw;
         struct __attribute__((packed)) {
             uint8_t ZPOSM : 8;
         };
+
+        uint8_t raw;
     };
 
     union Zpols {
-        uint8_t raw;
         struct __attribute__((packed)) {
             uint8_t ZPOSL : 6;
             uint8_t Dia1_en : 1;
             uint8_t Dia2_en : 1;
         };
+
+        uint8_t raw;
     };
 
     union Settings1 {
-        uint8_t raw;
         struct __attribute__((packed)) {
             uint8_t K_max : 3;
             uint8_t K_min : 3;
             uint8_t Dia3_en : 1;
             uint8_t Dia4_en : 1;
         };
+
+        uint8_t raw;
     };
 
     union Settings2 {
-        uint8_t raw;
         struct __attribute__((packed)) {
             uint8_t IWIDTH : 1;
             uint8_t NOISESET : 1;
@@ -61,23 +64,27 @@ struct Registers {
             uint8_t Data_select : 1;
             uint8_t PWMon : 1;
         };
+
+        uint8_t raw;
     };
 
     union Settings3 {
-        uint8_t raw;
         struct __attribute__((packed)) {
             uint8_t UVWPP : 3;
             uint8_t HYS : 2;
             uint8_t ABIRES : 3;
         };
+
+        uint8_t raw;
     };
 
     union Ecc {
-        uint8_t raw;
         struct __attribute__((packed)) {
             uint8_t ECC_chsum : 7;
             uint8_t ECC_en : 1;
         };
+
+        uint8_t raw;
     };
 
     static constexpr uint16_t disable_addr{0x0015};
