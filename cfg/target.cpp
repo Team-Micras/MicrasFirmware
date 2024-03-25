@@ -19,7 +19,9 @@ proxy::Argb<2>::Config argb_config = {
 proxy::Battery::Config battery_config = {
     .adc = {
         .handle = &hadc3,
-        .init_function = MX_ADC3_Init
+        .init_function = MX_ADC3_Init,
+        .max_reading = 4095,
+        .reference_voltage = 3.3f
     },
     .voltage_divider = 3.0f
 };
@@ -64,7 +66,9 @@ proxy::DipSwitch<4>::Config dip_switch_config = {
 proxy::DistanceSensors<4>::Config distance_sensors_config = {
     .adc = {
         .handle = &hadc1,
-        .init_function = MX_ADC1_Init
+        .init_function = MX_ADC1_Init,
+        .max_reading = 4095,
+        .reference_voltage = 3.3f
     },
     .led_pwm = {
         .handle = &htim15,
@@ -176,7 +180,9 @@ proxy::TorqueSensors<2>::Config torque_sensors_config = {
     .current_sensors = {
         .adc = {
             .handle = &hadc2,
-            .init_function = MX_ADC2_Init
+            .init_function = MX_ADC2_Init,
+            .max_reading = 4095,
+            .reference_voltage = 3.3f
         },
         .shunt_resistor = 0.04f
     },

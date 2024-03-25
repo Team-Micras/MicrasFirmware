@@ -48,12 +48,6 @@ class AdcDma {
          */
         void stop_dma();
 
-    private:
-        /**
-         * @brief ADC handle
-         */
-        ADC_HandleTypeDef* handle;
-
         /**
          * @brief Maximum ADC reading
          */
@@ -63,6 +57,12 @@ class AdcDma {
          * @brief Reference voltage for the ADC measurement
          */
         const float reference_voltage;
+
+    private:
+        /**
+         * @brief ADC handle
+         */
+        ADC_HandleTypeDef* handle;
 };
 }
 

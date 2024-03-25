@@ -13,14 +13,15 @@
 
 namespace proxy {
 template <uint8_t num_of_sensors>
-CurrentSensors<num_of_sensors>::CurrentSensors(Config& config) : adc{config.adc}, shunt_resistor{config.shunt_resistor} {
+CurrentSensors<num_of_sensors>::CurrentSensors(Config& config) :
+    adc{config.adc}, shunt_resistor{config.shunt_resistor} {
     this->adc.start_dma(this->buffer.data(), num_of_sensors);
 }
 
 template <uint8_t num_of_sensors>
 float CurrentSensors<num_of_sensors>::get_current(uint8_t sensor_index) const {
-    return hal::AdcDma::reference_voltage * this->buffer.at(sensor_index) /
-           (hal::AdcDma::max_reading * this->shunt_resistor);
+    return this->adc.reference_voltage * this->buffer.at(sensor_index) /
+           (this->adc.max_reading * this->shunt_resistor);
 }
 
 template <uint8_t num_of_sensors>

@@ -26,7 +26,7 @@ void DistanceSensors<num_of_sensors>::set_led_intensity(float intensity) {
 
 template <uint8_t num_of_sensors>
 float DistanceSensors<num_of_sensors>::get_distance(uint8_t sensor_index) const {
-    return this->max_distance * this->buffer.at(sensor_index) / hal::AdcDma::max_reading;
+    return this->max_distance * this->buffer.at(sensor_index) / this->adc.max_reading;
 }
 
 template <uint8_t num_of_sensors>
