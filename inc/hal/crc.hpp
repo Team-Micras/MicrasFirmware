@@ -13,7 +13,7 @@
 
 namespace hal {
 /**
- * @brief Class to handle CRC peripheral on STM32 microcontrollers
+ * @brief Class to handle the cyclic redundancy check peripheral on STM32 microcontrollers
  */
 class Crc {
     public:
