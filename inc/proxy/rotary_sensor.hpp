@@ -11,6 +11,7 @@
 
 #include <cstdint>
 
+#include "hal/crc.hpp"
 #include "hal/encoder.hpp"
 #include "hal/spi.hpp"
 
@@ -20,13 +21,17 @@ namespace proxy {
  */
 class RotarySensor {
     public:
+    #include "proxy/rotary_sensor_reg.hpp"
+
         /**
          * @brief rotary sensor configuration struct
          */
         struct Config {
             hal::Spi::Config     spi;
             hal::Encoder::Config encoder;
+            hal::Crc::Config     crc;
             uint32_t             resolution;
+            Registers            registers;
         };
 
         /**
@@ -44,6 +49,34 @@ class RotarySensor {
         float get_position();
 
     private:
+        union CommandFrame {
+            uint32_t raw;
+            struct __attribute__((packed)) {
+                uint8_t  do_not_care : 1;
+                uint8_t  rw : 1;
+                uint16_t address : 14;
+                uint8_t  crc : 8;
+            };
+        };
+
+        union DataFrame {
+            uint32_t raw;
+            struct __attribute__((packed)) {
+                uint8_t  warning : 1;
+                uint8_t  error : 1;
+                uint16_t data : 14;
+                uint8_t  crc : 8;
+            };
+        };
+
+        /**
+         * @brief Write a register to the rotary sensor
+         *
+         * @param command_frame Command frame to send trough SPI
+         * @param data_frame Data frame to send trough SPI
+         */
+        void write_register(CommandFrame& command_frame, DataFrame& data_frame);
+
         /**
          * @brief SPI for the rotary sensor configuration
          */
@@ -53,6 +86,11 @@ class RotarySensor {
          * @brief Encoder for getting the rotary sensor data
          */
         hal::Encoder encoder;
+
+        /**
+         * @brief CRC for the rotary sensor configuration
+         */
+        hal::Crc crc;
 
         /**
          * @brief Resolution of the rotary sensor

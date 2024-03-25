@@ -21,7 +21,7 @@ class Crc {
          * @brief CRC configuration struct
          */
         struct Config {
-            TIM_HandleTypeDef* handle;
+            CRC_HandleTypeDef* handle;
         };
 
         /**

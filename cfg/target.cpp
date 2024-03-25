@@ -148,6 +148,8 @@ proxy::Locomotion::Config locomotion_config = {
     }
 };
 
+proxy::RotarySensor::Registers rotary_sensor_reg_config;
+
 proxy::RotarySensor::Config rotary_sensor_left_config = {
     .spi = {
         .handle = &hspi1,
@@ -163,7 +165,11 @@ proxy::RotarySensor::Config rotary_sensor_left_config = {
         .init_function = MX_TIM2_Init,
         .timer_channel = TIM_CHANNEL_ALL
     },
-    .resolution = 4096
+    .crc = {
+        .handle = &hcrc
+    },
+    .resolution = 4096,
+    .registers = rotary_sensor_reg_config
 };
 
 proxy::RotarySensor::Config rotary_sensor_right_config = {
@@ -181,7 +187,11 @@ proxy::RotarySensor::Config rotary_sensor_right_config = {
         .init_function = MX_TIM5_Init,
         .timer_channel = TIM_CHANNEL_ALL
     },
-    .resolution = 4096
+    .crc = {
+        .handle = &hcrc
+    },
+    .resolution = 4096,
+    .registers = rotary_sensor_reg_config
 };
 
 proxy::TorqueSensors<2>::Config torque_sensors_config = {
