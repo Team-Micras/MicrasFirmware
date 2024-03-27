@@ -105,18 +105,18 @@ void Storage::serialize_var_map() {
         this->buffer.insert(this->buffer.begin(), name.begin(), name.end());
 
         this->buffer.insert(this->buffer.begin(), name.size());
-
-        uint32_t total_size = this->buffer.size();
-
-        this->buffer.insert(this->buffer.begin(), this->variables.size());
-        this->buffer.insert(this->buffer.begin(), this->variables.size() >> 8);
-        this->buffer.insert(this->buffer.begin(), this->variables.size() >> 16);
-        this->buffer.insert(this->buffer.begin(), this->variables.size() >> 24);
-
-        this->buffer.insert(this->buffer.begin(), total_size);
-        this->buffer.insert(this->buffer.begin(), total_size >> 8);
-        this->buffer.insert(this->buffer.begin(), total_size >> 16);
-        this->buffer.insert(this->buffer.begin(), total_size >> 24);
     }
+
+    uint32_t total_size = this->buffer.size();
+
+    this->buffer.insert(this->buffer.begin(), this->variables.size());
+    this->buffer.insert(this->buffer.begin(), this->variables.size() >> 8);
+    this->buffer.insert(this->buffer.begin(), this->variables.size() >> 16);
+    this->buffer.insert(this->buffer.begin(), this->variables.size() >> 24);
+
+    this->buffer.insert(this->buffer.begin(), total_size);
+    this->buffer.insert(this->buffer.begin(), total_size >> 8);
+    this->buffer.insert(this->buffer.begin(), total_size >> 16);
+    this->buffer.insert(this->buffer.begin(), total_size >> 24);
 }
 }  // namespace proxy
