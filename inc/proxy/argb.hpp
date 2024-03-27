@@ -81,6 +81,16 @@ class Argb {
         void encode_color(const Color& color, uint8_t index);
 
         /**
+         * @brief Protocol constants for the addressable RGB LED communication
+         */
+        static constexpr uint8_t bits_per_color{8};
+        static constexpr uint8_t colors_per_led{3};
+        static constexpr uint8_t bits_per_led{bits_per_color * colors_per_led};
+        static constexpr float low_duty_cycle{0.32f};
+        static constexpr float high_duty_cycle{0.64f};
+        static constexpr uint8_t reset_length{40};
+
+        /**
          * @brief PWM control object
          */
         hal::PwmDma pwm;
@@ -94,16 +104,6 @@ class Argb {
          * @brief PWM autoreload value for the high signal
          */
         const uint32_t high_bit;
-
-        /**
-         * @brief Protocol constants for the addressable RGB LED communication
-         */
-        static constexpr uint8_t bits_per_color{8};
-        static constexpr uint8_t colors_per_led{3};
-        static constexpr uint8_t bits_per_led{bits_per_color * colors_per_led};
-        static constexpr float low_duty_cycle{0.32f};
-        static constexpr float high_duty_cycle{0.64f};
-        static constexpr uint8_t reset_length{40};
 
         /**
          * @brief Data buffer to send to the addressable RGB LED

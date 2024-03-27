@@ -12,6 +12,7 @@
 #include <array>
 #include <cstdint>
 #include <lsm6dsv_reg.h>
+#include <numbers>
 
 #include "hal/spi.hpp"
 
@@ -120,6 +121,12 @@ class Imu {
          * @return Linear acceleration in mg
          */
         float (* convert_lin_acc)(int16_t);
+
+        /**
+         * @brief Conversion constants
+         */
+        static constexpr float mg_to_mps2{0.00980665};
+        static constexpr float mdps_to_radps{std::numbers::pi_v<float> / 180000};
 
         /**
          * @brief SPI for the IMU communication

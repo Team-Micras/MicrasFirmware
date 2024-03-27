@@ -6,15 +6,10 @@
  * @date 03/2024
  */
 
-#include <numbers>
-
 #include "hal/timer.hpp"
 #include "proxy/imu.hpp"
 
 namespace proxy {
-static constexpr float mg_to_mps2{0.00980665};
-static constexpr float mdps_to_radps{std::numbers::pi_v<float> / 180000};
-
 Imu::Imu(Config& config) :
     convert_ang_vel{config.convert_ang_vel}, convert_lin_acc{config.convert_lin_acc}, spi{config.spi} {
     this->dev_ctx.read_reg = platform_read;
