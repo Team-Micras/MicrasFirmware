@@ -23,7 +23,7 @@ template <uint8_t num_of_sensors>
 class DistanceSensors {
     public:
         /**
-         * @brief configuration structure for distance sensors
+         * @brief Configuration structure for distance sensors
          */
         struct Config {
             hal::AdcDma::Config adc;

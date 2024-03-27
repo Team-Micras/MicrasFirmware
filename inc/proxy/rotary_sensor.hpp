@@ -24,7 +24,7 @@ class RotarySensor {
     #include "proxy/rotary_sensor_reg.hpp"
 
         /**
-         * @brief rotary sensor configuration struct
+         * @brief Rotary sensor configuration struct
          */
         struct Config {
             hal::Spi::Config     spi;

@@ -21,7 +21,7 @@ template <uint8_t num_of_sensors>
 class TorqueSensors {
     public:
         /**
-         * @brief configuration structure for torque sensors
+         * @brief Configuration structure for torque sensors
          */
         struct Config {
             typename CurrentSensors<num_of_sensors>::Config current_sensors;

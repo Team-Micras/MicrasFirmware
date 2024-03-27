@@ -22,7 +22,7 @@ template <uint8_t num_of_sensors>
 class CurrentSensors {
     public:
         /**
-         * @brief configuration structure for current sensors
+         * @brief Configuration structure for current sensors
          */
         struct Config {
             hal::AdcDma::Config adc;
