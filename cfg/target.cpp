@@ -104,14 +104,13 @@ proxy::Imu::Config imu_config = {
         },
         .timeout = 2
     },
-    .gyroscope_data_rate = LSM6DSV_ODR_HA02_AT_6400Hz,
-    .accelerometer_data_rate = LSM6DSV_ODR_HA02_AT_6400Hz,
-    .gyroscope_full_scale = LSM6DSV_4000dps,
-    .accelerometer_full_scale = LSM6DSV_8g,
-    .convert_ang_vel = lsm6dsv_from_fs4000_to_mdps,
-    .convert_lin_acc = lsm6dsv_from_fs8_to_mg,
+    .gyroscope_data_rate = LSM6DSV_ODR_AT_480Hz,
+    .accelerometer_data_rate = LSM6DSV_ODR_AT_480Hz,
+    .orientation_data_rate = LSM6DSV_SFLP_480Hz,
+    .gyroscope_scale = LSM6DSV_4000dps,
+    .accelerometer_scale = LSM6DSV_8g,
     .gyroscope_filter = LSM6DSV_GY_ULTRA_LIGHT,
-    .accelerometer_filter = LSM6DSV_XL_STRONG
+    .accelerometer_filter = LSM6DSV_XL_ULTRA_LIGHT
 };
 
 proxy::Led::Config led_config = {

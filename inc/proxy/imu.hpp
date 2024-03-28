@@ -29,10 +29,9 @@ class Imu {
             hal::Spi::Config                spi;
             lsm6dsv_data_rate_t             gyroscope_data_rate;
             lsm6dsv_data_rate_t             accelerometer_data_rate;
-            lsm6dsv_gy_full_scale_t         gyroscope_full_scale;
-            lsm6dsv_xl_full_scale_t         accelerometer_full_scale;
-            float                           (* convert_ang_vel)(int16_t);
-            float                           (* convert_lin_acc)(int16_t);
+            lsm6dsv_sflp_data_rate_t        orientation_data_rate;
+            lsm6dsv_gy_full_scale_t         gyroscope_scale;
+            lsm6dsv_xl_full_scale_t         accelerometer_scale;
             lsm6dsv_filt_gy_lp1_bandwidth_t gyroscope_filter;
             lsm6dsv_filt_xl_lp2_bandwidth_t accelerometer_filter;
         };
@@ -52,6 +51,11 @@ class Imu {
         };
 
         /**
+         * @brief Update the IMU data
+         */
+        void update_data();
+
+        /**
          * @brief Get the IMU orientation over an axis
          * @todo implement function using sensior fusion
          *
@@ -59,7 +63,7 @@ class Imu {
          *
          * @return Orientation over the desired axis using quaternions
          */
-        float get_orientation(Axis axis);
+        float get_orientation(Axis axis) const;
 
         /**
          * @brief Get the IMU angular velocity over an axis
@@ -68,7 +72,7 @@ class Imu {
          *
          * @return Angular velocity over the desired axis in rad/s
          */
-        float get_angular_velocity(Axis axis);
+        float get_angular_velocity(Axis axis) const;
 
         /**
          * @brief Get the IMU linear acceleration over an axis
@@ -77,7 +81,7 @@ class Imu {
          *
          * @return Linear acceleration over the desired axis in m/s²
          */
-        float get_linear_acceleration(Axis axis);
+        float get_linear_acceleration(Axis axis) const;
 
     private:
         /**
@@ -105,28 +109,29 @@ class Imu {
         static int32_t platform_write(void* handle, uint8_t reg, const uint8_t* bufp, uint16_t len);
 
         /**
-         * @brief Function to convert raw data to angular velocity
+         * @brief Function to convert raw data to orientation
          *
-         * @param raw_data Raw data from the IMU
+         * @param quat Quaternion to store the orientation
+         * @param sflp Raw data from the IMU
          *
-         * @return Angular velocity in md/s
+         * @return Orientation in quaternions
          */
-        float (* convert_ang_vel)(int16_t);
+        static void convert_orientation(std::array<float, 4>& quat, const uint16_t sflp[3]);
 
         /**
-         * @brief Function to convert raw data to linear acceleration
+         * @brief Function to convert half precision float to single precision float
          *
-         * @param raw_data Raw data from the IMU
+         * @param x Half precision float
          *
-         * @return Linear acceleration in mg
+         * @return Single precision float
          */
-        float (* convert_lin_acc)(int16_t);
+        static float half_to_float(uint16_t x);
 
         /**
          * @brief Conversion constants
          */
-        static constexpr float mg_to_mps2{0.00980665};
-        static constexpr float mdps_to_radps{std::numbers::pi_v<float> / 180000};
+        static constexpr float mdps_to_radps{std::numbers::pi_v<float> / 180000.0f};
+        static constexpr float mg_to_mps2{0.00980665f};
 
         /**
          * @brief SPI for the IMU communication
@@ -147,6 +152,21 @@ class Imu {
          * @brief Current linear acceleration on each axis
          */
         std::array<int16_t, 3> linear_acceleration;
+
+        /**
+         * @brief Current orientation
+         */
+        std::array<float, 4> orientation;
+
+        /**
+         * @brief Gyroscope conversion factor
+         */
+        const float gy_factor;
+
+        /**
+         * @brief Accelerometer conversion factor
+         */
+        const float xl_factor;
 };
 }  // namespace proxy
 
