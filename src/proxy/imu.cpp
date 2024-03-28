@@ -56,15 +56,15 @@ float Imu::get_angular_velocity(Axis axis) {
 
     switch (axis) {
         case Axis::X:
-            return ang_vel = convert_ang_vel(this->angular_velocity[0]);
+            ang_vel = convert_ang_vel(this->angular_velocity[0]);
             break;
 
         case Axis::Y:
-            return ang_vel = convert_ang_vel(this->angular_velocity[1]);
+            ang_vel = convert_ang_vel(this->angular_velocity[1]);
             break;
 
         case Axis::Z:
-            return ang_vel = convert_ang_vel(this->angular_velocity[2]);
+            ang_vel = convert_ang_vel(this->angular_velocity[2]);
             break;
 
         default:
