@@ -39,14 +39,14 @@ class Battery {
          *
          * @return Battery voltage in volts
          */
-        float get_voltage();
+        float get_voltage() const;
 
         /**
          * @brief Get the raw reading from the battery
          *
          * @return uint32_t Raw reading from the battery
          */
-        uint32_t get_voltage_raw();
+        uint32_t get_voltage_raw() const;
 
     private:
         /**

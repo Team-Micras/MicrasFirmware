@@ -27,7 +27,7 @@ void PwmDma::stop_dma() {
     HAL_TIM_PWM_Stop_DMA(this->handle, this->channel);
 }
 
-uint32_t PwmDma::get_compare(float duty_cycle) {
+uint32_t PwmDma::get_compare(float duty_cycle) const {
     return std::round((duty_cycle * (__HAL_TIM_GET_AUTORELOAD(this->handle) + 1)) / 100 - 1);
 }
 }  // namespace hal

@@ -46,7 +46,7 @@ class RotarySensor {
          *
          * @return Current angular position of the sensor in radians
          */
-        float get_position();
+        float get_position() const;
 
     private:
         union CommandFrame {

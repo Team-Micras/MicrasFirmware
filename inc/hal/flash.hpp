@@ -49,7 +49,7 @@ class Flash {
          * @param data pointer to the data to write
          * @param size size in double words of the data to write
          */
-        static void write(uint32_t address, uint64_t data[], uint32_t size = 1);
+        static void write(uint32_t address, const uint64_t data[], uint32_t size = 1);
 
         /**
          * @brief Write data to flash memory
@@ -59,7 +59,7 @@ class Flash {
          * @param data pointer to the data to write
          * @param size size in double words of the data to write
          */
-        static void write(uint16_t page, uint16_t page_address, uint64_t data[], uint32_t size = 1);
+        static void write(uint16_t page, uint16_t page_address, const uint64_t data[], uint32_t size = 1);
 
         /**
          * @brief Erase flash memory pages

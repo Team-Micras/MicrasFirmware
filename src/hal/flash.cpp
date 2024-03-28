@@ -27,7 +27,7 @@ void Flash::read(uint16_t page, uint16_t page_address, uint64_t data[], uint32_t
     read(page * double_words_per_page + page_address, data, size);
 }
 
-void Flash::write(uint32_t address, uint64_t data[], uint32_t size) {
+void Flash::write(uint32_t address, const uint64_t data[], uint32_t size) {
     HAL_FLASH_Unlock();
 
     uint32_t end = base_address - 8 * address;
@@ -50,7 +50,7 @@ void Flash::write(uint32_t address, uint64_t data[], uint32_t size) {
     HAL_FLASH_Lock();
 }
 
-void Flash::write(uint16_t page, uint16_t page_address, uint64_t data[], uint32_t size) {
+void Flash::write(uint16_t page, uint16_t page_address, const uint64_t data[], uint32_t size) {
     write(page * double_words_per_page + page_address, data, size);
 }
 

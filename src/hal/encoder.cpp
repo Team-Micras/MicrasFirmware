@@ -14,7 +14,7 @@ Encoder::Encoder(Config& config) : handle{config.handle} {
     HAL_TIM_Encoder_Start(this->handle, config.timer_channel);
 }
 
-int32_t Encoder::get_counter() {
+int32_t Encoder::get_counter() const {
     return static_cast<int32_t>(__HAL_TIM_GET_COUNTER(this->handle));
 }
 }  // namespace hal

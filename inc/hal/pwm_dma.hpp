@@ -53,7 +53,7 @@ class PwmDma {
          * @param duty_cycle Duty cycle to get the compare value for
          * @return uint32_t Compare value for the duty cycle
          */
-        uint32_t get_compare(float duty_cycle);
+        uint32_t get_compare(float duty_cycle) const;
 
     private:
         /**

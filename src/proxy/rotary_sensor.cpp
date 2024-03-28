@@ -45,7 +45,7 @@ RotarySensor::RotarySensor(Config& config) :
     this->write_register(command_frame, data_frame);
 }
 
-float RotarySensor::get_position() {
+float RotarySensor::get_position() const {
     return encoder.get_counter() * 2 * std::numbers::pi_v<float> / this->resolution;
 }
 

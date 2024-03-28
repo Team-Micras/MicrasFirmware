@@ -38,7 +38,7 @@ class Encoder {
          *
          * @return int32_t Current value of the counter
          */
-        int32_t get_counter();
+        int32_t get_counter() const;
 
     private:
         /**
