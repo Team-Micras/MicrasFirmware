@@ -87,7 +87,7 @@ class Storage {
          * @brief Structure for primitive variables
          */
         struct PrimitiveVariable {
-            void*    ram_pointer;
+            void*    ram_pointer{nullptr};
             uint16_t buffer_address;
             uint16_t size;
         };
@@ -96,7 +96,7 @@ class Storage {
          * @brief Structure for serializable variables
          */
         struct SerializableVariable {
-            ISerializable* ram_pointer;
+            ISerializable* ram_pointer{nullptr};
             uint16_t       buffer_address;
             uint16_t       size;
         };

@@ -37,7 +37,7 @@ void Storage::create(const std::string& name, ISerializable& data) {
 
 template <Fundamental T>
 void Storage::sync(const std::string& name, T& data) {
-    if (this->primitives.contains(name)) {
+    if (this->primitives.contains(name) and this->primitives.at(name).ram_pointer == nullptr) {
         data = *reinterpret_cast<T*>(&this->buffer.at(this->primitives.at(name).buffer_address));
     }
 
@@ -45,9 +45,8 @@ void Storage::sync(const std::string& name, T& data) {
 }
 
 void Storage::sync(const std::string& name, ISerializable& data) {
-    if (this->serializables.contains(name)) {
+    if (this->serializables.contains(name) and this->serializables.at(name).ram_pointer == nullptr) {
         const auto& serializable = this->serializables.at(name);
-
         data.deserialize(&this->buffer.at(serializable.buffer_address), serializable.size);
     }
 
@@ -59,12 +58,22 @@ void Storage::save() {
     hal::Flash::erase_pages(this->start_page, this->number_of_pages);
 
     for (auto& [name, variable]: this->primitives) {
+        if (variable.ram_pointer == nullptr) {
+            this->primitives.erase(name);
+            continue;
+        }
+
         uint8_t* aux = reinterpret_cast<uint8_t*>(variable.ram_pointer);
         variable.buffer_address = buffer.size();
         this->buffer.insert(this->buffer.end(), aux, aux + variable.size);
     }
 
     for (auto& [name, variable]: this->serializables) {
+        if (variable.ram_pointer == nullptr) {
+            this->serializables.erase(name);
+            continue;
+        }
+
         std::vector<uint8_t> aux = variable.ram_pointer->serialize();
         variable.buffer_address = this->buffer.size();
         variable.size = aux.size();
