@@ -16,7 +16,7 @@ class ISerializable {
     public:
         virtual ~ISerializable() = default;
 
-        virtual std::vector<uint8_t> serialize() = 0;
+        virtual std::vector<uint8_t> serialize() const = 0;
 
         virtual void deserialize(uint8_t* serial_data, uint16_t size) = 0;
 };

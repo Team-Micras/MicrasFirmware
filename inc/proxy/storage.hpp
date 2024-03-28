@@ -49,7 +49,7 @@ class Storage {
          * @param data Reference to the variable
          */
         template <Fundamental T>
-        void create(const std::string& name, T& data);
+        void create(const std::string& name, const T& data);
 
         /**
          * @brief Create a new serializable variable in the storage
@@ -57,7 +57,7 @@ class Storage {
          * @param name Name of the variable
          * @param data Reference to the variable
          */
-        void create(const std::string& name, ISerializable& data);
+        void create(const std::string& name, const ISerializable& data);
 
         /**
          * @brief Sync a primitive variable with the storage
@@ -87,18 +87,18 @@ class Storage {
          * @brief Structure for primitive variables
          */
         struct PrimitiveVariable {
-            void*    ram_pointer{nullptr};
-            uint16_t buffer_address;
-            uint16_t size;
+            const void* ram_pointer{nullptr};
+            uint16_t    buffer_address;
+            uint16_t    size;
         };
 
         /**
          * @brief Structure for serializable variables
          */
         struct SerializableVariable {
-            ISerializable* ram_pointer{nullptr};
-            uint16_t       buffer_address;
-            uint16_t       size;
+            const ISerializable* ram_pointer{nullptr};
+            uint16_t             buffer_address;
+            uint16_t             size;
         };
 
         /**

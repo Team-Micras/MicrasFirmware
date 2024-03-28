@@ -26,12 +26,12 @@ Storage::Storage(Config& config) : start_page{config.start_page}, number_of_page
 }
 
 template <Fundamental T>
-void Storage::create(const std::string& name, T& data) {
+void Storage::create(const std::string& name, const T& data) {
     this->primitives[name].ram_pointer = &data;
     this->primitives.at(name).size = sizeof(T);
 }
 
-void Storage::create(const std::string& name, ISerializable& data) {
+void Storage::create(const std::string& name, const ISerializable& data) {
     this->serializables[name].ram_pointer = &data;
 }
 
@@ -63,7 +63,7 @@ void Storage::save() {
             continue;
         }
 
-        uint8_t* aux = reinterpret_cast<uint8_t*>(variable.ram_pointer);
+        const uint8_t* aux = reinterpret_cast<const uint8_t*>(variable.ram_pointer);
         variable.buffer_address = buffer.size();
         this->buffer.insert(this->buffer.end(), aux, aux + variable.size);
     }
