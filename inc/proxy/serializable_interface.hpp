@@ -14,9 +14,11 @@
 
 class ISerializable {
     public:
-        virtual std::vector<uint8_t> && serialize() = 0;
+        virtual ~ISerializable() = default;
 
-        virtual void deserialize(uint8_t* serial_data, uint32_t size) = 0;
+        virtual std::vector<uint8_t> serialize() = 0;
+
+        virtual void deserialize(uint8_t* serial_data, uint16_t size) = 0;
 };
 
 #endif // __SERIALIZABLE_INTERFACE_HPP__

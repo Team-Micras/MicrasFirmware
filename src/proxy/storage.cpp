@@ -6,25 +6,114 @@
  * @date 03/2024
  */
 
-#include <cmath>
-
 #include "hal/flash.hpp"
 #include "proxy/storage.hpp"
 
 namespace proxy {
-Storage::Storage(Config& config) : start_page(config.start_page) {
-    // [total_size][num_vars][{[name_len][name][buffer_address][size]}
-
+Storage::Storage(Config& config) : start_page{config.start_page}, number_of_pages{config.number_of_pages} {
     uint64_t sizes;
-    hal::Flash::read(this->start_page, &sizes);
+    hal::Flash::read(this->start_page, 0, &sizes);
 
     uint32_t total_size = sizes >> 32;
-    uint32_t num_vars = sizes & 0xFFFFFFFF;
+    uint16_t num_primitives = sizes >> 16;
+    uint16_t num_serializables = sizes;
 
-    this->buffer.reserve(total_size);
-    hal::Flash::read(this->start_page, 1, reinterpret_cast<uint64_t*>(this->buffer.data()),
-                     std::ceil(total_size / 8.0f));
+    this->buffer.resize(total_size);
+    hal::Flash::read(this->start_page, 1, reinterpret_cast<uint64_t*>(this->buffer.data()), total_size / 8);
 
+    this->primitives = deserialize_var_map<PrimitiveVariable>(this->buffer, num_primitives);
+    this->serializables = deserialize_var_map<SerializableVariable>(this->buffer, num_serializables);
+}
+
+template <Fundamental T>
+void Storage::create(const std::string& name, T& data) {
+    this->primitives[name].ram_pointer = &data;
+    this->primitives.at(name).size = sizeof(T);
+}
+
+void Storage::create(const std::string& name, ISerializable& data) {
+    this->serializables[name].ram_pointer = &data;
+}
+
+template <Fundamental T>
+void Storage::sync(const std::string& name, T& data) {
+    if (this->primitives.contains(name)) {
+        data = *reinterpret_cast<T*>(&this->buffer.at(this->primitives.at(name).buffer_address));
+    }
+
+    this->create<T>(name, data);
+}
+
+void Storage::sync(const std::string& name, ISerializable& data) {
+    if (this->serializables.contains(name)) {
+        const auto& serializable = this->serializables.at(name);
+
+        data.deserialize(&this->buffer.at(serializable.buffer_address), serializable.size);
+    }
+
+    this->create(name, data);
+}
+
+void Storage::save() {
+    this->buffer.clear();
+    hal::Flash::erase_pages(this->start_page, this->number_of_pages);
+
+    for (auto& [name, variable]: this->primitives) {
+        uint8_t* aux = reinterpret_cast<uint8_t*>(variable.ram_pointer);
+        variable.buffer_address = buffer.size();
+        this->buffer.insert(this->buffer.end(), aux, aux + variable.size);
+    }
+
+    for (auto& [name, variable]: this->serializables) {
+        std::vector<uint8_t> aux = variable.ram_pointer->serialize();
+        variable.buffer_address = this->buffer.size();
+        variable.size = aux.size();
+        this->buffer.insert(this->buffer.end(), aux.begin(), aux.end());
+    }
+
+    auto serialized_serializables = serialize_var_map<SerializableVariable>(this->serializables);
+    this->buffer.insert(this->buffer.begin(), serialized_serializables.begin(), serialized_serializables.end());
+
+    auto serialized_primitives = serialize_var_map<PrimitiveVariable>(this->primitives);
+    this->buffer.insert(this->buffer.begin(), serialized_primitives.begin(), serialized_primitives.end());
+
+    this->buffer.insert(this->buffer.end(), (8 - (this->buffer.size() % 8)) % 8, 0);
+    uint32_t total_size = this->buffer.size();
+
+    this->buffer.emplace_back(this->serializables.size());
+    this->buffer.emplace_back(this->serializables.size() >> 8);
+    this->buffer.emplace_back(this->primitives.size());
+    this->buffer.emplace_back(this->primitives.size() >> 8);
+
+    this->buffer.emplace_back(total_size);
+    this->buffer.emplace_back(total_size >> 8);
+    this->buffer.emplace_back(total_size >> 16);
+    this->buffer.emplace_back(total_size >> 24);
+
+    hal::Flash::write(this->start_page, 0, reinterpret_cast<uint64_t*>(buffer.data()), buffer.size() / 8);
+}
+
+template <typename T>
+std::vector<uint8_t> Storage::serialize_var_map(const std::unordered_map<std::string, T>& variables) {
+    std::vector<uint8_t> buffer;
+
+    for (auto [name, variable]: variables) {
+        buffer.emplace_back(name.size());
+        buffer.insert(buffer.end(), name.begin(), name.end());
+
+        buffer.emplace_back(variable.buffer_address);
+        buffer.emplace_back(variable.buffer_address >> 8);
+
+        buffer.emplace_back(variable.size);
+        buffer.emplace_back(variable.size >> 8);
+    }
+
+    return buffer;
+}
+
+template <typename T>
+std::unordered_map<std::string, T> Storage::deserialize_var_map(std::vector<uint8_t>& buffer, uint16_t num_vars) {
+    std::unordered_map<std::string, T> variables;
     uint16_t i = 0;
 
     for (uint16_t decoded_vars = 0; decoded_vars < num_vars; decoded_vars++) {
@@ -32,91 +121,14 @@ Storage::Storage(Config& config) : start_page(config.start_page) {
         std::string var_name(buffer.begin() + i + 1, buffer.begin() + i + 1 + var_name_len);
         i += var_name_len + 1;
 
-        // read next 2 bytes as buffer address
-        this->variables[var_name].buffer_address = buffer.at(i) << 8 | buffer.at(i + 1);
+        variables[var_name].buffer_address = buffer.at(i) | buffer.at(i + 1) << 8;
         i += 2;
 
-        // read next 2 bytes as size
-        this->variables.at(var_name).size = buffer.at(i) << 8 | buffer.at(i + 1);
+        variables.at(var_name).size = buffer.at(i) | buffer.at(i + 1) << 8;
         i += 2;
     }
-}
 
-template <typename T>
-void Storage::create(const std::string& name, T& data) {
-    this->variables[name].ram_address = &data;
-    this->variables.at(name).size = sizeof(T);
-}
-
-void Storage::create(const std::string& name, ISerializable& data) {
-    this->variables[name].ram_address = &data;
-}
-
-template <typename T>
-void Storage::sync(const std::string& name, T& data) {
-    if (variables.contains(name)) {
-        data = *reinterpret_cast<T*>(&this->buffer.at(variables.at(name).buffer_address));
-    }
-
-    this->variables[name].ram_address = &data;
-    this->variables.at(name).size = sizeof(T);
-}
-
-void Storage::sync(const std::string& name, ISerializable& data) {
-    if (variables.contains(name)) {
-        data.deserialize(&this->buffer.at(variables.at(name).buffer_address), variables.at(name).size);
-    }
-
-    this->variables[name].ram_address = &data;
-}
-
-void Storage::save() {
-    this->buffer.clear();
-
-    for (auto [name, variable]: this->variables) {
-        ISerializable* serializable = static_cast<ISerializable*>(variable.ram_address);
-
-        if (serializable == nullptr) {
-            uint8_t* aux = reinterpret_cast<uint8_t*>(variable.ram_address);
-            variable.buffer_address = buffer.size();
-            this->buffer.insert(buffer.end(), aux, aux + variable.size);
-        } else {
-            std::vector<uint8_t> aux = serializable->serialize();
-            variable.buffer_address = buffer.size();
-            this->buffer.insert(buffer.end(), aux.begin(), aux.end());
-            variable.size = aux.size();
-        }
-    }
-
-    this->serialize_var_map();
-    hal::Flash::write(this->start_page, 0, reinterpret_cast<uint64_t*>(buffer.data()), std::ceil(buffer.size() / 8.0f));
-}
-
-void Storage::serialize_var_map() {
-    // [total_size][num_vars][{[name_len][name][buffer_address][size]}
-
-    for (auto [name, variable]: this->variables) {
-        this->buffer.insert(this->buffer.begin(), variable.size);
-        this->buffer.insert(this->buffer.begin(), variable.size >> 8);
-
-        this->buffer.insert(this->buffer.begin(), variable.buffer_address);
-        this->buffer.insert(this->buffer.begin(), variable.buffer_address >> 8);
-
-        this->buffer.insert(this->buffer.begin(), name.begin(), name.end());
-
-        this->buffer.insert(this->buffer.begin(), name.size());
-    }
-
-    uint32_t total_size = this->buffer.size();
-
-    this->buffer.insert(this->buffer.begin(), this->variables.size());
-    this->buffer.insert(this->buffer.begin(), this->variables.size() >> 8);
-    this->buffer.insert(this->buffer.begin(), this->variables.size() >> 16);
-    this->buffer.insert(this->buffer.begin(), this->variables.size() >> 24);
-
-    this->buffer.insert(this->buffer.begin(), total_size);
-    this->buffer.insert(this->buffer.begin(), total_size >> 8);
-    this->buffer.insert(this->buffer.begin(), total_size >> 16);
-    this->buffer.insert(this->buffer.begin(), total_size >> 24);
+    buffer.erase(buffer.begin(), buffer.begin() + i);
+    return variables;
 }
 }  // namespace proxy
