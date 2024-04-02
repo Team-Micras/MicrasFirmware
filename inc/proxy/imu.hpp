@@ -141,22 +141,22 @@ class Imu {
         /**
          * @brief Device context for the IMU library
          */
-        stmdev_ctx_t dev_ctx;
+        stmdev_ctx_t dev_ctx{ };
 
         /**
          * @brief Current angular velocity on each axis
          */
-        std::array<int16_t, 3> angular_velocity;
+        std::array<int16_t, 3> angular_velocity{ };
 
         /**
          * @brief Current linear acceleration on each axis
          */
-        std::array<int16_t, 3> linear_acceleration;
+        std::array<int16_t, 3> linear_acceleration{ };
 
         /**
          * @brief Current orientation
          */
-        std::array<float, 4> orientation;
+        std::array<float, 4> orientation{ };
 
         /**
          * @brief Gyroscope conversion factor

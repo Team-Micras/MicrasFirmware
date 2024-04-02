@@ -57,7 +57,7 @@ class Battery {
         /**
          * @brief Raw reading from the battery
          */
-        uint32_t raw_reading;
+        uint32_t raw_reading{ };
 
         /**
          * @brief Voltage divider ratio

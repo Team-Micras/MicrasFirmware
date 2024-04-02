@@ -11,7 +11,7 @@
 
 namespace proxy {
 Storage::Storage(Config& config) : start_page{config.start_page}, number_of_pages{config.number_of_pages} {
-    uint64_t sizes;
+    uint64_t sizes{ };
     hal::Flash::read(this->start_page, 0, &sizes);
 
     uint32_t total_size = sizes >> 32;

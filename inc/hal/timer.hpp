@@ -99,7 +99,7 @@ class Timer {
         /**
          * @brief Timer counter
          */
-        uint32_t counter;
+        uint32_t counter{ };
 
         /**
          * @brief Flag to enable microseconds

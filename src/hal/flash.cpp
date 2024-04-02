@@ -62,7 +62,7 @@ void Flash::erase_pages(uint16_t page, uint16_t number_of_pages) {
         .NbPages = number_of_pages,
     };
 
-    uint32_t page_error;
+    uint32_t page_error{ };
 
     HAL_FLASHEx_Erase(&erase_struct, &page_error);
 }

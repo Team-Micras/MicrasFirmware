@@ -13,8 +13,8 @@
 namespace proxy {
 RotarySensor::RotarySensor(Config& config) :
     spi{config.spi}, encoder{config.encoder}, crc{config.crc}, resolution{config.resolution} {
-    CommandFrame command_frame;
-    DataFrame data_frame;
+    CommandFrame command_frame{ };
+    DataFrame data_frame{ };
 
     command_frame.fields.address = Registers::disable_addr;
     data_frame.fields.data = config.registers.disable.raw;

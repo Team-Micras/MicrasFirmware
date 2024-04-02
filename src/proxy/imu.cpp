@@ -24,7 +24,7 @@ Imu::Imu(Config& config) : spi{config.spi},
 
     lsm6dsv_reset_set(&(this->dev_ctx), LSM6DSV_RESTORE_CTRL_REGS);
 
-    lsm6dsv_reset_t rst;
+    lsm6dsv_reset_t rst{ };
 
     do {
         lsm6dsv_reset_get(&(this->dev_ctx), &rst);
