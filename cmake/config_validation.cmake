@@ -14,12 +14,12 @@ set(STM32_CUBE_${DEVICE_CORTEX}_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cube)
 # This set contains all the variables that must be defined by the user
 # It is used to check if all of them are properly defined
 set(USER_INPUT_VARIABLES
-    DEVICE_CORTEX
-    DEVICE_FAMILY
-    DEVICE_TYPE
-    DEVICE_DEF
-    DEVICE_FAMILY_COMPACT
-    DEVICE
+    # DEVICE_CORTEX
+    # DEVICE_FAMILY
+    # DEVICE_TYPE
+    # DEVICE_DEF
+    # DEVICE_FAMILY_COMPACT
+    # DEVICE
     BOARD_VERSION
     TARGET_BOARD
 )
