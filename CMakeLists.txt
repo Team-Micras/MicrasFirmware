@@ -42,6 +42,7 @@ project(${CMAKE_PROJECT_NAME} C CXX ASM)
 include(cmake/workspace.cmake)
 include(cmake/targets.cmake)
 include(cmake/utilities.cmake)
+include(cmake/linter.cmake)
 
 ###############################################################################
 ## Include directories
