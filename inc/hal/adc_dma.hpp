@@ -33,7 +33,7 @@ class AdcDma {
          *
          * @param config ADC DMA configuration struct
          */
-        AdcDma(Config& config);
+        AdcDma(const Config& config);
 
         /**
          * @brief Enable ADC, start conversion of regular group and transfer result through DMA

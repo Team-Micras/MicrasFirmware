@@ -9,7 +9,7 @@
 #include "proxy/button.hpp"
 
 namespace proxy {
-Button::Button(Config& config) :
+Button::Button(const Config& config) :
     debounce_delay{config.debounce_delay},
     long_press_delay{config.long_press_delay},
     extra_long_press_delay{config.extra_long_press_delay},

@@ -9,7 +9,7 @@
 #include "hal/adc_dma.hpp"
 
 namespace hal {
-AdcDma::AdcDma(Config& config) :
+AdcDma::AdcDma(const Config& config) :
     max_reading{config.max_reading}, reference_voltage{config.reference_voltage}, handle{config.handle} {
     config.init_function();
 }

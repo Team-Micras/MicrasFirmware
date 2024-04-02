@@ -9,7 +9,7 @@
 #include "hal/crc.hpp"
 
 namespace hal {
-Crc::Crc(Config& config) : handle{config.handle} {
+Crc::Crc(const Config& config) : handle{config.handle} {
 }
 
 uint32_t Crc::calculate(uint32_t data[], uint32_t size) {

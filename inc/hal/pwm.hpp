@@ -32,7 +32,7 @@ class Pwm {
          *
          * @param config Configuration for the PWM
          */
-        Pwm(Config& config);
+        Pwm(const Config& config);
 
         /**
          * @brief Set the PWM duty cycle

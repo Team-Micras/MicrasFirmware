@@ -10,7 +10,7 @@
 #include "proxy/storage.hpp"
 
 namespace proxy {
-Storage::Storage(Config& config) : start_page{config.start_page}, number_of_pages{config.number_of_pages} {
+Storage::Storage(const Config& config) : start_page{config.start_page}, number_of_pages{config.number_of_pages} {
     uint64_t sizes{ };
     hal::Flash::read(this->start_page, 0, &sizes);
 

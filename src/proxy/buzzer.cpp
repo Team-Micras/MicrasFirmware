@@ -9,7 +9,7 @@
 #include "proxy/buzzer.hpp"
 
 namespace proxy {
-Buzzer::Buzzer(Config& config) : pwm{config.pwm} {
+Buzzer::Buzzer(const Config& config) : pwm{config.pwm} {
     this->stop();
 }
 

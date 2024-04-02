@@ -13,7 +13,7 @@
 
 namespace proxy {
 template <uint8_t num_of_leds>
-Argb<num_of_leds>::Argb(Config& config) : pwm{config.pwm},
+Argb<num_of_leds>::Argb(const Config& config) : pwm{config.pwm},
     low_bit{pwm.get_compare(low_duty_cycle)}, high_bit{pwm.get_compare(high_duty_cycle)} {
 }
 

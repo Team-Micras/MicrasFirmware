@@ -18,6 +18,11 @@ namespace hal {
 class Mcu {
     public:
         /**
+         * @brief Deleted constructor for static class
+         */
+        Mcu() = delete;
+
+        /**
          * @brief Initializes MCU and some peripherals
          */
         static void init();

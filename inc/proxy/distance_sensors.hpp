@@ -36,7 +36,7 @@ class DistanceSensors {
          *
          * @param config Configuration for the distance sensors
          */
-        DistanceSensors(Config& config);
+        DistanceSensors(const Config& config);
 
         /**
          * @brief Set the distance sensors led intensity

@@ -39,7 +39,7 @@ class RotarySensor {
          *
          * @param config Configuration for the rotary sensor
          */
-        RotarySensor(Config& config);
+        RotarySensor(const Config& config);
 
         /**
          * @brief Get the rotary sensor position over an axis

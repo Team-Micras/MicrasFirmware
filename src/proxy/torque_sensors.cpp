@@ -13,7 +13,7 @@
 
 namespace proxy {
 template <uint8_t num_of_sensors>
-TorqueSensors<num_of_sensors>::TorqueSensors(Config& config) :
+TorqueSensors<num_of_sensors>::TorqueSensors(const Config& config) :
     current_sensors{config.current_sensors}, max_torque{config.max_torque} {
 }
 

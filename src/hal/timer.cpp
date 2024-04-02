@@ -9,7 +9,7 @@
 #include "hal/timer.hpp"
 
 namespace hal {
-Timer::Timer(Config& config) : handle{config.handle} {
+Timer::Timer(const Config& config) : handle{config.handle} {
     config.init_function();
 
     uint32_t base_freq = HAL_RCC_GetPCLK1Freq();

@@ -29,7 +29,7 @@ class Crc {
          *
          * @param config Configuration for the CRC
          */
-        Crc(Config& config);
+        Crc(const Config& config);
 
         /**
          * @brief Calculate the CRC value

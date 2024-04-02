@@ -35,7 +35,7 @@ class Spi {
          *
          * @param config Configuration for the SPI
          */
-        Spi(Config& config);
+        Spi(const Config& config);
 
         /**
          * @brief Activate the chip select

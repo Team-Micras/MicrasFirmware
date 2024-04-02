@@ -33,7 +33,7 @@ class TorqueSensors {
          *
          * @param config Configuration for the torque sensors
          */
-        TorqueSensors(Config& config);
+        TorqueSensors(const Config& config);
 
         /**
          * @brief Get the torque from the sensor

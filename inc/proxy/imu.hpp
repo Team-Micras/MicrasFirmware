@@ -41,7 +41,7 @@ class Imu {
          *
          * @param config Configuration for the IMU
          */
-        Imu(Config& config);
+        Imu(const Config& config);
 
         enum Axis {
             W,

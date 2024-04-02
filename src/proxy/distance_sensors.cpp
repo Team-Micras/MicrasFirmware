@@ -13,7 +13,7 @@
 
 namespace proxy {
 template <uint8_t num_of_sensors>
-DistanceSensors<num_of_sensors>::DistanceSensors(Config& config) :
+DistanceSensors<num_of_sensors>::DistanceSensors(const Config& config) :
     adc{config.adc}, led_pwm{config.led_pwm}, max_distance{config.max_distance} {
     this->adc.start_dma(this->buffer.data(), num_of_sensors);
     this->led_pwm.set_duty_cycle(100.0F);

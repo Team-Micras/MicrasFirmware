@@ -11,7 +11,7 @@
 #include "proxy/locomotion.hpp"
 
 namespace proxy {
-Locomotion::Locomotion(Config& config) :
+Locomotion::Locomotion(const Config& config) :
     pwm_left_fwd{config.pwm_left_fwd}, pwm_left_bwd{config.pwm_left_bwd},
     pwm_right_fwd{config.pwm_right_fwd}, pwm_right_bwd{config.pwm_right_bwd},
     enable_gpio{config.enable_gpio} {

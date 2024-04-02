@@ -36,7 +36,7 @@ class Timer {
          *
          * @param config Configuration for the timer
          */
-        Timer(Config& config);
+        Timer(const Config& config);
 
         /**
          * @brief Reset the timer counter in milliseconds

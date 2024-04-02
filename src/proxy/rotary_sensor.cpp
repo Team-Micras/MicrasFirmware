@@ -11,7 +11,7 @@
 #include "proxy/rotary_sensor.hpp"
 
 namespace proxy {
-RotarySensor::RotarySensor(Config& config) :
+RotarySensor::RotarySensor(const Config& config) :
     spi{config.spi}, encoder{config.encoder}, crc{config.crc}, resolution{config.resolution} {
     CommandFrame command_frame{ };
     DataFrame data_frame{ };

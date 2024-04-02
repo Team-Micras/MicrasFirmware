@@ -34,7 +34,7 @@ class CurrentSensors {
          *
          * @param config Configuration for the current sensors
          */
-        CurrentSensors(Config& config);
+        CurrentSensors(const Config& config);
 
         /**
          * @brief Get the current from the sensor

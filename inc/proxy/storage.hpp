@@ -39,7 +39,7 @@ class Storage {
          *
          * @param config Configuration for the storage
          */
-        Storage(Config& config);
+        Storage(const Config& config);
 
         /**
          * @brief Create a new primitive variable in the storage

@@ -42,7 +42,7 @@ class Argb {
          *
          * @param config Configuration for the addressable RGB LED
          */
-        Argb(Config& config);
+        Argb(const Config& config);
 
         /**
          * @brief Set the color of the ARGB at the specified index

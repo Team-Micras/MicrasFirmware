@@ -36,7 +36,7 @@ class Locomotion {
          *
          * @param config Configuration for the locomotion driver
          */
-        Locomotion(Config& config);
+        Locomotion(const Config& config);
 
         /**
          * @brief Enable the locomotion driver

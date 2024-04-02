@@ -31,7 +31,7 @@ class Encoder {
          *
          * @param config Configuration for the encoder
          */
-        Encoder(Config& config);
+        Encoder(const Config& config);
 
         /**
          * @brief Get the counter value

@@ -42,7 +42,7 @@ class Fan {
          *
          * @param config Configuration for the fan driver
          */
-        Fan(Config& config);
+        Fan(const Config& config);
 
         /**
          * @brief Enable the fan

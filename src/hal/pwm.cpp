@@ -11,7 +11,7 @@
 #include "hal/pwm.hpp"
 
 namespace hal {
-Pwm::Pwm(Config& config) : handle{config.handle}, channel{config.timer_channel} {
+Pwm::Pwm(const Config& config) : handle{config.handle}, channel{config.timer_channel} {
     config.init_function();
     HAL_TIM_PWM_Start(this->handle, this->channel);
     __HAL_TIM_SET_COMPARE(this->handle, this->channel, 0);

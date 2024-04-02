@@ -8,7 +8,7 @@
 
 #include "target.hpp"
 
-proxy::Argb<2>::Config argb_config = {
+const proxy::Argb<2>::Config argb_config = {
     .pwm = {
         .handle = &htim8,
         .init_function = MX_TIM8_Init,
@@ -16,7 +16,7 @@ proxy::Argb<2>::Config argb_config = {
     }
 };
 
-proxy::Battery::Config battery_config = {
+const proxy::Battery::Config battery_config = {
     .adc = {
         .handle = &hadc3,
         .init_function = MX_ADC3_Init,
@@ -26,7 +26,7 @@ proxy::Battery::Config battery_config = {
     .voltage_divider = 3.0F
 };
 
-proxy::Button::Config button_config = {
+const proxy::Button::Config button_config = {
     .gpio = {
         .port = GPIOA,
         .pin = GPIO_PIN_12
@@ -34,7 +34,7 @@ proxy::Button::Config button_config = {
     .pull_resistor = proxy::Button::PullResistor::PULL_UP
 };
 
-proxy::Buzzer::Config buzzer_config = {
+const proxy::Buzzer::Config buzzer_config = {
     .pwm = {
         .handle = &htim4,
         .init_function = MX_TIM4_Init,
@@ -42,7 +42,7 @@ proxy::Buzzer::Config buzzer_config = {
     }
 };
 
-proxy::DipSwitch<4>::Config dip_switch_config = {
+const proxy::DipSwitch<4>::Config dip_switch_config = {
     .gpio_array = {{
         {
             .port = GPIOC,
@@ -63,7 +63,7 @@ proxy::DipSwitch<4>::Config dip_switch_config = {
     }}
 };
 
-proxy::DistanceSensors<4>::Config distance_sensors_config = {
+const proxy::DistanceSensors<4>::Config distance_sensors_config = {
     .adc = {
         .handle = &hadc1,
         .init_function = MX_ADC1_Init,
@@ -78,7 +78,7 @@ proxy::DistanceSensors<4>::Config distance_sensors_config = {
     .max_distance = 0.3F
 };
 
-proxy::Fan::Config fan_config = {
+const proxy::Fan::Config fan_config = {
     .pwm = {
         .handle = &htim17,
         .init_function = MX_TIM17_Init,
@@ -94,7 +94,7 @@ proxy::Fan::Config fan_config = {
     }
 };
 
-proxy::Imu::Config imu_config = {
+const proxy::Imu::Config imu_config = {
     .spi = {
         .handle = &hspi1,
         .init_function = MX_SPI1_Init,
@@ -113,14 +113,14 @@ proxy::Imu::Config imu_config = {
     .accelerometer_filter = LSM6DSV_XL_ULTRA_LIGHT
 };
 
-proxy::Led::Config led_config = {
+const proxy::Led::Config led_config = {
     .gpio = {
         .port = GPIOA,
         .pin = GPIO_PIN_15
     }
 };
 
-proxy::Locomotion::Config locomotion_config = {
+const proxy::Locomotion::Config locomotion_config = {
     .pwm_left_fwd = {
         .handle = &htim4,
         .init_function = MX_TIM4_Init,
@@ -147,7 +147,7 @@ proxy::Locomotion::Config locomotion_config = {
     }
 };
 
-proxy::RotarySensor::Registers rotary_sensor_reg_config = {
+const proxy::RotarySensor::Registers rotary_sensor_reg_config = {
     .disable = {{
         .UVW_off = 1,
         .ABI_off = 0,
@@ -189,7 +189,7 @@ proxy::RotarySensor::Registers rotary_sensor_reg_config = {
     }}
 };
 
-proxy::RotarySensor::Config rotary_sensor_left_config = {
+const proxy::RotarySensor::Config rotary_sensor_left_config = {
     .spi = {
         .handle = &hspi1,
         .init_function = MX_SPI1_Init,
@@ -211,7 +211,7 @@ proxy::RotarySensor::Config rotary_sensor_left_config = {
     .registers = rotary_sensor_reg_config
 };
 
-proxy::RotarySensor::Config rotary_sensor_right_config = {
+const proxy::RotarySensor::Config rotary_sensor_right_config = {
     .spi = {
         .handle = &hspi1,
         .init_function = MX_SPI1_Init,
@@ -233,7 +233,7 @@ proxy::RotarySensor::Config rotary_sensor_right_config = {
     .registers = rotary_sensor_reg_config
 };
 
-proxy::TorqueSensors<2>::Config torque_sensors_config = {
+const proxy::TorqueSensors<2>::Config torque_sensors_config = {
     .current_sensors = {
         .adc = {
             .handle = &hadc2,

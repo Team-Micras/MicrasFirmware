@@ -32,7 +32,7 @@ class PwmDma {
          *
          * @param config Configuration for the PWM
          */
-        PwmDma(Config& config);
+        PwmDma(const Config& config);
 
         /**
          * @brief Start PWM and DMA transfer

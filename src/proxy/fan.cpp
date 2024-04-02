@@ -9,7 +9,8 @@
 #include "proxy/fan.hpp"
 
 namespace proxy {
-Fan::Fan(Config& config) : pwm{config.pwm}, direction_gpio{config.direction_gpio}, enable_gpio{config.enable_gpio} {
+Fan::Fan(const Config& config) :
+    pwm{config.pwm}, direction_gpio{config.direction_gpio}, enable_gpio{config.enable_gpio} {
     this->stop();
     this->enable();
 }

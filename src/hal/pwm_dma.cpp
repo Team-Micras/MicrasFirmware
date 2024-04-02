@@ -11,7 +11,7 @@
 #include "hal/pwm_dma.hpp"
 
 namespace hal {
-PwmDma::PwmDma(Config& config) : handle{config.handle}, channel{config.timer_channel} {
+PwmDma::PwmDma(const Config& config) : handle{config.handle}, channel{config.timer_channel} {
     config.init_function();
 }
 

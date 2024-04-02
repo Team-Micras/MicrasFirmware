@@ -9,7 +9,7 @@
 #include "hal/encoder.hpp"
 
 namespace hal {
-Encoder::Encoder(Config& config) : handle{config.handle} {
+Encoder::Encoder(const Config& config) : handle{config.handle} {
     config.init_function();
     HAL_TIM_Encoder_Start(this->handle, config.timer_channel);
 }
