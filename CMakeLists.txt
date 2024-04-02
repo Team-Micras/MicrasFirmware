@@ -184,8 +184,8 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
     # Add user defined libraries
 )
 
-# stm32_print_size_of_target(${PROJECT_NAME})
-# stm32_generate_hex_file(${PROJECT_NAME})
+stm32_print_size_of_target(${PROJECT_NAME})
+stm32_generate_hex_file(${PROJECT_NAME})
 
 targets_generate_vsfiles_target(${PROJECT_NAME})
 targets_generate_flash_target(${PROJECT_NAME})
@@ -233,7 +233,7 @@ foreach(TEST_FILE ${TESTS_BIN})
         stm32cubemx
     )
 
-    # stm32_generate_hex_file(${TEST_NAME})
+    stm32_generate_hex_file(${TEST_NAME})
 
     targets_generate_vsfiles_target(${TEST_NAME})
     targets_generate_flash_target(${TEST_NAME})
