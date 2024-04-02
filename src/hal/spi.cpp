@@ -33,4 +33,4 @@ void Spi::transmit(uint8_t data[], uint32_t size) {
 void Spi::receive(uint8_t data[], uint32_t size) {
     HAL_SPI_Receive(this->handle, data, size, this->timeout);
 }
-}  // namespace proxy
+}  // namespace hal

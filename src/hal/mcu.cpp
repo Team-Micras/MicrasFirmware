@@ -29,4 +29,4 @@ void Mcu::init() {
     MX_DMA_Init();
     MX_CRC_Init();
 }
-}
+}  // namespace hal

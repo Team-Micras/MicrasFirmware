@@ -23,4 +23,4 @@ void Gpio::write(bool state) {
 void Gpio::toggle() {
     HAL_GPIO_TogglePin(this->port, this->pin);
 }
-}
+}  // namespace hal
