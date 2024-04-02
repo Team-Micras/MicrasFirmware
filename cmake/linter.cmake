@@ -1,15 +1,20 @@
-if(ENABLE_LINTER OR ENABLE_LINTER_FIX)
+# Name: linter.cmake
+# Micras Team
+# Brief: This file checks if linter was enabled and sets the proper flags
+# 04/2023
+
+###############################################################################
+## Linter Check
+###############################################################################
+
+if(CMAKE_LINTER STREQUAL "ON")
     set(CMAKE_CXX_CLANG_TIDY "clang-tidy")
     add_compile_options(-fms-extensions)
+    message(STATUS "Enabling clang-tidy")
 
-    if(ENABLE_LINTER)
-        message(STATUS "Enabling clang-tidy")
-        set(ENABLE_LINTER_FIX OFF)
-
-    else(ENABLE_LINTER)
-        message(STATUS "Enabling clang-tidy with fix")
-        set(CMAKE_CXX_CLANG_TIDY "${CMAKE_CXX_CLANG_TIDY};--fix")
-
-    endif(ENABLE_LINTER)
+elseif(CMAKE_LINTER STREQUAL "FIX")
+    set(CMAKE_CXX_CLANG_TIDY "${CMAKE_CXX_CLANG_TIDY};--fix")
+    add_compile_options(-fms-extensions)
+    message(STATUS "Enabling clang-tidy with fix")
 
 endif()
