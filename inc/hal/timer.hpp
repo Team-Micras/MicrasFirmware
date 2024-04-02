@@ -82,7 +82,7 @@ class Timer {
          *
          * @return uint32_t Current timer counter in milliseconds
          */
-        uint32_t get_counter_ms() const;
+        static uint32_t get_counter_ms();
 
         /**
          * @brief Get the current timer counter
