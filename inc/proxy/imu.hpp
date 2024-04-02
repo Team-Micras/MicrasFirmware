@@ -130,8 +130,8 @@ class Imu {
         /**
          * @brief Conversion constants
          */
-        static constexpr float mdps_to_radps{std::numbers::pi_v<float> / 180000.0f};
-        static constexpr float mg_to_mps2{0.00980665f};
+        static constexpr float mdps_to_radps{std::numbers::pi_v<float> / 180000.0F};
+        static constexpr float mg_to_mps2{0.00980665F};
 
         /**
          * @brief SPI for the IMU communication

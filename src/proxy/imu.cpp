@@ -13,9 +13,9 @@
 
 namespace proxy {
 Imu::Imu(Config& config) : spi{config.spi},
-    gy_factor{mdps_to_radps * 4.375f *
+    gy_factor{mdps_to_radps * 4.375F *
               (1 << (config.gyroscope_scale == LSM6DSV_4000dps ? 5 : static_cast<uint8_t>(config.gyroscope_scale)))},
-    xl_factor{mg_to_mps2 * (0.61f * (1 << static_cast<uint8_t>(config.accelerometer_scale)))} {
+    xl_factor{mg_to_mps2 * (0.61F * (1 << static_cast<uint8_t>(config.accelerometer_scale)))} {
     this->dev_ctx.read_reg = platform_read;
     this->dev_ctx.write_reg = platform_write;
     this->dev_ctx.handle = &config.spi;
@@ -109,7 +109,7 @@ float Imu::get_orientation(Axis axis) const {
             return this->orientation[2];
 
         default:
-            return 0.0f;
+            return 0.0F;
     }
 }
 
@@ -125,7 +125,7 @@ float Imu::get_angular_velocity(Axis axis) const {
             return this->angular_velocity[2];
 
         default:
-            return 0.0f;
+            return 0.0F;
     }
 }
 
@@ -141,7 +141,7 @@ float Imu::get_linear_acceleration(Axis axis) const {
             return this->linear_acceleration[2];
 
         default:
-            return 0.0f;
+            return 0.0F;
     }
 }
 
@@ -185,15 +185,15 @@ void Imu::convert_orientation(std::array<float, 4>& quat, const uint16_t sflp[3]
         sumsq += quat[i] * quat[i];
     }
 
-    if (sumsq > 1.0f) {
+    if (sumsq > 1.0F) {
         float n = std::sqrt(sumsq);
         quat[0] /= n;
         quat[1] /= n;
         quat[2] /= n;
-        sumsq = 1.0f;
+        sumsq = 1.0F;
     }
 
-    quat[3] = std::sqrt(1.0f - sumsq);
+    quat[3] = std::sqrt(1.0F - sumsq);
 }
 
 float Imu::half_to_float(const uint16_t x) {

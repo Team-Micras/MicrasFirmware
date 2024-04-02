@@ -86,8 +86,8 @@ class Argb {
         static constexpr uint8_t bits_per_color{8};
         static constexpr uint8_t colors_per_led{3};
         static constexpr uint8_t bits_per_led{bits_per_color * colors_per_led};
-        static constexpr float low_duty_cycle{0.32f};
-        static constexpr float high_duty_cycle{0.64f};
+        static constexpr float low_duty_cycle{0.32F};
+        static constexpr float high_duty_cycle{0.64F};
         static constexpr uint8_t reset_length{40};
 
         /**

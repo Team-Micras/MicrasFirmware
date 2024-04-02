@@ -14,7 +14,7 @@ Buzzer::Buzzer(Config& config) : pwm{config.pwm} {
 }
 
 void Buzzer::play(uint32_t frequency, uint32_t duration) {
-    this->pwm.set_duty_cycle(50.0f);
+    this->pwm.set_duty_cycle(50.0F);
     this->pwm.set_frequency(frequency);
     this->is_playing = true;
 
@@ -32,6 +32,6 @@ void Buzzer::update() {
 
 void Buzzer::stop() {
     this->is_playing = false;
-    this->pwm.set_duty_cycle(0.0f);
+    this->pwm.set_duty_cycle(0.0F);
 }
 }  // namespace proxy

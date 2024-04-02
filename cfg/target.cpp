@@ -21,9 +21,9 @@ proxy::Battery::Config battery_config = {
         .handle = &hadc3,
         .init_function = MX_ADC3_Init,
         .max_reading = 4095,
-        .reference_voltage = 3.3f
+        .reference_voltage = 3.0F
     },
-    .voltage_divider = 3.0f
+    .voltage_divider = 3.0F
 };
 
 proxy::Button::Config button_config = {
@@ -68,14 +68,14 @@ proxy::DistanceSensors<4>::Config distance_sensors_config = {
         .handle = &hadc1,
         .init_function = MX_ADC1_Init,
         .max_reading = 4095,
-        .reference_voltage = 3.3f
+        .reference_voltage = 3.3F
     },
     .led_pwm = {
         .handle = &htim15,
         .init_function = MX_TIM15_Init,
         .timer_channel = TIM_CHANNEL_1
     },
-    .max_distance = 0.3f
+    .max_distance = 0.3F
 };
 
 proxy::Fan::Config fan_config = {
@@ -239,9 +239,9 @@ proxy::TorqueSensors<2>::Config torque_sensors_config = {
             .handle = &hadc2,
             .init_function = MX_ADC2_Init,
             .max_reading = 4095,
-            .reference_voltage = 3.3f
+            .reference_voltage = 3.3F
         },
-        .shunt_resistor = 0.04f
+        .shunt_resistor = 0.04F
     },
-    .max_torque = 0.5f
+    .max_torque = 0.5F
 };

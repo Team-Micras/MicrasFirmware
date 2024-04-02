@@ -23,10 +23,10 @@ void Fan::disable() {
 }
 
 void Fan::set_speed(float speed) {
-    if (speed > 0.0f) {
+    if (speed > 0.0F) {
         this->set_direction(RotationDirection::FORWARD);
         this->pwm.set_duty_cycle(speed);
-    } else if (speed < 0.0f) {
+    } else if (speed < 0.0F) {
         this->set_direction(RotationDirection::BACKWARD);
         this->pwm.set_duty_cycle(-speed);
     } else {
@@ -35,7 +35,7 @@ void Fan::set_speed(float speed) {
 }
 
 void Fan::stop() {
-    this->set_speed(0.0f);
+    this->set_speed(0.0F);
 }
 
 void Fan::set_direction(RotationDirection direction) {
