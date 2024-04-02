@@ -75,13 +75,14 @@ file(GLOB_RECURSE TESTS_BIN CONFIGURE_DEPENDS "tests/bin/*.cpp" "tests/bin/*.c")
 
 targets_generate_format_target(PROJECT_SOURCES PROJECT_HEADERS TESTS_SOURCES TESTS_HEADERS TESTS_BIN)
 
+list(REMOVE_ITEM PROJECT_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/main.c
+)
+
 ###############################################################################
 ## Main executable target
 ###############################################################################
-
-add_executable(${CMAKE_PROJECT_NAME})
-
-add_subdirectory(cube/cmake/stm32cubemx)
 
 set(LIB_SOURCES
     lib/lsm6dsv-pid/lsm6dsv_reg.c
@@ -91,6 +92,7 @@ set(LIB_INCLUDE_DIRECTORIES
     lib/lsm6dsv-pid
 )
 
+add_subdirectory(cube/cmake/stm32cubemx)
 get_target_property(CUBE_SOURCES stm32cubemx INTERFACE_SOURCES)
 
 # Remove warnings from Cube and library sources
@@ -101,26 +103,28 @@ set_source_files_properties(
   COMPILE_FLAGS "-w"
 )
 
-# target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
-#     # Add user defined library search paths
-# )
+# Remove warnings from Cube header files
+get_target_property(CUBE_HEADERS stm32cubemx INTERFACE_INCLUDE_DIRECTORIES)
+target_include_directories(stm32cubemx SYSTEM INTERFACE ${CUBE_HEADERS})
 
-target_sources(${CMAKE_PROJECT_NAME} PRIVATE
+add_library(${CMAKE_PROJECT_NAME}_lib STATIC
     ${PROJECT_SOURCES}
     ${LIB_SOURCES}
 )
 
-target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
+target_include_directories(${CMAKE_PROJECT_NAME}_lib PUBLIC
     ${PROJECT_INCLUDE_DIRECTORIES}
     ${LIB_INCLUDE_DIRECTORIES}
 )
 
-# Remove warnings from Cube header files
-get_target_property(stm32cubemx_inc stm32cubemx INTERFACE_INCLUDE_DIRECTORIES)
-target_include_directories(stm32cubemx SYSTEM INTERFACE ${stm32cubemx_inc})
+target_link_libraries(${CMAKE_PROJECT_NAME}_lib
+    stm32cubemx
+)
+
+add_executable(${CMAKE_PROJECT_NAME} "src/main.cpp")
 
 target_link_libraries(${CMAKE_PROJECT_NAME}
-    stm32cubemx
+    ${CMAKE_PROJECT_NAME}_lib
 )
 
 stm32_print_size_of_target(${PROJECT_NAME})
@@ -134,12 +138,6 @@ targets_generate_helpme_target()
 ## Generate test executables
 ###############################################################################
 
-# Since each test has its own main function, we don't need the main.cpp from the project
-list(REMOVE_ITEM PROJECT_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/main.c
-)
-
 foreach(TEST_FILE ${TESTS_BIN})
 
     # If TEST_FILE contains /dir1/dir2/file.cpp, TEST_NAME will be 'file'
@@ -147,18 +145,15 @@ foreach(TEST_FILE ${TESTS_BIN})
 
     add_executable(${TEST_NAME} EXCLUDE_FROM_ALL
         ${TEST_FILE}
-        ${PROJECT_SOURCES}
         ${TESTS_SOURCES}
-        ${LIB_SOURCES}
     )
 
-    target_include_directories(${TEST_NAME} PUBLIC
-        ${PROJECT_INCLUDE_DIRECTORIES}
-        ${LIB_INCLUDE_DIRECTORIES}
+    target_include_directories(${TEST_NAME} PRIVATE
+        ${TESTS_HEADERS}
     )
 
     target_link_libraries(${TEST_NAME}
-        stm32cubemx
+        ${CMAKE_PROJECT_NAME}_lib
     )
 
     stm32_generate_hex_file(${TEST_NAME})
