@@ -30,11 +30,13 @@ Button::Status Button::get_status() {
     } else if (this->is_falling_edge()) {
         if (this->status_timer.elapsed_time_ms() > extra_long_press_delay) {
             return EXTRA_LONG_PRESS;
-        } else if (this->status_timer.elapsed_time_ms() > long_press_delay) {
-            return LONG_PRESS;
-        } else {
-            return SHORT_PRESS;
         }
+
+        if (this->status_timer.elapsed_time_ms() > long_press_delay) {
+            return LONG_PRESS;
+        }
+
+        return SHORT_PRESS;
     }
 
     return NO_PRESS;
