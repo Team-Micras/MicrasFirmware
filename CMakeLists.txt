@@ -80,6 +80,12 @@ set(LIB_INCLUDE_DIRECTORIES
     lib/lsm6dsv-pid
 )
 
+set_source_files_properties(
+  ${LIB_SOURCES}
+  PROPERTIES
+  COMPILE_FLAGS "-w"
+)
+
 ###############################################################################
 ## Include directories
 ###############################################################################
