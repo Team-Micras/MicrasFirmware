@@ -6,8 +6,8 @@
  * @date 03/2024
  */
 
-#ifndef __ENCODER_HPP__
-#define __ENCODER_HPP__
+#ifndef MICRAS_HAL_ENCODER_HPP
+#define MICRAS_HAL_ENCODER_HPP
 
 #include <tim.h>
 
@@ -48,4 +48,4 @@ class Encoder {
 };
 }  // namespace hal
 
-#endif // __ENCODER_HPP__
+#endif // MICRAS_HAL_ENCODER_HPP

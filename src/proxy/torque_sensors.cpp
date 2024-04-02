@@ -6,8 +6,8 @@
  * @date 03/2024
  */
 
-#ifndef __TORQUE_SENSORS_CPP__
-#define __TORQUE_SENSORS_CPP__
+#ifndef MICRAS_PROXY_TORQUE_SENSORS_CPP
+#define MICRAS_PROXY_TORQUE_SENSORS_CPP
 
 #include "proxy/torque_sensors.hpp"
 
@@ -28,4 +28,4 @@ float TorqueSensors<num_of_sensors>::get_current(uint8_t sensor_index) const {
 }
 }  // namespace proxy
 
-#endif // __TORQUE_SENSORS_CPP__
+#endif // MICRAS_PROXY_TORQUE_SENSORS_CPP

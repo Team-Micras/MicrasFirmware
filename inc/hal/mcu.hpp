@@ -6,8 +6,8 @@
  * @date 03/2024
  */
 
-#ifndef __MCU_HPP__
-#define __MCU_HPP__
+#ifndef MICRAS_HAL_MCU_HPP
+#define MICRAS_HAL_MCU_HPP
 
 #include <cstdint>
 
@@ -23,4 +23,4 @@ class Mcu {
         static void init();
 };
 }  // namespace hal
-#endif // __MCU_HPP__
+#endif // MICRAS_HAL_MCU_HPP

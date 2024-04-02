@@ -6,8 +6,8 @@
  * @date 03/2024
  */
 
-#ifndef __DISTANCE_SENSORS_CPP__
-#define __DISTANCE_SENSORS_CPP__
+#ifndef MICRAS_PROXY_DISTANCE_SENSORS_CPP
+#define MICRAS_PROXY_DISTANCE_SENSORS_CPP
 
 #include "proxy/distance_sensors.hpp"
 
@@ -35,4 +35,4 @@ uint32_t DistanceSensors<num_of_sensors>::get_distance_raw(uint8_t sensor_index)
 }
 }  // namespace proxy
 
-#endif // __DISTANCE_SENSORS_HPP__
+#endif // MICRAS_PROXY_DISTANCE_SENSORS_CPP

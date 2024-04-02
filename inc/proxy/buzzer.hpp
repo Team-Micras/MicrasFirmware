@@ -6,8 +6,8 @@
  * @date 03/2024
  */
 
-#ifndef __BUZZER_HPP__
-#define __BUZZER_HPP__
+#ifndef MICRAS_PROXY_BUZZER_HPP
+#define MICRAS_PROXY_BUZZER_HPP
 
 #include <cstdint>
 
@@ -75,4 +75,4 @@ class Buzzer {
 };
 }  // namespace proxy
 
-#endif // __BUZZER_HPP__
+#endif // MICRAS_PROXY_BUZZER_HPP

@@ -6,8 +6,8 @@
  * @date 03/2024
  */
 
-#ifndef __PWM_HPP__
-#define __PWM_HPP__
+#ifndef MICRAS_HAL_PWM_HPP
+#define MICRAS_HAL_PWM_HPP
 
 #include <cstdint>
 #include <tim.h>
@@ -61,4 +61,4 @@ class Pwm {
 };
 }  // namespace hal
 
-#endif // __PWM_HPP__
+#endif // MICRAS_HAL_PWM_HPP

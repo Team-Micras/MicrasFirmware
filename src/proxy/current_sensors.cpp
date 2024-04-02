@@ -6,8 +6,8 @@
  * @date 03/2024
  */
 
-#ifndef __CURRENT_SENSORS_CPP__
-#define __CURRENT_SENSORS_CPP__
+#ifndef MICRAS_PROXY_CURRENT_SENSORS_CPP
+#define MICRAS_PROXY_CURRENT_SENSORS_CPP
 
 #include "proxy/current_sensors.hpp"
 
@@ -30,4 +30,4 @@ uint32_t CurrentSensors<num_of_sensors>::get_current_raw(uint8_t sensor_index) c
 }
 }  // namespace proxy
 
-#endif // __CURRENT_SENSORS_CPP__
+#endif // MICRAS_PROXY_CURRENT_SENSORS_CPP

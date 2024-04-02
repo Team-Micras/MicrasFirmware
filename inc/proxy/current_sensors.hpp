@@ -6,8 +6,8 @@
  * @date 03/2024
  */
 
-#ifndef __CURRENT_SENSORS_HPP__
-#define __CURRENT_SENSORS_HPP__
+#ifndef MICRAS_PROXY_CURRENT_SENSORS_HPP
+#define MICRAS_PROXY_CURRENT_SENSORS_HPP
 
 #include <array>
 #include <cstdint>
@@ -72,4 +72,4 @@ class CurrentSensors {
 
 #include "../src/proxy/current_sensors.cpp"
 
-#endif // __CURRENT_SENSORS_HPP__
+#endif // MICRAS_PROXY_CURRENT_SENSORS_HPP

@@ -6,8 +6,8 @@
  * @date 03/2024
  */
 
-#ifndef __TIMER_HPP__
-#define __TIMER_HPP__
+#ifndef MICRAS_HAL_TIMER_HPP
+#define MICRAS_HAL_TIMER_HPP
 
 #include <cstdint>
 #include <tim.h>
@@ -108,4 +108,4 @@ class Timer {
 };
 }  // namespace hal
 
-#endif // __TIMER_HPP__
+#endif // MICRAS_HAL_TIMER_HPP

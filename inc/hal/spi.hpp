@@ -6,8 +6,8 @@
  * @date 03/2024
  */
 
-#ifndef __SPI_HPP__
-#define __SPI_HPP__
+#ifndef MICRAS_HAL_SPI_HPP
+#define MICRAS_HAL_SPI_HPP
 
 #include <cstdint>
 #include <spi.h>
@@ -83,4 +83,4 @@ class Spi {
 };
 }  // namespace hal
 
-#endif // __SPI_HPP__
+#endif // MICRAS_HAL_SPI_HPP

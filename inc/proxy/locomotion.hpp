@@ -6,8 +6,8 @@
  * @date 03/2024
  */
 
-#ifndef __DUAL_LOCOMOTION_HPP__
-#define __DUAL_LOCOMOTION_HPP__
+#ifndef MICRAS_PROXY_LOCOMOTION_HPP
+#define MICRAS_PROXY_LOCOMOTION_HPP
 
 #include <cstdint>
 
@@ -107,4 +107,4 @@ class Locomotion {
 };
 }  // namespace proxy
 
-#endif // __DUAL_LOCOMOTION_HPP__
+#endif // MICRAS_PROXY_LOCOMOTION_HPP

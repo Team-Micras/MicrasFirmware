@@ -6,8 +6,8 @@
  * @date 03/2024
  */
 
-#ifndef __FLASH_HPP__
-#define __FLASH_HPP__
+#ifndef MICRAS_HAL_FLASH_HPP
+#define MICRAS_HAL_FLASH_HPP
 
 #include <cstdint>
 #include <stm32g4xx_hal.h>
@@ -87,4 +87,4 @@ class Flash {
 };
 }  // namespace hal
 
-#endif // __FLASH_HPP__
+#endif // MICRAS_HAL_FLASH_HPP

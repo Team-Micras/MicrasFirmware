@@ -6,8 +6,8 @@
  * @date 03/2024
  */
 
-#ifndef __TORQUE_SENSORS_HPP__
-#define __TORQUE_SENSORS_HPP__
+#ifndef MICRAS_PROXY_TORQUE_SENSORS_HPP
+#define MICRAS_PROXY_TORQUE_SENSORS_HPP
 
 #include <cstdint>
 
@@ -66,4 +66,4 @@ class TorqueSensors {
 
 #include "../src/proxy/torque_sensors.cpp"
 
-#endif // __TORQUE_SENSORS_HPP__
+#endif // MICRAS_PROXY_TORQUE_SENSORS_HPP

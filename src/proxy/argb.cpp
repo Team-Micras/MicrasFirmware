@@ -6,8 +6,8 @@
  * @date 03/2024
  */
 
-#ifndef __ARGB_CPP__
-#define __ARGB_CPP__
+#ifndef MICRAS_PROXY_ARGB_CPP
+#define MICRAS_PROXY_ARGB_CPP
 
 #include "proxy/argb.hpp"
 
@@ -57,4 +57,4 @@ void Argb<num_of_leds>::encode_color(const Color& color, uint8_t index) {
 }
 }  // namespace proxy
 
-#endif // __ARGB_CPP__
+#endif // MICRAS_PROXY_ARGB_CPP

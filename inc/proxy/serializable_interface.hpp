@@ -6,8 +6,8 @@
  * @date 03/2024
  */
 
-#ifndef __SERIALIZABLE_INTERFACE_HPP__
-#define __SERIALIZABLE_INTERFACE_HPP__
+#ifndef MICRAS_PROXY_SERIALIZABLE_INTERFACE_HPP
+#define MICRAS_PROXY_SERIALIZABLE_INTERFACE_HPP
 
 #include <cstdint>
 #include <vector>
@@ -21,4 +21,4 @@ class ISerializable {
         virtual void deserialize(uint8_t* serial_data, uint16_t size) = 0;
 };
 
-#endif // __SERIALIZABLE_INTERFACE_HPP__
+#endif // MICRAS_PROXY_SERIALIZABLE_INTERFACE_HPP

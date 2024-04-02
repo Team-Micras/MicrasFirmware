@@ -6,8 +6,8 @@
  * @date 03/2024
  */
 
-#ifndef __GPIO_HPP__
-#define __GPIO_HPP__
+#ifndef MICRAS_HAL_GPIO_HPP
+#define MICRAS_HAL_GPIO_HPP
 
 #include <cstdint>
 #include <gpio.h>
@@ -65,4 +65,4 @@ class Gpio {
 };
 }  // namespace hal
 
-#endif // __GPIO_HPP__
+#endif // MICRAS_HAL_GPIO_HPP

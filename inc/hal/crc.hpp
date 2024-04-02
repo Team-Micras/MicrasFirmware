@@ -6,8 +6,8 @@
  * @date 03/2024
  */
 
-#ifndef __CRC_HPP__
-#define __CRC_HPP__
+#ifndef MICRAS_HAL_CRC_HPP
+#define MICRAS_HAL_CRC_HPP
 
 #include <crc.h>
 
@@ -49,4 +49,4 @@ class Crc {
 };
 }  // namespace hal
 
-#endif // __CRC_HPP__
+#endif // MICRAS_HAL_CRC_HPP

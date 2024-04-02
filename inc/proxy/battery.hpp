@@ -6,8 +6,8 @@
  * @date 03/2024
  */
 
-#ifndef __BATTERY_HPP__
-#define __BATTERY_HPP__
+#ifndef MICRAS_PROXY_BATTERY_HPP
+#define MICRAS_PROXY_BATTERY_HPP
 
 #include <cstdint>
 
@@ -66,4 +66,4 @@ class Battery {
 };
 }  // namespace proxy
 
-#endif // __BATTERY_HPP__
+#endif // MICRAS_PROXY_BATTERY_HPP

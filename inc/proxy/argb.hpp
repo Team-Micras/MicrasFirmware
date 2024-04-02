@@ -6,8 +6,8 @@
  * @date 03/2024
  */
 
-#ifndef __ARGB_HPP__
-#define __ARGB_HPP__
+#ifndef MICRAS_PROXY_ARGB_HPP
+#define MICRAS_PROXY_ARGB_HPP
 
 #include <array>
 #include <cstdint>
@@ -114,4 +114,4 @@ class Argb {
 
 #include "../src/proxy/argb.cpp"
 
-#endif // __ARGB_HPP__
+#endif // MICRAS_PROXY_ARGB_HPP

@@ -6,8 +6,8 @@
  * @date 03/2024
  */
 
-#ifndef __STORAGE_HPP__
-#define __STORAGE_HPP__
+#ifndef MICRAS_PROXY_STORAGE_HPP
+#define MICRAS_PROXY_STORAGE_HPP
 
 #include <cstdint>
 #include <string>
@@ -151,4 +151,4 @@ class Storage {
 };
 }  // namespace proxy
 
-#endif // __STORAGE_HPP__
+#endif // MICRAS_PROXY_STORAGE_HPP

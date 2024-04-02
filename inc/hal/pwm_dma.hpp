@@ -6,8 +6,8 @@
  * @date 03/2024
  */
 
-#ifndef __PWM_DMA_HPP__
-#define __PWM_DMA_HPP__
+#ifndef MICRAS_HAL_PWM_DMA_HPP
+#define MICRAS_HAL_PWM_DMA_HPP
 
 #include <cstdint>
 #include <tim.h>
@@ -67,4 +67,4 @@ class PwmDma {
         uint32_t channel;
 };
 }  // namespace hal
-#endif // __PWM_DMA_HPP__
+#endif // MICRAS_HAL_PWM_DMA_HPP

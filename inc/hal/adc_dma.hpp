@@ -6,8 +6,8 @@
  * @date 03/2024
  */
 
-#ifndef __HAL_ADC_DMA_HPP__
-#define __HAL_ADC_DMA_HPP__
+#ifndef MICRAS_HAL_ADC_DMA_HPP
+#define MICRAS_HAL_ADC_DMA_HPP
 
 #include <adc.h>
 #include <cstdint>
@@ -66,4 +66,4 @@ class AdcDma {
 };
 }
 
-#endif // __HAL_ADC_DMA_HPP__
+#endif // MICRAS_HAL_ADC_DMA_HPP

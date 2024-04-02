@@ -6,8 +6,8 @@
  * @date 03/2024
  */
 
-#ifndef __DIP_SWITCH_HPP__
-#define __DIP_SWITCH_HPP__
+#ifndef MICRAS_PROXY_DIP_SWITCH_HPP
+#define MICRAS_PROXY_DIP_SWITCH_HPP
 
 #include <array>
 #include <cstdint>
@@ -61,4 +61,4 @@ class DipSwitch {
 
 #include "../src/proxy/dip_switch.cpp"
 
-#endif // __DIP_SWITCH_HPP__
+#endif // MICRAS_PROXY_DIP_SWITCH_HPP

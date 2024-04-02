@@ -7,8 +7,8 @@
  * @date 03/2024
  */
 
-#ifndef __ROTARY_SENSOR_REG_HPP__
-#define __ROTARY_SENSOR_REG_HPP__
+#ifndef MICRAS_PROXY_ROTARY_SENSOR_REG_HPP
+#define MICRAS_PROXY_ROTARY_SENSOR_REG_HPP
 
 #include <cstdint>
 
@@ -111,4 +111,4 @@ struct Registers {
     Ecc                       ecc;
 };
 
-#endif // __ROTARY_SENSOR_REG_HPP__
+#endif // MICRAS_PROXY_ROTARY_SENSOR_REG_HPP

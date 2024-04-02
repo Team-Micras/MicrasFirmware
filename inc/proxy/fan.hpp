@@ -6,8 +6,8 @@
  * @date 03/2024
  */
 
-#ifndef __FAN_HPP__
-#define __FAN_HPP__
+#ifndef MICRAS_PROXY_FAN_HPP
+#define MICRAS_PROXY_FAN_HPP
 
 #include <cstdint>
 
@@ -91,4 +91,4 @@ class Fan {
 };
 }  // namespace proxy
 
-#endif // __FAN_HPP__
+#endif // MICRAS_PROXY_FAN_HPP

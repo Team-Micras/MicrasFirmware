@@ -6,8 +6,8 @@
  * @date 03/2024
  */
 
-#ifndef __DIP_SWITCH_CPP__
-#define __DIP_SWITCH_CPP__
+#ifndef MICRAS_PROXY_DIP_SWITCH_CPP
+#define MICRAS_PROXY_DIP_SWITCH_CPP
 
 #include "hal/mcu.hpp"
 #include "proxy/dip_switch.hpp"
@@ -37,4 +37,4 @@ uint8_t DipSwitch<num_of_sensors>::get_switches_value() const {
 }
 }  // namespace proxy
 
-#endif // __DIP_SWITCH_CPP__
+#endif // MICRAS_PROXY_DIP_SWITCH_CPP
