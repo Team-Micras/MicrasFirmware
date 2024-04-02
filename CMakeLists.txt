@@ -70,22 +70,6 @@ project(${CMAKE_PROJECT_NAME} C CXX ASM) #custom
 include(cmake/workspace.cmake)
 include(cmake/targets.cmake)
 
-# Add libraries .c files here
-set(LIB_SOURCES
-    lib/lsm6dsv-pid/lsm6dsv_reg.c
-)
-
-# Add libraries include directories here
-set(LIB_INCLUDE_DIRECTORIES
-    lib/lsm6dsv-pid
-)
-
-set_source_files_properties(
-  ${LIB_SOURCES}
-  PROPERTIES
-  COMPILE_FLAGS "-w"
-)
-
 ###############################################################################
 ## Include directories
 ###############################################################################
@@ -141,6 +125,25 @@ add_executable(${CMAKE_PROJECT_NAME})
 
 # Add STM32CubeMX generated sources
 add_subdirectory(cube/cmake/stm32cubemx)
+
+# Add libraries .c files here
+set(LIB_SOURCES
+    lib/lsm6dsv-pid/lsm6dsv_reg.c
+)
+
+# Add libraries include directories here
+set(LIB_INCLUDE_DIRECTORIES
+    lib/lsm6dsv-pid
+)
+
+get_target_property(CUBE_SOURCES stm32cubemx INTERFACE_SOURCES)
+
+set_source_files_properties(
+  ${CUBE_SOURCES}
+  ${LIB_SOURCES}
+  PROPERTIES
+  COMPILE_FLAGS "-w"
+)
 
 # # Link directories setup
 # target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
