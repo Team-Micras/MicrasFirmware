@@ -20,7 +20,7 @@ class Mcu {
         /**
          * @brief Initializes MCU and some peripherals
          */
-        static void init(void);
+        static void init();
 };
 }  // namespace hal
 #endif // __MCU_HPP__

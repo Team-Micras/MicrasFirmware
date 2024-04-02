@@ -13,11 +13,13 @@
  * Main Function
  *****************************************/
 
-int main(void) {
+int main() {
     hal::Mcu::init();
     MicrasController micras_controller;
 
     while (true) {
         micras_controller.run();
     }
+
+    return 0;
 }

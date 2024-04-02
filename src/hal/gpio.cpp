@@ -12,7 +12,7 @@ namespace hal {
 Gpio::Gpio(Config& config) : port{config.port}, pin{config.pin} {
 }
 
-bool Gpio::read(void) const {
+bool Gpio::read() const {
     return HAL_GPIO_ReadPin(this->port, this->pin);
 }
 
@@ -20,7 +20,7 @@ void Gpio::write(bool state) {
     HAL_GPIO_WritePin(this->port, this->pin, static_cast<GPIO_PinState>(state));
 }
 
-void Gpio::toggle(void) {
+void Gpio::toggle() {
     HAL_GPIO_TogglePin(this->port, this->pin);
 }
 }

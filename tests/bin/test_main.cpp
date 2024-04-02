@@ -1,15 +1,18 @@
 /**
  * @file test_main.cpp
  *
- * @brief Main function for tests.
+ * @brief Main function for tests
+ *
+ * @date 04/2024
  */
 
-#include <stdio.h>
 #include "test_core.hpp"
 
-int main(void) {
+int main() {
     test_core_init();
 
     for (;;) {
     }
+
+    return 0;
 }
