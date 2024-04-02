@@ -29,15 +29,7 @@ endif()
 set(CMAKE_PROJECT_NAME micras)
 
 
-
 # # # Include toolchain file
-
-set(CMAKE_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cube)
-
-include("cube/cmake/gcc-arm-none-eabi.cmake")
-# set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/cube/cmake/gcc-arm-none-eabi.cmake)
-
-set(CMAKE_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Enable compile command to ease indexing with e.g. clangd
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
@@ -46,17 +38,13 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 # enable_language(C ASM) #default
 # enable_language(C CXX ASM) #custom
 
-# Core project settings
-# project(${CMAKE_PROJECT_NAME}) #default
-project(${CMAKE_PROJECT_NAME} C CXX ASM) #custom
-
 # Set the board version to an empty string if your board doesn't have a version
 set(BOARD_VERSION "")
 
 if(BOARD_VERSION STREQUAL "")
-    set(PROJECT_RELEASE ${PROJECT_NAME})
+    set(PROJECT_RELEASE ${CMAKE_PROJECT_NAME})
 else()
-    set(PROJECT_RELEASE ${PROJECT_NAME}_${BOARD_VERSION})
+    set(PROJECT_RELEASE ${CMAKE_PROJECT_NAME}_${BOARD_VERSION})
 endif()
 set(TARGET_BOARD target_${PROJECT_RELEASE})
 
@@ -65,14 +53,19 @@ message("Build type: " ${CMAKE_BUILD_TYPE})
 #init custom
 
 set(LAUNCH_JSON_PATH ${CMAKE_CURRENT_SOURCE_DIR}/.vscode/launch.json)
-set(DEBUG_FILE_NAME ${PROJECT_NAME})
+set(DEBUG_FILE_NAME ${CMAKE_PROJECT_NAME})
 
 include(cmake/config_validation.cmake)
 
 # Include toolchain file
-# include("cube/cmake/gcc-arm-none-eabi.cmake")
-
+set(CMAKE_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cube)
+include(cube/cmake/gcc-arm-none-eabi.cmake)
 # set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/cube/cmake/gcc-arm-none-eabi.cmake)
+set(CMAKE_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+
+# Core project settings
+# project(${CMAKE_PROJECT_NAME}) #default
+project(${CMAKE_PROJECT_NAME} C CXX ASM) #custom
 
 include(cmake/workspace.cmake)
 include(cmake/targets.cmake)
@@ -161,6 +154,9 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     ${PROJECT_INCLUDE_DIRECTORIES}
     ${LIB_INCLUDE_DIRECTORIES}
 )
+
+get_target_property(stm32cubemx_inc stm32cubemx INTERFACE_INCLUDE_DIRECTORIES)
+target_include_directories(stm32cubemx SYSTEM INTERFACE ${stm32cubemx_inc})
 
 # custom
 target_precompile_headers(${PROJECT_NAME} PRIVATE
