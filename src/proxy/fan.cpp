@@ -35,7 +35,7 @@ void Fan::set_speed(float speed) {
 }
 
 void Fan::stop() {
-    this->set_speed(0.0F);
+    this->pwm.set_duty_cycle(0.0F);
 }
 
 void Fan::set_direction(RotationDirection direction) {
