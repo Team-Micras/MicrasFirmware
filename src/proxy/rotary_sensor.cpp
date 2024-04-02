@@ -51,7 +51,6 @@ float RotarySensor::get_position() const {
 
 void RotarySensor::write_register(CommandFrame& command_frame, DataFrame& data_frame) {
     while (not this->spi.select_device()) {
-        continue;
     }
 
     command_frame.fields.crc = this->crc.calculate(&command_frame.raw, 2);

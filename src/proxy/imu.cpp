@@ -149,7 +149,6 @@ int32_t Imu::platform_read(void* handle, uint8_t reg, uint8_t* bufp, uint16_t le
     auto* spi = static_cast<hal::Spi*>(handle);
 
     while (not spi->select_device()) {
-        continue;
     }
 
     reg |= 0x80;
@@ -164,7 +163,6 @@ int32_t Imu::platform_write(void* handle, uint8_t reg, const uint8_t* bufp, uint
     auto* spi = static_cast<hal::Spi*>(handle);
 
     while (not spi->select_device()) {
-        continue;
     }
 
     spi->transmit(&reg, 1);
