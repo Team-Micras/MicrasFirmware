@@ -16,32 +16,32 @@ RotarySensor::RotarySensor(Config& config) :
     CommandFrame command_frame;
     DataFrame data_frame;
 
-    command_frame.address = Registers::disable_addr;
-    data_frame.data = config.registers.disable.raw;
+    command_frame.fields.address = Registers::disable_addr;
+    data_frame.fields.data = config.registers.disable.raw;
     this->write_register(command_frame, data_frame);
 
-    command_frame.address = Registers::zposm_addr;
-    data_frame.data = config.registers.zposm.raw;
+    command_frame.fields.address = Registers::zposm_addr;
+    data_frame.fields.data = config.registers.zposm.raw;
     this->write_register(command_frame, data_frame);
 
-    command_frame.address = Registers::zpos_addr;
-    data_frame.data = config.registers.zpos.raw;
+    command_frame.fields.address = Registers::zposl_addr;
+    data_frame.fields.data = config.registers.zposl.raw;
     this->write_register(command_frame, data_frame);
 
-    command_frame.address = Registers::settings1_addr;
-    data_frame.data = config.registers.settings1.raw;
+    command_frame.fields.address = Registers::settings1_addr;
+    data_frame.fields.data = config.registers.settings1.raw;
     this->write_register(command_frame, data_frame);
 
-    command_frame.address = Registers::settings2_addr;
-    data_frame.data = config.registers.settings2.raw;
+    command_frame.fields.address = Registers::settings2_addr;
+    data_frame.fields.data = config.registers.settings2.raw;
     this->write_register(command_frame, data_frame);
 
-    command_frame.address = Registers::settings3_addr;
-    data_frame.data = config.registers.settings3.raw;
+    command_frame.fields.address = Registers::settings3_addr;
+    data_frame.fields.data = config.registers.settings3.raw;
     this->write_register(command_frame, data_frame);
 
-    command_frame.address = Registers::ecc_addr;
-    data_frame.data = config.registers.ecc.raw;
+    command_frame.fields.address = Registers::ecc_addr;
+    data_frame.fields.data = config.registers.ecc.raw;
     this->write_register(command_frame, data_frame);
 }
 
@@ -54,8 +54,8 @@ void RotarySensor::write_register(CommandFrame& command_frame, DataFrame& data_f
         continue;
     }
 
-    command_frame.crc = this->crc.calculate(&command_frame.raw, 2);
-    data_frame.crc = this->crc.calculate(&data_frame.raw, 2);
+    command_frame.fields.crc = this->crc.calculate(&command_frame.raw, 2);
+    data_frame.fields.crc = this->crc.calculate(&data_frame.raw, 2);
 
     this->spi.transmit(reinterpret_cast<uint8_t*>(&command_frame.raw), 3);
     this->spi.transmit(reinterpret_cast<uint8_t*>(&data_frame.raw), 3);

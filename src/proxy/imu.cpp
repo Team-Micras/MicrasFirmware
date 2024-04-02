@@ -172,7 +172,7 @@ int32_t Imu::platform_write(void* handle, uint8_t reg, const uint8_t* bufp, uint
     spi->unselect_device();
 
     return 0;
-};
+}
 
 void Imu::convert_orientation(std::array<float, 4>& quat, const uint16_t sflp[3]) {
     float sumsq = 0;

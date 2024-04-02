@@ -22,5 +22,5 @@ class Mcu {
          */
         static void init(void);
 };
-};  // namespace hal
+}  // namespace hal
 #endif // __MCU_HPP__

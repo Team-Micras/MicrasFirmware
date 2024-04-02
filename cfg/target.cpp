@@ -157,7 +157,7 @@ proxy::RotarySensor::Registers rotary_sensor_reg_config = {
     .zposm = {{
         .ZPOSM = 0
     }},
-    .zpos = {{
+    .zposl = {{
         .ZPOSL = 0,
         .Dia1_en = 0,
         .Dia2_en = 0
