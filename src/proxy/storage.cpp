@@ -63,7 +63,7 @@ void Storage::save() {
             continue;
         }
 
-        const uint8_t* aux = reinterpret_cast<const uint8_t*>(variable.ram_pointer);
+        const auto* aux = reinterpret_cast<const uint8_t*>(variable.ram_pointer);
         variable.buffer_address = buffer.size();
         this->buffer.insert(this->buffer.end(), aux, aux + variable.size);
     }

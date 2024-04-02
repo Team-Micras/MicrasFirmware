@@ -69,7 +69,7 @@ void Imu::update_data() {
     while (samples--) {
         lsm6dsv_fifo_out_raw_t f_data;
         lsm6dsv_fifo_out_raw_get(&(this->dev_ctx), &f_data);
-        int16_t* axis = reinterpret_cast<int16_t*>(f_data.data);
+        auto* axis = reinterpret_cast<int16_t*>(f_data.data);
 
         switch (f_data.tag) {
             case lsm6dsv_fifo_out_raw_t::LSM6DSV_GY_NC_TAG:
@@ -146,7 +146,7 @@ float Imu::get_linear_acceleration(Axis axis) const {
 }
 
 int32_t Imu::platform_read(void* handle, uint8_t reg, uint8_t* bufp, uint16_t len) {
-    auto spi = static_cast<hal::Spi*>(handle);
+    auto* spi = static_cast<hal::Spi*>(handle);
 
     while (not spi->select_device()) {
         continue;
@@ -161,7 +161,7 @@ int32_t Imu::platform_read(void* handle, uint8_t reg, uint8_t* bufp, uint16_t le
 }
 
 int32_t Imu::platform_write(void* handle, uint8_t reg, const uint8_t* bufp, uint16_t len) {
-    auto spi = static_cast<hal::Spi*>(handle);
+    auto* spi = static_cast<hal::Spi*>(handle);
 
     while (not spi->select_device()) {
         continue;
