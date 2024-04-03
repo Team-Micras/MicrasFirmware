@@ -13,7 +13,7 @@ if(CMAKE_LINTER STREQUAL "ON")
     message(STATUS "Enabling clang-tidy")
 
 elseif(CMAKE_LINTER STREQUAL "FIX")
-    set(CMAKE_CXX_CLANG_TIDY "${CMAKE_CXX_CLANG_TIDY};--fix")
+    set(CMAKE_CXX_CLANG_TIDY "clang-tidy;--fix")
     add_compile_options(-fms-extensions)
     message(STATUS "Enabling clang-tidy with fix")
 
