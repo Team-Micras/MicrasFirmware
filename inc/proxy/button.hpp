@@ -59,14 +59,14 @@ class Button {
         /**
          * @brief Check if button is pressed
          *
-         * @return True if button is pressed, false otherwise
+         * @return bool True if button is pressed, false otherwise
          */
         bool is_pressed();
 
         /**
          * @brief Get button status
          *
-         * @return Button status
+         * @return Status Button status
          */
         Status get_status();
 
@@ -74,7 +74,7 @@ class Button {
         /**
          * @brief Get raw button reading
          *
-         * @return Button reading
+         * @return bool Button reading without debounce
          */
         bool get_raw_reading() const;
 

@@ -22,6 +22,9 @@
 #include "proxy/rotary_sensor.hpp"
 #include "proxy/torque_sensors.hpp"
 
+/**
+ * @brief Class for controlling the Micras robot
+ */
 class MicrasController {
     public:
         /**

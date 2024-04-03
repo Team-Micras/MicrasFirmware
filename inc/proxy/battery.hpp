@@ -37,7 +37,7 @@ class Battery {
         /**
          * @brief Get the battery voltage
          *
-         * @return Battery voltage in volts
+         * @return float Battery voltage in volts
          */
         float get_voltage() const;
 

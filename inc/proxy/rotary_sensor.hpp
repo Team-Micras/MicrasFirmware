@@ -44,7 +44,7 @@ class RotarySensor {
         /**
          * @brief Get the rotary sensor position over an axis
          *
-         * @return Current angular position of the sensor in radians
+         * @return float Current angular position of the sensor in radians
          */
         float get_position() const;
 

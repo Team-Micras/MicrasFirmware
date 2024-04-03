@@ -28,4 +28,5 @@ class Mcu {
         static void init();
 };
 }  // namespace hal
+
 #endif // MICRAS_HAL_MCU_HPP

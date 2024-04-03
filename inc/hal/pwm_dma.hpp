@@ -67,4 +67,5 @@ class PwmDma {
         uint32_t channel;
 };
 }  // namespace hal
+
 #endif // MICRAS_HAL_PWM_DMA_HPP

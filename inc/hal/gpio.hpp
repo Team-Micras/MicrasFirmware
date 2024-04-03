@@ -36,7 +36,7 @@ class Gpio {
         /**
          * @brief Read the current state of the GPIO pin
          *
-         * @return The current state of the GPIO pin (true for high, false for low)
+         * @return bool The current state of the GPIO pin (true for high, false for low)
          */
         bool read() const;
 

@@ -61,7 +61,7 @@ class Imu {
          *
          * @param axis Axis to get the orientation from
          *
-         * @return Orientation over the desired axis using quaternions
+         * @return float Orientation over the desired axis using quaternions
          */
         float get_orientation(Axis axis) const;
 
@@ -70,7 +70,7 @@ class Imu {
          *
          * @param axis Axis to get the angular velocity from
          *
-         * @return Angular velocity over the desired axis in rad/s
+         * @return float Angular velocity over the desired axis in rad/s
          */
         float get_angular_velocity(Axis axis) const;
 
@@ -79,7 +79,7 @@ class Imu {
          *
          * @param axis Axis to get the linear acceleration from
          *
-         * @return Linear acceleration over the desired axis in m/s²
+         * @return float Linear acceleration over the desired axis in m/s²
          */
         float get_linear_acceleration(Axis axis) const;
 
@@ -92,7 +92,7 @@ class Imu {
          * @param bufp Buffer to read
          * @param len Length of the buffer
          *
-         * @return 0 if the operation was successful, -1 otherwise
+         * @return int32_t 0 if the operation was successful, -1 otherwise
          */
         static int32_t platform_read(void* handle, uint8_t reg, uint8_t* bufp, uint16_t len);
 
@@ -104,7 +104,7 @@ class Imu {
          * @param bufp Buffer to write
          * @param len Length of the buffer
          *
-         * @return 0 if the operation was successful, -1 otherwise
+         * @return int32_t 0 if the operation was successful, -1 otherwise
          */
         static int32_t platform_write(void* handle, uint8_t reg, const uint8_t* bufp, uint16_t len);
 
@@ -113,8 +113,6 @@ class Imu {
          *
          * @param quat Quaternion to store the orientation
          * @param sflp Raw data from the IMU
-         *
-         * @return Orientation in quaternions
          */
         static void convert_orientation(std::array<float, 4>& quat, const uint16_t sflp[3]);  // NOLINT(*-avoid-c-arrays)
 
@@ -123,7 +121,7 @@ class Imu {
          *
          * @param x Half precision float
          *
-         * @return Single precision float
+         * @return float Single precision float
          */
         static float half_to_float(uint16_t x);  // NOLINT(readability-identifier-length)
 

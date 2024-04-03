@@ -39,8 +39,7 @@ class DipSwitch {
          * @brief Get the state of a switch
          *
          * @param switch_index Index of the switch
-         * @return true if the switch is on
-         * @return false if the switch is off
+         * @return bool True if the switch is on, false otherwise
          */
         bool get_switch_state(uint8_t switch_index) const;
 

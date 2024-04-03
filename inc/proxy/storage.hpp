@@ -107,7 +107,7 @@ class Storage {
          * @tparam T Type of the variables
          * @param variables Map of variables
          *
-         * @return Serialized buffer
+         * @return std::vector<uint8_t> Serialized buffer
          */
         template <typename T>
         static std::vector<uint8_t> serialize_var_map(const std::unordered_map<std::string, T>& variables);
@@ -119,7 +119,7 @@ class Storage {
          * @param buffer Serialized buffer
          * @param num_vars Number of variables
          *
-         * @return Deserialized map of variables
+         * @return std::unordered_map<std::string, T> Deserialized map of variables
          */
         template <typename T>
         static std::unordered_map<std::string, T> deserialize_var_map(std::vector<uint8_t>& buffer, uint16_t num_vars);

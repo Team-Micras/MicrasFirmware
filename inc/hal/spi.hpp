@@ -40,7 +40,7 @@ class Spi {
         /**
          * @brief Activate the chip select
          *
-         * @return true if the device was successfully selected, false otherwise
+         * @return bool True if the device was successfully selected, false otherwise
          */
         bool select_device();
 

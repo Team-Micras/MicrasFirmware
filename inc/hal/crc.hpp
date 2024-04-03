@@ -37,7 +37,7 @@ class Crc {
          * @param data Data to calculate the CRC
          * @param size Size of the buffer
          *
-         * @return CRC value
+         * @return uint32_t CRC value
          */
         uint32_t calculate(uint32_t data[], uint32_t size);  // NOLINT(*-avoid-c-arrays)
 
