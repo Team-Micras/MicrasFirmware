@@ -66,7 +66,7 @@ void Imu::update_data() {
 
     uint16_t samples = fifo_status.fifo_level;
 
-    while (samples--) {
+    while ((samples--) > 0) {
         lsm6dsv_fifo_out_raw_t f_data;
         lsm6dsv_fifo_out_raw_get(&(this->dev_ctx), &f_data);
         auto* axis = reinterpret_cast<int16_t*>(f_data.data);
@@ -195,13 +195,18 @@ void Imu::convert_orientation(std::array<float, 4>& quat, const uint16_t sflp[3]
     quat[3] = std::sqrt(1.0F - sumsq);
 }
 
-float Imu::half_to_float(const uint16_t x) {
-    static auto as_float = [](uint32_t x) -> float {
-                               return *reinterpret_cast<float*>(&x);
-                           };
-    static auto as_uint = [](float x) -> uint32_t {
-                              return *reinterpret_cast<uint32_t*>(&x);
-                          };
+// NOLINTBEGIN(readability-identifier-length, readability-implicit-bool-conversion)
+float Imu::half_to_float(uint16_t x) {
+    static constexpr auto as_float =
+        [](uint32_t x) -> float {
+            void* aux = &x;
+            return *reinterpret_cast<float*>(aux);
+        };
+    static constexpr auto as_uint =
+        [](float x) -> uint32_t {
+            void* aux = &x;
+            return *reinterpret_cast<uint32_t*>(aux);
+        };
 
     const uint32_t e = (x & 0x7C00) >> 10;
     const uint32_t m = (x & 0x03FF) << 13;
@@ -211,4 +216,6 @@ float Imu::half_to_float(const uint16_t x) {
         (e != 0) * ((e + 112) << 23 | m) |
         ((e == 0) & (m != 0)) * ((v - 37) << 23 | ((m << (150 - v)) & 0x007FE000)));
 }
+
+// NOLINTEND(readability-identifier-length, readability-implicit-bool-conversion)
 }  // namespace proxy

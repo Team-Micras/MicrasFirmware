@@ -43,7 +43,7 @@ Button::Status Button::get_status() {
 }
 
 bool Button::get_raw_reading() const {
-    return this->gpio.read() == this->pull_resistor;
+    return this->gpio.read() == static_cast<bool>(this->pull_resistor);
 }
 
 void Button::update_state() {

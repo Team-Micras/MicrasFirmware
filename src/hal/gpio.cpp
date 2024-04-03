@@ -13,7 +13,7 @@ Gpio::Gpio(const Config& config) : port{config.port}, pin{config.pin} {
 }
 
 bool Gpio::read() const {
-    return HAL_GPIO_ReadPin(this->port, this->pin);
+    return HAL_GPIO_ReadPin(this->port, this->pin) == GPIO_PIN_SET;
 }
 
 void Gpio::write(bool state) {
