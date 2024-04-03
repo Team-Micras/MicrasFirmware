@@ -14,6 +14,7 @@ AdcDma::AdcDma(const Config& config) :
     config.init_function();
 }
 
+// NOLINTNEXTLINE(*-avoid-c-arrays)
 void AdcDma::start_dma(uint32_t buffer[], uint32_t size) {
     HAL_ADC_Start_DMA(this->handle, buffer, size);
 }

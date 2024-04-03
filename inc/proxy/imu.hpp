@@ -146,12 +146,12 @@ class Imu {
         /**
          * @brief Current angular velocity on each axis
          */
-        std::array<int16_t, 3> angular_velocity{ };
+        std::array<float, 3> angular_velocity{ };
 
         /**
          * @brief Current linear acceleration on each axis
          */
-        std::array<int16_t, 3> linear_acceleration{ };
+        std::array<float, 3> linear_acceleration{ };
 
         /**
          * @brief Current orientation

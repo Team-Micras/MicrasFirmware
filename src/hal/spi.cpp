@@ -26,10 +26,12 @@ void Spi::unselect_device() {
     this->gpio.write(true);
 }
 
+// NOLINTNEXTLINE(*-avoid-c-arrays)
 void Spi::transmit(uint8_t data[], uint32_t size) {
     HAL_SPI_Transmit(this->handle, data, size, this->timeout);
 }
 
+// NOLINTNEXTLINE(*-avoid-c-arrays)
 void Spi::receive(uint8_t data[], uint32_t size) {
     HAL_SPI_Receive(this->handle, data, size, this->timeout);
 }

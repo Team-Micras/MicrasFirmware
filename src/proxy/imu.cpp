@@ -166,12 +166,13 @@ int32_t Imu::platform_write(void* handle, uint8_t reg, const uint8_t* bufp, uint
     }
 
     spi->transmit(&reg, 1);
-    spi->transmit((uint8_t*) bufp, len);
+    spi->transmit(const_cast<uint8_t*>(bufp), len);  // NOLINT(cppcoreguidelines-pro-type-const-cast)
     spi->unselect_device();
 
     return 0;
 }
 
+// NOLINTNEXTLINE(*-avoid-c-arrays)
 void Imu::convert_orientation(std::array<float, 4>& quat, const uint16_t sflp[3]) {
     float sumsq = 0;
 
@@ -180,14 +181,14 @@ void Imu::convert_orientation(std::array<float, 4>& quat, const uint16_t sflp[3]
     quat[2] = half_to_float(sflp[2]);
 
     for (uint8_t i = 0; i < 3; i++) {
-        sumsq += quat[i] * quat[i];
+        sumsq += quat[i] * quat[i];  // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
     }
 
     if (sumsq > 1.0F) {
-        float n = std::sqrt(sumsq);
-        quat[0] /= n;
-        quat[1] /= n;
-        quat[2] /= n;
+        float norm = std::sqrt(sumsq);
+        quat[0] /= norm;
+        quat[1] /= norm;
+        quat[2] /= norm;
         sumsq = 1.0F;
     }
 

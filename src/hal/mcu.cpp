@@ -7,7 +7,6 @@
 #include <crc.h>
 #include <dma.h>
 #include <gpio.h>
-#include <main.h>
 
 #include "hal/mcu.hpp"
 
