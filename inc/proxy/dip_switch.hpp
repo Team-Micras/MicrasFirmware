@@ -33,7 +33,7 @@ class DipSwitch {
          *
          * @param config Configuration struct for DipSwitch
          */
-        DipSwitch(const Config& config);
+        explicit DipSwitch(const Config& config);
 
         /**
          * @brief Get the state of a switch
@@ -59,6 +59,6 @@ class DipSwitch {
 };
 }  // namespace proxy
 
-#include "../src/proxy/dip_switch.cpp"
+#include "../src/proxy/dip_switch.cpp"  // NOLINT(bugprone-suspicious-include)
 
 #endif // MICRAS_PROXY_DIP_SWITCH_HPP

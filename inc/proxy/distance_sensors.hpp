@@ -36,7 +36,7 @@ class DistanceSensors {
          *
          * @param config Configuration for the distance sensors
          */
-        DistanceSensors(const Config& config);
+        explicit DistanceSensors(const Config& config);
 
         /**
          * @brief Set the distance sensors led intensity
@@ -84,6 +84,6 @@ class DistanceSensors {
 };
 }  // namespace proxy
 
-#include "../src/proxy/distance_sensors.cpp"
+#include "../src/proxy/distance_sensors.cpp"  // NOLINT(bugprone-suspicious-include)
 
 #endif // MICRAS_PROXY_DISTANCE_SENSORS_HPP

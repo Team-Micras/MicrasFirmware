@@ -23,7 +23,7 @@ class Pwm {
          */
         struct Config {
             TIM_HandleTypeDef* handle;
-            void               (* init_function)(void);
+            void               (* init_function)();
             uint32_t           timer_channel;
         };
 
@@ -32,7 +32,7 @@ class Pwm {
          *
          * @param config Configuration for the PWM
          */
-        Pwm(const Config& config);
+        explicit Pwm(const Config& config);
 
         /**
          * @brief Set the PWM duty cycle

@@ -39,7 +39,7 @@ class Storage {
          *
          * @param config Configuration for the storage
          */
-        Storage(const Config& config);
+        explicit Storage(const Config& config);
 
         /**
          * @brief Create a new primitive variable in the storage
@@ -88,8 +88,8 @@ class Storage {
          */
         struct PrimitiveVariable {
             const void* ram_pointer{nullptr};
-            uint16_t    buffer_address;
-            uint16_t    size;
+            uint16_t    buffer_address{ };
+            uint16_t    size{ };
         };
 
         /**
@@ -97,8 +97,8 @@ class Storage {
          */
         struct SerializableVariable {
             const ISerializable* ram_pointer{nullptr};
-            uint16_t             buffer_address;
-            uint16_t             size;
+            uint16_t             buffer_address{ };
+            uint16_t             size{ };
         };
 
         /**

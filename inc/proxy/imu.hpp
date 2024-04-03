@@ -41,7 +41,7 @@ class Imu {
          *
          * @param config Configuration for the IMU
          */
-        Imu(const Config& config);
+        explicit Imu(const Config& config);
 
         enum Axis {
             W,
@@ -116,7 +116,7 @@ class Imu {
          *
          * @return Orientation in quaternions
          */
-        static void convert_orientation(std::array<float, 4>& quat, const uint16_t sflp[3]);
+        static void convert_orientation(std::array<float, 4>& quat, const uint16_t sflp[3]);  // NOLINT(*-avoid-c-arrays)
 
         /**
          * @brief Function to convert half precision float to single precision float
@@ -125,7 +125,7 @@ class Imu {
          *
          * @return Single precision float
          */
-        static float half_to_float(uint16_t x);
+        static float half_to_float(uint16_t x);  // NOLINT(readability-identifier-length)
 
         /**
          * @brief Conversion constants

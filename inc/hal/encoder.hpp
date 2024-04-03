@@ -22,7 +22,7 @@ class Encoder {
          */
         struct Config {
             TIM_HandleTypeDef* handle;
-            void               (* init_function)(void);
+            void               (* init_function)();
             uint32_t           timer_channel;
         };
 
@@ -31,7 +31,7 @@ class Encoder {
          *
          * @param config Configuration for the encoder
          */
-        Encoder(const Config& config);
+        explicit Encoder(const Config& config);
 
         /**
          * @brief Get the counter value

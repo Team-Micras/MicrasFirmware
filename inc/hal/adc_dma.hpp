@@ -23,7 +23,7 @@ class AdcDma {
          */
         struct Config {
             ADC_HandleTypeDef* handle;
-            void               (* init_function)(void);
+            void               (* init_function)();
             uint32_t           max_reading;
             float              reference_voltage;
         };
@@ -33,7 +33,7 @@ class AdcDma {
          *
          * @param config ADC DMA configuration struct
          */
-        AdcDma(const Config& config);
+        explicit AdcDma(const Config& config);
 
         /**
          * @brief Enable ADC, start conversion of regular group and transfer result through DMA
@@ -41,7 +41,7 @@ class AdcDma {
          * @param buffer Destination Buffer address
          * @param size Number of data to be transferred from ADC DMA peripheral to memory
          */
-        void start_dma(uint32_t buffer[], uint32_t size);
+        void start_dma(uint32_t buffer[], uint32_t size);  // NOLINT(*-avoid-c-arrays)
 
         /**
          * @brief Stop ADC conversion of regular group (and injected group in case of auto_injection mode)
@@ -51,12 +51,12 @@ class AdcDma {
         /**
          * @brief Maximum ADC reading
          */
-        const uint32_t max_reading;
+        const uint32_t max_reading;  // NOLINT(*-non-private-member-variables-in-classes)
 
         /**
          * @brief Reference voltage for the ADC measurement
          */
-        const float reference_voltage;
+        const float reference_voltage;  // NOLINT(*-non-private-member-variables-in-classes)
 
     private:
         /**
@@ -64,6 +64,6 @@ class AdcDma {
          */
         ADC_HandleTypeDef* handle;
 };
-}
+}  // namespace hal
 
 #endif // MICRAS_HAL_ADC_DMA_HPP

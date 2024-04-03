@@ -23,7 +23,7 @@ class Timer {
          */
         struct Config {
             TIM_HandleTypeDef* handle;
-            void               (* init_function)(void);
+            void               (* init_function)();
         };
 
         /**
@@ -36,7 +36,7 @@ class Timer {
          *
          * @param config Configuration for the timer
          */
-        Timer(const Config& config);
+        explicit Timer(const Config& config);
 
         /**
          * @brief Reset the timer counter in milliseconds
@@ -94,7 +94,7 @@ class Timer {
         /**
          * @brief Timer handle
          */
-        TIM_HandleTypeDef* handle;
+        TIM_HandleTypeDef* handle{ };
 
         /**
          * @brief Timer counter

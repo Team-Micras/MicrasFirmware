@@ -34,7 +34,7 @@ class CurrentSensors {
          *
          * @param config Configuration for the current sensors
          */
-        CurrentSensors(const Config& config);
+        explicit CurrentSensors(const Config& config);
 
         /**
          * @brief Get the current from the sensor
@@ -70,6 +70,6 @@ class CurrentSensors {
 };
 }  // namespace proxy
 
-#include "../src/proxy/current_sensors.cpp"
+#include "../src/proxy/current_sensors.cpp"  // NOLINT(bugprone-suspicious-include)
 
 #endif // MICRAS_PROXY_CURRENT_SENSORS_HPP

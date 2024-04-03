@@ -23,7 +23,7 @@ class PwmDma {
          */
         struct Config {
             TIM_HandleTypeDef* handle;
-            void               (* init_function)(void);
+            void               (* init_function)();
             uint32_t           timer_channel;
         };
 
@@ -32,7 +32,7 @@ class PwmDma {
          *
          * @param config Configuration for the PWM
          */
-        PwmDma(const Config& config);
+        explicit PwmDma(const Config& config);
 
         /**
          * @brief Start PWM and DMA transfer
@@ -40,7 +40,7 @@ class PwmDma {
          * @param buffer Buffer to transfer
          * @param size Size of the buffer
          */
-        void start_dma(uint32_t buffer[], uint32_t size);
+        void start_dma(uint32_t buffer[], uint32_t size);  // NOLINT(*-avoid-c-arrays)
 
         /**
          * @brief Stop PWM and DMA transfer

@@ -11,8 +11,8 @@
 
 #include <cstdint>
 
-#include "hal/pwm.hpp"
 #include "hal/gpio.hpp"
+#include "hal/pwm.hpp"
 
 namespace proxy {
 /**
@@ -42,7 +42,7 @@ class Fan {
          *
          * @param config Configuration for the fan driver
          */
-        Fan(const Config& config);
+        explicit Fan(const Config& config);
 
         /**
          * @brief Enable the fan

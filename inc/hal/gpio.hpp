@@ -31,7 +31,7 @@ class Gpio {
          *
          * @param config Configuration for the GPIO pin
          */
-        Gpio(const Config& config);
+        explicit Gpio(const Config& config);
 
         /**
          * @brief Read the current state of the GPIO pin

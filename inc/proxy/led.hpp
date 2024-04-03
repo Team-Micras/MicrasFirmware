@@ -29,7 +29,7 @@ class Led {
          *
          * @param config Configuration for the LED
          */
-        Led(const Config& config);
+        explicit Led(const Config& config);
 
         /**
          * @brief Turn the LED on

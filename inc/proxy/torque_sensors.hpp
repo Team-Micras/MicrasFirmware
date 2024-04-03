@@ -33,7 +33,7 @@ class TorqueSensors {
          *
          * @param config Configuration for the torque sensors
          */
-        TorqueSensors(const Config& config);
+        explicit TorqueSensors(const Config& config);
 
         /**
          * @brief Get the torque from the sensor
@@ -64,6 +64,6 @@ class TorqueSensors {
 };
 }  // namespace proxy
 
-#include "../src/proxy/torque_sensors.cpp"
+#include "../src/proxy/torque_sensors.cpp"  // NOLINT(bugprone-suspicious-include)
 
 #endif // MICRAS_PROXY_TORQUE_SENSORS_HPP

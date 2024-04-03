@@ -29,7 +29,7 @@ class Crc {
          *
          * @param config Configuration for the CRC
          */
-        Crc(const Config& config);
+        explicit Crc(const Config& config);
 
         /**
          * @brief Calculate the CRC value
@@ -39,7 +39,7 @@ class Crc {
          *
          * @return CRC value
          */
-        uint32_t calculate(uint32_t data[], uint32_t size);
+        uint32_t calculate(uint32_t data[], uint32_t size);  // NOLINT(*-avoid-c-arrays)
 
     private:
         /**

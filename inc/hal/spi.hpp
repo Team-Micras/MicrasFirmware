@@ -25,7 +25,7 @@ class Spi {
          */
         struct Config {
             SPI_HandleTypeDef* handle;
-            void               (* init_function)(void);
+            void               (* init_function)();
             hal::Gpio::Config  gpio;
             uint32_t           timeout;
         };
@@ -35,7 +35,7 @@ class Spi {
          *
          * @param config Configuration for the SPI
          */
-        Spi(const Config& config);
+        explicit Spi(const Config& config);
 
         /**
          * @brief Activate the chip select
@@ -55,7 +55,7 @@ class Spi {
          * @param data Data to transmit
          * @param size Size of the buffer
          */
-        void transmit(uint8_t data[], uint32_t size);
+        void transmit(uint8_t data[], uint32_t size);  // NOLINT(*-avoid-c-arrays)
 
         /**
          * @brief Receive data over SPI
@@ -63,7 +63,7 @@ class Spi {
          * @param data Data to receive data
          * @param size Size of the data
          */
-        void receive(uint8_t data[], uint32_t size);
+        void receive(uint8_t data[], uint32_t size);  // NOLINT(*-avoid-c-arrays)
 
     private:
         /**

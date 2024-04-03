@@ -32,7 +32,7 @@ class Battery {
          *
          * @param config Configuration for the battery
          */
-        Battery(const Config& config);
+        explicit Battery(const Config& config);
 
         /**
          * @brief Get the battery voltage

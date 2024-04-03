@@ -42,8 +42,8 @@ class Button {
          * @brief Configuration structure for button
          */
         struct Config {
-            hal::Gpio::Config gpio;
-            PullResistor      pull_resistor;
+            hal::Gpio::Config gpio{ };
+            PullResistor      pull_resistor{ };
             uint16_t          debounce_delay = 10;
             uint16_t          long_press_delay = 1000;
             uint16_t          extra_long_press_delay = 5000;
@@ -54,7 +54,7 @@ class Button {
          *
          * @param config Button configuration
          */
-        Button(const Config& config);
+        explicit Button(const Config& config);
 
         /**
          * @brief Check if button is pressed

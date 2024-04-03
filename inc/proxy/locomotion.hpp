@@ -11,8 +11,8 @@
 
 #include <cstdint>
 
-#include "hal/pwm.hpp"
 #include "hal/gpio.hpp"
+#include "hal/pwm.hpp"
 
 namespace proxy {
 /**
@@ -36,7 +36,7 @@ class Locomotion {
          *
          * @param config Configuration for the locomotion driver
          */
-        Locomotion(const Config& config);
+        explicit Locomotion(const Config& config);
 
         /**
          * @brief Enable the locomotion driver
