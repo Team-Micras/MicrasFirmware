@@ -1,0 +1,30 @@
+---
+Checks:
+  -*,
+  bugprone-*,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-narrowing-conversions,
+  clang-*,
+  -clang-diagnostic-unused-command-line-argument,
+  cppcoreguidelines-*,
+  -cppcoreguidelines-avoid-magic-numbers,
+  -cppcoreguidelines-narrowing-conversions,
+  -cppcoreguidelines-pro-bounds-pointer-arithmetic,
+  -cppcoreguidelines-pro-type-reinterpret-cast,
+  -cppcoreguidelines-pro-type-union-access,
+  google-*,
+  llvm-*,
+  -llvm-header-guard,
+  misc-*,
+  modernize-*,
+  -modernize-use-nodiscard,
+  -modernize-use-trailing-return-type,
+  performance-*,
+  readability-*,
+  -readability-duplicate-include,
+  -readability-magic-numbers,
+WarningsAsErrors: ''
+HeaderFilterRegex: 'inc/.*.hpp'
+AnalyzeTemporaryDtors: false
+FormatStyle: none
+...

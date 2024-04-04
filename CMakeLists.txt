@@ -1,130 +1,67 @@
-# Name: CMakeLists file
-# ThundeRatz Robotics Team
-# Brief: This file contains the configuration of the CMake project
-## and all the files that you should edit to configure your project
+# Name: CMakeLists.txt
+# Micras Team
+# Brief: CMake configuration file for the project
 # 04/2023
 
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.22)
 
 ###############################################################################
 ## CMake Configuration
 ###############################################################################
 
-set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/lib/stm32-cmake/cmake/stm32_gcc.cmake)
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_CXX_STANDARD 20)
-# # Cube generated FreeRTOS path
+
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_C_EXTENSIONS ON)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
+
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Debug")
+endif()
+message("Build type: " ${CMAKE_BUILD_TYPE})
+
+###############################################################################
+## Project Configuration
+###############################################################################
+
+# The .ioc file used to generate the project will be PROJECT_RELEASE.ioc
+
+set(CMAKE_PROJECT_NAME micras)
+set(BOARD_VERSION "")
+set(DEVICE STM32G474RE)
+
+if(BOARD_VERSION STREQUAL "")
+    set(PROJECT_RELEASE ${CMAKE_PROJECT_NAME})
+else()
+    set(PROJECT_RELEASE ${CMAKE_PROJECT_NAME}_${BOARD_VERSION})
+endif()
+
 # set(FREERTOS_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cube/Middlewares/Third_Party/FreeRTOS/Source)
 # set(FREERTOS_SOURCE ${FREERTOS_PATH})
 
-## Options:
-# Release: high optimization level, no debug info, code or asserts.
-# Debug: No optimization, asserts enabled, [custom debug (output) code enabled], debug info included in executable (so you can step through the code with a debugger and have address to source-file:line-number translation).
-# RelWithDebInfo: optimized, with debug info, but no debug (output) code or asserts.
-# MinSizeRel: same as Release but optimizing for size rather than speed.
-# @see: https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html
-set(CMAKE_BUILD_TYPE Debug)
-
-# Generate compile_commands.json for compatibility with LSPs
-# @see: https://cmake.org/cmake/help/latest/variable/CMAKE_EXPORT_COMPILE_COMMANDS.html
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
-# Cube file name without .ioc extension
-project(micras C CXX ASM)
-
-# Set the board version to an empty string if your board doesn't have a version
-set(BOARD_VERSION "")
-
-# Device Configuration
-set(DEVICE_CORTEX G4)
-set(DEVICE_FAMILY STM32G4xx)
-set(DEVICE_TYPE STM32G474xx)
-set(DEVICE_DEF STM32G474xE)
-set(DEVICE STM32G474RE)
-set(DEVICE_PORT ARM_CM4F)  # For FreeRTOS
-
-# DEVICE_FAMILY_COMPACT is the same as DEVICE_FAMILY but without the STM32 prefix
-string(REPLACE "STM32" "" DEVICE_FAMILY_COMPACT ${DEVICE})
-
-if(BOARD_VERSION STREQUAL "")
-    set(PROJECT_RELEASE ${PROJECT_NAME})
-else()
-    set(PROJECT_RELEASE ${PROJECT_NAME}_${BOARD_VERSION})
-endif()
-set(TARGET_BOARD target_${PROJECT_RELEASE})
-
 ###############################################################################
-## Global compilation config
+## Toolchain Configuration
 ###############################################################################
 
 set(LAUNCH_JSON_PATH ${CMAKE_CURRENT_SOURCE_DIR}/.vscode/launch.json)
-set(DEBUG_FILE_NAME ${PROJECT_NAME})
+set(DEBUG_FILE_NAME ${CMAKE_PROJECT_NAME})
 
 include(cmake/config_validation.cmake)
+
+set(CMAKE_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cube)
+include(cube/cmake/gcc-arm-none-eabi.cmake)
+set(CMAKE_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+
+project(${CMAKE_PROJECT_NAME} C CXX ASM)
+
 include(cmake/workspace.cmake)
 include(cmake/targets.cmake)
+include(cmake/utilities.cmake)
+include(cmake/linter.cmake)
 
-find_package(CMSIS COMPONENTS ${DEVICE} REQUIRED)
-# find_package(CMSIS COMPONENTS ${DEVICE} RTOS_V2 REQUIRED)
-find_package(HAL COMPONENTS STM32${DEVICE_CORTEX} REQUIRED)
-# find_package(FreeRTOS COMPONENTS ${DEVICE_PORT} REQUIRED)
-
-add_compile_options(
-    -Wall
-    -Wextra
-    -Wfatal-errors
-    -mthumb
-    -fdata-sections
-    -ffunction-sections
-    -fmessage-length=0
-    -MMD
-    -MP
-)
-
-add_compile_definitions(${DEVICE_DEF} USE_HAL_DRIVER)
-
-###############################################################################
-## Project dependencies
-###############################################################################
-
-set(DEPENDENCIES
-    m  # math library
-
-    HAL::STM32::${DEVICE_CORTEX}
-
-    HAL::STM32::${DEVICE_CORTEX}::ADCEx
-    HAL::STM32::${DEVICE_CORTEX}::CRCEx
-    HAL::STM32::${DEVICE_CORTEX}::DMA
-    HAL::STM32::${DEVICE_CORTEX}::FLASHEx
-    HAL::STM32::${DEVICE_CORTEX}::GPIO
-    HAL::STM32::${DEVICE_CORTEX}::I2C
-    HAL::STM32::${DEVICE_CORTEX}::PWREx
-    HAL::STM32::${DEVICE_CORTEX}::SPI
-    HAL::STM32::${DEVICE_CORTEX}::TIMEx
-    HAL::STM32::${DEVICE_CORTEX}::UARTEx
-    HAL::STM32::${DEVICE_CORTEX}::WWDG
-
-    HAL::STM32::${DEVICE_CORTEX}::RCCEx
-    HAL::STM32::${DEVICE_CORTEX}::CORTEX
-
-    CMSIS::STM32::${DEVICE_FAMILY_COMPACT}
-    STM32::NoSys
-
-    # CMSIS::STM32::${DEVICE_CORTEX}::RTOS_V2
-    # FreeRTOS::${DEVICE_PORT}
-    # FreeRTOS::Heap::4
-    # FreeRTOS::Timers
-)
-
-# Add libraries .c files here
-set(LIB_SOURCES
-    lib/lsm6dsv-pid/lsm6dsv_reg.c
-)
-
-# Add libraries include directories here
-set(LIB_INCLUDE_DIRECTORIES
-    lib/lsm6dsv-pid
-)
+add_subdirectory(cube/cmake/stm32cubemx)
 
 ###############################################################################
 ## Include directories
@@ -133,11 +70,14 @@ set(LIB_INCLUDE_DIRECTORIES
 set(PROJECT_INCLUDE_DIRECTORIES
     ./cfg
     ./inc
-    ./cube/Inc
 )
 
 set(TEST_INCLUDE_DIRECTORIES
     ./tests/inc
+)
+
+set(LIB_INCLUDE_DIRECTORIES
+    lib/lsm6dsv-pid
 )
 
 # set(FREE_RTOS_INCLUDE_DIRECTORIES
@@ -157,51 +97,59 @@ file(GLOB_RECURSE TESTS_SOURCES CONFIGURE_DEPENDS "tests/src/*.cpp" "tests/src/*
 file(GLOB_RECURSE TESTS_HEADERS CONFIGURE_DEPENDS "tests/inc/*.hpp" "tests/inc/*.h")
 file(GLOB_RECURSE TESTS_BIN CONFIGURE_DEPENDS "tests/bin/*.cpp" "tests/bin/*.c")
 
-file(GLOB_RECURSE CUBE_SOURCES CONFIGURE_DEPENDS "cube/Src/*.c")
+targets_generate_format_target(PROJECT_SOURCES PROJECT_HEADERS TESTS_SOURCES TESTS_HEADERS TESTS_BIN)
 
-# Remove system_xxx.c file from CubeMX, as it is already included in CMSIS
-string(TOLOWER ${DEVICE_FAMILY} DEVICE_FAMILY_LOWER)
-list(REMOVE_ITEM CUBE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/cube/Src/system_${DEVICE_FAMILY_LOWER}.c)
-
-# Add here the headers to be included in all files
-set(FORCED_INCLUDE_HEADERS
+list(REMOVE_ITEM PROJECT_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/main.c
 )
 
-targets_generate_format_target(PROJECT_SOURCES PROJECT_HEADERS TESTS_SOURCES TESTS_HEADERS TESTS_BIN)
+set(LIB_SOURCES
+    lib/lsm6dsv-pid/lsm6dsv_reg.c
+)
+
+###############################################################################
+## Cube Library
+###############################################################################
+
+get_target_property(CUBE_HEADERS stm32cubemx INTERFACE_INCLUDE_DIRECTORIES)
+get_target_property(CUBE_COMPILE_DEFINITIONS stm32cubemx INTERFACE_COMPILE_DEFINITIONS)
+get_target_property(CUBE_SOURCES stm32cubemx INTERFACE_SOURCES)
+
+# Remove warnings from Cube and library sources
+set_source_files_properties(
+  ${CUBE_SOURCES}
+  ${LIB_SOURCES}
+  PROPERTIES
+  COMPILE_FLAGS "-w"
+)
+
+add_library(cube_lib STATIC ${CUBE_SOURCES})
+target_compile_definitions(cube_lib PUBLIC ${CUBE_COMPILE_DEFINITIONS})
+target_include_directories(cube_lib SYSTEM PUBLIC ${CUBE_HEADERS})
 
 ###############################################################################
 ## Main executable target
 ###############################################################################
 
-add_executable(${PROJECT_NAME}
-    ${CUBE_SOURCES}
+add_library(${CMAKE_PROJECT_NAME}_lib STATIC
     ${PROJECT_SOURCES}
     ${LIB_SOURCES}
 )
 
-# target_compile_definitions(${PROJECT_NAME} PRIVATE
-#     USE_CMSIS_RTOS_V2
-#     CMSIS_RTOS_V2_DEVICE_HEADER="stm32g4xx_hal.h"
-# )
-
-target_include_directories(${PROJECT_NAME} PUBLIC
+target_include_directories(${CMAKE_PROJECT_NAME}_lib PUBLIC
     ${PROJECT_INCLUDE_DIRECTORIES}
     ${LIB_INCLUDE_DIRECTORIES}
-    ${CMSIS_INCLUDE_DIRS}
-    ${HAL_INCLUDE_DIRS}
-    # ${FREE_RTOS_INCLUDE_DIRECTORIES}
 )
 
-target_precompile_headers(${PROJECT_NAME} PUBLIC
-    ${FORCED_INCLUDE_HEADERS}
+target_link_libraries(${CMAKE_PROJECT_NAME}_lib
+    cube_lib
 )
 
-target_link_libraries(${PROJECT_NAME}
-    ${DEPENDENCIES}
-)
+add_executable(${CMAKE_PROJECT_NAME} "src/main.cpp")
 
-target_link_options(${PROJECT_NAME} PUBLIC
-    --specs=nano.specs
+target_link_libraries(${CMAKE_PROJECT_NAME}
+    ${CMAKE_PROJECT_NAME}_lib
 )
 
 stm32_print_size_of_target(${PROJECT_NAME})
@@ -215,12 +163,6 @@ targets_generate_helpme_target()
 ## Generate test executables
 ###############################################################################
 
-# Since each test has its own main function, we don't need the main.cpp from the project
-list(REMOVE_ITEM PROJECT_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/main.c
-)
-
 foreach(TEST_FILE ${TESTS_BIN})
 
     # If TEST_FILE contains /dir1/dir2/file.cpp, TEST_NAME will be 'file'
@@ -228,31 +170,15 @@ foreach(TEST_FILE ${TESTS_BIN})
 
     add_executable(${TEST_NAME} EXCLUDE_FROM_ALL
         ${TEST_FILE}
-        ${CUBE_SOURCES}
-        ${PROJECT_SOURCES}
         ${TESTS_SOURCES}
-        ${LIB_SOURCES}
     )
 
-    target_include_directories(${TEST_NAME} PUBLIC
-        ${PROJECT_INCLUDE_DIRECTORIES}
-        ${LIB_INCLUDE_DIRECTORIES}
-        ${CMSIS_INCLUDE_DIRS}
-        ${HAL_INCLUDE_DIRS}
-        ${TEST_INCLUDE_DIRECTORIES}
-        # ${FREE_RTOS_INCLUDE_DIRECTORIES}
-    )
-
-    target_precompile_headers(${TEST_NAME} PUBLIC
-        ${FORCED_INCLUDE_HEADERS}
+    target_include_directories(${TEST_NAME} PRIVATE
+        ${TESTS_HEADERS}
     )
 
     target_link_libraries(${TEST_NAME}
-        ${DEPENDENCIES}
-    )
-
-    target_link_options(${TEST_NAME} PUBLIC
-        --specs=nano.specs
+        ${CMAKE_PROJECT_NAME}_lib
     )
 
     stm32_generate_hex_file(${TEST_NAME})
