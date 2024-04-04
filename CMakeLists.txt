@@ -44,6 +44,8 @@ include(cmake/targets.cmake)
 include(cmake/utilities.cmake)
 include(cmake/linter.cmake)
 
+add_subdirectory(cube/cmake/stm32cubemx)
+
 ###############################################################################
 ## Include directories
 ###############################################################################
@@ -55,6 +57,10 @@ set(PROJECT_INCLUDE_DIRECTORIES
 
 set(TEST_INCLUDE_DIRECTORIES
     ./tests/inc
+)
+
+set(LIB_INCLUDE_DIRECTORIES
+    lib/lsm6dsv-pid
 )
 
 # set(FREE_RTOS_INCLUDE_DIRECTORIES
@@ -81,19 +87,16 @@ list(REMOVE_ITEM PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/main.c
 )
 
-###############################################################################
-## Main executable target
-###############################################################################
-
 set(LIB_SOURCES
     lib/lsm6dsv-pid/lsm6dsv_reg.c
 )
 
-set(LIB_INCLUDE_DIRECTORIES
-    lib/lsm6dsv-pid
-)
+###############################################################################
+## Cube Library
+###############################################################################
 
-add_subdirectory(cube/cmake/stm32cubemx)
+get_target_property(CUBE_HEADERS stm32cubemx INTERFACE_INCLUDE_DIRECTORIES)
+get_target_property(CUBE_COMPILE_DEFINITIONS stm32cubemx INTERFACE_COMPILE_DEFINITIONS)
 get_target_property(CUBE_SOURCES stm32cubemx INTERFACE_SOURCES)
 
 # Remove warnings from Cube and library sources
@@ -104,9 +107,13 @@ set_source_files_properties(
   COMPILE_FLAGS "-w"
 )
 
-# Remove warnings from Cube header files
-get_target_property(CUBE_HEADERS stm32cubemx INTERFACE_INCLUDE_DIRECTORIES)
-target_include_directories(stm32cubemx SYSTEM INTERFACE ${CUBE_HEADERS})
+add_library(cube_lib STATIC ${CUBE_SOURCES})
+target_compile_definitions(cube_lib PUBLIC ${CUBE_COMPILE_DEFINITIONS})
+target_include_directories(cube_lib SYSTEM PUBLIC ${CUBE_HEADERS})
+
+###############################################################################
+## Main executable target
+###############################################################################
 
 add_library(${CMAKE_PROJECT_NAME}_lib STATIC
     ${PROJECT_SOURCES}
@@ -119,7 +126,7 @@ target_include_directories(${CMAKE_PROJECT_NAME}_lib PUBLIC
 )
 
 target_link_libraries(${CMAKE_PROJECT_NAME}_lib
-    stm32cubemx
+    cube_lib
 )
 
 add_executable(${CMAKE_PROJECT_NAME} "src/main.cpp")
