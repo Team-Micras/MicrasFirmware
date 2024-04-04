@@ -16,17 +16,17 @@ namespace hal {
  * @brief Microcontroller unit class
  */
 class Mcu {
-    public:
-        /**
-         * @brief Deleted constructor for static class
-         */
-        Mcu() = delete;
+  public:
+    /**
+     * @brief Deleted constructor for static class
+     */
+    Mcu() = delete;
 
-        /**
-         * @brief Initializes MCU and some peripherals
-         */
-        static void init();
+    /**
+     * @brief Initializes MCU and some peripherals
+     */
+    static void init();
 };
 }  // namespace hal
 
-#endif // MICRAS_HAL_MCU_HPP
+#endif  // MICRAS_HAL_MCU_HPP

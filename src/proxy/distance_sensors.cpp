@@ -35,4 +35,4 @@ uint32_t DistanceSensors<num_of_sensors>::get_distance_raw(uint8_t sensor_index)
 }
 }  // namespace proxy
 
-#endif // MICRAS_PROXY_DISTANCE_SENSORS_CPP
+#endif  // MICRAS_PROXY_DISTANCE_SENSORS_CPP

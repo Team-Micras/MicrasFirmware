@@ -38,7 +38,9 @@ void Flash::write(uint32_t address, const uint64_t data[], uint32_t size) {
 
     while (address <= end) {
         if (size >= double_words_per_row) {
-            HAL_FLASH_Program(FLASH_TYPEPROGRAM_FAST, address, reinterpret_cast<uint32_t>(data));  // NOLINT(clang-diagnostic-pointer-to-int-cast)
+            HAL_FLASH_Program(
+                FLASH_TYPEPROGRAM_FAST, address, reinterpret_cast<uint32_t>(data)
+            );  // NOLINT(clang-diagnostic-pointer-to-int-cast)
             address += bytes_per_row;
             data += double_words_per_row;
             size -= double_words_per_row;
@@ -66,7 +68,7 @@ void Flash::erase_pages(uint16_t page, uint16_t number_of_pages) {
         .NbPages = number_of_pages,
     };
 
-    uint32_t page_error{ };
+    uint32_t page_error{};
 
     HAL_FLASHEx_Erase(&erase_struct, &page_error);
 }

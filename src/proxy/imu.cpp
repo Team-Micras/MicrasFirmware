@@ -12,9 +12,11 @@
 #include "proxy/imu.hpp"
 
 namespace proxy {
-Imu::Imu(const Config& config) : spi{config.spi},
-    gy_factor{mdps_to_radps * 4.375F *
-              (1 << (config.gyroscope_scale == LSM6DSV_4000dps ? 5 : static_cast<uint8_t>(config.gyroscope_scale)))},
+Imu::Imu(const Config& config) :
+    spi{config.spi},
+    gy_factor{
+        mdps_to_radps * 4.375F *
+        (1 << (config.gyroscope_scale == LSM6DSV_4000dps ? 5 : static_cast<uint8_t>(config.gyroscope_scale)))},
     xl_factor{mg_to_mps2 * (0.61F * (1 << static_cast<uint8_t>(config.accelerometer_scale)))} {
     this->dev_ctx.read_reg = platform_read;
     this->dev_ctx.write_reg = platform_write;
@@ -24,7 +26,7 @@ Imu::Imu(const Config& config) : spi{config.spi},
 
     lsm6dsv_reset_set(&(this->dev_ctx), LSM6DSV_RESTORE_CTRL_REGS);
 
-    lsm6dsv_reset_t rst{ };
+    lsm6dsv_reset_t rst{};
 
     do {
         lsm6dsv_reset_get(&(this->dev_ctx), &rst);
@@ -148,8 +150,7 @@ float Imu::get_linear_acceleration(Axis axis) const {
 int32_t Imu::platform_read(void* handle, uint8_t reg, uint8_t* bufp, uint16_t len) {
     auto* spi = static_cast<hal::Spi*>(handle);
 
-    while (not spi->select_device()) {
-    }
+    while (not spi->select_device()) { }
 
     reg |= 0x80;
     spi->transmit(&reg, 1);
@@ -162,8 +163,7 @@ int32_t Imu::platform_read(void* handle, uint8_t reg, uint8_t* bufp, uint16_t le
 int32_t Imu::platform_write(void* handle, uint8_t reg, const uint8_t* bufp, uint16_t len) {
     auto* spi = static_cast<hal::Spi*>(handle);
 
-    while (not spi->select_device()) {
-    }
+    while (not spi->select_device()) { }
 
     spi->transmit(&reg, 1);
     spi->transmit(const_cast<uint8_t*>(bufp), len);  // NOLINT(cppcoreguidelines-pro-type-const-cast)
@@ -197,24 +197,22 @@ void Imu::convert_orientation(std::array<float, 4>& quat, const uint16_t sflp[3]
 
 // NOLINTBEGIN(readability-identifier-length, readability-implicit-bool-conversion)
 float Imu::half_to_float(uint16_t x) {
-    static constexpr auto as_float =
-        [](uint32_t x) -> float {
-            void* aux = &x;
-            return *reinterpret_cast<float*>(aux);
-        };
-    static constexpr auto as_uint =
-        [](float x) -> uint32_t {
-            void* aux = &x;
-            return *reinterpret_cast<uint32_t*>(aux);
-        };
+    static constexpr auto as_float = [](uint32_t x) -> float {
+        void* aux = &x;
+        return *reinterpret_cast<float*>(aux);
+    };
+    static constexpr auto as_uint = [](float x) -> uint32_t {
+        void* aux = &x;
+        return *reinterpret_cast<uint32_t*>(aux);
+    };
 
     const uint32_t e = (x & 0x7C00) >> 10;
     const uint32_t m = (x & 0x03FF) << 13;
     const uint32_t v = as_uint(static_cast<float>(m)) >> 23;
     return as_float(
-        (x & 0x8000) << 16 |
-        (e != 0) * ((e + 112) << 23 | m) |
-        ((e == 0) & (m != 0)) * ((v - 37) << 23 | ((m << (150 - v)) & 0x007FE000)));
+        (x & 0x8000) << 16 | (e != 0) * ((e + 112) << 23 | m) |
+        ((e == 0) & (m != 0)) * ((v - 37) << 23 | ((m << (150 - v)) & 0x007FE000))
+    );
 }
 
 // NOLINTEND(readability-identifier-length, readability-implicit-bool-conversion)
