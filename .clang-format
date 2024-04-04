@@ -7,13 +7,13 @@ AlignArrayOfStructures: None
 AlignConsecutiveMacros: None
 AlignConsecutiveAssignments: None
 AlignConsecutiveBitFields: Consecutive
-AlignConsecutiveDeclarations: None
+AlignConsecutiveDeclarations: Consecutive
 AlignEscapedNewlines: Left
 AlignOperands:   Align
 AlignTrailingComments: true
 AllowAllArgumentsOnNextLine: true
 AllowAllParametersOfDeclarationOnNextLine: true
-AllowShortEnumsOnASingleLine: true
+AllowShortEnumsOnASingleLine: false
 AllowShortBlocksOnASingleLine: Empty
 AllowShortCaseLabelsOnASingleLine: false
 AllowShortFunctionsOnASingleLine: Inline
@@ -81,27 +81,23 @@ ForEachMacros:
   - BOOST_FOREACH
 IfMacros:
   - KJ_IF_MAYBE
-IncludeBlocks: Regroup
+IncludeBlocks: Preserve
 IncludeCategories:
-  - Regex:           ^<.*>'
-    Priority:        2
-    SortPriority:    2
-    CaseSensitive:   false
-  - Regex:           '^".*"'
+  - Regex:           '^<.*>'
     Priority:        1
     SortPriority:    1
     CaseSensitive:   false
-  - Regex:           '.*'
-    Priority:        0
-    SortPriority:    0
+  - Regex:           '^".*"'
+    Priority:        2
+    SortPriority:    2
     CaseSensitive:   false
-IncludeIsMainRegex: '(Test)?$'
+IncludeIsMainRegex: '$'
 IncludeIsMainSourceRegex: ''
 IndentAccessModifiers: false
 IndentCaseLabels: true
 IndentCaseBlocks: false
 IndentGotoLabels: true
-IndentPPDirectives: None
+IndentPPDirectives: BeforeHash
 IndentExternBlock: NoIndent
 IndentRequires:  false
 IndentWidth:     4
@@ -137,12 +133,12 @@ ReflowComments:  true
 RemoveBracesLLVM: false
 SeparateDefinitionBlocks: Always
 ShortNamespaceLines: 0
-SortIncludes:    CaseInsensitive
+SortIncludes: Never
 SortJavaStaticImport: Before
 SortUsingDeclarations: true
 SpaceAfterCStyleCast: false
 SpaceAfterLogicalNot: false
-SpaceAfterTemplateKeyword: false
+SpaceAfterTemplateKeyword: true
 SpaceBeforeAssignmentOperators: true
 SpaceBeforeCaseColon: false
 SpaceBeforeCpp11BracedList: false
