@@ -43,7 +43,7 @@ class Imu {
      */
     explicit Imu(const Config& config);
 
-    enum Axis {
+    enum Axis : uint8_t {
         W,
         X,
         Y,

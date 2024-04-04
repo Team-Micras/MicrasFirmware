@@ -32,7 +32,7 @@ class Fan {
     /**
      * @brief Enum for rotation direction
      */
-    enum RotationDirection {
+    enum RotationDirection : uint8_t {
         FORWARD,
         BACKWARD
     };

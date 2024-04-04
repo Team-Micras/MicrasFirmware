@@ -23,7 +23,7 @@ class Button {
     /**
      * @brief Enum for button status
      */
-    enum Status {
+    enum Status : uint8_t {
         NO_PRESS,
         SHORT_PRESS,
         LONG_PRESS,
@@ -33,7 +33,7 @@ class Button {
     /**
      * @brief Enum for button pull resistor
      */
-    enum PullResistor {
+    enum PullResistor : uint8_t {
         PULL_UP,
         PULL_DOWN,
     };
