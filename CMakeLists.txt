@@ -118,10 +118,10 @@ get_target_property(CUBE_SOURCES stm32cubemx INTERFACE_SOURCES)
 
 # Remove warnings from Cube and library sources
 set_source_files_properties(
-  ${CUBE_SOURCES}
-  ${LIB_SOURCES}
-  PROPERTIES
-  COMPILE_FLAGS "-w"
+    ${CUBE_SOURCES}
+    ${LIB_SOURCES}
+    PROPERTIES
+    COMPILE_FLAGS "-w"
 )
 
 add_library(cube_lib STATIC ${CUBE_SOURCES})
