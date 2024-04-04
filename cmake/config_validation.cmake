@@ -43,6 +43,17 @@ foreach(VARIABLE ${USER_INPUT_VARIABLES})
 endforeach()
 message(STATUS "All necessary variables defined!")
 
+# Check if STM32CubeMX project is correctly configured
+set(CUBE_CMAKE_TOOLCHAIN_CONFIG "ProjectManager.TargetToolchain=CMake")
+set(IOC_FILE cube/${PROJECT_RELEASE}.ioc)
+file(READ ${IOC_FILE} IOC_CONTENTS)
+string(FIND "${IOC_CONTENTS}" ${CUBE_CMAKE_TOOLCHAIN_CONFIG} CUBE_CMAKE_TOOLCHAIN_CONFIG_POS)
+if (${CUBE_CMAKE_TOOLCHAIN_CONFIG_POS} EQUAL -1)
+    message(FATAL_ERROR "CMake toolchain not selected in CubeMX project")
+else()
+    message(STATUS "CMake toolchain selected in CubeMX project")
+endif()
+
 # Check cube directory for files
 # If it's empty, generate the files
 # It's important to do it before find_package(CMSIS)
