@@ -24,6 +24,12 @@ endfunction()
 # corresponding to the OUTPUT_EXTENSION argument value.
 # The generated file will be placed in the same directory as the target output file.
 function(_stm32_generate_file TARGET OUTPUT_EXTENSION OBJCOPY_BFD_OUTPUT)
+    # If linter is enabled, do not generate files
+    if(CMAKE_LINTER STREQUAL "ON" OR CMAKE_LINTER STREQUAL "FIX")
+        message(STATUS "Linter is enabled, skipping generation of ${OBJCOPY_BFD_OUTPUT} file for target ${TARGET}")
+        return()
+    endif()
+
     get_target_property(TARGET_OUTPUT_NAME ${TARGET} OUTPUT_NAME)
     if (TARGET_OUTPUT_NAME)
         set(OUTPUT_FILE_NAME "${TARGET_OUTPUT_NAME}.${OUTPUT_EXTENSION}")
