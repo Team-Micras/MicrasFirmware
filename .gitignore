@@ -1,6 +1,8 @@
 cube/*
 !**/*.ioc
 
+docs/
+
 build/
 -g
 .jlink-flash
