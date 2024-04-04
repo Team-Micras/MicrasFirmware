@@ -1,4 +1,13 @@
+# Name: CMakeLists.txt
+# Micras Team
+# Brief: CMake configuration file for the project
+# 04/2023
+
 cmake_minimum_required(VERSION 3.22)
+
+###############################################################################
+## CMake Configuration
+###############################################################################
 
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_CXX_STANDARD 20)
@@ -6,19 +15,22 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS ON)
 
-# set(FREERTOS_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cube/Middlewares/Third_Party/FreeRTOS/Source)
-# set(FREERTOS_SOURCE ${FREERTOS_PATH})
+set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Debug")
 endif()
+message("Build type: " ${CMAKE_BUILD_TYPE})
+
+###############################################################################
+## Project Configuration
+###############################################################################
+
+# The .ioc file used to generate the project will be PROJECT_RELEASE.ioc
 
 set(CMAKE_PROJECT_NAME micras)
-
-set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
-
-set(DEVICE STM32G474RE)
 set(BOARD_VERSION "")
+set(DEVICE STM32G474RE)
 
 if(BOARD_VERSION STREQUAL "")
     set(PROJECT_RELEASE ${CMAKE_PROJECT_NAME})
@@ -26,7 +38,12 @@ else()
     set(PROJECT_RELEASE ${CMAKE_PROJECT_NAME}_${BOARD_VERSION})
 endif()
 
-message("Build type: " ${CMAKE_BUILD_TYPE})
+# set(FREERTOS_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cube/Middlewares/Third_Party/FreeRTOS/Source)
+# set(FREERTOS_SOURCE ${FREERTOS_PATH})
+
+###############################################################################
+## Toolchain Configuration
+###############################################################################
 
 set(LAUNCH_JSON_PATH ${CMAKE_CURRENT_SOURCE_DIR}/.vscode/launch.json)
 set(DEBUG_FILE_NAME ${CMAKE_PROJECT_NAME})
