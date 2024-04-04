@@ -17,4 +17,8 @@ elseif(CMAKE_LINTER STREQUAL "FIX")
     add_compile_options(-fms-extensions)
     message(STATUS "Enabling clang-tidy with fix")
 
+else()
+    set(CMAKE_LINTER "OFF")
+    message(STATUS "Linter is disabled")
+
 endif()
