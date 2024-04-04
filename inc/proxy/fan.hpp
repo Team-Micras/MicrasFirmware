@@ -6,13 +6,13 @@
  * @date 03/2024
  */
 
-#ifndef __FAN_HPP__
-#define __FAN_HPP__
+#ifndef MICRAS_PROXY_FAN_HPP
+#define MICRAS_PROXY_FAN_HPP
 
 #include <cstdint>
 
-#include "hal/pwm.hpp"
 #include "hal/gpio.hpp"
+#include "hal/pwm.hpp"
 
 namespace proxy {
 /**
@@ -42,7 +42,7 @@ class Fan {
          *
          * @param config Configuration for the fan driver
          */
-        Fan(Config& config);
+        explicit Fan(const Config& config);
 
         /**
          * @brief Enable the fan
@@ -91,4 +91,4 @@ class Fan {
 };
 }  // namespace proxy
 
-#endif // __FAN_HPP__
+#endif // MICRAS_PROXY_FAN_HPP

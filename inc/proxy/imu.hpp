@@ -6,8 +6,8 @@
  * @date 03/2024
  */
 
-#ifndef __IMU_HPP__
-#define __IMU_HPP__
+#ifndef MICRAS_PROXY_IMU_HPP
+#define MICRAS_PROXY_IMU_HPP
 
 #include <array>
 #include <cstdint>
@@ -41,7 +41,7 @@ class Imu {
          *
          * @param config Configuration for the IMU
          */
-        Imu(Config& config);
+        explicit Imu(const Config& config);
 
         enum Axis {
             W,
@@ -61,7 +61,7 @@ class Imu {
          *
          * @param axis Axis to get the orientation from
          *
-         * @return Orientation over the desired axis using quaternions
+         * @return float Orientation over the desired axis using quaternions
          */
         float get_orientation(Axis axis) const;
 
@@ -70,7 +70,7 @@ class Imu {
          *
          * @param axis Axis to get the angular velocity from
          *
-         * @return Angular velocity over the desired axis in rad/s
+         * @return float Angular velocity over the desired axis in rad/s
          */
         float get_angular_velocity(Axis axis) const;
 
@@ -79,7 +79,7 @@ class Imu {
          *
          * @param axis Axis to get the linear acceleration from
          *
-         * @return Linear acceleration over the desired axis in m/s²
+         * @return float Linear acceleration over the desired axis in m/s²
          */
         float get_linear_acceleration(Axis axis) const;
 
@@ -92,7 +92,7 @@ class Imu {
          * @param bufp Buffer to read
          * @param len Length of the buffer
          *
-         * @return 0 if the operation was successful, -1 otherwise
+         * @return int32_t 0 if the operation was successful, -1 otherwise
          */
         static int32_t platform_read(void* handle, uint8_t reg, uint8_t* bufp, uint16_t len);
 
@@ -104,7 +104,7 @@ class Imu {
          * @param bufp Buffer to write
          * @param len Length of the buffer
          *
-         * @return 0 if the operation was successful, -1 otherwise
+         * @return int32_t 0 if the operation was successful, -1 otherwise
          */
         static int32_t platform_write(void* handle, uint8_t reg, const uint8_t* bufp, uint16_t len);
 
@@ -113,25 +113,23 @@ class Imu {
          *
          * @param quat Quaternion to store the orientation
          * @param sflp Raw data from the IMU
-         *
-         * @return Orientation in quaternions
          */
-        static void convert_orientation(std::array<float, 4>& quat, const uint16_t sflp[3]);
+        static void convert_orientation(std::array<float, 4>& quat, const uint16_t sflp[3]);  // NOLINT(*-avoid-c-arrays)
 
         /**
          * @brief Function to convert half precision float to single precision float
          *
          * @param x Half precision float
          *
-         * @return Single precision float
+         * @return float Single precision float
          */
-        static float half_to_float(uint16_t x);
+        static float half_to_float(uint16_t x);  // NOLINT(readability-identifier-length)
 
         /**
          * @brief Conversion constants
          */
-        static constexpr float mdps_to_radps{std::numbers::pi_v<float> / 180000.0f};
-        static constexpr float mg_to_mps2{0.00980665f};
+        static constexpr float mdps_to_radps{std::numbers::pi_v<float> / 180000.0F};
+        static constexpr float mg_to_mps2{0.00980665F};
 
         /**
          * @brief SPI for the IMU communication
@@ -141,22 +139,22 @@ class Imu {
         /**
          * @brief Device context for the IMU library
          */
-        stmdev_ctx_t dev_ctx;
+        stmdev_ctx_t dev_ctx{ };
 
         /**
          * @brief Current angular velocity on each axis
          */
-        std::array<int16_t, 3> angular_velocity;
+        std::array<float, 3> angular_velocity{ };
 
         /**
          * @brief Current linear acceleration on each axis
          */
-        std::array<int16_t, 3> linear_acceleration;
+        std::array<float, 3> linear_acceleration{ };
 
         /**
          * @brief Current orientation
          */
-        std::array<float, 4> orientation;
+        std::array<float, 4> orientation{ };
 
         /**
          * @brief Gyroscope conversion factor
@@ -170,4 +168,4 @@ class Imu {
 };
 }  // namespace proxy
 
-#endif // __IMU_HPP__
+#endif // MICRAS_PROXY_IMU_HPP

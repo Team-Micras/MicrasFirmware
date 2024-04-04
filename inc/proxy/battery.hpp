@@ -6,8 +6,8 @@
  * @date 03/2024
  */
 
-#ifndef __BATTERY_HPP__
-#define __BATTERY_HPP__
+#ifndef MICRAS_PROXY_BATTERY_HPP
+#define MICRAS_PROXY_BATTERY_HPP
 
 #include <cstdint>
 
@@ -32,12 +32,12 @@ class Battery {
          *
          * @param config Configuration for the battery
          */
-        Battery(Config& config);
+        explicit Battery(const Config& config);
 
         /**
          * @brief Get the battery voltage
          *
-         * @return Battery voltage in volts
+         * @return float Battery voltage in volts
          */
         float get_voltage() const;
 
@@ -57,7 +57,7 @@ class Battery {
         /**
          * @brief Raw reading from the battery
          */
-        uint32_t raw_reading;
+        uint32_t raw_reading{ };
 
         /**
          * @brief Voltage divider ratio
@@ -66,4 +66,4 @@ class Battery {
 };
 }  // namespace proxy
 
-#endif // __BATTERY_HPP__
+#endif // MICRAS_PROXY_BATTERY_HPP

@@ -9,7 +9,7 @@
 #include "proxy/button.hpp"
 
 namespace proxy {
-Button::Button(Config& config) :
+Button::Button(const Config& config) :
     debounce_delay{config.debounce_delay},
     long_press_delay{config.long_press_delay},
     extra_long_press_delay{config.extra_long_press_delay},
@@ -30,18 +30,20 @@ Button::Status Button::get_status() {
     } else if (this->is_falling_edge()) {
         if (this->status_timer.elapsed_time_ms() > extra_long_press_delay) {
             return EXTRA_LONG_PRESS;
-        } else if (this->status_timer.elapsed_time_ms() > long_press_delay) {
-            return LONG_PRESS;
-        } else {
-            return SHORT_PRESS;
         }
+
+        if (this->status_timer.elapsed_time_ms() > long_press_delay) {
+            return LONG_PRESS;
+        }
+
+        return SHORT_PRESS;
     }
 
     return NO_PRESS;
 }
 
 bool Button::get_raw_reading() const {
-    return this->gpio.read() == this->pull_resistor;
+    return this->gpio.read() == static_cast<bool>(this->pull_resistor);
 }
 
 void Button::update_state() {

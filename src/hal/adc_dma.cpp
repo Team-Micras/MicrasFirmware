@@ -9,11 +9,12 @@
 #include "hal/adc_dma.hpp"
 
 namespace hal {
-AdcDma::AdcDma(Config& config) :
+AdcDma::AdcDma(const Config& config) :
     max_reading{config.max_reading}, reference_voltage{config.reference_voltage}, handle{config.handle} {
     config.init_function();
 }
 
+// NOLINTNEXTLINE(*-avoid-c-arrays)
 void AdcDma::start_dma(uint32_t buffer[], uint32_t size) {
     HAL_ADC_Start_DMA(this->handle, buffer, size);
 }

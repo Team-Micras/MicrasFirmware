@@ -9,7 +9,8 @@
 #include "proxy/fan.hpp"
 
 namespace proxy {
-Fan::Fan(Config& config) : pwm{config.pwm}, direction_gpio{config.direction_gpio}, enable_gpio{config.enable_gpio} {
+Fan::Fan(const Config& config) :
+    pwm{config.pwm}, direction_gpio{config.direction_gpio}, enable_gpio{config.enable_gpio} {
     this->stop();
     this->enable();
 }
@@ -23,10 +24,10 @@ void Fan::disable() {
 }
 
 void Fan::set_speed(float speed) {
-    if (speed > 0.0f) {
+    if (speed > 0.0F) {
         this->set_direction(RotationDirection::FORWARD);
         this->pwm.set_duty_cycle(speed);
-    } else if (speed < 0.0f) {
+    } else if (speed < 0.0F) {
         this->set_direction(RotationDirection::BACKWARD);
         this->pwm.set_duty_cycle(-speed);
     } else {
@@ -35,7 +36,7 @@ void Fan::set_speed(float speed) {
 }
 
 void Fan::stop() {
-    this->set_speed(0.0f);
+    this->pwm.set_duty_cycle(0.0F);
 }
 
 void Fan::set_direction(RotationDirection direction) {

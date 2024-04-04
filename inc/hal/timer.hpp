@@ -6,8 +6,8 @@
  * @date 03/2024
  */
 
-#ifndef __TIMER_HPP__
-#define __TIMER_HPP__
+#ifndef MICRAS_HAL_TIMER_HPP
+#define MICRAS_HAL_TIMER_HPP
 
 #include <cstdint>
 #include <tim.h>
@@ -23,7 +23,7 @@ class Timer {
          */
         struct Config {
             TIM_HandleTypeDef* handle;
-            void               (* init_function)(void);
+            void               (* init_function)();
         };
 
         /**
@@ -36,7 +36,7 @@ class Timer {
          *
          * @param config Configuration for the timer
          */
-        Timer(Config& config);
+        explicit Timer(const Config& config);
 
         /**
          * @brief Reset the timer counter in milliseconds
@@ -82,7 +82,7 @@ class Timer {
          *
          * @return uint32_t Current timer counter in milliseconds
          */
-        uint32_t get_counter_ms() const;
+        static uint32_t get_counter_ms();
 
         /**
          * @brief Get the current timer counter
@@ -94,12 +94,12 @@ class Timer {
         /**
          * @brief Timer handle
          */
-        TIM_HandleTypeDef* handle;
+        TIM_HandleTypeDef* handle{ };
 
         /**
          * @brief Timer counter
          */
-        uint32_t counter;
+        uint32_t counter{ };
 
         /**
          * @brief Flag to enable microseconds
@@ -108,4 +108,4 @@ class Timer {
 };
 }  // namespace hal
 
-#endif // __TIMER_HPP__
+#endif // MICRAS_HAL_TIMER_HPP

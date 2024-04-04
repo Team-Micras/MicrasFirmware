@@ -6,8 +6,8 @@
  * @date 03/2024
  */
 
-#ifndef __GPIO_HPP__
-#define __GPIO_HPP__
+#ifndef MICRAS_HAL_GPIO_HPP
+#define MICRAS_HAL_GPIO_HPP
 
 #include <cstdint>
 #include <gpio.h>
@@ -31,12 +31,12 @@ class Gpio {
          *
          * @param config Configuration for the GPIO pin
          */
-        Gpio(Config& config);
+        explicit Gpio(const Config& config);
 
         /**
          * @brief Read the current state of the GPIO pin
          *
-         * @return The current state of the GPIO pin (true for high, false for low)
+         * @return bool The current state of the GPIO pin (true for high, false for low)
          */
         bool read() const;
 
@@ -65,4 +65,4 @@ class Gpio {
 };
 }  // namespace hal
 
-#endif // __GPIO_HPP__
+#endif // MICRAS_HAL_GPIO_HPP

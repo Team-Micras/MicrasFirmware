@@ -6,8 +6,8 @@
  * @date 03/2024
  */
 
-#ifndef __DIP_SWITCH_HPP__
-#define __DIP_SWITCH_HPP__
+#ifndef MICRAS_PROXY_DIP_SWITCH_HPP
+#define MICRAS_PROXY_DIP_SWITCH_HPP
 
 #include <array>
 #include <cstdint>
@@ -33,14 +33,13 @@ class DipSwitch {
          *
          * @param config Configuration struct for DipSwitch
          */
-        DipSwitch(Config& config);
+        explicit DipSwitch(const Config& config);
 
         /**
          * @brief Get the state of a switch
          *
          * @param switch_index Index of the switch
-         * @return true if the switch is on
-         * @return false if the switch is off
+         * @return bool True if the switch is on, false otherwise
          */
         bool get_switch_state(uint8_t switch_index) const;
 
@@ -59,6 +58,6 @@ class DipSwitch {
 };
 }  // namespace proxy
 
-#include "../src/proxy/dip_switch.cpp"
+#include "../src/proxy/dip_switch.cpp"  // NOLINT(bugprone-suspicious-include)
 
-#endif // __DIP_SWITCH_HPP__
+#endif // MICRAS_PROXY_DIP_SWITCH_HPP

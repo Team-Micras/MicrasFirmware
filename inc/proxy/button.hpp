@@ -6,8 +6,8 @@
  * @date 03/2024
  */
 
-#ifndef __BUTTON_HPP__
-#define __BUTTON_HPP__
+#ifndef MICRAS_PROXY_BUTTON_HPP
+#define MICRAS_PROXY_BUTTON_HPP
 
 #include <cstdint>
 
@@ -42,8 +42,8 @@ class Button {
          * @brief Configuration structure for button
          */
         struct Config {
-            hal::Gpio::Config gpio;
-            PullResistor      pull_resistor;
+            hal::Gpio::Config gpio{ };
+            PullResistor      pull_resistor{ };
             uint16_t          debounce_delay = 10;
             uint16_t          long_press_delay = 1000;
             uint16_t          extra_long_press_delay = 5000;
@@ -54,19 +54,19 @@ class Button {
          *
          * @param config Button configuration
          */
-        Button(Config& config);
+        explicit Button(const Config& config);
 
         /**
          * @brief Check if button is pressed
          *
-         * @return True if button is pressed, false otherwise
+         * @return bool True if button is pressed, false otherwise
          */
         bool is_pressed();
 
         /**
          * @brief Get button status
          *
-         * @return Button status
+         * @return Status Button status
          */
         Status get_status();
 
@@ -74,7 +74,7 @@ class Button {
         /**
          * @brief Get raw button reading
          *
-         * @return Button reading
+         * @return bool Button reading without debounce
          */
         bool get_raw_reading() const;
 
@@ -141,4 +141,4 @@ class Button {
 };
 }  // namespace proxy
 
-#endif // __BUTTON_HPP__
+#endif // MICRAS_PROXY_BUTTON_HPP

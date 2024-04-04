@@ -6,8 +6,8 @@
  * @date 03/2024
  */
 
-#ifndef __PWM_HPP__
-#define __PWM_HPP__
+#ifndef MICRAS_HAL_PWM_HPP
+#define MICRAS_HAL_PWM_HPP
 
 #include <cstdint>
 #include <tim.h>
@@ -23,7 +23,7 @@ class Pwm {
          */
         struct Config {
             TIM_HandleTypeDef* handle;
-            void               (* init_function)(void);
+            void               (* init_function)();
             uint32_t           timer_channel;
         };
 
@@ -32,7 +32,7 @@ class Pwm {
          *
          * @param config Configuration for the PWM
          */
-        Pwm(Config& config);
+        explicit Pwm(const Config& config);
 
         /**
          * @brief Set the PWM duty cycle
@@ -61,4 +61,4 @@ class Pwm {
 };
 }  // namespace hal
 
-#endif // __PWM_HPP__
+#endif // MICRAS_HAL_PWM_HPP

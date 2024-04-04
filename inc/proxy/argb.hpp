@@ -6,8 +6,8 @@
  * @date 03/2024
  */
 
-#ifndef __ARGB_HPP__
-#define __ARGB_HPP__
+#ifndef MICRAS_PROXY_ARGB_HPP
+#define MICRAS_PROXY_ARGB_HPP
 
 #include <array>
 #include <cstdint>
@@ -42,7 +42,7 @@ class Argb {
          *
          * @param config Configuration for the addressable RGB LED
          */
-        Argb(Config& config);
+        explicit Argb(const Config& config);
 
         /**
          * @brief Set the color of the ARGB at the specified index
@@ -86,8 +86,8 @@ class Argb {
         static constexpr uint8_t bits_per_color{8};
         static constexpr uint8_t colors_per_led{3};
         static constexpr uint8_t bits_per_led{bits_per_color * colors_per_led};
-        static constexpr float low_duty_cycle{0.32f};
-        static constexpr float high_duty_cycle{0.64f};
+        static constexpr float low_duty_cycle{0.32F};  // NOLINT(bugprone-dynamic-static-initializers)
+        static constexpr float high_duty_cycle{0.64F}; // NOLINT(bugprone-dynamic-static-initializers)
         static constexpr uint8_t reset_length{40};
 
         /**
@@ -112,6 +112,6 @@ class Argb {
 };
 }  // namespace proxy
 
-#include "../src/proxy/argb.cpp"
+#include "../src/proxy/argb.cpp"  // NOLINT(bugprone-suspicious-include)
 
-#endif // __ARGB_HPP__
+#endif // MICRAS_PROXY_ARGB_HPP

@@ -10,8 +10,8 @@
 #include "proxy/storage.hpp"
 
 namespace proxy {
-Storage::Storage(Config& config) : start_page{config.start_page}, number_of_pages{config.number_of_pages} {
-    uint64_t sizes;
+Storage::Storage(const Config& config) : start_page{config.start_page}, number_of_pages{config.number_of_pages} {
+    uint64_t sizes{ };
     hal::Flash::read(this->start_page, 0, &sizes);
 
     uint32_t total_size = sizes >> 32;
@@ -38,7 +38,7 @@ void Storage::create(const std::string& name, const ISerializable& data) {
 template <Fundamental T>
 void Storage::sync(const std::string& name, T& data) {
     if (this->primitives.contains(name) and this->primitives.at(name).ram_pointer == nullptr) {
-        data = *reinterpret_cast<T*>(&this->buffer.at(this->primitives.at(name).buffer_address));
+        data = reinterpret_cast<T&>(this->buffer.at(this->primitives.at(name).buffer_address));
     }
 
     this->create<T>(name, data);
@@ -63,7 +63,7 @@ void Storage::save() {
             continue;
         }
 
-        const uint8_t* aux = reinterpret_cast<const uint8_t*>(variable.ram_pointer);
+        const auto* aux = reinterpret_cast<const uint8_t*>(variable.ram_pointer);
         variable.buffer_address = buffer.size();
         this->buffer.insert(this->buffer.end(), aux, aux + variable.size);
     }
@@ -123,21 +123,21 @@ std::vector<uint8_t> Storage::serialize_var_map(const std::unordered_map<std::st
 template <typename T>
 std::unordered_map<std::string, T> Storage::deserialize_var_map(std::vector<uint8_t>& buffer, uint16_t num_vars) {
     std::unordered_map<std::string, T> variables;
-    uint16_t i = 0;
+    uint16_t current_addr = 0;
 
     for (uint16_t decoded_vars = 0; decoded_vars < num_vars; decoded_vars++) {
-        uint8_t var_name_len = buffer.at(i);
-        std::string var_name(buffer.begin() + i + 1, buffer.begin() + i + 1 + var_name_len);
-        i += var_name_len + 1;
+        uint8_t var_name_len = buffer.at(current_addr);
+        std::string var_name(buffer.begin() + current_addr + 1, buffer.begin() + current_addr + 1 + var_name_len);
+        current_addr += var_name_len + 1;
 
-        variables[var_name].buffer_address = buffer.at(i) | buffer.at(i + 1) << 8;
-        i += 2;
+        variables[var_name].buffer_address = buffer.at(current_addr) | buffer.at(current_addr + 1) << 8;
+        current_addr += 2;
 
-        variables.at(var_name).size = buffer.at(i) | buffer.at(i + 1) << 8;
-        i += 2;
+        variables.at(var_name).size = buffer.at(current_addr) | buffer.at(current_addr + 1) << 8;
+        current_addr += 2;
     }
 
-    buffer.erase(buffer.begin(), buffer.begin() + i);
+    buffer.erase(buffer.begin(), buffer.begin() + current_addr);
     return variables;
 }
 }  // namespace proxy

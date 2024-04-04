@@ -11,10 +11,10 @@
 #include "proxy/rotary_sensor.hpp"
 
 namespace proxy {
-RotarySensor::RotarySensor(Config& config) :
+RotarySensor::RotarySensor(const Config& config) :
     spi{config.spi}, encoder{config.encoder}, crc{config.crc}, resolution{config.resolution} {
-    CommandFrame command_frame;
-    DataFrame data_frame;
+    CommandFrame command_frame{ };
+    DataFrame data_frame{ };
 
     command_frame.fields.address = Registers::disable_addr;
     data_frame.fields.data = config.registers.disable.raw;
@@ -51,7 +51,6 @@ float RotarySensor::get_position() const {
 
 void RotarySensor::write_register(CommandFrame& command_frame, DataFrame& data_frame) {
     while (not this->spi.select_device()) {
-        continue;
     }
 
     command_frame.fields.crc = this->crc.calculate(&command_frame.raw, 2);

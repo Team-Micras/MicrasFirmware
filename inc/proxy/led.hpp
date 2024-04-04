@@ -6,8 +6,8 @@
  * @date 03/2024
  */
 
-#ifndef __LED_HPP__
-#define __LED_HPP__
+#ifndef MICRAS_PROXY_LED_HPP
+#define MICRAS_PROXY_LED_HPP
 
 #include "hal/gpio.hpp"
 
@@ -29,7 +29,7 @@ class Led {
          *
          * @param config Configuration for the LED
          */
-        Led(Config& config);
+        explicit Led(const Config& config);
 
         /**
          * @brief Turn the LED on
@@ -54,4 +54,4 @@ class Led {
 };
 }  // namespace proxy
 
-#endif // __LED_HPP__
+#endif // MICRAS_PROXY_LED_HPP

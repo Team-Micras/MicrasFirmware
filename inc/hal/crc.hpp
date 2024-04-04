@@ -6,8 +6,8 @@
  * @date 03/2024
  */
 
-#ifndef __CRC_HPP__
-#define __CRC_HPP__
+#ifndef MICRAS_HAL_CRC_HPP
+#define MICRAS_HAL_CRC_HPP
 
 #include <crc.h>
 
@@ -29,7 +29,7 @@ class Crc {
          *
          * @param config Configuration for the CRC
          */
-        Crc(Config& config);
+        explicit Crc(const Config& config);
 
         /**
          * @brief Calculate the CRC value
@@ -37,9 +37,9 @@ class Crc {
          * @param data Data to calculate the CRC
          * @param size Size of the buffer
          *
-         * @return CRC value
+         * @return uint32_t CRC value
          */
-        uint32_t calculate(uint32_t data[], uint32_t size);
+        uint32_t calculate(uint32_t data[], uint32_t size);  // NOLINT(*-avoid-c-arrays)
 
     private:
         /**
@@ -49,4 +49,4 @@ class Crc {
 };
 }  // namespace hal
 
-#endif // __CRC_HPP__
+#endif // MICRAS_HAL_CRC_HPP

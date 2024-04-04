@@ -9,7 +9,7 @@
 #include "proxy/battery.hpp"
 
 namespace proxy {
-Battery::Battery(Config& config) : adc{config.adc}, voltage_divider{config.voltage_divider} {
+Battery::Battery(const Config& config) : adc{config.adc}, voltage_divider{config.voltage_divider} {
     this->adc.start_dma(&(this->raw_reading), 1);
 }
 

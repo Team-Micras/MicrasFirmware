@@ -6,8 +6,8 @@
  * @date 03/2024
  */
 
-#ifndef __STORAGE_HPP__
-#define __STORAGE_HPP__
+#ifndef MICRAS_PROXY_STORAGE_HPP
+#define MICRAS_PROXY_STORAGE_HPP
 
 #include <cstdint>
 #include <string>
@@ -39,7 +39,7 @@ class Storage {
          *
          * @param config Configuration for the storage
          */
-        Storage(Config& config);
+        explicit Storage(const Config& config);
 
         /**
          * @brief Create a new primitive variable in the storage
@@ -88,8 +88,8 @@ class Storage {
          */
         struct PrimitiveVariable {
             const void* ram_pointer{nullptr};
-            uint16_t    buffer_address;
-            uint16_t    size;
+            uint16_t    buffer_address{ };
+            uint16_t    size{ };
         };
 
         /**
@@ -97,8 +97,8 @@ class Storage {
          */
         struct SerializableVariable {
             const ISerializable* ram_pointer{nullptr};
-            uint16_t             buffer_address;
-            uint16_t             size;
+            uint16_t             buffer_address{ };
+            uint16_t             size{ };
         };
 
         /**
@@ -107,7 +107,7 @@ class Storage {
          * @tparam T Type of the variables
          * @param variables Map of variables
          *
-         * @return Serialized buffer
+         * @return std::vector<uint8_t> Serialized buffer
          */
         template <typename T>
         static std::vector<uint8_t> serialize_var_map(const std::unordered_map<std::string, T>& variables);
@@ -119,7 +119,7 @@ class Storage {
          * @param buffer Serialized buffer
          * @param num_vars Number of variables
          *
-         * @return Deserialized map of variables
+         * @return std::unordered_map<std::string, T> Deserialized map of variables
          */
         template <typename T>
         static std::unordered_map<std::string, T> deserialize_var_map(std::vector<uint8_t>& buffer, uint16_t num_vars);
@@ -151,4 +151,4 @@ class Storage {
 };
 }  // namespace proxy
 
-#endif // __STORAGE_HPP__
+#endif // MICRAS_PROXY_STORAGE_HPP

@@ -12,19 +12,19 @@
 #include "proxy/imu.hpp"
 
 namespace proxy {
-Imu::Imu(Config& config) : spi{config.spi},
-    gy_factor{mdps_to_radps * 4.375f *
+Imu::Imu(const Config& config) : spi{config.spi},
+    gy_factor{mdps_to_radps * 4.375F *
               (1 << (config.gyroscope_scale == LSM6DSV_4000dps ? 5 : static_cast<uint8_t>(config.gyroscope_scale)))},
-    xl_factor{mg_to_mps2 * (0.61f * (1 << static_cast<uint8_t>(config.accelerometer_scale)))} {
+    xl_factor{mg_to_mps2 * (0.61F * (1 << static_cast<uint8_t>(config.accelerometer_scale)))} {
     this->dev_ctx.read_reg = platform_read;
     this->dev_ctx.write_reg = platform_write;
-    this->dev_ctx.handle = &config.spi;
+    this->dev_ctx.handle = &this->spi;
 
     hal::Timer::sleep_ms(10);
 
     lsm6dsv_reset_set(&(this->dev_ctx), LSM6DSV_RESTORE_CTRL_REGS);
 
-    lsm6dsv_reset_t rst;
+    lsm6dsv_reset_t rst{ };
 
     do {
         lsm6dsv_reset_get(&(this->dev_ctx), &rst);
@@ -66,10 +66,10 @@ void Imu::update_data() {
 
     uint16_t samples = fifo_status.fifo_level;
 
-    while (samples--) {
+    while ((samples--) > 0) {
         lsm6dsv_fifo_out_raw_t f_data;
         lsm6dsv_fifo_out_raw_get(&(this->dev_ctx), &f_data);
-        int16_t* axis = reinterpret_cast<int16_t*>(f_data.data);
+        auto* axis = reinterpret_cast<int16_t*>(f_data.data);
 
         switch (f_data.tag) {
             case lsm6dsv_fifo_out_raw_t::LSM6DSV_GY_NC_TAG:
@@ -109,7 +109,7 @@ float Imu::get_orientation(Axis axis) const {
             return this->orientation[2];
 
         default:
-            return 0.0f;
+            return 0.0F;
     }
 }
 
@@ -125,7 +125,7 @@ float Imu::get_angular_velocity(Axis axis) const {
             return this->angular_velocity[2];
 
         default:
-            return 0.0f;
+            return 0.0F;
     }
 }
 
@@ -141,15 +141,14 @@ float Imu::get_linear_acceleration(Axis axis) const {
             return this->linear_acceleration[2];
 
         default:
-            return 0.0f;
+            return 0.0F;
     }
 }
 
 int32_t Imu::platform_read(void* handle, uint8_t reg, uint8_t* bufp, uint16_t len) {
-    auto spi = static_cast<hal::Spi*>(handle);
+    auto* spi = static_cast<hal::Spi*>(handle);
 
     while (not spi->select_device()) {
-        continue;
     }
 
     reg |= 0x80;
@@ -161,19 +160,19 @@ int32_t Imu::platform_read(void* handle, uint8_t reg, uint8_t* bufp, uint16_t le
 }
 
 int32_t Imu::platform_write(void* handle, uint8_t reg, const uint8_t* bufp, uint16_t len) {
-    auto spi = static_cast<hal::Spi*>(handle);
+    auto* spi = static_cast<hal::Spi*>(handle);
 
     while (not spi->select_device()) {
-        continue;
     }
 
     spi->transmit(&reg, 1);
-    spi->transmit((uint8_t*) bufp, len);
+    spi->transmit(const_cast<uint8_t*>(bufp), len);  // NOLINT(cppcoreguidelines-pro-type-const-cast)
     spi->unselect_device();
 
     return 0;
 }
 
+// NOLINTNEXTLINE(*-avoid-c-arrays)
 void Imu::convert_orientation(std::array<float, 4>& quat, const uint16_t sflp[3]) {
     float sumsq = 0;
 
@@ -182,27 +181,32 @@ void Imu::convert_orientation(std::array<float, 4>& quat, const uint16_t sflp[3]
     quat[2] = half_to_float(sflp[2]);
 
     for (uint8_t i = 0; i < 3; i++) {
-        sumsq += quat[i] * quat[i];
+        sumsq += quat[i] * quat[i];  // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
     }
 
-    if (sumsq > 1.0f) {
-        float n = std::sqrt(sumsq);
-        quat[0] /= n;
-        quat[1] /= n;
-        quat[2] /= n;
-        sumsq = 1.0f;
+    if (sumsq > 1.0F) {
+        float norm = std::sqrt(sumsq);
+        quat[0] /= norm;
+        quat[1] /= norm;
+        quat[2] /= norm;
+        sumsq = 1.0F;
     }
 
-    quat[3] = std::sqrt(1.0f - sumsq);
+    quat[3] = std::sqrt(1.0F - sumsq);
 }
 
-float Imu::half_to_float(const uint16_t x) {
-    static auto as_float = [](uint32_t x) -> float {
-                               return *reinterpret_cast<float*>(&x);
-                           };
-    static auto as_uint = [](float x) -> uint32_t {
-                              return *reinterpret_cast<uint32_t*>(&x);
-                          };
+// NOLINTBEGIN(readability-identifier-length, readability-implicit-bool-conversion)
+float Imu::half_to_float(uint16_t x) {
+    static constexpr auto as_float =
+        [](uint32_t x) -> float {
+            void* aux = &x;
+            return *reinterpret_cast<float*>(aux);
+        };
+    static constexpr auto as_uint =
+        [](float x) -> uint32_t {
+            void* aux = &x;
+            return *reinterpret_cast<uint32_t*>(aux);
+        };
 
     const uint32_t e = (x & 0x7C00) >> 10;
     const uint32_t m = (x & 0x03FF) << 13;
@@ -212,4 +216,6 @@ float Imu::half_to_float(const uint16_t x) {
         (e != 0) * ((e + 112) << 23 | m) |
         ((e == 0) & (m != 0)) * ((v - 37) << 23 | ((m << (150 - v)) & 0x007FE000)));
 }
+
+// NOLINTEND(readability-identifier-length, readability-implicit-bool-conversion)
 }  // namespace proxy

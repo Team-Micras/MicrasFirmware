@@ -9,7 +9,7 @@
 #include "hal/timer.hpp"
 
 namespace hal {
-Timer::Timer(Config& config) : handle{config.handle} {
+Timer::Timer(const Config& config) : handle{config.handle} {
     config.init_function();
 
     uint32_t base_freq = HAL_RCC_GetPCLK1Freq();
@@ -21,7 +21,7 @@ Timer::Timer(Config& config) : handle{config.handle} {
 }
 
 void Timer::reset_ms() {
-    this->counter = this->get_counter_ms();
+    this->counter = get_counter_ms();
 }
 
 void Timer::reset_us() {
@@ -29,7 +29,7 @@ void Timer::reset_us() {
 }
 
 uint32_t Timer::elapsed_time_ms() const {
-    return this->get_counter_ms() - this->counter;
+    return get_counter_ms() - this->counter;
 }
 
 uint32_t Timer::elapsed_time_us() const {
@@ -40,7 +40,6 @@ void Timer::sleep_ms(uint32_t time) {
     uint32_t start = HAL_GetTick();
 
     while (HAL_GetTick() - start < time) {
-        continue;
     }
 }
 
@@ -48,11 +47,10 @@ void Timer::sleep_us(uint32_t time) const {
     uint32_t start = this->get_counter_us();
 
     while (this->get_counter_us() - start < time) {
-        continue;
     }
 }
 
-uint32_t Timer::get_counter_ms() const {
+uint32_t Timer::get_counter_ms() {
     return HAL_GetTick();
 }
 

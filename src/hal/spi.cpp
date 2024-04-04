@@ -9,7 +9,7 @@
 #include "hal/spi.hpp"
 
 namespace hal {
-Spi::Spi(Config& config) : handle{config.handle}, gpio{config.gpio}, timeout{config.timeout} {
+Spi::Spi(const Config& config) : handle{config.handle}, gpio{config.gpio}, timeout{config.timeout} {
     config.init_function();
 }
 
@@ -26,11 +26,13 @@ void Spi::unselect_device() {
     this->gpio.write(true);
 }
 
+// NOLINTNEXTLINE(*-avoid-c-arrays)
 void Spi::transmit(uint8_t data[], uint32_t size) {
     HAL_SPI_Transmit(this->handle, data, size, this->timeout);
 }
 
+// NOLINTNEXTLINE(*-avoid-c-arrays)
 void Spi::receive(uint8_t data[], uint32_t size) {
     HAL_SPI_Receive(this->handle, data, size, this->timeout);
 }
-}  // namespace proxy
+}  // namespace hal

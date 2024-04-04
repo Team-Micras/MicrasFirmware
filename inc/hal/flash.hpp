@@ -6,8 +6,8 @@
  * @date 03/2024
  */
 
-#ifndef __FLASH_HPP__
-#define __FLASH_HPP__
+#ifndef MICRAS_HAL_FLASH_HPP
+#define MICRAS_HAL_FLASH_HPP
 
 #include <cstdint>
 #include <stm32g4xx_hal.h>
@@ -30,7 +30,7 @@ class Flash {
          * @param data pointer to store the data read
          * @param size size in double words of the data to read
          */
-        static void read(uint32_t address, uint64_t data[], uint32_t size = 1);
+        static void read(uint32_t address, uint64_t data[], uint32_t size = 1);  // NOLINT(*-avoid-c-arrays)
 
         /**
          * @brief Read data from flash memory
@@ -40,7 +40,7 @@ class Flash {
          * @param data pointer to store the data read
          * @param size size in double words of the data to read
          */
-        static void read(uint16_t page, uint16_t page_address, uint64_t data[], uint32_t size = 1);
+        static void read(uint16_t page, uint16_t page_address, uint64_t data[], uint32_t size = 1);  // NOLINT(*-avoid-c-arrays)
 
         /**
          * @brief Write data to flash memory
@@ -49,7 +49,7 @@ class Flash {
          * @param data pointer to the data to write
          * @param size size in double words of the data to write
          */
-        static void write(uint32_t address, const uint64_t data[], uint32_t size = 1);
+        static void write(uint32_t address, const uint64_t data[], uint32_t size = 1);  // NOLINT(*-avoid-c-arrays)
 
         /**
          * @brief Write data to flash memory
@@ -59,7 +59,7 @@ class Flash {
          * @param data pointer to the data to write
          * @param size size in double words of the data to write
          */
-        static void write(uint16_t page, uint16_t page_address, const uint64_t data[], uint32_t size = 1);
+        static void write(uint16_t page, uint16_t page_address, const uint64_t data[], uint32_t size = 1);  // NOLINT(*-avoid-c-arrays)
 
         /**
          * @brief Erase flash memory pages
@@ -87,4 +87,4 @@ class Flash {
 };
 }  // namespace hal
 
-#endif // __FLASH_HPP__
+#endif // MICRAS_HAL_FLASH_HPP

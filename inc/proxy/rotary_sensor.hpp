@@ -6,8 +6,8 @@
  * @date 03/2024
  */
 
-#ifndef __ROTARY_SENSOR_HPP__
-#define __ROTARY_SENSOR_HPP__
+#ifndef MICRAS_PROXY_ROTARY_SENSOR_HPP
+#define MICRAS_PROXY_ROTARY_SENSOR_HPP
 
 #include <cstdint>
 
@@ -39,12 +39,12 @@ class RotarySensor {
          *
          * @param config Configuration for the rotary sensor
          */
-        RotarySensor(Config& config);
+        explicit RotarySensor(const Config& config);
 
         /**
          * @brief Get the rotary sensor position over an axis
          *
-         * @return Current angular position of the sensor in radians
+         * @return float Current angular position of the sensor in radians
          */
         float get_position() const;
 
@@ -103,4 +103,4 @@ class RotarySensor {
 };
 }  // namespace proxy
 
-#endif // __ROTARY_SENSOR_HPP__
+#endif // MICRAS_PROXY_ROTARY_SENSOR_HPP

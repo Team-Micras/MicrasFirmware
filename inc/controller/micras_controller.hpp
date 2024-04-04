@@ -6,8 +6,8 @@
  * @date 03/2024
  */
 
-#ifndef __MICRAS_CONTROLLER_HPP__
-#define __MICRAS_CONTROLLER_HPP__
+#ifndef MICRAS_CONTROLLER_HPP
+#define MICRAS_CONTROLLER_HPP
 
 #include "proxy/argb.hpp"
 #include "proxy/battery.hpp"
@@ -22,6 +22,9 @@
 #include "proxy/rotary_sensor.hpp"
 #include "proxy/torque_sensors.hpp"
 
+/**
+ * @brief Class for controlling the Micras robot
+ */
 class MicrasController {
     public:
         /**
@@ -50,4 +53,4 @@ class MicrasController {
         proxy::TorqueSensors<2> torque_sensors;
 };
 
-#endif // __MICRAS_CONTROLLER_HPP__
+#endif // MICRAS_CONTROLLER_HPP

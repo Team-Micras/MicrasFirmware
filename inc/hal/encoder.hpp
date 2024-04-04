@@ -6,8 +6,8 @@
  * @date 03/2024
  */
 
-#ifndef __ENCODER_HPP__
-#define __ENCODER_HPP__
+#ifndef MICRAS_HAL_ENCODER_HPP
+#define MICRAS_HAL_ENCODER_HPP
 
 #include <tim.h>
 
@@ -22,7 +22,7 @@ class Encoder {
          */
         struct Config {
             TIM_HandleTypeDef* handle;
-            void               (* init_function)(void);
+            void               (* init_function)();
             uint32_t           timer_channel;
         };
 
@@ -31,7 +31,7 @@ class Encoder {
          *
          * @param config Configuration for the encoder
          */
-        Encoder(Config& config);
+        explicit Encoder(const Config& config);
 
         /**
          * @brief Get the counter value
@@ -48,4 +48,4 @@ class Encoder {
 };
 }  // namespace hal
 
-#endif // __ENCODER_HPP__
+#endif // MICRAS_HAL_ENCODER_HPP

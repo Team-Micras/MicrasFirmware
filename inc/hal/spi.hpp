@@ -6,8 +6,8 @@
  * @date 03/2024
  */
 
-#ifndef __SPI_HPP__
-#define __SPI_HPP__
+#ifndef MICRAS_HAL_SPI_HPP
+#define MICRAS_HAL_SPI_HPP
 
 #include <cstdint>
 #include <spi.h>
@@ -25,7 +25,7 @@ class Spi {
          */
         struct Config {
             SPI_HandleTypeDef* handle;
-            void               (* init_function)(void);
+            void               (* init_function)();
             hal::Gpio::Config  gpio;
             uint32_t           timeout;
         };
@@ -35,12 +35,12 @@ class Spi {
          *
          * @param config Configuration for the SPI
          */
-        Spi(Config& config);
+        explicit Spi(const Config& config);
 
         /**
          * @brief Activate the chip select
          *
-         * @return true if the device was successfully selected, false otherwise
+         * @return bool True if the device was successfully selected, false otherwise
          */
         bool select_device();
 
@@ -55,7 +55,7 @@ class Spi {
          * @param data Data to transmit
          * @param size Size of the buffer
          */
-        void transmit(uint8_t data[], uint32_t size);
+        void transmit(uint8_t data[], uint32_t size);  // NOLINT(*-avoid-c-arrays)
 
         /**
          * @brief Receive data over SPI
@@ -63,7 +63,7 @@ class Spi {
          * @param data Data to receive data
          * @param size Size of the data
          */
-        void receive(uint8_t data[], uint32_t size);
+        void receive(uint8_t data[], uint32_t size);  // NOLINT(*-avoid-c-arrays)
 
     private:
         /**
@@ -83,4 +83,4 @@ class Spi {
 };
 }  // namespace hal
 
-#endif // __SPI_HPP__
+#endif // MICRAS_HAL_SPI_HPP

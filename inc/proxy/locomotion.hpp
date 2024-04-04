@@ -6,13 +6,13 @@
  * @date 03/2024
  */
 
-#ifndef __DUAL_LOCOMOTION_HPP__
-#define __DUAL_LOCOMOTION_HPP__
+#ifndef MICRAS_PROXY_LOCOMOTION_HPP
+#define MICRAS_PROXY_LOCOMOTION_HPP
 
 #include <cstdint>
 
-#include "hal/pwm.hpp"
 #include "hal/gpio.hpp"
+#include "hal/pwm.hpp"
 
 namespace proxy {
 /**
@@ -36,7 +36,7 @@ class Locomotion {
          *
          * @param config Configuration for the locomotion driver
          */
-        Locomotion(Config& config);
+        explicit Locomotion(const Config& config);
 
         /**
          * @brief Enable the locomotion driver
@@ -107,4 +107,4 @@ class Locomotion {
 };
 }  // namespace proxy
 
-#endif // __DUAL_LOCOMOTION_HPP__
+#endif // MICRAS_PROXY_LOCOMOTION_HPP

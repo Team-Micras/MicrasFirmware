@@ -11,14 +11,14 @@
 #include "hal/pwm.hpp"
 
 namespace hal {
-Pwm::Pwm(Config& config) : handle{config.handle}, channel{config.timer_channel} {
+Pwm::Pwm(const Config& config) : handle{config.handle}, channel{config.timer_channel} {
     config.init_function();
     HAL_TIM_PWM_Start(this->handle, this->channel);
     __HAL_TIM_SET_COMPARE(this->handle, this->channel, 0);
 }
 
 void Pwm::set_duty_cycle(float duty_cycle) {
-    uint32_t compare = std::round((duty_cycle * (__HAL_TIM_GET_AUTORELOAD(this->handle) + 1)) / 100 - 1);
+    uint32_t compare = std::lround((duty_cycle * (__HAL_TIM_GET_AUTORELOAD(this->handle) + 1)) / 100 - 1);
     __HAL_TIM_SET_COMPARE(this->handle, this->channel, compare);
 }
 

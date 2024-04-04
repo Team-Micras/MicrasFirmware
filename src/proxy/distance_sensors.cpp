@@ -6,17 +6,17 @@
  * @date 03/2024
  */
 
-#ifndef __DISTANCE_SENSORS_CPP__
-#define __DISTANCE_SENSORS_CPP__
+#ifndef MICRAS_PROXY_DISTANCE_SENSORS_CPP
+#define MICRAS_PROXY_DISTANCE_SENSORS_CPP
 
 #include "proxy/distance_sensors.hpp"
 
 namespace proxy {
 template <uint8_t num_of_sensors>
-DistanceSensors<num_of_sensors>::DistanceSensors(Config& config) :
+DistanceSensors<num_of_sensors>::DistanceSensors(const Config& config) :
     adc{config.adc}, led_pwm{config.led_pwm}, max_distance{config.max_distance} {
     this->adc.start_dma(this->buffer.data(), num_of_sensors);
-    this->led_pwm.set_duty_cycle(100.0f);
+    this->led_pwm.set_duty_cycle(100.0F);
 }
 
 template <uint8_t num_of_sensors>
@@ -35,4 +35,4 @@ uint32_t DistanceSensors<num_of_sensors>::get_distance_raw(uint8_t sensor_index)
 }
 }  // namespace proxy
 
-#endif // __DISTANCE_SENSORS_HPP__
+#endif // MICRAS_PROXY_DISTANCE_SENSORS_CPP
