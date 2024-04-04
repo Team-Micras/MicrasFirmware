@@ -11,7 +11,11 @@ cmake_minimum_required(VERSION 3.16)
 ###############################################################################
 
 set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/lib/stm32-cmake/cmake/stm32_gcc.cmake)
-set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
+# # Cube generated FreeRTOS path
+# set(FREERTOS_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cube/Middlewares/Third_Party/FreeRTOS/Source)
+# set(FREERTOS_SOURCE ${FREERTOS_PATH})
 
 ## Options:
 # Release: high optimization level, no debug info, code or asserts.
@@ -21,11 +25,15 @@ set(CMAKE_C_STANDARD 11)
 # @see: https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html
 set(CMAKE_BUILD_TYPE Debug)
 
+# Generate compile_commands.json for compatibility with LSPs
+# @see: https://cmake.org/cmake/help/latest/variable/CMAKE_EXPORT_COMPILE_COMMANDS.html
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # Cube file name without .ioc extension
 project(micras C CXX ASM)
 
 # Set the board version to an empty string if your board doesn't have a version
-set(BOARD_VERSION v0)
+set(BOARD_VERSION "")
 
 # Device Configuration
 set(DEVICE_CORTEX G4)
@@ -33,6 +41,7 @@ set(DEVICE_FAMILY STM32G4xx)
 set(DEVICE_TYPE STM32G474xx)
 set(DEVICE_DEF STM32G474xE)
 set(DEVICE STM32G474RE)
+set(DEVICE_PORT ARM_CM4F)  # For FreeRTOS
 
 # DEVICE_FAMILY_COMPACT is the same as DEVICE_FAMILY but without the STM32 prefix
 string(REPLACE "STM32" "" DEVICE_FAMILY_COMPACT ${DEVICE})
@@ -56,7 +65,9 @@ include(cmake/workspace.cmake)
 include(cmake/targets.cmake)
 
 find_package(CMSIS COMPONENTS ${DEVICE} REQUIRED)
+# find_package(CMSIS COMPONENTS ${DEVICE} RTOS_V2 REQUIRED)
 find_package(HAL COMPONENTS STM32${DEVICE_CORTEX} REQUIRED)
+# find_package(FreeRTOS COMPONENTS ${DEVICE_PORT} REQUIRED)
 
 add_compile_options(
     -Wall
@@ -82,9 +93,12 @@ set(DEPENDENCIES
     HAL::STM32::${DEVICE_CORTEX}
 
     HAL::STM32::${DEVICE_CORTEX}::ADCEx
+    HAL::STM32::${DEVICE_CORTEX}::CRCEx
     HAL::STM32::${DEVICE_CORTEX}::DMA
+    HAL::STM32::${DEVICE_CORTEX}::FLASHEx
     HAL::STM32::${DEVICE_CORTEX}::GPIO
     HAL::STM32::${DEVICE_CORTEX}::I2C
+    HAL::STM32::${DEVICE_CORTEX}::PWREx
     HAL::STM32::${DEVICE_CORTEX}::SPI
     HAL::STM32::${DEVICE_CORTEX}::TIMEx
     HAL::STM32::${DEVICE_CORTEX}::UARTEx
@@ -95,17 +109,21 @@ set(DEPENDENCIES
 
     CMSIS::STM32::${DEVICE_FAMILY_COMPACT}
     STM32::NoSys
+
+    # CMSIS::STM32::${DEVICE_CORTEX}::RTOS_V2
+    # FreeRTOS::${DEVICE_PORT}
+    # FreeRTOS::Heap::4
+    # FreeRTOS::Timers
 )
 
 # Add libraries .c files here
 set(LIB_SOURCES
-    # lib/lib_name/src/file1.c
-    # lib/lib_name/src/file2.c
+    lib/lsm6dsv-pid/lsm6dsv_reg.c
 )
 
 # Add libraries include directories here
 set(LIB_INCLUDE_DIRECTORIES
-    # lib/lib_name/inc/
+    lib/lsm6dsv-pid
 )
 
 ###############################################################################
@@ -113,6 +131,7 @@ set(LIB_INCLUDE_DIRECTORIES
 ###############################################################################
 
 set(PROJECT_INCLUDE_DIRECTORIES
+    ./cfg
     ./inc
     ./cube/Inc
 )
@@ -121,12 +140,18 @@ set(TEST_INCLUDE_DIRECTORIES
     ./tests/inc
 )
 
+# set(FREE_RTOS_INCLUDE_DIRECTORIES
+#     ${FREERTOS_SOURCE}/include
+#     ${FREERTOS_SOURCE}/CMSIS_RTOS_V2
+#     ${FREERTOS_SOURCE}/portable/GCC/${DEVICE_PORT}
+# )
+
 ###############################################################################
 ## Input files
 ###############################################################################
 
-file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS "src/*.cpp" "src/*.c")
-file(GLOB_RECURSE PROJECT_HEADERS CONFIGURE_DEPENDS "inc/*.hpp" "inc/*.h")
+file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS "src/*.cpp" "src/*.c" "cfg/*.cpp" "cfg/*.c")
+file(GLOB_RECURSE PROJECT_HEADERS CONFIGURE_DEPENDS "inc/*.hpp" "inc/*.h" "cfg/*.hpp" "cfg/*.h")
 
 file(GLOB_RECURSE TESTS_SOURCES CONFIGURE_DEPENDS "tests/src/*.cpp" "tests/src/*.c")
 file(GLOB_RECURSE TESTS_HEADERS CONFIGURE_DEPENDS "tests/inc/*.hpp" "tests/inc/*.h")
@@ -154,11 +179,17 @@ add_executable(${PROJECT_NAME}
     ${LIB_SOURCES}
 )
 
+# target_compile_definitions(${PROJECT_NAME} PRIVATE
+#     USE_CMSIS_RTOS_V2
+#     CMSIS_RTOS_V2_DEVICE_HEADER="stm32g4xx_hal.h"
+# )
+
 target_include_directories(${PROJECT_NAME} PUBLIC
     ${PROJECT_INCLUDE_DIRECTORIES}
     ${LIB_INCLUDE_DIRECTORIES}
     ${CMSIS_INCLUDE_DIRS}
     ${HAL_INCLUDE_DIRS}
+    # ${FREE_RTOS_INCLUDE_DIRECTORIES}
 )
 
 target_precompile_headers(${PROJECT_NAME} PUBLIC
@@ -209,6 +240,7 @@ foreach(TEST_FILE ${TESTS_BIN})
         ${CMSIS_INCLUDE_DIRS}
         ${HAL_INCLUDE_DIRS}
         ${TEST_INCLUDE_DIRECTORIES}
+        # ${FREE_RTOS_INCLUDE_DIRECTORIES}
     )
 
     target_precompile_headers(${TEST_NAME} PUBLIC

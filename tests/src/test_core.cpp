@@ -3,19 +3,12 @@
  *
  * @brief Core functions to the test
  *
- * @date 04/2021
- *
- * @copyright MIT License
- *
+ * @date 04/2024
  */
 
+#include "hal/mcu.hpp"
 #include "test_core.hpp"
-#include "mcu.hpp"
 
-/*****************************************
- * Public Functions Bodies Definitions
- *****************************************/
-
-void test_core_init(void) {
+void test_core_init() {
     hal::mcu::init();
 }
