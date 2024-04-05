@@ -11,7 +11,7 @@
 int main() {
     test_core_init();
 
-    for (;;) { }
+    while (true) { }
 
     return 0;
 }
