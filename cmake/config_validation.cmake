@@ -70,3 +70,10 @@ if(CUBE_LENGHT EQUAL 0)
 
     execute_process(COMMAND ${JAVA_EXE} -jar ${CUBE_JAR} -q ${CMAKE_CURRENT_BINARY_DIR}/.cube)
 endif()
+
+# Check if CMake build type is correctly configured
+if(NOT (CMAKE_BUILD_TYPE STREQUAL "Release"        OR CMAKE_BUILD_TYPE STREQUAL "Debug" OR
+        CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo" OR CMAKE_BUILD_TYPE STREQUAL "MinSizeRel"))
+    set(CMAKE_BUILD_TYPE "RelWithDebInfo")
+endif()
+message("Build type: " ${CMAKE_BUILD_TYPE})

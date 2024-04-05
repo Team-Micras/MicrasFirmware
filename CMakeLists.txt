@@ -17,12 +17,6 @@ set(CMAKE_C_EXTENSIONS ON)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
-if(NOT (CMAKE_BUILD_TYPE STREQUAL "Release"        OR CMAKE_BUILD_TYPE STREQUAL "Debug" OR
-        CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo" OR CMAKE_BUILD_TYPE STREQUAL "MinSizeRel"))
-    set(CMAKE_BUILD_TYPE "RelWithDebInfo")
-endif()
-message("Build type: " ${CMAKE_BUILD_TYPE})
-
 ###############################################################################
 ## Project Configuration
 ###############################################################################
