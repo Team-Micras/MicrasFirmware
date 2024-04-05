@@ -49,7 +49,7 @@ template <uint8_t num_of_leds>
 void Argb<num_of_leds>::encode_color(const Color& color, uint8_t index) {
     uint32_t data = color.green << (2 * bits_per_color) | color.red << bits_per_color | color.blue;
 
-    for (uint32_t i = bits_per_led * index, j = 0; i < bits_per_led * (index + 1); i++) {
+    for (uint32_t i = bits_per_led * index, j = 0; i < bits_per_led * (index + 1U); i++) {
         this->buffer.at(i) = ((data >> j) & 1) == 1 ? this->high_bit : this->low_bit;
         j++;
     }
