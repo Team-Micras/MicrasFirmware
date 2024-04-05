@@ -9,16 +9,11 @@
     "files.eol": "\n",
     "files.encoding": "utf8",
 
-    "editor.defaultFormatter": "zachflower.uncrustify",
+    "editor.defaultFormatter": "xaver.clang-format",
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
 
     "[c, cpp]": {
         "editor.formatOnSave": true
-    },
-
-    "[markdown]": {
-        "files.trimTrailingWhitespace": false,
-        "files.trimFinalNewlines": false
     },
 
     "doxdocgen.generic.dateFormat": "MM/YYYY",

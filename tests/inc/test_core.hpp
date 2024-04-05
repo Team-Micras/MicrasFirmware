@@ -14,4 +14,4 @@
  */
 void test_core_init();
 
-#endif // __TEST_CORE_H__
+#endif  // __TEST_CORE_H__

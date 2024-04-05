@@ -26,31 +26,31 @@
  * @brief Class for controlling the Micras robot
  */
 class MicrasController {
-    public:
-        /**
-         * @brief Constructor for the MicrasController class
-         */
-        MicrasController();
+public:
+    /**
+     * @brief Constructor for the MicrasController class
+     */
+    MicrasController();
 
-        /**
-         * @brief Runs the controller loop once
-         */
-        void run();
+    /**
+     * @brief Runs the controller loop once
+     */
+    void run();
 
-    private:
-        proxy::Argb<2> argb;
-        proxy::Battery battery;
-        proxy::Button button;
-        proxy::Buzzer buzzer;
-        proxy::DipSwitch<4> dip_switch;
-        proxy::DistanceSensors<4> distance_sensors;
-        proxy::Fan fan;
-        proxy::Imu imu;
-        proxy::Led led;
-        proxy::Locomotion locomotion;
-        proxy::RotarySensor rotary_sensor_left;
-        proxy::RotarySensor rotary_sensor_right;
-        proxy::TorqueSensors<2> torque_sensors;
+private:
+    proxy::Argb<2>            argb;
+    proxy::Battery            battery;
+    proxy::Button             button;
+    proxy::Buzzer             buzzer;
+    proxy::DipSwitch<4>       dip_switch;
+    proxy::DistanceSensors<4> distance_sensors;
+    proxy::Fan                fan;
+    proxy::Imu                imu;
+    proxy::Led                led;
+    proxy::Locomotion         locomotion;
+    proxy::RotarySensor       rotary_sensor_left;
+    proxy::RotarySensor       rotary_sensor_right;
+    proxy::TorqueSensors<2>   torque_sensors;
 };
 
-#endif // MICRAS_CONTROLLER_HPP
+#endif  // MICRAS_CONTROLLER_HPP

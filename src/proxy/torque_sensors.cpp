@@ -14,8 +14,7 @@
 namespace proxy {
 template <uint8_t num_of_sensors>
 TorqueSensors<num_of_sensors>::TorqueSensors(const Config& config) :
-    current_sensors{config.current_sensors}, max_torque{config.max_torque} {
-}
+    current_sensors{config.current_sensors}, max_torque{config.max_torque} { }
 
 template <uint8_t num_of_sensors>
 float TorqueSensors<num_of_sensors>::get_torque(uint8_t sensor_index) const {
@@ -28,4 +27,4 @@ float TorqueSensors<num_of_sensors>::get_current(uint8_t sensor_index) const {
 }
 }  // namespace proxy
 
-#endif // MICRAS_PROXY_TORQUE_SENSORS_CPP
+#endif  // MICRAS_PROXY_TORQUE_SENSORS_CPP

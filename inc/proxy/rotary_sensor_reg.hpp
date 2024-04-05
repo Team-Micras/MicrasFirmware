@@ -21,9 +21,9 @@ struct Registers {
      */
     union Disable {
         struct Fields {
-            uint8_t UVW_off : 1;
-            uint8_t ABI_off : 1;
-            uint8_t na : 4;
+            uint8_t UVW_off        : 1;
+            uint8_t ABI_off        : 1;
+            uint8_t na             : 4;
             uint8_t FILTER_disable : 1;
         };
 
@@ -42,7 +42,7 @@ struct Registers {
 
     union Zposl {
         struct Fields {
-            uint8_t ZPOSL : 6;
+            uint8_t ZPOSL   : 6;
             uint8_t Dia1_en : 1;
             uint8_t Dia2_en : 1;
         };
@@ -53,8 +53,8 @@ struct Registers {
 
     union Settings1 {
         struct Fields {
-            uint8_t K_max : 3;
-            uint8_t K_min : 3;
+            uint8_t K_max   : 3;
+            uint8_t K_min   : 3;
             uint8_t Dia3_en : 1;
             uint8_t Dia4_en : 1;
         };
@@ -65,14 +65,14 @@ struct Registers {
 
     union Settings2 {
         struct Fields {
-            uint8_t IWIDTH : 1;
-            uint8_t NOISESET : 1;
-            uint8_t DIR : 1;
-            uint8_t UVW_ABI : 1;
-            uint8_t DAECDIS : 1;
-            uint8_t ABI_DEC : 1;
+            uint8_t IWIDTH      : 1;
+            uint8_t NOISESET    : 1;
+            uint8_t DIR         : 1;
+            uint8_t UVW_ABI     : 1;
+            uint8_t DAECDIS     : 1;
+            uint8_t ABI_DEC     : 1;
             uint8_t Data_select : 1;
-            uint8_t PWMon : 1;
+            uint8_t PWMon       : 1;
         };
 
         Fields  fields;
@@ -81,8 +81,8 @@ struct Registers {
 
     union Settings3 {
         struct Fields {
-            uint8_t UVWPP : 3;
-            uint8_t HYS : 2;
+            uint8_t UVWPP  : 3;
+            uint8_t HYS    : 2;
             uint8_t ABIRES : 3;
         };
 
@@ -93,7 +93,7 @@ struct Registers {
     union Ecc {
         struct Fields {
             uint8_t ECC_chsum : 7;
-            uint8_t ECC_en : 1;
+            uint8_t ECC_en    : 1;
         };
 
         Fields  fields;
@@ -114,13 +114,13 @@ struct Registers {
     /**
      * @brief Member variables to be configured in the rotary sensor
      */
-    Disable                   disable;
-    Zposm                     zposm;
-    Zposl                     zposl;
-    Settings1                 settings1;
-    Settings2                 settings2;
-    Settings3                 settings3;
-    Ecc                       ecc;
+    Disable   disable;
+    Zposm     zposm;
+    Zposl     zposl;
+    Settings1 settings1;
+    Settings2 settings2;
+    Settings3 settings3;
+    Ecc       ecc;
 };
 
-#endif // MICRAS_PROXY_ROTARY_SENSOR_REG_HPP
+#endif  // MICRAS_PROXY_ROTARY_SENSOR_REG_HPP

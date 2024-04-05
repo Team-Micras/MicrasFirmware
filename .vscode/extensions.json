@@ -6,10 +6,14 @@
     "recommendations": [
         "ms-vscode.cpptools",
         "cschlosser.doxdocgen",
-        "editorconfig.editorconfig",
         "davidanson.vscode-markdownlint",
-        "zachflower.uncrustify",
         "marus25.Cortex-Debug",
+        "dan-c-underwood.arm",
+        "streetsidesoftware.code-spell-checker",
+        "twxs.cmake",
+        "ms-vscode.cmake-tools",
+        "seatonjiang.gitmoji-vscode",
+        "xaver.clang-format",
     ],
 
     // List of extensions recommended by VS Code that should not be recommended for users of this workspace.
