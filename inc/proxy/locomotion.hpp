@@ -19,7 +19,7 @@ namespace proxy {
  * @brief Class for controlling the locomotion driver
  */
 class Locomotion {
-  public:
+public:
     /**
      * @brief Configuration structure for the locomotion
      */
@@ -79,7 +79,7 @@ class Locomotion {
      */
     void stop_right();
 
-  private:
+private:
     /**
      * @brief PWM handle for the left motor forward
      */

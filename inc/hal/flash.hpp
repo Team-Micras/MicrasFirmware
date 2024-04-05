@@ -17,7 +17,7 @@ namespace hal {
  * @brief Class to handle flash memory on STM32 microcontrollers
  */
 class Flash {
-  public:
+public:
     /**
      * @brief Deleted constructor for static class
      */
@@ -73,7 +73,7 @@ class Flash {
      */
     static void erase_pages(uint16_t page, uint16_t number_of_pages = 1);
 
-  private:
+private:
     /**
      * @brief Number of double words per row
      */

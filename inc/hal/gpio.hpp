@@ -17,7 +17,7 @@ namespace hal {
  * @brief Class for controlling GPIO pins on STM32 microcontrollers
  */
 class Gpio {
-  public:
+public:
     /**
      * @brief Configuration structure for GPIO pin
      */
@@ -52,7 +52,7 @@ class Gpio {
      */
     void toggle();
 
-  private:
+private:
     /**
      * @brief The port of the GPIO
      */

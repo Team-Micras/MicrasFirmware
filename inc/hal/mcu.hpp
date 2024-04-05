@@ -16,7 +16,7 @@ namespace hal {
  * @brief Microcontroller unit class
  */
 class Mcu {
-  public:
+public:
     /**
      * @brief Deleted constructor for static class
      */

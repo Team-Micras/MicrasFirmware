@@ -21,7 +21,7 @@ namespace proxy {
  * @brief Class to handle IMU peripheral on STM32 microcontrollers
  */
 class Imu {
-  public:
+public:
     /**
      * @brief IMU configuration struct
      */
@@ -83,7 +83,7 @@ class Imu {
      */
     float get_linear_acceleration(Axis axis) const;
 
-  private:
+private:
     /**
      * @brief Read data from the IMU
      *

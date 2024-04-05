@@ -18,7 +18,7 @@ namespace proxy {
  * @brief Class for getting the battery voltage
  */
 class Battery {
-  public:
+public:
     /**
      * @brief Configuration structure for the battery
      */
@@ -48,7 +48,7 @@ class Battery {
      */
     uint32_t get_voltage_raw() const;
 
-  private:
+private:
     /**
      * @brief Adc object
      */

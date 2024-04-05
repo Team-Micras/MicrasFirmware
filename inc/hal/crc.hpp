@@ -16,7 +16,7 @@ namespace hal {
  * @brief Class to handle the cyclic redundancy check peripheral on STM32 microcontrollers
  */
 class Crc {
-  public:
+public:
     /**
      * @brief CRC configuration struct
      */
@@ -41,7 +41,7 @@ class Crc {
      */
     uint32_t calculate(uint32_t data[], uint32_t size);  // NOLINT(*-avoid-c-arrays)
 
-  private:
+private:
     /**
      * @brief CRC handle
      */

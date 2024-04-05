@@ -17,7 +17,7 @@ namespace hal {
  * @brief Class to handle PWM peripheral on STM32 microcontrollers
  */
 class Pwm {
-  public:
+public:
     /**
      * @brief PWM configuration struct
      */
@@ -48,7 +48,7 @@ class Pwm {
      */
     void set_frequency(uint32_t frequency);
 
-  private:
+private:
     /**
      * @brief Timer handle
      */

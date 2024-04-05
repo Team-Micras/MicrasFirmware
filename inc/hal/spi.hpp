@@ -19,7 +19,7 @@ namespace hal {
  * @brief Class to handle SPI peripheral on STM32 microcontrollers
  */
 class Spi {
-  public:
+public:
     /**
      * @brief SPI configuration struct
      */
@@ -65,7 +65,7 @@ class Spi {
      */
     void receive(uint8_t data[], uint32_t size);  // NOLINT(*-avoid-c-arrays)
 
-  private:
+private:
     /**
      * @brief Handle for the SPI
      */

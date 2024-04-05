@@ -19,7 +19,7 @@ namespace proxy {
  */
 template <uint8_t num_of_sensors>
 class TorqueSensors {
-  public:
+public:
     /**
      * @brief Configuration structure for torque sensors
      */
@@ -51,7 +51,7 @@ class TorqueSensors {
      */
     float get_current(uint8_t sensor_index) const;
 
-  private:
+private:
     /**
      * @brief Current sensors object
      */

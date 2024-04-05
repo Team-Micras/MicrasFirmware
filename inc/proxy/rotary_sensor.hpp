@@ -20,7 +20,7 @@ namespace proxy {
  * @brief Class to handle rotary sensor peripheral on STM32 microcontrollers
  */
 class RotarySensor {
-  public:
+public:
 #include "proxy/rotary_sensor_reg.hpp"
 
     /**
@@ -48,7 +48,7 @@ class RotarySensor {
      */
     float get_position() const;
 
-  private:
+private:
     union CommandFrame {
         struct Fields {
             uint8_t  do_not_care : 1;

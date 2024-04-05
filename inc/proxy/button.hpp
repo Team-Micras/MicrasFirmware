@@ -19,7 +19,7 @@ namespace proxy {
  * @brief Class for controlling a button
  */
 class Button {
-  public:
+public:
     /**
      * @brief Enum for button status
      */
@@ -70,7 +70,7 @@ class Button {
      */
     Status get_status();
 
-  private:
+private:
     /**
      * @brief Get raw button reading
      *

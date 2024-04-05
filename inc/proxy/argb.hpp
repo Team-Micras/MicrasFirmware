@@ -20,7 +20,7 @@ namespace proxy {
  */
 template <uint8_t num_of_leds>
 class Argb {
-  public:
+public:
     /**
      * @brief Configuration structure for the addressable RGB LED
      */
@@ -71,7 +71,7 @@ class Argb {
      */
     void turn_off();
 
-  private:
+private:
     /**
      * @brief Encode a color into the data buffer
      *

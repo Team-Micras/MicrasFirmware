@@ -17,7 +17,7 @@ namespace hal {
  * @brief Class to handle timer peripheral on STM32 microcontrollers
  */
 class Timer {
-  public:
+public:
     /**
      * @brief Timer configuration struct
      */
@@ -76,7 +76,7 @@ class Timer {
      */
     void sleep_us(uint32_t time) const;
 
-  private:
+private:
     /**
      * @brief Get the current timer counter
      *

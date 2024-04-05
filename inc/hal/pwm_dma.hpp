@@ -17,7 +17,7 @@ namespace hal {
  * @brief Class to handle PWM peripheral on STM32 microcontrollers using DMA
  */
 class PwmDma {
-  public:
+public:
     /**
      * @brief PWM configuration struct
      */
@@ -55,7 +55,7 @@ class PwmDma {
      */
     uint32_t get_compare(float duty_cycle) const;
 
-  private:
+private:
     /**
      * @brief Timer handle
      */

@@ -20,7 +20,7 @@ namespace proxy {
  */
 template <uint8_t num_of_sensors>
 class CurrentSensors {
-  public:
+public:
     /**
      * @brief Configuration structure for current sensors
      */
@@ -52,7 +52,7 @@ class CurrentSensors {
      */
     uint32_t get_current_raw(uint8_t sensor_index) const;
 
-  private:
+private:
     /**
      * @brief ADC DMA handle
      */

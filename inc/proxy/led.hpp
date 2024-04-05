@@ -16,7 +16,7 @@ namespace proxy {
  * @brief Class for controlling an LED
  */
 class Led {
-  public:
+public:
     /**
      * @brief Configuration structure for LED
      */
@@ -46,7 +46,7 @@ class Led {
      */
     void toggle();
 
-  private:
+private:
     /**
      * @brief Gpio object for the LED
      */

@@ -26,7 +26,7 @@
  * @brief Class for controlling the Micras robot
  */
 class MicrasController {
-  public:
+public:
     /**
      * @brief Constructor for the MicrasController class
      */
@@ -37,7 +37,7 @@ class MicrasController {
      */
     void run();
 
-  private:
+private:
     proxy::Argb<2>            argb;
     proxy::Battery            battery;
     proxy::Button             button;

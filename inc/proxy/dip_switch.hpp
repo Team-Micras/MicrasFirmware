@@ -20,7 +20,7 @@ namespace proxy {
  */
 template <uint8_t num_of_switches>
 class DipSwitch {
-  public:
+public:
     /**
      * @brief Configuration struct for DipSwitch
      */
@@ -50,7 +50,7 @@ class DipSwitch {
      */
     uint8_t get_switches_value() const;
 
-  private:
+private:
     /**
      * @brief Array of GPIOs for the switches
      */

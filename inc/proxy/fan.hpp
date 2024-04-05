@@ -19,7 +19,7 @@ namespace proxy {
  * @brief Class for controlling the fan driver
  */
 class Fan {
-  public:
+public:
     /**
      * @brief Configuration structure for the fan
      */
@@ -66,7 +66,7 @@ class Fan {
      */
     void stop();
 
-  private:
+private:
     /**
      * @brief Set the rotation direction of the fan
      *

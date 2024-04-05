@@ -17,7 +17,7 @@ namespace hal {
  * @brief Class to handle ADC peripheral on STM32 microcontrollers using DMA
  */
 class AdcDma {
-  public:
+public:
     /**
      * @brief Configuration structure for ADC DMA
      */
@@ -58,7 +58,7 @@ class AdcDma {
      */
     const float reference_voltage;  // NOLINT(*-non-private-member-variables-in-classes)
 
-  private:
+private:
     /**
      * @brief ADC handle
      */

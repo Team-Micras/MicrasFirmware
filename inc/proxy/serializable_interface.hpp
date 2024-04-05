@@ -16,7 +16,7 @@
  * @brief Interface class for serializable classes
  */
 class ISerializable {
-  public:
+public:
     /**
      * @brief Virtual destructor for the ISerializable class
      */
@@ -37,7 +37,7 @@ class ISerializable {
      */
     virtual void deserialize(uint8_t* serial_data, uint16_t size) = 0;
 
-  protected:
+protected:
     /**
      * @brief Special member functions declared as default
      */

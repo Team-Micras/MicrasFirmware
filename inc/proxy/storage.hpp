@@ -25,7 +25,7 @@ concept Fundamental = std::is_fundamental<T>::value;
  * @brief Class for controlling the storage
  */
 class Storage {
-  public:
+public:
     /**
      * @brief Configuration structure for the storage
      */
@@ -82,7 +82,7 @@ class Storage {
      */
     void save();
 
-  private:
+private:
     /**
      * @brief Structure for primitive variables
      */

@@ -21,7 +21,7 @@ namespace proxy {
  */
 template <uint8_t num_of_sensors>
 class DistanceSensors {
-  public:
+public:
     /**
      * @brief Configuration structure for distance sensors
      */
@@ -61,7 +61,7 @@ class DistanceSensors {
      */
     uint32_t get_distance_raw(uint8_t sensor_index) const;
 
-  private:
+private:
     /**
      * @brief ADC DMA handle
      */

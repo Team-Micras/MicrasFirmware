@@ -19,7 +19,7 @@ namespace proxy {
  * @brief Class for controlling a buzzer
  */
 class Buzzer {
-  public:
+public:
     /**
      * @brief Configuration structure for the buzzer
      */
@@ -52,7 +52,7 @@ class Buzzer {
      */
     void stop();
 
-  private:
+private:
     /**
      * @brief PWM object
      */

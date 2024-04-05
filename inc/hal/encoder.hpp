@@ -16,7 +16,7 @@ namespace hal {
  * @brief Class to handle encoder peripheral on STM32 microcontrollers
  */
 class Encoder {
-  public:
+public:
     /**
      * @brief Encoder configuration struct
      */
@@ -40,7 +40,7 @@ class Encoder {
      */
     int32_t get_counter() const;
 
-  private:
+private:
     /**
      * @brief Timer handle
      */
