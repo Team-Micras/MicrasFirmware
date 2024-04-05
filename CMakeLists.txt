@@ -136,11 +136,13 @@ target_include_directories(cube_lib SYSTEM PUBLIC ${CUBE_HEADERS})
 add_library(${CMAKE_PROJECT_NAME}_lib STATIC
     ${PROJECT_SOURCES}
     ${LIB_SOURCES}
+    ${TESTS_SOURCES}
 )
 
 target_include_directories(${CMAKE_PROJECT_NAME}_lib PUBLIC
     ${PROJECT_INCLUDE_DIRECTORIES}
     ${LIB_INCLUDE_DIRECTORIES}
+    ${TEST_INCLUDE_DIRECTORIES}
 )
 
 target_link_libraries(${CMAKE_PROJECT_NAME}_lib
@@ -171,11 +173,6 @@ foreach(TEST_FILE ${TESTS_BIN})
 
     add_executable(${TEST_NAME} EXCLUDE_FROM_ALL
         ${TEST_FILE}
-        ${TESTS_SOURCES}
-    )
-
-    target_include_directories(${TEST_NAME} PRIVATE
-        ${TESTS_HEADERS}
     )
 
     target_link_libraries(${TEST_NAME}
