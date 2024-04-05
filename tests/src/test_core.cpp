@@ -10,5 +10,5 @@
 #include "test_core.hpp"
 
 void test_core_init() {
-    hal::mcu::init();
+    hal::Mcu::init();
 }
