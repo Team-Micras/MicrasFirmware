@@ -57,7 +57,6 @@ public:
 
     /**
      * @brief Get the IMU orientation over an axis
-     * @todo implement function using sensior fusion
      *
      * @param axis Axis to get the orientation from
      *

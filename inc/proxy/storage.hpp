@@ -125,6 +125,11 @@ private:
     static std::unordered_map<std::string, T> deserialize_var_map(std::vector<uint8_t>& buffer, uint16_t num_vars);
 
     /**
+     * @brief Start symbol to avoid reading garbage from flash
+     */
+    static constexpr uint16_t start_symbol = 0xABAB;
+
+    /**
      * @brief Map of primitive variables
      */
     std::unordered_map<std::string, PrimitiveVariable> primitives;

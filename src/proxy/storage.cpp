@@ -11,15 +11,19 @@
 
 namespace proxy {
 Storage::Storage(const Config& config) : start_page{config.start_page}, number_of_pages{config.number_of_pages} {
-    uint64_t sizes{};
-    hal::Flash::read(this->start_page, 0, &sizes);
+    uint64_t header{};
+    hal::Flash::read(this->start_page, 0, &header);
 
-    uint32_t total_size = sizes >> 32;
-    uint16_t num_primitives = sizes >> 16;
-    uint16_t num_serializables = sizes;
+    if (header >> 48 != 0xABAB) {
+        return;
+    }
 
-    this->buffer.resize(total_size);
-    hal::Flash::read(this->start_page, 1, reinterpret_cast<uint64_t*>(this->buffer.data()), total_size / 8);
+    uint16_t total_size = header >> 32;
+    uint16_t num_primitives = header >> 16;
+    uint16_t num_serializables = header;
+
+    this->buffer.resize(8 * total_size);
+    hal::Flash::read(this->start_page, 1, reinterpret_cast<uint64_t*>(this->buffer.data()), total_size);
 
     this->primitives = deserialize_var_map<PrimitiveVariable>(this->buffer, num_primitives);
     this->serializables = deserialize_var_map<SerializableVariable>(this->buffer, num_serializables);
@@ -87,7 +91,7 @@ void Storage::save() {
     this->buffer.insert(this->buffer.begin(), serialized_primitives.begin(), serialized_primitives.end());
 
     this->buffer.insert(this->buffer.end(), (8 - (this->buffer.size() % 8)) % 8, 0);
-    uint32_t total_size = this->buffer.size();
+    uint16_t total_size = this->buffer.size() / 8;
 
     this->buffer.emplace_back(this->serializables.size());
     this->buffer.emplace_back(this->serializables.size() >> 8);
@@ -96,8 +100,8 @@ void Storage::save() {
 
     this->buffer.emplace_back(total_size);
     this->buffer.emplace_back(total_size >> 8);
-    this->buffer.emplace_back(total_size >> 16);
-    this->buffer.emplace_back(total_size >> 24);
+    this->buffer.emplace_back(start_symbol);
+    this->buffer.emplace_back(start_symbol >> 8);
 
     hal::Flash::write(this->start_page, 0, reinterpret_cast<uint64_t*>(buffer.data()), buffer.size() / 8);
 }
