@@ -16,11 +16,6 @@
         "editor.formatOnSave": true
     },
 
-    "[markdown]": {
-        "files.trimTrailingWhitespace": false,
-        "files.trimFinalNewlines": false
-    },
-
     "doxdocgen.generic.dateFormat": "MM/YYYY",
     "doxdocgen.file.fileOrder": [
         "file",
