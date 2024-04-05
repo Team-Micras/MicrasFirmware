@@ -9,9 +9,10 @@
 #ifndef MICRAS_PROXY_TORQUE_SENSORS_HPP
 #define MICRAS_PROXY_TORQUE_SENSORS_HPP
 
+#include <array>
 #include <cstdint>
 
-#include "proxy/current_sensors.hpp"
+#include "hal/adc_dma.hpp"
 
 namespace proxy {
 /**
@@ -24,8 +25,9 @@ public:
      * @brief Configuration structure for torque sensors
      */
     struct Config {
-        typename CurrentSensors<num_of_sensors>::Config current_sensors;
-        float                                           max_torque;
+        hal::AdcDma::Config adc;
+        float               shunt_resistor;
+        float               max_torque;
     };
 
     /**
@@ -53,9 +55,19 @@ public:
 
 private:
     /**
-     * @brief Current sensors object
+     * @brief ADC DMA handle
      */
-    CurrentSensors<num_of_sensors> current_sensors;
+    hal::AdcDma adc;
+
+    /**
+     * @brief Buffer to store the ADC values
+     */
+    std::array<uint32_t, num_of_sensors> buffer;
+
+    /**
+     * @brief Value of the shunt resistor in ohms
+     */
+    const float shunt_resistor;
 
     /**
      * @brief Maximum torque that can be measured by the sensor

@@ -14,16 +14,18 @@
 namespace proxy {
 template <uint8_t num_of_sensors>
 TorqueSensors<num_of_sensors>::TorqueSensors(const Config& config) :
-    current_sensors{config.current_sensors}, max_torque{config.max_torque} { }
+    adc{config.adc}, shunt_resistor{config.shunt_resistor}, max_torque{config.max_torque} {
+    this->adc.start_dma(this->buffer.data(), num_of_sensors);
+}
 
 template <uint8_t num_of_sensors>
 float TorqueSensors<num_of_sensors>::get_torque(uint8_t sensor_index) const {
-    return this->current_sensors.get_current_raw(sensor_index) * TorqueSensors::max_torque / this->adc.max_reading;
+    return this->buffer.at(sensor_index) * TorqueSensors::max_torque / this->adc.max_reading;
 }
 
 template <uint8_t num_of_sensors>
 float TorqueSensors<num_of_sensors>::get_current(uint8_t sensor_index) const {
-    return this->current_sensors.get_current(sensor_index);
+    return this->adc.reference_voltage * this->buffer.at(sensor_index) / (this->adc.max_reading * this->shunt_resistor);
 }
 }  // namespace proxy
 

@@ -236,15 +236,13 @@ const proxy::RotarySensor::Config rotary_sensor_right_config = {
 };
 
 const proxy::TorqueSensors<2>::Config torque_sensors_config = {
-    .current_sensors = {
-        .adc = {
-            .init_function = MX_ADC2_Init,
-            .handle = &hadc2,
-            .max_reading = 4095,
-            .reference_voltage = 3.3F
-        },
-        .shunt_resistor = 0.04F
+    .adc = {
+        .init_function = MX_ADC2_Init,
+        .handle = &hadc2,
+        .max_reading = 4095,
+        .reference_voltage = 3.3F
     },
+    .shunt_resistor = 0.04F,
     .max_torque = 0.5F
 };
 
