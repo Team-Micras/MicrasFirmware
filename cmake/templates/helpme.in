@@ -4,9 +4,11 @@
                     and modify the file if necessary
 
 Options:
+    all:                build main project target, can also be called using only make
     helpme:             show this help
     cube:               generate cube files
     info:               show information about the connected uC (microcontroller)
+    [test_name]:        compile the project with the test file as executable
     flash:              load the compiled files of the main program into the microcontroller via st-link
     flash_[test_name]:  load the compiled files of a test into the microcontroller via st-link
     jflash:             load the compiled files of the main program into the microcontroller via j-link
