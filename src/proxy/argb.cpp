@@ -13,9 +13,8 @@
 
 namespace proxy {
 template <uint8_t num_of_leds>
-Argb<num_of_leds>::Argb(const Config& config) : pwm{config.pwm},
-    low_bit{pwm.get_compare(low_duty_cycle)}, high_bit{pwm.get_compare(high_duty_cycle)} {
-}
+Argb<num_of_leds>::Argb(const Config& config) :
+    pwm{config.pwm}, low_bit{pwm.get_compare(low_duty_cycle)}, high_bit{pwm.get_compare(high_duty_cycle)} { }
 
 template <uint8_t num_of_leds>
 void Argb<num_of_leds>::set_color(const Color& color, uint8_t index) {
@@ -57,4 +56,4 @@ void Argb<num_of_leds>::encode_color(const Color& color, uint8_t index) {
 }
 }  // namespace proxy
 
-#endif // MICRAS_PROXY_ARGB_CPP
+#endif  // MICRAS_PROXY_ARGB_CPP

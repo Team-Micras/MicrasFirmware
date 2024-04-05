@@ -20,9 +20,9 @@ MicrasController::MicrasController() :
     imu{imu_config},
     led{led_config},
     locomotion{locomotion_config},
-    rotary_sensor_left{rotary_sensor_left_config}, rotary_sensor_right{rotary_sensor_right_config},
-    torque_sensors{torque_sensors_config} {
-}
+    rotary_sensor_left{rotary_sensor_left_config},
+    rotary_sensor_right{rotary_sensor_right_config},
+    torque_sensors{torque_sensors_config} { }
 
 void MicrasController::run() {
     if (button.get_status() == proxy::Button::SHORT_PRESS) {

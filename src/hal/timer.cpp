@@ -39,15 +39,13 @@ uint32_t Timer::elapsed_time_us() const {
 void Timer::sleep_ms(uint32_t time) {
     uint32_t start = HAL_GetTick();
 
-    while (HAL_GetTick() - start < time) {
-    }
+    while (HAL_GetTick() - start < time) { }
 }
 
 void Timer::sleep_us(uint32_t time) const {
     uint32_t start = this->get_counter_us();
 
-    while (this->get_counter_us() - start < time) {
-    }
+    while (this->get_counter_us() - start < time) { }
 }
 
 uint32_t Timer::get_counter_ms() {

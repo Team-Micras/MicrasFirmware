@@ -11,7 +11,7 @@
 
 namespace proxy {
 Storage::Storage(const Config& config) : start_page{config.start_page}, number_of_pages{config.number_of_pages} {
-    uint64_t sizes{ };
+    uint64_t sizes{};
     hal::Flash::read(this->start_page, 0, &sizes);
 
     uint32_t total_size = sizes >> 32;
@@ -57,7 +57,7 @@ void Storage::save() {
     this->buffer.clear();
     hal::Flash::erase_pages(this->start_page, this->number_of_pages);
 
-    for (auto& [name, variable]: this->primitives) {
+    for (auto& [name, variable] : this->primitives) {
         if (variable.ram_pointer == nullptr) {
             this->primitives.erase(name);
             continue;
@@ -68,7 +68,7 @@ void Storage::save() {
         this->buffer.insert(this->buffer.end(), aux, aux + variable.size);
     }
 
-    for (auto& [name, variable]: this->serializables) {
+    for (auto& [name, variable] : this->serializables) {
         if (variable.ram_pointer == nullptr) {
             this->serializables.erase(name);
             continue;
@@ -106,7 +106,7 @@ template <typename T>
 std::vector<uint8_t> Storage::serialize_var_map(const std::unordered_map<std::string, T>& variables) {
     std::vector<uint8_t> buffer;
 
-    for (auto [name, variable]: variables) {
+    for (auto [name, variable] : variables) {
         buffer.emplace_back(name.size());
         buffer.insert(buffer.end(), name.begin(), name.end());
 
@@ -123,10 +123,12 @@ std::vector<uint8_t> Storage::serialize_var_map(const std::unordered_map<std::st
 template <typename T>
 std::unordered_map<std::string, T> Storage::deserialize_var_map(std::vector<uint8_t>& buffer, uint16_t num_vars) {
     std::unordered_map<std::string, T> variables;
+
     uint16_t current_addr = 0;
 
     for (uint16_t decoded_vars = 0; decoded_vars < num_vars; decoded_vars++) {
         uint8_t var_name_len = buffer.at(current_addr);
+
         std::string var_name(buffer.begin() + current_addr + 1, buffer.begin() + current_addr + 1 + var_name_len);
         current_addr += var_name_len + 1;
 

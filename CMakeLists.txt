@@ -17,8 +17,9 @@ set(CMAKE_C_EXTENSIONS ON)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
-if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE "Debug")
+if(NOT (CMAKE_BUILD_TYPE STREQUAL "Release"        OR CMAKE_BUILD_TYPE STREQUAL "Debug" OR
+        CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo" OR CMAKE_BUILD_TYPE STREQUAL "MinSizeRel"))
+    set(CMAKE_BUILD_TYPE "RelWithDebInfo")
 endif()
 message("Build type: " ${CMAKE_BUILD_TYPE})
 
@@ -118,10 +119,10 @@ get_target_property(CUBE_SOURCES stm32cubemx INTERFACE_SOURCES)
 
 # Remove warnings from Cube and library sources
 set_source_files_properties(
-  ${CUBE_SOURCES}
-  ${LIB_SOURCES}
-  PROPERTIES
-  COMPILE_FLAGS "-w"
+    ${CUBE_SOURCES}
+    ${LIB_SOURCES}
+    PROPERTIES
+    COMPILE_FLAGS "-w"
 )
 
 add_library(cube_lib STATIC ${CUBE_SOURCES})

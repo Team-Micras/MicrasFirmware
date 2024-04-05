@@ -14,8 +14,7 @@ Button::Button(const Config& config) :
     long_press_delay{config.long_press_delay},
     extra_long_press_delay{config.extra_long_press_delay},
     gpio{config.gpio},
-    pull_resistor{config.pull_resistor} {
-}
+    pull_resistor{config.pull_resistor} { }
 
 bool Button::is_pressed() {
     this->update_state();

@@ -8,18 +8,20 @@
 
 #include "target.hpp"
 
+// clang-format off
+
 const proxy::Argb<2>::Config argb_config = {
     .pwm = {
-        .handle = &htim8,
         .init_function = MX_TIM8_Init,
+        .handle = &htim8,
         .timer_channel = TIM_CHANNEL_1
     }
 };
 
 const proxy::Battery::Config battery_config = {
     .adc = {
-        .handle = &hadc3,
         .init_function = MX_ADC3_Init,
+        .handle = &hadc3,
         .max_reading = 4095,
         .reference_voltage = 3.0F
     },
@@ -36,8 +38,8 @@ const proxy::Button::Config button_config = {
 
 const proxy::Buzzer::Config buzzer_config = {
     .pwm = {
-        .handle = &htim4,
         .init_function = MX_TIM4_Init,
+        .handle = &htim4,
         .timer_channel = TIM_CHANNEL_1
     }
 };
@@ -65,14 +67,14 @@ const proxy::DipSwitch<4>::Config dip_switch_config = {
 
 const proxy::DistanceSensors<4>::Config distance_sensors_config = {
     .adc = {
-        .handle = &hadc1,
         .init_function = MX_ADC1_Init,
+        .handle = &hadc1,
         .max_reading = 4095,
         .reference_voltage = 3.3F
     },
     .led_pwm = {
-        .handle = &htim15,
         .init_function = MX_TIM15_Init,
+        .handle = &htim15,
         .timer_channel = TIM_CHANNEL_1
     },
     .max_distance = 0.3F
@@ -80,8 +82,8 @@ const proxy::DistanceSensors<4>::Config distance_sensors_config = {
 
 const proxy::Fan::Config fan_config = {
     .pwm = {
-        .handle = &htim17,
         .init_function = MX_TIM17_Init,
+        .handle = &htim17,
         .timer_channel = TIM_CHANNEL_1
     },
     .direction_gpio = {
@@ -96,8 +98,8 @@ const proxy::Fan::Config fan_config = {
 
 const proxy::Imu::Config imu_config = {
     .spi = {
-        .handle = &hspi1,
         .init_function = MX_SPI1_Init,
+        .handle = &hspi1,
         .gpio = {
             .port = GPIOB,
             .pin = GPIO_PIN_6
@@ -122,23 +124,23 @@ const proxy::Led::Config led_config = {
 
 const proxy::Locomotion::Config locomotion_config = {
     .pwm_left_fwd = {
-        .handle = &htim4,
         .init_function = MX_TIM4_Init,
+        .handle = &htim4,
         .timer_channel = TIM_CHANNEL_4
     },
     .pwm_left_bwd = {
-        .handle = &htim4,
         .init_function = MX_TIM4_Init,
+        .handle = &htim4,
         .timer_channel = TIM_CHANNEL_3
     },
     .pwm_right_fwd = {
-        .handle = &htim1,
         .init_function = MX_TIM1_Init,
+        .handle = &htim1,
         .timer_channel = TIM_CHANNEL_2
     },
     .pwm_right_bwd = {
-        .handle = &htim1,
         .init_function = MX_TIM1_Init,
+        .handle = &htim1,
         .timer_channel = TIM_CHANNEL_1
     },
     .enable_gpio = {
@@ -191,8 +193,8 @@ const proxy::RotarySensor::Registers rotary_sensor_reg_config = {
 
 const proxy::RotarySensor::Config rotary_sensor_left_config = {
     .spi = {
-        .handle = &hspi1,
         .init_function = MX_SPI1_Init,
+        .handle = &hspi1,
         .gpio = {
             .port = GPIOA,
             .pin = GPIO_PIN_6
@@ -200,8 +202,8 @@ const proxy::RotarySensor::Config rotary_sensor_left_config = {
         .timeout = 2
     },
     .encoder = {
-        .handle = &htim2,
         .init_function = MX_TIM2_Init,
+        .handle = &htim2,
         .timer_channel = TIM_CHANNEL_ALL
     },
     .crc = {
@@ -213,8 +215,8 @@ const proxy::RotarySensor::Config rotary_sensor_left_config = {
 
 const proxy::RotarySensor::Config rotary_sensor_right_config = {
     .spi = {
-        .handle = &hspi1,
         .init_function = MX_SPI1_Init,
+        .handle = &hspi1,
         .gpio = {
             .port = GPIOB,
             .pin = GPIO_PIN_1
@@ -222,8 +224,8 @@ const proxy::RotarySensor::Config rotary_sensor_right_config = {
         .timeout = 2
     },
     .encoder = {
-        .handle = &htim5,
         .init_function = MX_TIM5_Init,
+        .handle = &htim5,
         .timer_channel = TIM_CHANNEL_ALL
     },
     .crc = {
@@ -236,8 +238,8 @@ const proxy::RotarySensor::Config rotary_sensor_right_config = {
 const proxy::TorqueSensors<2>::Config torque_sensors_config = {
     .current_sensors = {
         .adc = {
-            .handle = &hadc2,
             .init_function = MX_ADC2_Init,
+            .handle = &hadc2,
             .max_reading = 4095,
             .reference_voltage = 3.3F
         },
@@ -245,3 +247,5 @@ const proxy::TorqueSensors<2>::Config torque_sensors_config = {
     },
     .max_torque = 0.5F
 };
+
+// clang-format on

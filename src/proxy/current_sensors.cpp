@@ -20,8 +20,7 @@ CurrentSensors<num_of_sensors>::CurrentSensors(const Config& config) :
 
 template <uint8_t num_of_sensors>
 float CurrentSensors<num_of_sensors>::get_current(uint8_t sensor_index) const {
-    return this->adc.reference_voltage * this->buffer.at(sensor_index) /
-           (this->adc.max_reading * this->shunt_resistor);
+    return this->adc.reference_voltage * this->buffer.at(sensor_index) / (this->adc.max_reading * this->shunt_resistor);
 }
 
 template <uint8_t num_of_sensors>
@@ -30,4 +29,4 @@ uint32_t CurrentSensors<num_of_sensors>::get_current_raw(uint8_t sensor_index) c
 }
 }  // namespace proxy
 
-#endif // MICRAS_PROXY_CURRENT_SENSORS_CPP
+#endif  // MICRAS_PROXY_CURRENT_SENSORS_CPP

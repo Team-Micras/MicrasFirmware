@@ -15,10 +15,9 @@
 namespace proxy {
 template <uint8_t num_of_sensors>
 DipSwitch<num_of_sensors>::DipSwitch(const Config& config) :
-    gpio_array([&]<std::size_t... I> (std::index_sequence<I...>) -> std::array<hal::Gpio, num_of_sensors> {
+    gpio_array([&]<std::size_t... I>(std::index_sequence<I...>)->std::array<hal::Gpio, num_of_sensors> {
         return {hal::Gpio{config.gpio_array[I]}...};
-    }(std::make_index_sequence<num_of_sensors>())) {
-}
+    }(std::make_index_sequence<num_of_sensors>())) { }
 
 template <uint8_t num_of_sensors>
 bool DipSwitch<num_of_sensors>::get_switch_state(uint8_t switch_index) const {
@@ -37,4 +36,4 @@ uint8_t DipSwitch<num_of_sensors>::get_switches_value() const {
 }
 }  // namespace proxy
 
-#endif // MICRAS_PROXY_DIP_SWITCH_CPP
+#endif  // MICRAS_PROXY_DIP_SWITCH_CPP
