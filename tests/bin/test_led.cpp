@@ -6,8 +6,6 @@
  * @date 05/2024
  */
 
-#include "proxy/led.hpp"
-#include "target.hpp"
 #include "test_core.hpp"
 
 int main() {

@@ -6,9 +6,6 @@
  * @date 05/2024
  */
 
-#include "proxy/argb.hpp"
-#include "proxy/dip_switch.hpp"
-#include "target.hpp"
 #include "test_core.hpp"
 
 int main() {

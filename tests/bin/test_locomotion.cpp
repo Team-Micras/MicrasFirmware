@@ -6,9 +6,6 @@
  * @date 05/2024
  */
 
-#include "hal/timer.hpp"
-#include "proxy/locomotion.hpp"
-#include "target.hpp"
 #include "test_core.hpp"
 
 int main() {

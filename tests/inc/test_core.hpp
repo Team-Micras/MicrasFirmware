@@ -9,6 +9,8 @@
 #ifndef __TEST_CORE_H__
 #define __TEST_CORE_H__
 
+#include "target.hpp"
+
 /**
  * @brief Initialize test core
  */
