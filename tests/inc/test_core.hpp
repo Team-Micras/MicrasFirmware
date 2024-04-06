@@ -6,8 +6,8 @@
  * @date 04/2024
  */
 
-#ifndef __TEST_CORE_H__
-#define __TEST_CORE_H__
+#ifndef MICRAS_TEST_CORE_HPP
+#define MICRAS_TEST_CORE_HPP
 
 #include "target.hpp"
 
@@ -16,4 +16,4 @@
  */
 void test_core_init();
 
-#endif  // __TEST_CORE_H__
+#endif  // MICRAS_TEST_CORE_HPP
