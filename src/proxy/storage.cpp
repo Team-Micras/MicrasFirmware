@@ -22,7 +22,7 @@ Storage::Storage(const Config& config) : start_page{config.start_page}, number_o
     uint16_t num_primitives = header >> 16;
     uint16_t num_serializables = header;
 
-    this->buffer.resize(8 * total_size);
+    this->buffer.resize(8L * total_size);
     hal::Flash::read(this->start_page, 1, reinterpret_cast<uint64_t*>(this->buffer.data()), total_size);
 
     this->primitives = deserialize_var_map<PrimitiveVariable>(this->buffer, num_primitives);
