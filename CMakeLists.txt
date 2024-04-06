@@ -94,11 +94,6 @@ file(GLOB_RECURSE TESTS_BIN CONFIGURE_DEPENDS "tests/bin/*.cpp" "tests/bin/*.c")
 
 targets_generate_format_target(PROJECT_SOURCES PROJECT_HEADERS TESTS_SOURCES TESTS_HEADERS TESTS_BIN)
 
-list(REMOVE_ITEM PROJECT_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/main.c
-)
-
 set(LIB_SOURCES
     lib/lsm6dsv-pid/lsm6dsv_reg.c
 )
@@ -119,34 +114,27 @@ set_source_files_properties(
     COMPILE_FLAGS "-w"
 )
 
-add_library(cube_lib STATIC ${CUBE_SOURCES})
-target_compile_definitions(cube_lib PUBLIC ${CUBE_COMPILE_DEFINITIONS})
-target_include_directories(cube_lib SYSTEM PUBLIC ${CUBE_HEADERS})
-
 ###############################################################################
 ## Main executable target
 ###############################################################################
 
-add_library(${CMAKE_PROJECT_NAME}_lib STATIC
+add_executable(${PROJECT_NAME}
     ${PROJECT_SOURCES}
     ${LIB_SOURCES}
-    ${TESTS_SOURCES}
+    ${CUBE_SOURCES}
 )
 
-target_include_directories(${CMAKE_PROJECT_NAME}_lib PUBLIC
+target_compile_definitions(${PROJECT_NAME} PUBLIC
+    ${CUBE_COMPILE_DEFINITIONS}
+)
+
+target_include_directories(${PROJECT_NAME} PUBLIC
     ${PROJECT_INCLUDE_DIRECTORIES}
+)
+
+target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
     ${LIB_INCLUDE_DIRECTORIES}
-    ${TEST_INCLUDE_DIRECTORIES}
-)
-
-target_link_libraries(${CMAKE_PROJECT_NAME}_lib
-    cube_lib
-)
-
-add_executable(${CMAKE_PROJECT_NAME} "src/main.cpp")
-
-target_link_libraries(${CMAKE_PROJECT_NAME}
-    ${CMAKE_PROJECT_NAME}_lib
+    ${CUBE_HEADERS}
 )
 
 stm32_print_size_of_target(${PROJECT_NAME})
@@ -160,6 +148,11 @@ targets_generate_helpme_target()
 ## Generate test executables
 ###############################################################################
 
+list(REMOVE_ITEM PROJECT_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/main.c
+)
+
 foreach(TEST_FILE ${TESTS_BIN})
 
     # If TEST_FILE contains /dir1/dir2/file.cpp, TEST_NAME will be 'file'
@@ -167,10 +160,24 @@ foreach(TEST_FILE ${TESTS_BIN})
 
     add_executable(${TEST_NAME} EXCLUDE_FROM_ALL
         ${TEST_FILE}
+        ${TESTS_SOURCES}
+        ${PROJECT_SOURCES}
+        ${LIB_SOURCES}
+        ${CUBE_SOURCES}
     )
 
-    target_link_libraries(${TEST_NAME}
-        ${CMAKE_PROJECT_NAME}_lib
+    target_compile_definitions(${TEST_NAME} PUBLIC
+        ${CUBE_COMPILE_DEFINITIONS}
+    )
+
+    target_include_directories(${TEST_NAME} PUBLIC
+        ${TEST_INCLUDE_DIRECTORIES}
+        ${PROJECT_INCLUDE_DIRECTORIES}
+    )
+
+    target_include_directories(${TEST_NAME} SYSTEM PUBLIC
+        ${LIB_INCLUDE_DIRECTORIES}
+        ${CUBE_HEADERS}
     )
 
     stm32_generate_hex_file(${TEST_NAME})
