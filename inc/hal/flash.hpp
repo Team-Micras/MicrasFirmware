@@ -10,7 +10,7 @@
 #define MICRAS_HAL_FLASH_HPP
 
 #include <cstdint>
-#include <stm32g4xx_hal.h>
+#include <main.h>
 
 namespace hal {
 /**
