@@ -99,12 +99,15 @@ set(LIB_SOURCES
 )
 
 ###############################################################################
-## Cube Library
+## Remove Cube Library Warnings
 ###############################################################################
 
-get_target_property(CUBE_HEADERS stm32cubemx INTERFACE_INCLUDE_DIRECTORIES)
-get_target_property(CUBE_COMPILE_DEFINITIONS stm32cubemx INTERFACE_COMPILE_DEFINITIONS)
+get_target_property(CUBE_INCLUDE_DIRECTORIES stm32cubemx INTERFACE_INCLUDE_DIRECTORIES)
 get_target_property(CUBE_SOURCES stm32cubemx INTERFACE_SOURCES)
+
+target_include_directories(stm32cubemx SYSTEM INTERFACE
+    ${CUBE_INCLUDE_DIRECTORIES}
+)
 
 # Remove warnings from Cube and library sources
 set_source_files_properties(
@@ -121,20 +124,15 @@ set_source_files_properties(
 add_executable(${PROJECT_NAME}
     ${PROJECT_SOURCES}
     ${LIB_SOURCES}
-    ${CUBE_SOURCES}
-)
-
-target_compile_definitions(${PROJECT_NAME} PUBLIC
-    ${CUBE_COMPILE_DEFINITIONS}
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC
     ${PROJECT_INCLUDE_DIRECTORIES}
+    ${LIB_INCLUDE_DIRECTORIES}
 )
 
-target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
-    ${LIB_INCLUDE_DIRECTORIES}
-    ${CUBE_HEADERS}
+target_link_libraries(${PROJECT_NAME} PUBLIC
+    stm32cubemx
 )
 
 stm32_print_size_of_target(${PROJECT_NAME})
@@ -163,21 +161,16 @@ foreach(TEST_FILE ${TESTS_BIN})
         ${TESTS_SOURCES}
         ${PROJECT_SOURCES}
         ${LIB_SOURCES}
-        ${CUBE_SOURCES}
-    )
-
-    target_compile_definitions(${TEST_NAME} PUBLIC
-        ${CUBE_COMPILE_DEFINITIONS}
     )
 
     target_include_directories(${TEST_NAME} PUBLIC
         ${TEST_INCLUDE_DIRECTORIES}
         ${PROJECT_INCLUDE_DIRECTORIES}
+        ${LIB_INCLUDE_DIRECTORIES}
     )
 
-    target_include_directories(${TEST_NAME} SYSTEM PUBLIC
-        ${LIB_INCLUDE_DIRECTORIES}
-        ${CUBE_HEADERS}
+    target_link_libraries(${TEST_NAME} PUBLIC
+        stm32cubemx
     )
 
     stm32_generate_hex_file(${TEST_NAME})
