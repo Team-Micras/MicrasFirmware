@@ -6,6 +6,8 @@
  * @date 03/2024
  */
 
+#include <main.h>
+
 #include "target.hpp"
 
 // clang-format off
@@ -23,15 +25,15 @@ const proxy::Battery::Config battery_config = {
         .init_function = MX_ADC3_Init,
         .handle = &hadc3,
         .max_reading = 4095,
-        .reference_voltage = 3.0F
+        .reference_voltage = 3.3F
     },
     .voltage_divider = 3.0F
 };
 
 const proxy::Button::Config button_config = {
     .gpio = {
-        .port = GPIOA,
-        .pin = GPIO_PIN_12
+        .port = Button_GPIO_Port,
+        .pin = Button_Pin
     },
     .pull_resistor = proxy::Button::PullResistor::PULL_UP
 };
@@ -47,20 +49,20 @@ const proxy::Buzzer::Config buzzer_config = {
 const proxy::DipSwitch<4>::Config dip_switch_config = {
     .gpio_array = {{
         {
-            .port = GPIOC,
-            .pin = GPIO_PIN_7
+            .port = Switch_0_GPIO_Port,
+            .pin = Switch_0_Pin
         },
         {
-            .port = GPIOB,
-            .pin = GPIO_PIN_15
+            .port = Switch_1_GPIO_Port,
+            .pin = Switch_1_Pin
         },
         {
-            .port = GPIOB,
-            .pin = GPIO_PIN_14
+            .port = Switch_2_GPIO_Port,
+            .pin = Switch_2_Pin
         },
         {
-            .port = GPIOB,
-            .pin = GPIO_PIN_13
+            .port = Switch_3_GPIO_Port,
+            .pin = Switch_3_Pin
         }
     }}
 };
@@ -72,10 +74,15 @@ const proxy::DistanceSensors<4>::Config distance_sensors_config = {
         .max_reading = 4095,
         .reference_voltage = 3.3F
     },
-    .led_pwm = {
+    .led0_pwm = {
         .init_function = MX_TIM15_Init,
         .handle = &htim15,
         .timer_channel = TIM_CHANNEL_1
+    },
+    .led1_pwm = {
+        .init_function = MX_TIM15_Init,
+        .handle = &htim15,
+        .timer_channel = TIM_CHANNEL_2
     },
     .max_distance = 0.3F
 };
@@ -87,12 +94,12 @@ const proxy::Fan::Config fan_config = {
         .timer_channel = TIM_CHANNEL_1
     },
     .direction_gpio = {
-        .port = GPIOC,
-        .pin = GPIO_PIN_13
+        .port = Fan_Direction_GPIO_Port,
+        .pin = Fan_Direction_Pin
     },
     .enable_gpio = {
-        .port = GPIOB,
-        .pin = GPIO_PIN_7
+        .port = Fan_Enable_GPIO_Port,
+        .pin = Fan_Enable_Pin
     }
 };
 
@@ -100,9 +107,9 @@ const proxy::Imu::Config imu_config = {
     .spi = {
         .init_function = MX_SPI1_Init,
         .handle = &hspi1,
-        .gpio = {
-            .port = GPIOB,
-            .pin = GPIO_PIN_6
+        .cs_gpio = {
+            .port = IMU_SPI_CSn_GPIO_Port,
+            .pin = IMU_SPI_CSn_Pin
         },
         .timeout = 2
     },
@@ -117,8 +124,8 @@ const proxy::Imu::Config imu_config = {
 
 const proxy::Led::Config led_config = {
     .gpio = {
-        .port = GPIOA,
-        .pin = GPIO_PIN_15
+        .port = LED_RED_GPIO_Port,
+        .pin = LED_RED_Pin
     }
 };
 
@@ -144,8 +151,8 @@ const proxy::Locomotion::Config locomotion_config = {
         .timer_channel = TIM_CHANNEL_1
     },
     .enable_gpio = {
-        .port = GPIOA,
-        .pin = GPIO_PIN_10
+        .port = Motors_Enable_GPIO_Port,
+        .pin = Motors_Enable_Pin
     }
 };
 
@@ -195,9 +202,9 @@ const proxy::RotarySensor::Config rotary_sensor_left_config = {
     .spi = {
         .init_function = MX_SPI1_Init,
         .handle = &hspi1,
-        .gpio = {
-            .port = GPIOA,
-            .pin = GPIO_PIN_6
+        .cs_gpio = {
+            .port = Encoder_Left_CSn_GPIO_Port,
+            .pin = Encoder_Left_CSn_Pin
         },
         .timeout = 2
     },
@@ -217,9 +224,9 @@ const proxy::RotarySensor::Config rotary_sensor_right_config = {
     .spi = {
         .init_function = MX_SPI1_Init,
         .handle = &hspi1,
-        .gpio = {
-            .port = GPIOB,
-            .pin = GPIO_PIN_1
+        .cs_gpio = {
+            .port = Encoder_Right_CSn_GPIO_Port,
+            .pin = Encoder_Right_CSn_Pin
         },
         .timeout = 2
     },

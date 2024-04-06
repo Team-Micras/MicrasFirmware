@@ -26,7 +26,7 @@ public:
     struct Config {
         void (*init_function)();
         SPI_HandleTypeDef* handle;
-        hal::Gpio::Config  gpio;
+        hal::Gpio::Config  cs_gpio;
         uint32_t           timeout;
     };
 
@@ -74,7 +74,7 @@ private:
     /**
      * @brief GPIO for the chip select pin
      */
-    hal::Gpio gpio;
+    hal::Gpio cs_gpio;
 
     /**
      * @brief Timeout for the SPI operations in ms

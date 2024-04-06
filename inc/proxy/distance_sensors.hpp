@@ -27,7 +27,8 @@ public:
      */
     struct Config {
         hal::AdcDma::Config adc;
-        hal::Pwm::Config    led_pwm;
+        hal::Pwm::Config    led0_pwm;
+        hal::Pwm::Config    led1_pwm;
         float               max_distance;
     };
 
@@ -68,9 +69,14 @@ private:
     hal::AdcDma adc;
 
     /**
-     * @brief PWM handle for infrared LED
+     * @brief PWM handle for the even infrared LEDs
      */
-    hal::Pwm led_pwm;
+    hal::Pwm led0_pwm;
+
+    /**
+     * @brief PWM handle for the odd infrared LEDs
+     */
+    hal::Pwm led1_pwm;
 
     /**
      * @brief Buffer to store the ADC values

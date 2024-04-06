@@ -9,7 +9,7 @@
 #include "hal/spi.hpp"
 
 namespace hal {
-Spi::Spi(const Config& config) : handle{config.handle}, gpio{config.gpio}, timeout{config.timeout} {
+Spi::Spi(const Config& config) : handle{config.handle}, cs_gpio{config.cs_gpio}, timeout{config.timeout} {
     config.init_function();
 }
 
@@ -18,12 +18,12 @@ bool Spi::select_device() {
         return false;
     }
 
-    this->gpio.write(false);
+    this->cs_gpio.write(false);
     return true;
 }
 
 void Spi::unselect_device() {
-    this->gpio.write(true);
+    this->cs_gpio.write(true);
 }
 
 // NOLINTNEXTLINE(*-avoid-c-arrays)
