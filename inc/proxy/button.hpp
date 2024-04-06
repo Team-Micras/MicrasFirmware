@@ -44,9 +44,9 @@ public:
     struct Config {
         hal::Gpio::Config gpio{};
         PullResistor      pull_resistor{};
-        uint16_t          debounce_delay = 10;
-        uint16_t          long_press_delay = 1000;
-        uint16_t          extra_long_press_delay = 5000;
+        uint16_t          debounce_delay{10};
+        uint16_t          long_press_delay{500};
+        uint16_t          extra_long_press_delay{2000};
     };
 
     /**

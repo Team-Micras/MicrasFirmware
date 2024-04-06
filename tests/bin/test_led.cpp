@@ -13,7 +13,7 @@ int main() {
     proxy::Led led{led_config};
 
     while (true) {
-        led.turn_on();
+        led.toggle();
 
         for (uint32_t i = 0; i < 1000000; i++) { }
     }
