@@ -25,7 +25,7 @@ MicrasController::MicrasController() :
     torque_sensors{torque_sensors_config} { }
 
 void MicrasController::run() {
-    if (button.get_status() == proxy::Button::SHORT_PRESS) {
+    if (button.is_pressed()) {
         led.turn_on();
     } else {
         led.turn_off();
