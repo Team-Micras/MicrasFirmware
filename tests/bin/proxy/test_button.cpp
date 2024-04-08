@@ -6,7 +6,6 @@
  * @date 05/2024
  */
 
-#include "target.hpp"
 #include "test_core.hpp"
 
 using namespace micras;

@@ -67,7 +67,7 @@ file(GLOB_RECURSE FORMAT_HEADERS CONFIGURE_DEPENDS "include/*.h*" "config/*.h*" 
 targets_generate_format_target(FORMAT_SOURCES FORMAT_HEADERS)
 
 file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS "src/*.c*")
-file(GLOB_RECURSE PROJECT_CONFIG_SOURCES CONFIGURE_DEPENDS "config/*.c*")
+file(GLOB_RECURSE PROJECT_CONFIG_HEADERS CONFIGURE_DEPENDS "config/*.h*")
 file(GLOB_RECURSE PROJECT_TESTS_SOURCES CONFIGURE_DEPENDS "tests/src/*.c*")
 file(GLOB_RECURSE PROJECT_TESTS_BIN CONFIGURE_DEPENDS "tests/bin/*.c*")
 
@@ -77,12 +77,14 @@ file(GLOB_RECURSE PROJECT_TESTS_BIN CONFIGURE_DEPENDS "tests/bin/*.c*")
 
 add_executable(${PROJECT_NAME}
     ${PROJECT_SOURCES}
-    ${PROJECT_CONFIG_SOURCES}
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC
     include
-    config
+)
+
+target_precompile_headers(${PROJECT_NAME} PRIVATE
+    ${PROJECT_CONFIG_HEADERS}
 )
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
@@ -106,12 +108,14 @@ foreach(TEST_FILE ${PROJECT_TESTS_BIN})
     add_executable(${TEST_NAME} EXCLUDE_FROM_ALL
         ${TEST_FILE}
         ${PROJECT_TESTS_SOURCES}
-        ${PROJECT_CONFIG_SOURCES}
     )
 
     target_include_directories(${TEST_NAME} PUBLIC
         tests/include
-        config
+    )
+
+    target_precompile_headers(${TEST_NAME} PRIVATE
+        ${PROJECT_CONFIG_HEADERS}
     )
 
     target_link_libraries(${TEST_NAME} PUBLIC
