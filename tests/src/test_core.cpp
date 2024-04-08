@@ -6,9 +6,11 @@
  * @date 04/2024
  */
 
-#include "hal/mcu.hpp"
+#include "micras/hal/mcu.hpp"
 #include "test_core.hpp"
 
+namespace micras {
 void test_core_init() {
     hal::Mcu::init();
 }
+}  // namespace micras

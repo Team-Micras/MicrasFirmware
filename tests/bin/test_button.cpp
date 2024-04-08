@@ -6,7 +6,10 @@
  * @date 05/2024
  */
 
+#include "target.hpp"
 #include "test_core.hpp"
+
+using namespace micras;
 
 int main() {
     test_core_init();
@@ -14,10 +17,8 @@ int main() {
     proxy::Led    led{led_config};
 
     while (true) {
-        if (button.is_pressed()) {
-            led.turn_on();
-        } else {
-            led.turn_off();
+        if (button.get_status() != proxy::Button::Status::NO_PRESS) {
+            led.toggle();
         }
     }
 

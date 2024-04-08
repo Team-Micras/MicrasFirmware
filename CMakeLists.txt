@@ -33,9 +33,6 @@ else()
     set(PROJECT_RELEASE ${CMAKE_PROJECT_NAME}_${BOARD_VERSION})
 endif()
 
-# set(FREERTOS_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cube/Middlewares/Third_Party/FreeRTOS/Source)
-# set(FREERTOS_SOURCE ${FREERTOS_PATH})
-
 ###############################################################################
 ## Toolchain Configuration
 ###############################################################################
@@ -57,65 +54,22 @@ include(cmake/utilities.cmake)
 include(cmake/linter.cmake)
 
 add_subdirectory(cube/cmake/stm32cubemx)
-
-###############################################################################
-## Include directories
-###############################################################################
-
-set(PROJECT_INCLUDE_DIRECTORIES
-    ./cfg
-    ./inc
-)
-
-set(TEST_INCLUDE_DIRECTORIES
-    ./tests/inc
-)
-
-set(LIB_INCLUDE_DIRECTORIES
-    lib/lsm6dsv-pid
-)
-
-# set(FREE_RTOS_INCLUDE_DIRECTORIES
-#     ${FREERTOS_SOURCE}/include
-#     ${FREERTOS_SOURCE}/CMSIS_RTOS_V2
-#     ${FREERTOS_SOURCE}/portable/GCC/${DEVICE_PORT}
-# )
+add_subdirectory(micras_hal)
+add_subdirectory(micras_proxy)
 
 ###############################################################################
 ## Input files
 ###############################################################################
 
-file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS "src/*.cpp" "src/*.c" "cfg/*.cpp" "cfg/*.c")
-file(GLOB_RECURSE PROJECT_HEADERS CONFIGURE_DEPENDS "inc/*.hpp" "inc/*.h" "cfg/*.hpp" "cfg/*.h")
+file(GLOB_RECURSE FORMAT_SOURCES CONFIGURE_DEPENDS "src/*.c*" "config/*.c*" "tests/*.c*" "micras_*/src/*.c*")
+file(GLOB_RECURSE FORMAT_HEADERS CONFIGURE_DEPENDS "include/*.h*" "config/*.h*" "tests/*.h*" "micras_*/include/*.h*")
 
-file(GLOB_RECURSE TESTS_SOURCES CONFIGURE_DEPENDS "tests/src/*.cpp" "tests/src/*.c")
-file(GLOB_RECURSE TESTS_HEADERS CONFIGURE_DEPENDS "tests/inc/*.hpp" "tests/inc/*.h")
-file(GLOB_RECURSE TESTS_BIN CONFIGURE_DEPENDS "tests/bin/*.cpp" "tests/bin/*.c")
+targets_generate_format_target(FORMAT_SOURCES FORMAT_HEADERS)
 
-targets_generate_format_target(PROJECT_SOURCES PROJECT_HEADERS TESTS_SOURCES TESTS_HEADERS TESTS_BIN)
-
-set(LIB_SOURCES
-    lib/lsm6dsv-pid/lsm6dsv_reg.c
-)
-
-###############################################################################
-## Remove Cube Library Warnings
-###############################################################################
-
-get_target_property(CUBE_INCLUDE_DIRECTORIES stm32cubemx INTERFACE_INCLUDE_DIRECTORIES)
-get_target_property(CUBE_SOURCES stm32cubemx INTERFACE_SOURCES)
-
-target_include_directories(stm32cubemx SYSTEM INTERFACE
-    ${CUBE_INCLUDE_DIRECTORIES}
-)
-
-# Remove warnings from Cube and library sources
-set_source_files_properties(
-    ${CUBE_SOURCES}
-    ${LIB_SOURCES}
-    PROPERTIES
-    COMPILE_FLAGS "-w"
-)
+file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS "src/*.c*")
+file(GLOB_RECURSE PROJECT_CONFIG_SOURCES CONFIGURE_DEPENDS "config/*.c*")
+file(GLOB_RECURSE PROJECT_TESTS_SOURCES CONFIGURE_DEPENDS "tests/src/*.c*")
+file(GLOB_RECURSE PROJECT_TESTS_BIN CONFIGURE_DEPENDS "tests/bin/*.c*")
 
 ###############################################################################
 ## Main executable target
@@ -123,16 +77,16 @@ set_source_files_properties(
 
 add_executable(${PROJECT_NAME}
     ${PROJECT_SOURCES}
-    ${LIB_SOURCES}
+    ${PROJECT_CONFIG_SOURCES}
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC
-    ${PROJECT_INCLUDE_DIRECTORIES}
-    ${LIB_INCLUDE_DIRECTORIES}
+    include
+    config
 )
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
-    stm32cubemx
+    micras::proxy
 )
 
 stm32_print_size_of_target(${PROJECT_NAME})
@@ -146,31 +100,22 @@ targets_generate_helpme_target()
 ## Generate test executables
 ###############################################################################
 
-list(REMOVE_ITEM PROJECT_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/main.c
-)
-
-foreach(TEST_FILE ${TESTS_BIN})
-
-    # If TEST_FILE contains /dir1/dir2/file.cpp, TEST_NAME will be 'file'
+foreach(TEST_FILE ${PROJECT_TESTS_BIN})
     get_filename_component(TEST_NAME ${TEST_FILE} NAME_WLE)
 
     add_executable(${TEST_NAME} EXCLUDE_FROM_ALL
         ${TEST_FILE}
-        ${TESTS_SOURCES}
-        ${PROJECT_SOURCES}
-        ${LIB_SOURCES}
+        ${PROJECT_TESTS_SOURCES}
+        ${PROJECT_CONFIG_SOURCES}
     )
 
     target_include_directories(${TEST_NAME} PUBLIC
-        ${TEST_INCLUDE_DIRECTORIES}
-        ${PROJECT_INCLUDE_DIRECTORIES}
-        ${LIB_INCLUDE_DIRECTORIES}
+        tests/include
+        config
     )
 
     target_link_libraries(${TEST_NAME} PUBLIC
-        stm32cubemx
+        micras::proxy
     )
 
     stm32_generate_hex_file(${TEST_NAME})

@@ -6,7 +6,10 @@
  * @date 05/2024
  */
 
+#include "target.hpp"
 #include "test_core.hpp"
+
+using namespace micras;
 
 int main() {
     test_core_init();
@@ -15,7 +18,7 @@ int main() {
     while (true) {
         led.toggle();
 
-        for (uint32_t i = 0; i < 1000000; i++) { }
+        hal::Timer::sleep_ms(500);
     }
 
     return 0;
