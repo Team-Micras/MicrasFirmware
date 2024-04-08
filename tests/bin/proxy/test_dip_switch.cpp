@@ -10,12 +10,13 @@
 
 using namespace micras;
 
+static uint8_t dip_switch_value{};
+
 int main() {
     test_core_init();
     proxy::DipSwitch<4>   dip_switch{dip_switch_config};
     proxy::Argb<2>        argb{argb_config};
     proxy::Argb<2>::Color color{};
-    uint8_t               dip_switch_value{};
 
     while (true) {
         color = {0, 0, 0};

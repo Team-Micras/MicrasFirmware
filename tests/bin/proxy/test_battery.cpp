@@ -10,10 +10,11 @@
 
 using namespace micras;
 
+static float battery_voltage{};
+
 int main() {
     test_core_init();
     proxy::Battery battery{battery_config};
-    float          battery_voltage{};
 
     while (true) {
         battery_voltage = battery.get_voltage();
