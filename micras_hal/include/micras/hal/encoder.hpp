@@ -45,6 +45,11 @@ private:
      * @brief Timer handle
      */
     TIM_HandleTypeDef* handle;
+
+    /**
+     * @brief Start value of the timer counter
+     */
+    uint32_t start_count;
 };
 }  // namespace micras::hal
 
