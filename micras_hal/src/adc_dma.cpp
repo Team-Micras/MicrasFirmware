@@ -12,6 +12,7 @@ namespace micras::hal {
 AdcDma::AdcDma(const Config& config) :
     max_reading{config.max_reading}, reference_voltage{config.reference_voltage}, handle{config.handle} {
     config.init_function();
+    HAL_ADCEx_Calibration_Start(this->handle, ADC_SINGLE_ENDED);
 }
 
 // NOLINTNEXTLINE(*-avoid-c-arrays)
