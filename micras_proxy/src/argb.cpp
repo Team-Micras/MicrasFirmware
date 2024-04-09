@@ -23,7 +23,7 @@ void Argb<num_of_leds>::set_color(const Color& color, uint8_t index) {
     }
 
     this->encode_color(color, index);
-    this->pwm.start_dma(this->buffer.data(), this->buffer.size());
+    this->pwm.start_dma(reinterpret_cast<uint32_t*>(this->buffer.data()), this->buffer.size());
 }
 
 template <uint8_t num_of_leds>
@@ -32,7 +32,7 @@ void Argb<num_of_leds>::set_color(const Color& color) {
         this->encode_color(color, i);
     }
 
-    this->pwm.start_dma(this->buffer.data(), this->buffer.size());
+    this->pwm.start_dma(reinterpret_cast<uint32_t*>(this->buffer.data()), this->buffer.size());
 }
 
 template <uint8_t num_of_leds>
@@ -47,11 +47,10 @@ void Argb<num_of_leds>::turn_off() {
 
 template <uint8_t num_of_leds>
 void Argb<num_of_leds>::encode_color(const Color& color, uint8_t index) {
-    uint32_t data = color.green << (2 * bits_per_color) | color.red << bits_per_color | color.blue;
+    uint32_t data = (color.green << (2 * bits_per_color)) | (color.red << bits_per_color) | color.blue;
 
-    for (uint32_t i = bits_per_led * index, j = 0; i < bits_per_led * (index + 1U); i++) {
+    for (uint32_t i = bits_per_led * index, j = bits_per_led - 1; i < bits_per_led * (index + 1U); i++, j--) {
         this->buffer.at(i) = ((data >> j) & 1) == 1 ? this->high_bit : this->low_bit;
-        j++;
     }
 }
 }  // namespace micras::proxy
