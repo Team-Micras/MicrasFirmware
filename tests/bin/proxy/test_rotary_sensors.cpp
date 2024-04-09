@@ -10,8 +10,8 @@
 
 using namespace micras;
 
-static float left_position{};
-static float right_position{};
+static volatile float left_position{};
+static volatile float right_position{};
 
 int main() {
     test_core_init();

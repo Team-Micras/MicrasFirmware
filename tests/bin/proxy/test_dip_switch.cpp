@@ -10,7 +10,7 @@
 
 using namespace micras;
 
-static uint8_t dip_switch_value{};
+static volatile uint8_t dip_switch_value{};
 
 int main() {
     test_core_init();

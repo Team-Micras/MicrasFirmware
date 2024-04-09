@@ -10,7 +10,7 @@
 
 using namespace micras;
 
-static float battery_voltage{};
+static volatile float battery_voltage{};
 
 int main() {
     test_core_init();
