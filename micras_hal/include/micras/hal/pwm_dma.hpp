@@ -57,13 +57,6 @@ public:
 
 private:
     /**
-     * @brief Callback for stopping the dma when the pulse has finished
-     *
-     * @param htim Timer handle
-     */
-    static void pulse_finished_callback(TIM_HandleTypeDef* htim);
-
-    /**
      * @brief Timer handle
      */
     TIM_HandleTypeDef* handle;
