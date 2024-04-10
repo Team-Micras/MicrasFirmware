@@ -34,6 +34,6 @@ void PwmDma::stop_dma() {
 }
 
 uint32_t PwmDma::get_compare(float duty_cycle) const {
-    return std::lround((duty_cycle * (__HAL_TIM_GET_AUTORELOAD(this->handle) + 1)) / 100 - 1);
+    return std::lround((duty_cycle * (__HAL_TIM_GET_AUTORELOAD(this->handle) + 1) / 100) - 1);
 }
 }  // namespace micras::hal
