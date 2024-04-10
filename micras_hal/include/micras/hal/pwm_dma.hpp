@@ -43,6 +43,14 @@ public:
     void start_dma(uint32_t buffer[], uint32_t size);  // NOLINT(*-avoid-c-arrays)
 
     /**
+     * @brief Start PWM and DMA transfer
+     *
+     * @param buffer Buffer to transfer
+     * @param size Size of the buffer
+     */
+    void start_dma(uint16_t buffer[], uint32_t size);  // NOLINT(*-avoid-c-arrays)
+
+    /**
      * @brief Stop PWM and DMA transfer
      */
     void stop_dma();

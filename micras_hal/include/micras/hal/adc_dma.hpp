@@ -44,6 +44,14 @@ public:
     void start_dma(uint32_t buffer[], uint32_t size);  // NOLINT(*-avoid-c-arrays)
 
     /**
+     * @brief Enable ADC, start conversion of regular group and transfer result through DMA
+     *
+     * @param buffer Destination Buffer address
+     * @param size Number of data to be transferred from ADC DMA peripheral to memory
+     */
+    void start_dma(uint16_t buffer[], uint32_t size);  // NOLINT(*-avoid-c-arrays)
+
+    /**
      * @brief Stop ADC conversion of regular group (and injected group in case of auto_injection mode)
      */
     void stop_dma();

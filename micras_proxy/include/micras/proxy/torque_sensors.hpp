@@ -62,7 +62,7 @@ private:
     /**
      * @brief Buffer to store the ADC values
      */
-    std::array<uint32_t, num_of_sensors> buffer;
+    std::array<uint16_t, num_of_sensors> buffer;
 
     /**
      * @brief Value of the shunt resistor in ohms

@@ -57,7 +57,7 @@ private:
     /**
      * @brief Raw reading from the battery
      */
-    uint32_t raw_reading{};
+    uint16_t raw_reading{};
 
     /**
      * @brief Voltage divider ratio

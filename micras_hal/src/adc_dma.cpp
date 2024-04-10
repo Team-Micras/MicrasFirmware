@@ -20,6 +20,11 @@ void AdcDma::start_dma(uint32_t buffer[], uint32_t size) {
     HAL_ADC_Start_DMA(this->handle, buffer, size);
 }
 
+// NOLINTNEXTLINE(*-avoid-c-arrays)
+void AdcDma::start_dma(uint16_t buffer[], uint32_t size) {
+    this->start_dma(reinterpret_cast<uint32_t*>(buffer), size);
+}
+
 void AdcDma::stop_dma() {
     HAL_ADC_Stop_DMA(this->handle);
 }
