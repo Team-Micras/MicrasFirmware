@@ -26,6 +26,18 @@
 
 // clang-format off
 namespace micras {
+
+/*****************************************
+ * Interface
+ *****************************************/
+
+const proxy::Led::Config led_config = {
+    .gpio = {
+        .port = LED_RED_GPIO_Port,
+        .pin = LED_RED_Pin
+    }
+};
+
 const proxy::Argb<2>::Config argb_config = {
     .pwm = {
         .init_function = MX_TIM8_Init,
@@ -34,30 +46,12 @@ const proxy::Argb<2>::Config argb_config = {
     }
 };
 
-const proxy::Battery::Config battery_config = {
-    .adc = {
-        .init_function = MX_ADC3_Init,
-        .handle = &hadc3,
-        .max_reading = 4095,
-        .reference_voltage = 3.3F
-    },
-    .voltage_divider = 3.0F
-};
-
 const proxy::Button::Config button_config = {
     .gpio = {
         .port = Button_GPIO_Port,
         .pin = Button_Pin
     },
     .pull_resistor = proxy::Button::PullResistor::PULL_UP
-};
-
-const proxy::Buzzer::Config buzzer_config = {
-    .pwm = {
-        .init_function = MX_TIM4_Init,
-        .handle = &htim4,
-        .timer_channel = TIM_CHANNEL_1
-    }
 };
 
 const proxy::DipSwitch<4>::Config dip_switch_config = {
@@ -81,94 +75,17 @@ const proxy::DipSwitch<4>::Config dip_switch_config = {
     }}
 };
 
-const proxy::DistanceSensors<4>::Config distance_sensors_config = {
-    .adc = {
-        .init_function = MX_ADC1_Init,
-        .handle = &hadc1,
-        .max_reading = 4095,
-        .reference_voltage = 3.3F
-    },
-    .led0_pwm = {
-        .init_function = MX_TIM15_Init,
-        .handle = &htim15,
-        .timer_channel = TIM_CHANNEL_1
-    },
-    .led1_pwm = {
-        .init_function = MX_TIM15_Init,
-        .handle = &htim15,
-        .timer_channel = TIM_CHANNEL_2
-    },
-    .max_distance = 0.3F
-};
-
-const proxy::Fan::Config fan_config = {
+const proxy::Buzzer::Config buzzer_config = {
     .pwm = {
-        .init_function = MX_TIM17_Init,
-        .handle = &htim17,
-        .timer_channel = TIM_CHANNEL_1
-    },
-    .direction_gpio = {
-        .port = Fan_Direction_GPIO_Port,
-        .pin = Fan_Direction_Pin
-    },
-    .enable_gpio = {
-        .port = Fan_Enable_GPIO_Port,
-        .pin = Fan_Enable_Pin
-    }
-};
-
-const proxy::Imu::Config imu_config = {
-    .spi = {
-        .init_function = MX_SPI1_Init,
-        .handle = &hspi1,
-        .cs_gpio = {
-            .port = IMU_SPI_CSn_GPIO_Port,
-            .pin = IMU_SPI_CSn_Pin
-        },
-        .timeout = 2
-    },
-    .gyroscope_data_rate = LSM6DSV_ODR_AT_480Hz,
-    .accelerometer_data_rate = LSM6DSV_ODR_AT_480Hz,
-    .orientation_data_rate = LSM6DSV_SFLP_480Hz,
-    .gyroscope_scale = LSM6DSV_4000dps,
-    .accelerometer_scale = LSM6DSV_8g,
-    .gyroscope_filter = LSM6DSV_GY_ULTRA_LIGHT,
-    .accelerometer_filter = LSM6DSV_XL_ULTRA_LIGHT
-};
-
-const proxy::Led::Config led_config = {
-    .gpio = {
-        .port = LED_RED_GPIO_Port,
-        .pin = LED_RED_Pin
-    }
-};
-
-const proxy::Locomotion::Config locomotion_config = {
-    .pwm_left_fwd = {
         .init_function = MX_TIM4_Init,
         .handle = &htim4,
-        .timer_channel = TIM_CHANNEL_4
-    },
-    .pwm_left_bwd = {
-        .init_function = MX_TIM4_Init,
-        .handle = &htim4,
-        .timer_channel = TIM_CHANNEL_3
-    },
-    .pwm_right_fwd = {
-        .init_function = MX_TIM1_Init,
-        .handle = &htim1,
-        .timer_channel = TIM_CHANNEL_2
-    },
-    .pwm_right_bwd = {
-        .init_function = MX_TIM1_Init,
-        .handle = &htim1,
         .timer_channel = TIM_CHANNEL_1
-    },
-    .enable_gpio = {
-        .port = Motors_Enable_GPIO_Port,
-        .pin = Motors_Enable_Pin
     }
 };
+
+/*****************************************
+ * Sensors
+ *****************************************/
 
 const proxy::RotarySensor::Registers rotary_sensor_reg_config = {
     .disable = {{
@@ -266,6 +183,103 @@ const proxy::TorqueSensors<2>::Config torque_sensors_config = {
     .shunt_resistor = 0.04F,
     .max_torque = 0.5F
 };
+
+const proxy::DistanceSensors<4>::Config distance_sensors_config = {
+    .adc = {
+        .init_function = MX_ADC1_Init,
+        .handle = &hadc1,
+        .max_reading = 4095,
+        .reference_voltage = 3.3F
+    },
+    .led0_pwm = {
+        .init_function = MX_TIM15_Init,
+        .handle = &htim15,
+        .timer_channel = TIM_CHANNEL_1
+    },
+    .led1_pwm = {
+        .init_function = MX_TIM15_Init,
+        .handle = &htim15,
+        .timer_channel = TIM_CHANNEL_2
+    },
+    .max_distance = 0.3F
+};
+
+const proxy::Imu::Config imu_config = {
+    .spi = {
+        .init_function = MX_SPI1_Init,
+        .handle = &hspi1,
+        .cs_gpio = {
+            .port = IMU_SPI_CSn_GPIO_Port,
+            .pin = IMU_SPI_CSn_Pin
+        },
+        .timeout = 2
+    },
+    .gyroscope_data_rate = LSM6DSV_ODR_AT_480Hz,
+    .accelerometer_data_rate = LSM6DSV_ODR_AT_480Hz,
+    .orientation_data_rate = LSM6DSV_SFLP_480Hz,
+    .gyroscope_scale = LSM6DSV_4000dps,
+    .accelerometer_scale = LSM6DSV_8g,
+    .gyroscope_filter = LSM6DSV_GY_ULTRA_LIGHT,
+    .accelerometer_filter = LSM6DSV_XL_ULTRA_LIGHT
+};
+
+const proxy::Battery::Config battery_config = {
+    .adc = {
+        .init_function = MX_ADC3_Init,
+        .handle = &hadc3,
+        .max_reading = 4095,
+        .reference_voltage = 3.3F
+    },
+    .voltage_divider = 3.0F
+};
+
+/*****************************************
+ * Actuators
+ * ***************************************/
+
+const proxy::Fan::Config fan_config = {
+    .pwm = {
+        .init_function = MX_TIM17_Init,
+        .handle = &htim17,
+        .timer_channel = TIM_CHANNEL_1
+    },
+    .direction_gpio = {
+        .port = Fan_Direction_GPIO_Port,
+        .pin = Fan_Direction_Pin
+    },
+    .enable_gpio = {
+        .port = Fan_Enable_GPIO_Port,
+        .pin = Fan_Enable_Pin
+    }
+};
+
+const proxy::Locomotion::Config locomotion_config = {
+    .pwm_left_fwd = {
+        .init_function = MX_TIM4_Init,
+        .handle = &htim4,
+        .timer_channel = TIM_CHANNEL_4
+    },
+    .pwm_left_bwd = {
+        .init_function = MX_TIM4_Init,
+        .handle = &htim4,
+        .timer_channel = TIM_CHANNEL_3
+    },
+    .pwm_right_fwd = {
+        .init_function = MX_TIM1_Init,
+        .handle = &htim1,
+        .timer_channel = TIM_CHANNEL_2
+    },
+    .pwm_right_bwd = {
+        .init_function = MX_TIM1_Init,
+        .handle = &htim1,
+        .timer_channel = TIM_CHANNEL_1
+    },
+    .enable_gpio = {
+        .port = Motors_Enable_GPIO_Port,
+        .pin = Motors_Enable_Pin
+    }
+};
+
 }  // namespace micras
 
 // clang-format on
