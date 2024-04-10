@@ -17,7 +17,7 @@ int main(int argc, char* argv[]) {
     proxy::DistanceSensors<4> distance_sensors{distance_sensors_config};
 
     TestCore::loop([&distance_sensors]() {
-        for (uint8_t i = 0; i < 8; i++) {
+        for (uint8_t i = 0; i < 4; i++) {
             distance[i] = distance_sensors.get_distance(i);
         }
     });
