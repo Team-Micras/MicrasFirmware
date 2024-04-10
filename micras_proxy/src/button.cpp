@@ -17,8 +17,7 @@ Button::Button(const Config& config) :
     pull_resistor{config.pull_resistor} { }
 
 bool Button::is_pressed() {
-    this->update_state();
-    return this->current_state;
+    return this->get_raw_reading();
 }
 
 Button::Status Button::get_status() {
