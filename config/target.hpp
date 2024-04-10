@@ -235,7 +235,7 @@ const proxy::Battery::Config battery_config = {
 
 /*****************************************
  * Actuators
- * ***************************************/
+ *****************************************/
 
 const proxy::Fan::Config fan_config = {
     .pwm = {
