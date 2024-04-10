@@ -8,14 +8,17 @@
 
 #include "test_core.hpp"
 
-using namespace micras;
+using namespace micras;  // NOLINT(google-build-using-namespace)
 
-int main() {
-    test_core_init();
+void test_argb_init() { }
+
+int main(int argc, char* argv[]) {
+    TestCore::init(argc, argv);
+
     proxy::Argb<2>        argb{argb_config};
     proxy::Argb<2>::Color color{255, 0, 0};
 
-    while (true) {
+    TestCore::loop([&argb, &color]() {
         for (uint8_t i = 1; i > 0; i++) {
             color.blue = i;
             argb.set_color(color);
@@ -51,7 +54,7 @@ int main() {
             argb.set_color(color);
             hal::Timer::sleep_ms(2);
         }
-    }
+    });
 
     return 0;
 }

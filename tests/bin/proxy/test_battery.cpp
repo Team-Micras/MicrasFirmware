@@ -8,17 +8,15 @@
 
 #include "test_core.hpp"
 
-using namespace micras;
+using namespace micras;  // NOLINT(google-build-using-namespace)
 
-static volatile float battery_voltage{};
+static volatile float battery_voltage{};  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
-int main() {
-    test_core_init();
+int main(int argc, char* argv[]) {
+    TestCore::init(argc, argv);
     proxy::Battery battery{battery_config};
 
-    while (true) {
-        battery_voltage = battery.get_voltage();
-    }
+    TestCore::loop([&battery]() { battery_voltage = battery.get_voltage(); });
 
     return 0;
 }

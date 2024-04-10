@@ -8,17 +8,17 @@
 
 #include "test_core.hpp"
 
-using namespace micras;
+using namespace micras;  // NOLINT(google-build-using-namespace)
 
-static volatile uint8_t dip_switch_value{};
+static volatile uint8_t dip_switch_value{};  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
-int main() {
-    test_core_init();
+int main(int argc, char* argv[]) {
+    TestCore::init(argc, argv);
     proxy::DipSwitch<4>   dip_switch{dip_switch_config};
     proxy::Argb<2>        argb{argb_config};
     proxy::Argb<2>::Color color{};
 
-    while (true) {
+    TestCore::loop([&dip_switch, &argb, &color]() {
         color = {0, 0, 0};
         dip_switch_value = dip_switch.get_switches_value();
 
@@ -41,7 +41,7 @@ int main() {
         }
 
         argb.set_color(color);
-    }
+    });
 
     return 0;
 }

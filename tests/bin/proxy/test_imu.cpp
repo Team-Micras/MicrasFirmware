@@ -8,14 +8,14 @@
 
 #include "test_core.hpp"
 
-using namespace micras;
+using namespace micras;  // NOLINT(google-build-using-namespace)
 
-static volatile float angular_velocity[3]{};
-static volatile float linear_acceleration[3]{};
-static volatile float orientation[3]{};
+static volatile float angular_velocity[3]{};     // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+static volatile float linear_acceleration[3]{};  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+static volatile float orientation[3]{};          // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
-int main() {
-    test_core_init();
+int main(int argc, char* argv[]) {
+    TestCore::init(argc, argv);
     proxy::Imu imu{imu_config};
 
     while (true) {

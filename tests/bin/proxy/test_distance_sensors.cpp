@@ -8,19 +8,19 @@
 
 #include "test_core.hpp"
 
-using namespace micras;
+using namespace micras;  // NOLINT(google-build-using-namespace)
 
-static volatile float distance[8];
+static volatile float distance[8];  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
-int main() {
-    test_core_init();
-    proxy::DistanceSensors<8> distance_sensors{distance_sensors_config};
+int main(int argc, char* argv[]) {
+    TestCore::init(argc, argv);
+    proxy::DistanceSensors<4> distance_sensors{distance_sensors_config};
 
-    while (true) {
+    TestCore::loop([&distance_sensors]() {
         for (uint8_t i = 0; i < 8; i++) {
             distance[i] = distance_sensors.get_distance(i);
         }
-    }
+    });
 
     return 0;
 }

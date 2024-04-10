@@ -8,18 +8,18 @@
 
 #include "test_core.hpp"
 
-using namespace micras;
+using namespace micras;  // NOLINT(google-build-using-namespace)
 
-int main() {
-    test_core_init();
+int main(int argc, char* argv[]) {
+    TestCore::init(argc, argv);
     proxy::Button button{button_config};
     proxy::Led    led{led_config};
 
-    while (true) {
+    TestCore::loop([&button, &led]() {
         if (button.get_status() != proxy::Button::Status::NO_PRESS) {
             led.toggle();
         }
-    }
+    });
 
     return 0;
 }

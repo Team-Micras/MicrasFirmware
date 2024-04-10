@@ -8,28 +8,28 @@
 
 #include "test_core.hpp"
 
-using namespace micras;
+using namespace micras;  // NOLINT(google-build-using-namespace)
 
-int main() {
-    test_core_init();
+int main(int argc, char* argv[]) {
+    TestCore::init(argc, argv);
     proxy::Fan fan{fan_config};
 
-    while (true) {
-        for (float i = 0; i < 80.0F; i++) {
+    TestCore::loop([&fan]() {
+        for (int8_t i = 0; i < 80; i++) {
             fan.set_speed(i);
             hal::Timer::sleep_ms(50);
         }
 
-        for (float i = 80.0F; i > -80.0F; i--) {
+        for (int8_t i = 80; i > -80; i--) {
             fan.set_speed(i);
             hal::Timer::sleep_ms(50);
         }
 
-        for (float i = -80.0F; i < 0.0F; i++) {
+        for (int8_t i = -80; i < 0.0F; i++) {
             fan.set_speed(i);
             hal::Timer::sleep_ms(50);
         }
-    }
+    });
 
     return 0;
 }
