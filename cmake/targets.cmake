@@ -112,12 +112,12 @@ function(targets_generate_vsfiles_target TARGET)
 
     configure_file(${input_file} ${ouput_save_file})
 
-    add_custom_target(debug_files${TARGET_SUFFIX}
+    add_custom_target(debug${TARGET_SUFFIX}
         COMMAND echo "Configuring VS Code files for ${TARGET}"
         COMMAND cat ${ouput_save_file} > ${LAUNCH_JSON_PATH}
     )
 
-    add_dependencies(debug_files${TARGET_SUFFIX} ${TARGET})
+    add_dependencies(debug${TARGET_SUFFIX} ${TARGET})
 endfunction()
 
 function(targets_generate_helpme_target)
