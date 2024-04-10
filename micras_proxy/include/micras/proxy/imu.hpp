@@ -44,7 +44,6 @@ public:
     explicit Imu(const Config& config);
 
     enum Axis : uint8_t {
-        W,
         X,
         Y,
         Z
@@ -110,10 +109,9 @@ private:
     /**
      * @brief Function to convert raw data to orientation
      *
-     * @param quat Quaternion to store the orientation
      * @param sflp Raw data from the IMU
      */
-    static void convert_orientation(std::array<float, 4>& quat, const uint16_t sflp[3]);  // NOLINT(*-avoid-c-arrays)
+    void update_orientation(const uint16_t sflp[3]);  // NOLINT(*-avoid-c-arrays)
 
     /**
      * @brief Function to convert half precision float to single precision float

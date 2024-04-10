@@ -87,7 +87,7 @@ void Imu::update_data() {
                 break;
 
             case lsm6dsv_fifo_out_raw_t::LSM6DSV_SFLP_GAME_ROTATION_VECTOR_TAG:
-                convert_orientation(this->orientation, reinterpret_cast<uint16_t*>(axis));
+                this->update_orientation(reinterpret_cast<uint16_t*>(axis));
                 break;
 
             default:
@@ -98,9 +98,6 @@ void Imu::update_data() {
 
 float Imu::get_orientation(Axis axis) const {
     switch (axis) {
-        case Axis::W:
-            return this->orientation[3];
-
         case Axis::X:
             return this->orientation[0];
 
@@ -173,12 +170,14 @@ int32_t Imu::platform_write(void* handle, uint8_t reg, const uint8_t* bufp, uint
 }
 
 // NOLINTNEXTLINE(*-avoid-c-arrays)
-void Imu::convert_orientation(std::array<float, 4>& quat, const uint16_t sflp[3]) {
-    float sumsq = 0;
+void Imu::update_orientation(const uint16_t sflp[3]) {
+    std::array<float, 4> quat{};
 
     quat[0] = half_to_float(sflp[0]);
     quat[1] = half_to_float(sflp[1]);
     quat[2] = half_to_float(sflp[2]);
+
+    float sumsq = 0;
 
     for (uint8_t i = 0; i < 3; i++) {
         sumsq += quat[i] * quat[i];  // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
@@ -193,6 +192,21 @@ void Imu::convert_orientation(std::array<float, 4>& quat, const uint16_t sflp[3]
     }
 
     quat[3] = std::sqrt(1.0F - sumsq);
+
+    // roll (x-axis rotation)
+    float sinp = 2 * (quat[3] * quat[0] + quat[1] * quat[2]);
+    float cosp = 1 - 2 * (quat[0] * quat[0] + quat[1] * quat[1]);
+    this->orientation[0] = std::atan2(sinp, cosp);
+
+    // pitch (y-axis rotation)
+    sinp = std::sqrt(1 + 2 * (quat[3] * quat[1] - quat[0] * quat[2]));
+    cosp = std::sqrt(1 - 2 * (quat[3] * quat[1] - quat[0] * quat[2]));
+    this->orientation[1] = 2 * std::atan2(sinp, cosp) - M_PI / 2;
+
+    // yaw (z-axis rotation)
+    sinp = 2 * (quat[3] * quat[2] + quat[0] * quat[1]);
+    cosp = 1 - 2 * (quat[1] * quat[1] + quat[2] * quat[2]);
+    this->orientation[2] = std::atan2(sinp, cosp);
 }
 
 // NOLINTBEGIN(readability-identifier-length, readability-implicit-bool-conversion)
