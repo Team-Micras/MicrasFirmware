@@ -81,10 +81,7 @@ add_executable(${PROJECT_NAME}
 
 target_include_directories(${PROJECT_NAME} PUBLIC
     include
-)
-
-target_precompile_headers(${PROJECT_NAME} PRIVATE
-    ${PROJECT_CONFIG_HEADERS}
+    config
 )
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
@@ -112,10 +109,7 @@ foreach(TEST_FILE ${PROJECT_TESTS_BIN})
 
     target_include_directories(${TEST_NAME} PUBLIC
         tests/include
-    )
-
-    target_precompile_headers(${TEST_NAME} PRIVATE
-        ${PROJECT_CONFIG_HEADERS}
+        config
     )
 
     target_link_libraries(${TEST_NAME} PUBLIC

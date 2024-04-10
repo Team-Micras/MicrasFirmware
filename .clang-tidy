@@ -24,7 +24,7 @@ Checks:
   -readability-duplicate-include,
   -readability-magic-numbers,
 WarningsAsErrors: ''
-HeaderFilterRegex: 'inc/.*.hpp'
+HeaderFilterRegex: '(include|config)/.*.hpp'
 AnalyzeTemporaryDtors: false
 FormatStyle: none
 ...

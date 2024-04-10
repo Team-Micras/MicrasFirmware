@@ -7,6 +7,7 @@
  */
 
 #include "micras/micras_controller.hpp"
+#include "target.hpp"
 
 namespace micras {
 MicrasController::MicrasController() :
