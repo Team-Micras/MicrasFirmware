@@ -10,7 +10,7 @@
 
 using namespace micras;  // NOLINT(google-build-using-namespace)
 
-static volatile float distance[4];  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+static volatile float distance[4];  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables, *-avoid-c-arrays)
 
 int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);
