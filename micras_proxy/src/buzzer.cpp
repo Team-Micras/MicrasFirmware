@@ -30,6 +30,15 @@ void Buzzer::update() {
     }
 }
 
+void Buzzer::wait(uint32_t duration) {
+    hal::Timer wait_timer;
+    wait_timer.reset_ms();
+
+    while (wait_timer.elapsed_time_ms() < duration) {
+        this->update();
+    }
+}
+
 void Buzzer::stop() {
     this->is_playing = false;
     this->pwm.set_duty_cycle(0.0F);

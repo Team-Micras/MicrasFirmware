@@ -9,6 +9,8 @@
 #ifndef MICRAS_TEST_CORE_HPP
 #define MICRAS_TEST_CORE_HPP
 
+#include "target.hpp"
+
 namespace micras {
 /**
  * @brief Initialize test core

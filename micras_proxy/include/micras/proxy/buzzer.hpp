@@ -52,6 +52,13 @@ public:
      */
     void stop();
 
+    /**
+     * @brief Wait for a duration updating the buzzer
+     *
+     * @param duration Duration to wait in ms
+     */
+    void wait(uint32_t duration);
+
 private:
     /**
      * @brief PWM object
