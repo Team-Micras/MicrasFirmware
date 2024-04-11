@@ -16,7 +16,7 @@
 
 namespace micras::proxy {
 /**
- * @brief Class for controlling a button
+ * @brief Class for receiving a button data
  */
 class Button {
 public:
@@ -129,17 +129,17 @@ private:
     /**
      * @brief Flag to know when button is debouncing
      */
-    bool is_debouncing = false;
+    bool is_debouncing{false};
 
     /**
      * @brief Flag to know if button was being pressed
      */
-    bool previous_state = false;
+    bool previous_state{false};
 
     /**
      * @brief Flag to know if button is being pressed
      */
-    bool current_state = false;
+    bool current_state{false};
 };
 }  // namespace micras::proxy
 

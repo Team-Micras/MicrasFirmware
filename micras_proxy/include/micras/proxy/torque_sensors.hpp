@@ -16,7 +16,7 @@
 
 namespace micras::proxy {
 /**
- * @brief Class for controlling TorqueSensors
+ * @brief Class for receiving torque sensors data
  */
 template <uint8_t num_of_sensors>
 class TorqueSensors {
