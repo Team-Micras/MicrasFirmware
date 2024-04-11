@@ -37,7 +37,8 @@ void Locomotion::set_wheel_speed(float left_speed, float right_speed) {
         this->pwm_left_fwd.set_duty_cycle(0.0F);
         this->pwm_left_bwd.set_duty_cycle(-left_speed);
     } else {
-        this->stop_left();
+        this->pwm_left_fwd.set_duty_cycle(0.0F);
+        this->pwm_left_bwd.set_duty_cycle(0.0F);
     }
 
     if (right_speed > 0.0F) {
@@ -47,7 +48,8 @@ void Locomotion::set_wheel_speed(float left_speed, float right_speed) {
         this->pwm_right_fwd.set_duty_cycle(0.0F);
         this->pwm_right_bwd.set_duty_cycle(-right_speed);
     } else {
-        this->stop_right();
+        this->pwm_right_fwd.set_duty_cycle(0.0F);
+        this->pwm_right_bwd.set_duty_cycle(0.0F);
     }
 }
 
@@ -69,16 +71,9 @@ void Locomotion::set_speed(float linear, float angular) {
 }
 
 void Locomotion::stop() {
-    this->stop_left();
-    this->stop_right();
-}
-
-void Locomotion::stop_left() {
     this->pwm_left_fwd.set_duty_cycle(0.0F);
     this->pwm_left_bwd.set_duty_cycle(0.0F);
-}
 
-void Locomotion::stop_right() {
     this->pwm_right_fwd.set_duty_cycle(0.0F);
     this->pwm_right_bwd.set_duty_cycle(0.0F);
 }

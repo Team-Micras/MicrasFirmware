@@ -69,16 +69,6 @@ public:
      */
     void stop();
 
-    /**
-     * @brief Stop the left motor
-     */
-    void stop_left();
-
-    /**
-     * @brief Stop the right motor
-     */
-    void stop_right();
-
 private:
     /**
      * @brief PWM handle for the left motor forward
