@@ -30,14 +30,6 @@ public:
     };
 
     /**
-     * @brief Enum for rotation direction
-     */
-    enum RotationDirection : uint8_t {
-        FORWARD,
-        BACKWARD
-    };
-
-    /**
      * @brief Construct a new fan object
      *
      * @param config Configuration for the fan driver
@@ -67,6 +59,14 @@ public:
     void stop();
 
 private:
+    /**
+     * @brief Enum for rotation direction
+     */
+    enum RotationDirection : uint8_t {
+        FORWARD,
+        BACKWARD
+    };
+
     /**
      * @brief Set the rotation direction of the fan
      *
