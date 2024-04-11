@@ -31,5 +31,6 @@ int main(int argc, char* argv[]) {
         }
 
         argb.set_color(color);
+        hal::Timer::sleep_ms(2);
     });
 }

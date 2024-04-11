@@ -17,11 +17,12 @@ Button::Button(const Config& config) :
     pull_resistor{config.pull_resistor} { }
 
 bool Button::is_pressed() {
-    return this->get_raw_reading();
+    return this->update_state();
 }
 
 Button::Status Button::get_status() {
-    this->update_state();
+    this->previous_state = this->current_state;
+    this->current_state = this->update_state();
 
     if (this->is_rising_edge()) {
         this->status_timer.reset_ms();
@@ -44,7 +45,7 @@ bool Button::get_raw_reading() const {
     return this->gpio.read() == static_cast<bool>(this->pull_resistor);
 }
 
-void Button::update_state() {
+bool Button::update_state() {
     bool raw_reading = this->get_raw_reading();
 
     if ((raw_reading != this->current_state) and not this->is_debouncing) {
@@ -55,10 +56,10 @@ void Button::update_state() {
             this->is_debouncing = false;
         }
     } else {
-        this->is_debouncing = false;
-        this->previous_state = this->current_state;
-        this->current_state = raw_reading;
+        return raw_reading;
     }
+
+    return this->current_state;
 }
 
 bool Button::is_rising_edge() const {

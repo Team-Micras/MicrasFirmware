@@ -80,8 +80,10 @@ private:
 
     /**
      * @brief Update button state
+     *
+     * @return Current state of the button
      */
-    void update_state();
+    bool update_state();
 
     /**
      * @brief Check if button was just pressed
