@@ -32,7 +32,6 @@ void Buzzer::update() {
 
 void Buzzer::wait(uint32_t duration) {
     hal::Timer wait_timer;
-    wait_timer.reset_ms();
 
     while (wait_timer.elapsed_time_ms() < duration) {
         this->update();

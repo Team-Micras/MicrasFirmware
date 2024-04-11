@@ -9,6 +9,10 @@
 #include "micras/hal/timer.hpp"
 
 namespace micras::hal {
+Timer::Timer() {
+    this->reset_ms();
+}
+
 Timer::Timer(const Config& config) : handle{config.handle} {
     config.init_function();
 
@@ -18,6 +22,8 @@ Timer::Timer(const Config& config) : handle{config.handle} {
     if (base_freq / (prescaler + 1) == 1000000 and __HAL_TIM_GetAutoreload(this->handle) == 999) {
         this->enable_microseconds = true;
     }
+
+    this->reset_us();
 }
 
 void Timer::reset_ms() {
