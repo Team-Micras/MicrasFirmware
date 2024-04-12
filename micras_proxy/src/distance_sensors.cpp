@@ -14,16 +14,16 @@
 namespace micras::proxy {
 template <uint8_t num_of_sensors>
 DistanceSensors<num_of_sensors>::DistanceSensors(const Config& config) :
-    adc{config.adc}, led0_pwm{config.led0_pwm}, led1_pwm{config.led1_pwm}, max_distance{config.max_distance} {
+    adc{config.adc}, led_0_pwm{config.led_0_pwm}, led_1_pwm{config.led_1_pwm}, max_distance{config.max_distance} {
     this->adc.start_dma(this->buffer.data(), num_of_sensors);
-    this->led0_pwm.set_duty_cycle(50.0F);
-    this->led1_pwm.set_duty_cycle(50.0F);
+    this->led_0_pwm.set_duty_cycle(50.0F);
+    this->led_1_pwm.set_duty_cycle(50.0F);
 }
 
 template <uint8_t num_of_sensors>
 void DistanceSensors<num_of_sensors>::set_led_intensity(float intensity) {
-    this->led0_pwm.set_duty_cycle(intensity);
-    this->led1_pwm.set_duty_cycle(intensity);
+    this->led_0_pwm.set_duty_cycle(intensity);
+    this->led_1_pwm.set_duty_cycle(intensity);
 }
 
 template <uint8_t num_of_sensors>

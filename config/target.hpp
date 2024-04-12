@@ -191,12 +191,12 @@ const proxy::DistanceSensors<4>::Config distance_sensors_config = {
         .max_reading = 4095,
         .reference_voltage = 3.3F
     },
-    .led0_pwm = {
+    .led_0_pwm = {
         .init_function = MX_TIM15_Init,
         .handle = &htim15,
         .timer_channel = TIM_CHANNEL_1
     },
-    .led1_pwm = {
+    .led_1_pwm = {
         .init_function = MX_TIM15_Init,
         .handle = &htim15,
         .timer_channel = TIM_CHANNEL_2
