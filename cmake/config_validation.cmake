@@ -25,27 +25,35 @@ if(NOT (CMAKE_BUILD_TYPE STREQUAL "Release"        OR CMAKE_BUILD_TYPE STREQUAL 
 endif()
 message(STATUS "Build type: " ${CMAKE_BUILD_TYPE})
 
-## Check if STM32CubeMX variables are properly defined
+# Check if STM32CubeMX variables are properly defined
 if(DEFINED ENV{CUBE_PATH})
     message(STATUS "CUBE_PATH defined as $ENV{CUBE_PATH}")
 else()
     message(FATAL_ERROR "CUBE_PATH not defined")
 endif()
 
+# Set CubeMX and JLink executables
 if(CMAKE_HOST_WIN32)
     set(JAVA_EXE "$ENV{CUBE_PATH}\\STM32CubeMX.exe")
     set(CUBE_JAR "$ENV{CUBE_PATH}\\jre\\bin\\java.exe")
     set(JLINK_EXE JLink.exe)
-    if(NOT DEFINED ENV{OPENOCD_SCRIPTS_PATH})
-        set(OPENOCD_SCRIPTS_PATH "C:\\msys64\\mingw64\\share\\openocd\\scripts")
-    endif()
 else()
     set(JAVA_EXE $ENV{CUBE_PATH}/jre/bin/java)
     set(CUBE_JAR $ENV{CUBE_PATH}/STM32CubeMX)
     set(JLINK_EXE JLinkExe)
-    if(NOT DEFINED ENV{OPENOCD_SCRIPTS_PATH})
+endif()
+
+# Check if OpenOCD variables are properly defined
+if (DEFINED ENV{OPENOCD_SCRIPTS_PATH})
+    message(STATUS "OPENOCD_SCRIPTS_PATH defined as $ENV{OPENOCD_SCRIPTS_PATH}")
+    set(OPENOCD_SCRIPTS_PATH $ENV{OPENOCD_SCRIPTS_PATH})
+else()
+    if(CMAKE_HOST_WIN32)
+        set(OPENOCD_SCRIPTS_PATH "C:\\msys64\\mingw64\\share\\openocd\\scripts")
+    else()
         set(OPENOCD_SCRIPTS_PATH "/usr/share/openocd/scripts")
     endif()
+    message(STATUS "OPENOCD_SCRIPTS_PATH not defined. Using default path ${OPENOCD_SCRIPTS_PATH}")
 endif()
 
 string(TOLOWER ${DEVICE} LOWERCASE_DEVICE)
@@ -74,7 +82,6 @@ endif()
 
 # Check cube directory for files
 # If it's empty, generate the files
-# It's important to do it before find_package(CMSIS)
 file(GLOB_RECURSE CUBE_SOURCES_CHECK "${CMAKE_CURRENT_SOURCE_DIR}/cube/Src/*.c")
 list(LENGTH CUBE_SOURCES_CHECK CUBE_LENGHT)
 if(CUBE_LENGHT EQUAL 0)
