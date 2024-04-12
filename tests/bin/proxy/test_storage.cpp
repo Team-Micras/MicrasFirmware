@@ -64,6 +64,7 @@ int main(int argc, char* argv[]) {
 
     proxy::Storage::Config storage_test_config = {.start_page = 0, .number_of_pages = 1};
 
+    proxy::Button  button{button_config};
     proxy::Argb<2> argb{argb_config};
     proxy::Storage storage_0{storage_test_config};
 
@@ -93,10 +94,12 @@ int main(int argc, char* argv[]) {
     storage_1.sync("test_float", test_float_1);
     storage_1.sync("test_serializable", test_serializable_1);
 
+    while (button.get_status() == proxy::Button::Status::NO_PRESS) { }
+
     if (test_bool_0 != test_bool_1) {
-        argb.set_color({127, 0, 0});
+        argb.set_color({200, 0, 0});
     } else {
-        argb.set_color({0, 127, 0});
+        argb.set_color({0, 200, 0});
     }
 
     hal::Timer::sleep_ms(500);
@@ -104,9 +107,9 @@ int main(int argc, char* argv[]) {
     hal::Timer::sleep_ms(500);
 
     if (test_uint16_0 != test_uint16_1) {
-        argb.set_color({127, 0, 0});
+        argb.set_color({200, 0, 0});
     } else {
-        argb.set_color({0, 127, 0});
+        argb.set_color({0, 200, 0});
     }
 
     hal::Timer::sleep_ms(500);
@@ -114,9 +117,9 @@ int main(int argc, char* argv[]) {
     hal::Timer::sleep_ms(500);
 
     if (test_float_0 != test_float_1) {
-        argb.set_color({127, 0, 0});
+        argb.set_color({200, 0, 0});
     } else {
-        argb.set_color({0, 127, 0});
+        argb.set_color({0, 200, 0});
     }
 
     hal::Timer::sleep_ms(500);
@@ -124,9 +127,9 @@ int main(int argc, char* argv[]) {
     hal::Timer::sleep_ms(500);
 
     if (test_serializable_0 != test_serializable_1) {
-        argb.set_color({127, 0, 0});
+        argb.set_color({200, 0, 0});
     } else {
-        argb.set_color({0, 127, 0});
+        argb.set_color({0, 200, 0});
     }
 
     hal::Timer::sleep_ms(500);
