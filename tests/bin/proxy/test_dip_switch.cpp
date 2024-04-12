@@ -35,9 +35,9 @@ int main(int argc, char* argv[]) {
         }
 
         if (dip_switch.get_switch_state(3)) {
-            color.red *= 2;
-            color.green *= 2;
-            color.blue *= 2;
+            color.red = color.red ? 255 : 0;
+            color.green = color.green ? 255 : 0;
+            color.blue = color.blue ? 255 : 0;
         }
 
         argb.set_color(color);
