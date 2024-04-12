@@ -31,7 +31,7 @@ function(_stm32_generate_file TARGET OUTPUT_EXTENSION OBJCOPY_BFD_OUTPUT)
     endif()
 
     get_target_property(TARGET_OUTPUT_NAME ${TARGET} OUTPUT_NAME)
-    if (TARGET_OUTPUT_NAME)
+    if(TARGET_OUTPUT_NAME)
         set(OUTPUT_FILE_NAME "${TARGET_OUTPUT_NAME}.${OUTPUT_EXTENSION}")
     else()
         set(OUTPUT_FILE_NAME "${TARGET}.${OUTPUT_EXTENSION}")
