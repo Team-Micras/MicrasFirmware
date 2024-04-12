@@ -73,22 +73,22 @@ private:
     /**
      * @brief PWM handle for the left motor forward
      */
-    hal::Pwm pwm_left_fwd;
+    hal::Pwm pwm_left_forward;
 
     /**
      * @brief PWM handle for the left motor backward
      */
-    hal::Pwm pwm_left_bwd;
+    hal::Pwm pwm_left_backwards;
 
     /**
      * @brief PWM handle for the right motor forward
      */
-    hal::Pwm pwm_right_fwd;
+    hal::Pwm pwm_right_forward;
 
     /**
      * @brief PWM handle for the right motor backward
      */
-    hal::Pwm pwm_right_bwd;
+    hal::Pwm pwm_right_backwards;
 
     /**
      * @brief GPIO handle for the motor driver enable pin

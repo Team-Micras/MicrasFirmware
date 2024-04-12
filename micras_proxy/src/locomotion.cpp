@@ -12,10 +12,10 @@
 
 namespace micras::proxy {
 Locomotion::Locomotion(const Config& config) :
-    pwm_left_fwd{config.pwm_left_fwd},
-    pwm_left_bwd{config.pwm_left_bwd},
-    pwm_right_fwd{config.pwm_right_fwd},
-    pwm_right_bwd{config.pwm_right_bwd},
+    pwm_left_forward{config.pwm_left_forward},
+    pwm_left_backwards{config.pwm_left_backwards},
+    pwm_right_forward{config.pwm_right_forward},
+    pwm_right_backwards{config.pwm_right_backwards},
     enable_gpio{config.enable_gpio} {
     this->stop();
     this->enable();
@@ -31,25 +31,25 @@ void Locomotion::disable() {
 
 void Locomotion::set_wheel_speed(float left_speed, float right_speed) {
     if (left_speed > 0.0F) {
-        this->pwm_left_fwd.set_duty_cycle(left_speed);
-        this->pwm_left_bwd.set_duty_cycle(0.0F);
+        this->pwm_left_forward.set_duty_cycle(left_speed);
+        this->pwm_left_backwards.set_duty_cycle(0.0F);
     } else if (left_speed < 0.0F) {
-        this->pwm_left_fwd.set_duty_cycle(0.0F);
-        this->pwm_left_bwd.set_duty_cycle(-left_speed);
+        this->pwm_left_forward.set_duty_cycle(0.0F);
+        this->pwm_left_backwards.set_duty_cycle(-left_speed);
     } else {
-        this->pwm_left_fwd.set_duty_cycle(0.0F);
-        this->pwm_left_bwd.set_duty_cycle(0.0F);
+        this->pwm_left_forward.set_duty_cycle(0.0F);
+        this->pwm_left_backwards.set_duty_cycle(0.0F);
     }
 
     if (right_speed > 0.0F) {
-        this->pwm_right_fwd.set_duty_cycle(right_speed);
-        this->pwm_right_bwd.set_duty_cycle(0.0F);
+        this->pwm_right_forward.set_duty_cycle(right_speed);
+        this->pwm_right_backwards.set_duty_cycle(0.0F);
     } else if (right_speed < 0.0F) {
-        this->pwm_right_fwd.set_duty_cycle(0.0F);
-        this->pwm_right_bwd.set_duty_cycle(-right_speed);
+        this->pwm_right_forward.set_duty_cycle(0.0F);
+        this->pwm_right_backwards.set_duty_cycle(-right_speed);
     } else {
-        this->pwm_right_fwd.set_duty_cycle(0.0F);
-        this->pwm_right_bwd.set_duty_cycle(0.0F);
+        this->pwm_right_forward.set_duty_cycle(0.0F);
+        this->pwm_right_backwards.set_duty_cycle(0.0F);
     }
 }
 
@@ -71,10 +71,10 @@ void Locomotion::set_speed(float linear, float angular) {
 }
 
 void Locomotion::stop() {
-    this->pwm_left_fwd.set_duty_cycle(0.0F);
-    this->pwm_left_bwd.set_duty_cycle(0.0F);
+    this->pwm_left_forward.set_duty_cycle(0.0F);
+    this->pwm_left_backwards.set_duty_cycle(0.0F);
 
-    this->pwm_right_fwd.set_duty_cycle(0.0F);
-    this->pwm_right_bwd.set_duty_cycle(0.0F);
+    this->pwm_right_forward.set_duty_cycle(0.0F);
+    this->pwm_right_backwards.set_duty_cycle(0.0F);
 }
 }  // namespace micras::proxy
