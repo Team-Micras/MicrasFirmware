@@ -12,13 +12,13 @@ using namespace micras;  // NOLINT(google-build-using-namespace)
 
 class TestSerializable : public proxy::ISerializable {
 public:
-    TestSerializable(bool empty = false) {
+    explicit TestSerializable(bool empty = false) {
         if (empty) {
             return;
         }
 
-        for (size_t i = 0; i < 10; i++) {
-            this->test_array[i] = i;
+        for (uint32_t i = 0; i < this->test_array.size(); i++) {
+            this->test_array.at(i) = i;
         }
 
         this->test_string = "Hello, World!";
@@ -42,9 +42,9 @@ public:
     }
 
     void deserialize(const uint8_t* buffer, uint16_t size) override {
-        for (size_t i = 0; i < 10; i++) {
-            this->test_array[i] =
-                (buffer[i * 4] << 24) | (buffer[i * 4 + 1] << 16) | (buffer[i * 4 + 2] << 8) | buffer[i * 4 + 3];
+        for (uint32_t i = 0; i < this->test_array.size(); i++) {
+            this->test_array.at(i) =
+                (buffer[i * 4L] << 24) | (buffer[i * 4L + 1L] << 16) | (buffer[i * 4L + 2L] << 8) | buffer[i * 4L + 3L];
         }
 
         this->test_string = std::string{reinterpret_cast<const char*>(buffer + 40), size - 40U};
