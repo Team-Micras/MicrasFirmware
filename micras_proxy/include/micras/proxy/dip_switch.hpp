@@ -16,7 +16,7 @@
 
 namespace micras::proxy {
 /**
- * @brief Class for receiving a dip switch data
+ * @brief Class for acquiring a dip switch data
  */
 template <uint8_t num_of_switches>
 class DipSwitch {

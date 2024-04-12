@@ -16,7 +16,7 @@
 
 namespace micras::proxy {
 /**
- * @brief Class for receiving a button data
+ * @brief Class for acquiring a button data
  */
 class Button {
 public:
