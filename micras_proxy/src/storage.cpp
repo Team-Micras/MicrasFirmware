@@ -14,7 +14,7 @@ Storage::Storage(const Config& config) : start_page{config.start_page}, number_o
     uint64_t header{};
     hal::Flash::read(this->start_page, 0, &header);
 
-    if (header >> 48 != 0xABAB) {
+    if (header >> 48 != start_symbol) {
         return;
     }
 
