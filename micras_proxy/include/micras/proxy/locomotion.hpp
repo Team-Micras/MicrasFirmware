@@ -24,10 +24,10 @@ public:
      * @brief Configuration structure for the locomotion
      */
     struct Config {
-        hal::Pwm::Config  pwm_left_fwd;
-        hal::Pwm::Config  pwm_left_bwd;
-        hal::Pwm::Config  pwm_right_fwd;
-        hal::Pwm::Config  pwm_right_bwd;
+        hal::Pwm::Config  pwm_left_forward;
+        hal::Pwm::Config  pwm_left_backwards;
+        hal::Pwm::Config  pwm_right_forward;
+        hal::Pwm::Config  pwm_right_backwards;
         hal::Gpio::Config enable_gpio;
     };
 
