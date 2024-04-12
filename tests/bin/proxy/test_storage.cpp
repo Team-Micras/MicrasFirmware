@@ -94,46 +94,49 @@ int main(int argc, char* argv[]) {
     storage_1.sync("test_float", test_float_1);
     storage_1.sync("test_serializable", test_serializable_1);
 
-    while (button.get_status() == proxy::Button::Status::NO_PRESS) { }
+    TestCore::loop([&test_bool_0, &test_bool_1, &test_uint16_0, &test_uint16_1, &test_float_0, &test_float_1,
+                    &test_serializable_0, &test_serializable_1, &button, &argb]() {
+        while (button.get_status() == proxy::Button::Status::NO_PRESS) { }
 
-    if (test_bool_0 != test_bool_1) {
-        argb.set_color({200, 0, 0});
-    } else {
-        argb.set_color({0, 200, 0});
-    }
+        if (test_bool_0 != test_bool_1) {
+            argb.set_color({200, 0, 0});
+        } else {
+            argb.set_color({0, 200, 0});
+        }
 
-    hal::Timer::sleep_ms(500);
-    argb.set_color({0, 0, 0});
-    hal::Timer::sleep_ms(500);
+        hal::Timer::sleep_ms(500);
+        argb.set_color({0, 0, 0});
+        hal::Timer::sleep_ms(500);
 
-    if (test_uint16_0 != test_uint16_1) {
-        argb.set_color({200, 0, 0});
-    } else {
-        argb.set_color({0, 200, 0});
-    }
+        if (test_uint16_0 != test_uint16_1) {
+            argb.set_color({200, 0, 0});
+        } else {
+            argb.set_color({0, 200, 0});
+        }
 
-    hal::Timer::sleep_ms(500);
-    argb.set_color({0, 0, 0});
-    hal::Timer::sleep_ms(500);
+        hal::Timer::sleep_ms(500);
+        argb.set_color({0, 0, 0});
+        hal::Timer::sleep_ms(500);
 
-    if (test_float_0 != test_float_1) {
-        argb.set_color({200, 0, 0});
-    } else {
-        argb.set_color({0, 200, 0});
-    }
+        if (test_float_0 != test_float_1) {
+            argb.set_color({200, 0, 0});
+        } else {
+            argb.set_color({0, 200, 0});
+        }
 
-    hal::Timer::sleep_ms(500);
-    argb.set_color({0, 0, 0});
-    hal::Timer::sleep_ms(500);
+        hal::Timer::sleep_ms(500);
+        argb.set_color({0, 0, 0});
+        hal::Timer::sleep_ms(500);
 
-    if (test_serializable_0 != test_serializable_1) {
-        argb.set_color({200, 0, 0});
-    } else {
-        argb.set_color({0, 200, 0});
-    }
+        if (test_serializable_0 != test_serializable_1) {
+            argb.set_color({200, 0, 0});
+        } else {
+            argb.set_color({0, 200, 0});
+        }
 
-    hal::Timer::sleep_ms(500);
-    argb.set_color({0, 0, 0});
+        hal::Timer::sleep_ms(500);
+        argb.set_color({0, 0, 0});
+    });
 
     return 0;
 }
