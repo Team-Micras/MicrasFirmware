@@ -24,7 +24,7 @@ public:
     struct Config {
         void (*init_function)();
         ADC_HandleTypeDef* handle;
-        uint32_t           max_reading;
+        uint16_t           max_reading;
         float              reference_voltage;
     };
 
@@ -59,7 +59,7 @@ public:
     /**
      * @brief Maximum ADC reading
      */
-    const uint32_t max_reading;  // NOLINT(*-non-private-member-variables-in-classes)
+    const uint16_t max_reading;  // NOLINT(*-non-private-member-variables-in-classes)
 
     /**
      * @brief Reference voltage for the ADC measurement
