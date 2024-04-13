@@ -36,12 +36,14 @@ public:
      * @param serial_data Serialized data
      * @param size Size of the serialized data
      */
-    virtual void deserialize(uint8_t* serial_data, uint16_t size) = 0;
+    virtual void deserialize(const uint8_t* serial_data, uint16_t size) = 0;
 
 protected:
     /**
      * @brief Special member functions declared as default
      */
+    ISerializable() = default;
+
     ISerializable(const ISerializable&) = default;
 
     ISerializable(ISerializable&&) = default;

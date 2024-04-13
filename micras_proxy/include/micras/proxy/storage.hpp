@@ -49,7 +49,10 @@ public:
      * @param data Reference to the variable
      */
     template <Fundamental T>
-    void create(const std::string& name, const T& data);
+    void create(const std::string& name, const T& data) {
+        this->primitives[name].ram_pointer = &data;
+        this->primitives.at(name).size = sizeof(T);
+    }
 
     /**
      * @brief Create a new serializable variable in the storage
@@ -67,7 +70,13 @@ public:
      * @param data Reference to the variable
      */
     template <Fundamental T>
-    void sync(const std::string& name, T& data);
+    void sync(const std::string& name, T& data) {
+        if (this->primitives.contains(name) and this->primitives.at(name).ram_pointer == nullptr) {
+            data = reinterpret_cast<T&>(this->buffer.at(this->primitives.at(name).buffer_address));
+        }
+
+        this->create<T>(name, data);
+    }
 
     /**
      * @brief Sync a serializable variable with the storage
