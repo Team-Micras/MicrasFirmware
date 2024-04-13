@@ -181,7 +181,7 @@ const proxy::TorqueSensors<2>::Config torque_sensors_config = {
         .max_reading = 4095,
         .reference_voltage = 3.3F
     },
-    .shunt_resistor = 0.04F,
+    .shunt_resistor = 0.04F * 20,
     .max_torque = 0.5F
 };
 
