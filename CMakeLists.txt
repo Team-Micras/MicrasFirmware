@@ -61,7 +61,7 @@ add_subdirectory(micras_proxy)
 ## Input files
 ###############################################################################
 
-file(GLOB_RECURSE FORMAT_SOURCES CONFIGURE_DEPENDS "src/*.c*" "config/*.c*" "tests/*.c*" "micras_*/src/*.c*")
+file(GLOB_RECURSE FORMAT_SOURCES CONFIGURE_DEPENDS "src/*.c*" "tests/*.c*" "micras_*/src/*.c*")
 file(GLOB_RECURSE FORMAT_HEADERS CONFIGURE_DEPENDS "include/*.h*" "config/*.h*" "tests/*.h*" "micras_*/include/*.h*")
 
 targets_generate_format_target(FORMAT_SOURCES FORMAT_HEADERS)
