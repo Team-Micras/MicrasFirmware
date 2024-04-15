@@ -27,7 +27,7 @@ Options:
 Project Variables:
     When running the cmake command, you can set the following variables
     by adding `-D{VARIABLE}={VALUE}` after `cmake ..` in the terminal:
-    CMAKE_BUILD_TYPE:   Set the project build type
+    BUILD_TYPE:         Set the project build type
                         Possible values: Debug, Release, RelWithDebInfo, MinSizeRel (default: RelWithDebInfo)
     LINTER_MODE:        Set clang-tidy linter mode
                         Possible values: ON, OFF, FIX (default: OFF)
@@ -36,7 +36,7 @@ Current configuration:
     PROJECT NAME    =   ${CMAKE_PROJECT_NAME}
     IOC FILE        =   ${PROJECT_RELEASE}.ioc
     DEVICE          =   ${DEVICE}
-    BUILD TYPE      =   ${CMAKE_BUILD_TYPE}
+    BUILD TYPE      =   ${BUILD_TYPE}
     LINTER MODE     =   ${LINTER_MODE}
 
 ---------------------------------------------------------------------------
