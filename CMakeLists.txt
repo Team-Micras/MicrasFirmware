@@ -67,8 +67,7 @@ file(GLOB_RECURSE FORMAT_HEADERS CONFIGURE_DEPENDS "include/*.h*" "config/*.h*" 
 targets_generate_format_target(FORMAT_SOURCES FORMAT_HEADERS)
 
 file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS "src/*.c*")
-file(GLOB_RECURSE PROJECT_TESTS_SOURCES CONFIGURE_DEPENDS "tests/src/*.c*")
-file(GLOB_RECURSE PROJECT_TESTS_BIN CONFIGURE_DEPENDS "tests/bin/*.c*")
+file(GLOB_RECURSE PROJECT_TESTS CONFIGURE_DEPENDS "tests/src/*/*.c*")
 
 ###############################################################################
 ## Main executable target
@@ -98,12 +97,12 @@ targets_generate_helpme_target()
 ## Generate test executables
 ###############################################################################
 
-foreach(TEST_FILE ${PROJECT_TESTS_BIN})
+foreach(TEST_FILE ${PROJECT_TESTS})
     get_filename_component(TEST_NAME ${TEST_FILE} NAME_WLE)
 
     add_executable(${TEST_NAME} EXCLUDE_FROM_ALL
         ${TEST_FILE}
-        ${PROJECT_TESTS_SOURCES}
+        tests/src/test_core.cpp
     )
 
     target_include_directories(${TEST_NAME} PUBLIC
