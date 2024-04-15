@@ -29,7 +29,7 @@ Project Variables:
     by adding `-D{VARIABLE}={VALUE}` after `cmake ..` in the terminal:
     CMAKE_BUILD_TYPE:   Set the project build type
                         Possible values: Debug, Release, RelWithDebInfo, MinSizeRel (default: RelWithDebInfo)
-    CMAKE_LINTER:       Set clang-tidy linter mode
+    LINTER_MODE:        Set clang-tidy linter mode
                         Possible values: ON, OFF, FIX (default: OFF)
 
 Current configuration:
@@ -37,6 +37,6 @@ Current configuration:
     IOC FILE        =   ${PROJECT_RELEASE}.ioc
     DEVICE          =   ${DEVICE}
     BUILD TYPE      =   ${CMAKE_BUILD_TYPE}
-    LINTER          =   ${CMAKE_LINTER}
+    LINTER MODE     =   ${LINTER_MODE}
 
 ---------------------------------------------------------------------------
