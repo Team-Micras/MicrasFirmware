@@ -4,17 +4,6 @@
 # 04/2023
 
 ###############################################################################
-## Auxiliary Sets
-###############################################################################
-
-# This set contains all the variables that must be defined by the user
-# It is used to check if all of them are properly defined
-set(USER_INPUT_VARIABLES
-    DEVICE
-    BOARD_VERSION
-)
-
-###############################################################################
 ## Existence checks
 ###############################################################################
 
@@ -57,17 +46,6 @@ else()
     message(STATUS "OPENOCD_SCRIPTS_PATH not defined. Using default path ${OPENOCD_SCRIPTS_PATH}")
 endif()
 
-string(TOLOWER ${DEVICE} LOWERCASE_DEVICE)
-string(SUBSTRING ${LOWERCASE_DEVICE} 0 7 TARGET_CFG)
-
-# Check if necessary variables are defined:
-foreach(VARIABLE ${USER_INPUT_VARIABLES})
-    if(NOT DEFINED ${VARIABLE})
-        message(FATAL_ERROR "${VARIABLE} not defined")
-    endif()
-endforeach()
-message(STATUS "All necessary variables defined!")
-
 # Check if STM32CubeMX project is correctly configured
 set(CUBE_CMAKE_TOOLCHAIN_CONFIG "ProjectManager.TargetToolchain=CMake")
 set(IOC_FILE cube/${PROJECT_RELEASE}.ioc)
@@ -80,6 +58,13 @@ elseif(${CUBE_CMAKE_TOOLCHAIN_CONFIG_POS} EQUAL -1)
 else()
     message(STATUS "CMake toolchain selected in CubeMX project")
 endif()
+
+# Set DEVICE variable based on cube configuration
+string(REGEX MATCH "ProjectManager\.DeviceId=[^\n]+" DEVICE_LINE "${IOC_CONTENTS}")
+string(SUBSTRING ${DEVICE_LINE} 24 11 DEVICE)
+string(TOLOWER ${DEVICE} LOWERCASE_DEVICE)
+string(SUBSTRING ${LOWERCASE_DEVICE} 0 7 TARGET_CFG)
+message(STATUS "Device is ${DEVICE}")
 
 # Check cube directory for files
 # If it's empty, generate the files
