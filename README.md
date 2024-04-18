@@ -2,15 +2,9 @@
 <p align="center">NTF Classic Micromouse project with a STM32 microcontroller</p>
 
 <div align="center">
-  <a href="https://cplusplus.com/">
-    <img alt="Made with C++" src="https://img.shields.io/badge/made_with-c%2B%2B-blue?style=for-the-badge&labelColor=ef4041&color=c1282d" height="30">
-  </a>
-  <a href="https://www.st.com/en/development-tools/stm32cubemx.html">
-    <img alt="Uses STM32CubeMX" src="https://img.shields.io/badge/uses-stm32cubemx-blue?style=for-the-badge&labelColor=38c1d0&color=45a4b8" height="30">
-  </a>
-  <a href="https://en.wikipedia.org/wiki/Embedded_system">
-    <img alt="Built for Embedded Devices" src="https://img.shields.io/badge/built_for-embedded_devices-blue?style=for-the-badge&labelColor=adec37&color=27a744" height="30">
-  </a>
+  <a href="https://cplusplus.com/"><img alt="Made with C++" src="https://img.shields.io/badge/made_with-c%2B%2B-blue?style=for-the-badge&labelColor=ef4041&color=c1282d" height="30"></a>
+  <a href="https://www.st.com/en/development-tools/stm32cubemx.html"><img alt="Uses STM32CubeMX" src="https://img.shields.io/badge/uses-stm32cubemx-blue?style=for-the-badge&labelColor=38c1d0&color=45a4b8&link=https%3A%2F%2Fwww.st.com%2Fen%2Fdevelopment-tools%2Fstm32cubemx.html" height="30"></a>
+  <a href="https://en.wikipedia.org/wiki/Embedded_system"><img alt="Built for Embedded Devices" src="https://img.shields.io/badge/built_for-embedded_devices-blue?style=for-the-badge&labelColor=adec37&color=27a744&link=https%3A%2F%2Fen.wikipedia.org%2Fwiki%2FEmbedded_system" height="30"></a>
 </div>
 
 ## 📑 Summary
