@@ -96,7 +96,7 @@ make -j [test_name]
 ```
 
 ```bash
-make -j flash [test_name]
+make -j flash_[test_name]
 ```
 
 ## 🐛 Debugging
@@ -116,7 +116,7 @@ cmake .. -DBUILD_TYPE=Debug
 It is also possible to debug test executables, by first running the command:
 
 ```bash
-make debug [test_name]
+make debug_[test_name]
 ```
 
 Finally, to debug the project, the [Cortex Debug extension](https://marketplace.visualstudio.com/items?marus25.Cortex-Debug) for VSCode must be installed. There are three configurations for debugging present at the [`.vscode/launch.json`](./.vscode/launch.json) file that uses differents programs:
