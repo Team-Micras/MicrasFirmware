@@ -2,25 +2,33 @@
 <p align="center">NTF Classic Micromouse project with a STM32 microcontroller</p>
 
 <div align="center">
-    <img src="https://forthebadge.com/images/badges/made-with-c-plus-plus.svg"  height="30" href="https://cplusplus.com/"/>
-    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxODkuMzkwNjQ0MDczNDg2MzMiIGhlaWdodD0iMzUiIHZpZXdCb3g9IjAgMCAxODkuMzkwNjQ0MDczNDg2MzMgMzUiPjxyZWN0IHdpZHRoPSI1Ni44MjgxMjg4MTQ2OTcyNjYiIGhlaWdodD0iMzUiIGZpbGw9IiMwMGM2ZDEiLz48cmVjdCB4PSI1Ni44MjgxMjg4MTQ2OTcyNjYiIHdpZHRoPSIxMzIuNTYyNTE1MjU4Nzg5MDYiIGhlaWdodD0iMzUiIGZpbGw9IiMwMGE2YjkiLz48dGV4dCB4PSIyOC40MTQwNjQ0MDczNDg2MzMiIHk9IjIxLjUiIGZvbnQtc2l6ZT0iMTIiIGZvbnQtZmFtaWx5PSInUm9ib3RvJywgc2Fucy1zZXJpZiIgZmlsbD0iI0ZGRkZGRiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgbGV0dGVyLXNwYWNpbmc9IjIiPlVTRVM8L3RleHQ+PHRleHQgeD0iMTIzLjEwOTM4NjQ0NDA5MTgiIHk9IjIxLjUiIGZvbnQtc2l6ZT0iMTIiIGZvbnQtZmFtaWx5PSInTW9udHNlcnJhdCcsIHNhbnMtc2VyaWYiIGZpbGw9IiNGRkZGRkYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtd2VpZ2h0PSI5MDAiIGxldHRlci1zcGFjaW5nPSIyIj5TVE0zMkNVQkVNWDwvdGV4dD48L3N2Zz4="  height="30" href="https://www.st.com/en/development-tools/stm32cubemx.html"/>
-     <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNzAuMDMxMjcyODg4MTgzNiIgaGVpZ2h0PSIzNSIgdmlld0JveD0iMCAwIDI3MC4wMzEyNzI4ODgxODM2IDM1Ij48cmVjdCB3aWR0aD0iOTMuNTAwMDA3NjI5Mzk0NTMiIGhlaWdodD0iMzUiIGZpbGw9IiNhZGVjMzciLz48cmVjdCB4PSI5My41MDAwMDc2MjkzOTQ1MyIgd2lkdGg9IjE3Ni41MzEyNjUyNTg3ODkwNiIgaGVpZ2h0PSIzNSIgZmlsbD0iIzI3YTc0NCIvPjx0ZXh0IHg9IjQ2Ljc1MDAwMzgxNDY5NzI2NiIgeT0iMjEuNSIgZm9udC1zaXplPSIxMiIgZm9udC1mYW1pbHk9IidSb2JvdG8nLCBzYW5zLXNlcmlmIiBmaWxsPSIjRkZGRkZGIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBsZXR0ZXItc3BhY2luZz0iMiI+QlVJTFQgRk9SPC90ZXh0Pjx0ZXh0IHg9IjE4MS43NjU2NDAyNTg3ODkwNiIgeT0iMjEuNSIgZm9udC1zaXplPSIxMiIgZm9udC1mYW1pbHk9IidNb250c2VycmF0Jywgc2Fucy1zZXJpZiIgZmlsbD0iI0ZGRkZGRiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC13ZWlnaHQ9IjkwMCIgbGV0dGVyLXNwYWNpbmc9IjIiPkVNQkVEREVEIERFVklDRVM8L3RleHQ+PC9zdmc+"  height="30" href="https://en.wikipedia.org/wiki/Embedded_system"/>
+  <a href="https://cplusplus.com/">
+    <img alt="Made with C++" src="https://img.shields.io/badge/made_with-c%2B%2B-blue?style=for-the-badge&labelColor=ef4041&color=c1282d" height="30">
+  </a>
+  <a href="https://www.st.com/en/development-tools/stm32cubemx.html">
+    <img alt="Uses STM32CubeMX" src="https://img.shields.io/badge/uses-stm32cubemx-blue?style=for-the-badge&labelColor=38c1d0&color=45a4b8" height="30">
+  </a>
+  <a href="https://en.wikipedia.org/wiki/Embedded_system">
+    <img alt="Built for Embedded Devices" src="https://img.shields.io/badge/built_for-embedded_devices-blue?style=for-the-badge&labelColor=adec37&color=27a744" height="30">
+  </a>
 </div>
 
 ## 📑 Summary
 
-- [📁 Folder structure](#📁-folder-structure)
-- [📦️ Packages](#📦️-packages)
-- [🔨 Building](#🔨-building)
-- [🚀 Running](#🚀-running)
-- [🐛 Debugging](#🐛-debugging)
-- [💄 Code style](#💄-code-style)
-  - [🎨 Format](#🎨-format)
-  - [🚨 Linter](#🚨-linter)
-- [📝 Documentation](#📝-documentation)
-- [💬 Git commit messages](#💬-git-commit-messages)
-- [🔀 Git workflow](#🔀-git-workflow)
-- [👥 Contributors](#👥-contributors)
+- [📑 Summary](#-summary)
+- [📁 Folder structure](#-folder-structure)
+- [📦️ Packages](#️-packages)
+- [🔨 Building](#-building)
+- [🚀 Running](#-running)
+- [🧪 Testing](#-testing)
+- [🐛 Debugging](#-debugging)
+- [💄 Code style](#-code-style)
+  - [🎨 Format](#-format)
+  - [🚨 Linter](#-linter)
+- [📝 Documentation](#-documentation)
+  - [💬 Git commit messages](#-git-commit-messages)
+  - [🔀 Git workflow](#-git-workflow)
+- [👥 Contributors](#-contributors)
 
 ## 📁 Folder structure
 
