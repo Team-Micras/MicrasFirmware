@@ -29,45 +29,45 @@ void Locomotion::disable() {
     this->enable_gpio.write(false);
 }
 
-void Locomotion::set_wheel_speed(float left_speed, float right_speed) {
-    if (left_speed > 0.0F) {
-        this->pwm_left_forward.set_duty_cycle(left_speed);
+void Locomotion::set_wheel_command(float left_command, float right_command) {
+    if (left_command > 0.0F) {
+        this->pwm_left_forward.set_duty_cycle(left_command);
         this->pwm_left_backwards.set_duty_cycle(0.0F);
-    } else if (left_speed < 0.0F) {
+    } else if (left_command < 0.0F) {
         this->pwm_left_forward.set_duty_cycle(0.0F);
-        this->pwm_left_backwards.set_duty_cycle(-left_speed);
+        this->pwm_left_backwards.set_duty_cycle(-left_command);
     } else {
         this->pwm_left_forward.set_duty_cycle(0.0F);
         this->pwm_left_backwards.set_duty_cycle(0.0F);
     }
 
-    if (right_speed > 0.0F) {
-        this->pwm_right_forward.set_duty_cycle(right_speed);
+    if (right_command > 0.0F) {
+        this->pwm_right_forward.set_duty_cycle(right_command);
         this->pwm_right_backwards.set_duty_cycle(0.0F);
-    } else if (right_speed < 0.0F) {
+    } else if (right_command < 0.0F) {
         this->pwm_right_forward.set_duty_cycle(0.0F);
-        this->pwm_right_backwards.set_duty_cycle(-right_speed);
+        this->pwm_right_backwards.set_duty_cycle(-right_command);
     } else {
         this->pwm_right_forward.set_duty_cycle(0.0F);
         this->pwm_right_backwards.set_duty_cycle(0.0F);
     }
 }
 
-void Locomotion::set_speed(float linear, float angular) {
-    float left_speed = linear - angular;
-    float right_speed = linear + angular;
+void Locomotion::set_command(float linear, float angular) {
+    float left_command = linear - angular;
+    float right_command = linear + angular;
 
-    if (std::abs(left_speed) > 100.0F) {
-        left_speed *= 100.0F / std::abs(left_speed);
-        right_speed *= 100.0F / std::abs(left_speed);
+    if (std::abs(left_command) > 100.0F) {
+        left_command *= 100.0F / std::abs(left_command);
+        right_command *= 100.0F / std::abs(left_command);
     }
 
-    if (std::abs(right_speed) > 100.0F) {
-        left_speed *= 100.0F / std::abs(right_speed);
-        right_speed *= 100.0F / std::abs(right_speed);
+    if (std::abs(right_command) > 100.0F) {
+        left_command *= 100.0F / std::abs(right_command);
+        right_command *= 100.0F / std::abs(right_command);
     }
 
-    this->set_wheel_speed(left_speed, right_speed);
+    this->set_wheel_command(left_command, right_command);
 }
 
 void Locomotion::stop() {
