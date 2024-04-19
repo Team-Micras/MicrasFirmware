@@ -53,7 +53,7 @@ To build the project, it is first necessary to install some dependencies:
 sudo apt install cmake build-essential gcc-arm-none-eabi
 ```
 
-The [STM32CubeMX](https://www.st.com/en/development-tools/stm32cubemx.html) program is also needed. After the instalation is competed, the building process can be started by creating a build folder with:
+The [STM32CubeMX](https://www.st.com/en/development-tools/stm32cubemx.html) program is also needed. After the installation is completed, the building process can be started by creating a build folder with:
 
 ```bash
 mkdir build && cd build
@@ -79,7 +79,7 @@ make helpme
 
 ## 🚀 Running
 
-The binaries can be flashed into the microcontroller using the [STM32CubeProgrammer](https://www.st.com/en/development-tools/stm32cubeprog.html), whitch needs to be installed, and can then be run using the command:
+The binaries can be flashed into the microcontroller using the [STM32CubeProgrammer](https://www.st.com/en/development-tools/stm32cubeprog.html), which needs to be installed, and can then be run using the command:
 
 ```bash
 make -j flash
@@ -119,11 +119,11 @@ It is also possible to debug test executables, by first running the command:
 make debug_[test_name]
 ```
 
-Finally, to debug the project, the [Cortex Debug extension](https://marketplace.visualstudio.com/items?marus25.Cortex-Debug) for VSCode must be installed. There are three configurations for debugging present at the [`.vscode/launch.json`](./.vscode/launch.json) file that uses differents programs:
+Finally, to debug the project, the [Cortex Debug extension](https://marketplace.visualstudio.com/items?marus25.Cortex-Debug) for VSCode must be installed. There are three configurations for debugging present at the [`.vscode/launch.json`](./.vscode/launch.json) file that uses different programs:
 
 - [OpenOCD](https://openocd.org/)
-- [J-Link]()
-- [ST-Util]()
+- [J-Link](https://www.segger.com/downloads/jlink/)
+- [ST-Util](https://github.com/stlink-org/stlink)
 
 For each debug type, it is necessary to install the respective gdb server.
 
