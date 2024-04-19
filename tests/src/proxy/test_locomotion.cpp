@@ -15,7 +15,7 @@ int main(int argc, char* argv[]) {
     proxy::Button     button{button_config};
     proxy::Locomotion locomotion{locomotion_config};
 
-    TestCore::loop([&locomotion]() {
+    TestCore::loop([&button, &locomotion]() {
         while (button.get_status() == proxy::Button::Status::NO_PRESS) { }
 
         locomotion.set_wheel_command(50.0F, 0.0F);

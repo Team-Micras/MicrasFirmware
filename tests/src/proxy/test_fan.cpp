@@ -15,7 +15,7 @@ int main(int argc, char* argv[]) {
     proxy::Button button{button_config};
     proxy::Fan    fan{fan_config};
 
-    TestCore::loop([&fan]() {
+    TestCore::loop([&button, &fan]() {
         while (button.get_status() == proxy::Button::Status::NO_PRESS) { }
 
         for (int8_t i = 0; i < 80; i++) {

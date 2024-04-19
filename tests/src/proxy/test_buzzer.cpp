@@ -15,7 +15,7 @@ int main(int argc, char* argv[]) {
     proxy::Button button{button_config};
     proxy::Buzzer buzzer{buzzer_config};
 
-    TestCore::loop([&buzzer]() {
+    TestCore::loop([&button, &buzzer]() {
         while (button.get_status() == proxy::Button::Status::NO_PRESS) { }
 
         buzzer.play(987, 133);
