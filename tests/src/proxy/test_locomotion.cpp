@@ -34,6 +34,8 @@ int main(int argc, char* argv[]) {
         locomotion.set_command(0.0F, 50.0F);
         hal::Timer::sleep_ms(1000);
         locomotion.set_command(0.0F, -50.0F);
+        hal::Timer::sleep_ms(1000);
+        locomotion.set_command(0.0F, 0.0F);
     });
 
     return 0;
