@@ -122,9 +122,9 @@ make debug_[test_name]
 
 Finally, to debug the project, the [Cortex Debug extension](https://marketplace.visualstudio.com/items?marus25.Cortex-Debug) for VSCode must be installed. There are three configurations for debugging present at the [`.vscode/launch.json`](./.vscode/launch.json) file that uses different programs:
 
-- [OpenOCD](https://openocd.org/)
 - [J-Link](https://www.segger.com/downloads/jlink/)
-- [ST-Util](https://github.com/stlink-org/stlink)
+- [OpenOCD](https://openocd.org/) (`sudo apt install openocd`)
+- [ST-Util](https://github.com/stlink-org/stlink) (`sudo apt install stlink-tools`)
 
 For each debug type, it is necessary to install the respective gdb server.
 
