@@ -1,7 +1,7 @@
 <!-- markdownlint-disable -->
 <div align="center">
 
-![micras_firmware_logo](https://github.com/Team-Micras/MicrasFirmware/assets/62271285/24d4833e-8202-40ab-a1a0-707465dd39cd)
+![micras_firmware_logo](https://github.com/Team-Micras/MicrasFirmware/assets/62271285/1fa07e90-a279-4210-bb58-5e8931c87f64)
 
 NTF Classic Micromouse project with a STM32 microcontroller
 
