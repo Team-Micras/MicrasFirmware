@@ -132,7 +132,6 @@ If using J-Link, the flashing process can be done by running the following comma
 
 ```bash
 make jflash -j
-
 ```
 
 or if you want to flash a test:
