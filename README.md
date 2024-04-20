@@ -2,9 +2,9 @@
 
 ![micras_branco_sombra](https://github.com/Team-Micras/MicrasFirmware/assets/62271285/ecbb08ea-eb49-4da4-9a60-476c7d160a35)
 
-</div>
+NTF Classic Micromouse project with a STM32 microcontroller
 
-<p align="center">NTF Classic Micromouse project with a STM32 microcontroller</p>
+</div>
 
 <div align="center">
   <a href="https://cplusplus.com/"><img alt="Made with C++" src="https://img.shields.io/badge/made_with-c%2B%2B-blue?style=for-the-badge&labelColor=ef4041&color=c1282d" height="30"></a>
@@ -53,7 +53,9 @@ To build the project, it is first necessary to install some dependencies:
 sudo apt install cmake build-essential gcc-arm-none-eabi
 ```
 
-The [STM32CubeMX](https://www.st.com/en/development-tools/stm32cubemx.html) program is also needed. After the installation is completed, the building process can be started by creating a build folder with:
+The [STM32CubeMX](https://www.st.com/en/development-tools/stm32cubemx.html) program is also needed. After the installation is completed, it is necessary to set the environment variable `CUBE_PATH` to the installation directory path of STM32CubeMX.
+
+The building process can be started by creating a build folder with:
 
 ```bash
 mkdir build && cd build
@@ -79,10 +81,10 @@ make helpme
 
 ## 🚀 Running
 
-The binaries can be flashed into the microcontroller using the [STM32CubeProgrammer](https://www.st.com/en/development-tools/stm32cubeprog.html), which needs to be installed, and can then be run using the command:
+The binaries can be flashed into the microcontroller using the [STM32CubeProgrammer](https://www.st.com/en/development-tools/stm32cubeprog.html), which needs to be installed. For flashing the main program, run the following command:
 
 ```bash
-make -j flash
+make flash -j
 ```
 
 If the project hasn't already been compiled, this command also automatically compiles the desired target.
@@ -92,11 +94,11 @@ If the project hasn't already been compiled, this command also automatically com
 Any test can be compiled and run using the same commands as the ones used for the main executable, but adding the test name without the file extension at the end:
 
 ```bash
-make -j [test_name]
+make [test_name] -j
 ```
 
 ```bash
-make -j flash_[test_name]
+make flash_[test_name] -j
 ```
 
 ## 🐛 Debugging
@@ -126,6 +128,19 @@ Finally, to debug the project, the [Cortex Debug extension](https://marketplace.
 - [ST-Util](https://github.com/stlink-org/stlink)
 
 For each debug type, it is necessary to install the respective gdb server.
+
+If using J-Link, the flashing process can be done by running the following command:
+
+```bash
+make jflash -j
+
+```
+
+or if you want to flash a test:
+
+```bash
+make jflash_[test_name] -j
+```
 
 ## 💄 Code style
 
