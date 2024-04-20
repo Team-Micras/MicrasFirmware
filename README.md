@@ -12,7 +12,6 @@ NTF Classic Micromouse project with a STM32 microcontroller
   <a href="https://en.wikipedia.org/wiki/Embedded_system"><img alt="Built for Embedded Devices" src="https://img.shields.io/badge/built_for-embedded_devices-blue?style=for-the-badge&labelColor=adec37&color=27a744&link=https%3A%2F%2Fen.wikipedia.org%2Fwiki%2FEmbedded_system" height="30"></a>
 </div>
 
-
 ## 📑 Summary
 
 - [📑 Summary](#-summary)
