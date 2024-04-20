@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 <div align="center">
 
 ![micras_logo_white_shadow](https://github.com/Team-Micras/MicrasFirmware/assets/62271285/30260684-a934-40e7-8b72-8fc2d799b1a8)
@@ -11,6 +12,7 @@ NTF Classic Micromouse project with a STM32 microcontroller
   <a href="https://www.st.com/en/development-tools/stm32cubemx.html"><img alt="Uses STM32CubeMX" src="https://img.shields.io/badge/uses-stm32cubemx-blue?style=for-the-badge&labelColor=38c1d0&color=45a4b8&link=https%3A%2F%2Fwww.st.com%2Fen%2Fdevelopment-tools%2Fstm32cubemx.html" height="30"></a>
   <a href="https://en.wikipedia.org/wiki/Embedded_system"><img alt="Built for Embedded Devices" src="https://img.shields.io/badge/built_for-embedded_devices-blue?style=for-the-badge&labelColor=adec37&color=27a744&link=https%3A%2F%2Fen.wikipedia.org%2Fwiki%2FEmbedded_system" height="30"></a>
 </div>
+<!-- markdownlint-restore -->
 
 ## 📑 Summary
 
@@ -164,22 +166,22 @@ The project uses a linter in order to follow the best code practices. The linter
 sudo apt install clang-tidy
 ```
 
-The linting process is done when compiling the project using a special config variable, the `ENABLE_LINTER` cmake variable. So to lint the code, do as follows using catkin tools:
+The linting process is done when compiling the project using a special config variable, the `LINTER_MODE` cmake variable. You can enable the linter by running:
 
 ```bash
-cmake .. -DENABLE_LINTER=ON
+cmake .. -DLINTER_MODE=ON
 ```
 
 To disable the linter while compiling, do as follows:
 
 ```bash
-cmake .. -DENABLE_LINTER=OFF
+cmake .. -DLINTER_MODE=OFF
 ```
 
 It is also possible to lint the project and let the linter fix it using its suggestions:
 
 ```bash
-cmake .. -DENABLE_LINTER=FIX
+cmake .. -DLINTER_MODE=FIX
 ```
 
 ## 📝 Documentation
