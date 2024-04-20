@@ -12,9 +12,12 @@ using namespace micras;  // NOLINT(google-build-using-namespace)
 
 int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);
+    proxy::Button button{button_config};
     proxy::Buzzer buzzer{buzzer_config};
 
-    TestCore::loop([&buzzer]() {
+    TestCore::loop([&button, &buzzer]() {
+        while (button.get_status() == proxy::Button::Status::NO_PRESS) { }
+
         buzzer.play(987, 133);
         buzzer.wait(333);
         buzzer.play(987, 133);
@@ -92,7 +95,6 @@ int main(int argc, char* argv[]) {
         buzzer.play(987, 133);
         buzzer.wait(333);
         buzzer.play(987, 133);
-        buzzer.wait(5000);
     });
 
     return 0;

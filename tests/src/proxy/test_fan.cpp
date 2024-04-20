@@ -12,10 +12,13 @@ using namespace micras;  // NOLINT(google-build-using-namespace)
 
 int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);
-    proxy::Fan fan{fan_config};
+    proxy::Button button{button_config};
+    proxy::Fan    fan{fan_config};
 
-    TestCore::loop([&fan]() {
-        for (int8_t i = 0; i < 80; i++) {
+    TestCore::loop([&button, &fan]() {
+        while (button.get_status() == proxy::Button::Status::NO_PRESS) { }
+
+        for (int8_t i = 1; i < 80; i++) {
             fan.set_speed(i);
             hal::Timer::sleep_ms(50);
         }
@@ -25,7 +28,7 @@ int main(int argc, char* argv[]) {
             hal::Timer::sleep_ms(50);
         }
 
-        for (int8_t i = -80; i < 0.0F; i++) {
+        for (int8_t i = -80; i <= 0; i++) {
             fan.set_speed(i);
             hal::Timer::sleep_ms(50);
         }

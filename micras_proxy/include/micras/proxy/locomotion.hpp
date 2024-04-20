@@ -49,20 +49,20 @@ public:
     void disable();
 
     /**
-     * @brief Set the speed of the wheels
+     * @brief Set the command of the wheels
      *
-     * @param left_speed Speed of the left wheels
-     * @param right_speed Speed of the right wheels
+     * @param left_command Command of the left wheels
+     * @param right_command Command of the right wheels
      */
-    void set_wheel_speed(float left_speed, float right_speed);
+    void set_wheel_command(float left_command, float right_command);
 
     /**
-     * @brief Set the linear and angular speeds of the robot
+     * @brief Set the linear and angular commands of the robot
      *
-     * @param linear Linear speed of the robot
-     * @param angular Angular speed of the robot
+     * @param linear Linear command of the robot
+     * @param angular Angular command of the robot
      */
-    void set_speed(float linear, float angular);
+    void set_command(float linear, float angular);
 
     /**
      * @brief Stop the motors

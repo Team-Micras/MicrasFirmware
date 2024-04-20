@@ -12,25 +12,30 @@ using namespace micras;  // NOLINT(google-build-using-namespace)
 
 int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);
+    proxy::Button     button{button_config};
     proxy::Locomotion locomotion{locomotion_config};
 
-    TestCore::loop([&locomotion]() {
-        locomotion.set_wheel_speed(50.0F, 0.0F);
+    TestCore::loop([&button, &locomotion]() {
+        while (button.get_status() == proxy::Button::Status::NO_PRESS) { }
+
+        locomotion.set_wheel_command(50.0F, 0.0F);
         hal::Timer::sleep_ms(1000);
-        locomotion.set_wheel_speed(-50.0F, 0.0F);
+        locomotion.set_wheel_command(-50.0F, 0.0F);
         hal::Timer::sleep_ms(1000);
-        locomotion.set_wheel_speed(0.0F, 50.0F);
+        locomotion.set_wheel_command(0.0F, 50.0F);
         hal::Timer::sleep_ms(1000);
-        locomotion.set_wheel_speed(0.0F, -50.0F);
+        locomotion.set_wheel_command(0.0F, -50.0F);
         hal::Timer::sleep_ms(1000);
 
-        locomotion.set_speed(50.0F, 0.0F);
+        locomotion.set_command(50.0F, 0.0F);
         hal::Timer::sleep_ms(1000);
-        locomotion.set_speed(-50.0F, 0.0F);
+        locomotion.set_command(-50.0F, 0.0F);
         hal::Timer::sleep_ms(1000);
-        locomotion.set_speed(0.0F, 50.0F);
+        locomotion.set_command(0.0F, 50.0F);
         hal::Timer::sleep_ms(1000);
-        locomotion.set_speed(0.0F, -50.0F);
+        locomotion.set_command(0.0F, -50.0F);
+        hal::Timer::sleep_ms(1000);
+        locomotion.set_command(0.0F, 0.0F);
     });
 
     return 0;
