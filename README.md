@@ -27,9 +27,10 @@ NTF Classic Micromouse project with a STM32 microcontroller
   - [🎨 Format](#-format)
   - [🚨 Linter](#-linter)
 - [📝 Documentation](#-documentation)
+- [👥 Contributing](#-contributing)
   - [💬 Git commit messages](#-git-commit-messages)
   - [🔀 Git workflow](#-git-workflow)
-- [👥 Contributors](#-contributors)
+- [✨ Contributors](#-contributors)
 
 ## 📁 Folder structure
 
@@ -202,6 +203,10 @@ make docs
 
 The configuration is in the file [Doxyfile](./Doxyfile).
 
+## 👥 Contributing
+
+To learn how to contribute to the project, see the following contribution guidelines.
+
 ### 💬 Git commit messages
 
 - Use the present tense ("Add feature" not "Added feature")
@@ -219,7 +224,7 @@ The configuration is in the file [Doxyfile](./Doxyfile).
 
 The project workflow is based on [Git Flow](https://nvie.com/posts/a-successful-git-branching-model/).
 
-## 👥 Contributors
+## ✨ Contributors
 
 Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
 
