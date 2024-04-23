@@ -55,6 +55,7 @@ include(cmake/linter.cmake)
 add_subdirectory(cube/cmake/stm32cubemx)
 add_subdirectory(micras_hal)
 add_subdirectory(micras_proxy)
+add_subdirectory(micras_nav)
 
 ###############################################################################
 ## Input files
@@ -82,7 +83,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 )
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
-    micras::proxy
+    micras::nav
 )
 
 stm32_print_size_of_target(${PROJECT_NAME})
@@ -110,7 +111,7 @@ foreach(TEST_FILE ${PROJECT_TESTS})
     )
 
     target_link_libraries(${TEST_NAME} PUBLIC
-        micras::proxy
+        micras::nav
     )
 
     stm32_generate_hex_file(${TEST_NAME})

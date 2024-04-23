@@ -9,6 +9,7 @@
 #ifndef MICRAS_CONTROLLER_HPP
 #define MICRAS_CONTROLLER_HPP
 
+#include "micras/nav/odometry.hpp"
 #include "micras/proxy/argb.hpp"
 #include "micras/proxy/battery.hpp"
 #include "micras/proxy/button.hpp"
@@ -52,6 +53,7 @@ private:
     proxy::RotarySensor       rotary_sensor_left;
     proxy::RotarySensor       rotary_sensor_right;
     proxy::TorqueSensors<2>   torque_sensors;
+    nav::Odometry             odometry;
 };
 }  // namespace micras
 

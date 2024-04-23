@@ -6,6 +6,7 @@
  * @date 03/2024
  */
 
+#include "constants.hpp"
 #include "micras/micras_controller.hpp"
 #include "target.hpp"
 
@@ -23,13 +24,10 @@ MicrasController::MicrasController() :
     locomotion{locomotion_config},
     rotary_sensor_left{rotary_sensor_left_config},
     rotary_sensor_right{rotary_sensor_right_config},
-    torque_sensors{torque_sensors_config} { }
+    torque_sensors{torque_sensors_config},
+    odometry{rotary_sensor_left, rotary_sensor_right, timer_config, wheel_radius, wheel_separation} { }
 
 void MicrasController::run() {
-    if (button.is_pressed()) {
-        led.turn_on();
-    } else {
-        led.turn_off();
-    }
+    odometry.update();
 }
 }  // namespace micras
