@@ -234,6 +234,11 @@ const proxy::Battery::Config battery_config = {
     .voltage_divider = 3.0F
 };
 
+const hal::Timer::Config timer_config = {
+    .init_function = MX_TIM6_Init,
+    .handle = &htim6
+};
+
 /*****************************************
  * Actuators
  *****************************************/
