@@ -14,14 +14,14 @@
 namespace micras::nav {
 Odometry::Odometry(
     const proxy::RotarySensor& left_rotary_sensor, const proxy::RotarySensor& right_rotary_sensor,
-    hal::Timer::Config timer_config, float wheel_radius, float wheel_separation
+    hal::Timer::Config timer_config, float wheel_radius, float wheels_distance
 ) :
 
     left_rotary_sensor{left_rotary_sensor},
     right_rotary_sensor{right_rotary_sensor},
     timer{timer_config},
     wheel_radius{wheel_radius},
-    wheel_separation{wheel_separation} {
+    wheels_distance{wheels_distance} {
     this->left_last_position = this->left_rotary_sensor.get_position();
     this->right_last_position = this->right_rotary_sensor.get_position();
 }
@@ -44,7 +44,7 @@ void Odometry::update() {
     this->right_last_position = right_position;
 
     float linear_distance = (left_distance + right_distance) / 2;
-    float angular_distance = (right_distance - left_distance) / this->wheel_separation;
+    float angular_distance = (right_distance - left_distance) / this->wheels_distance;
     float linear_diagonal{};
 
     if (angular_distance < 0.05) {

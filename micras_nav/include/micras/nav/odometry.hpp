@@ -27,7 +27,7 @@ public:
      */
     Odometry(
         const proxy::RotarySensor& left_rotary_sensor, const proxy::RotarySensor& right_rotary_sensor,
-        hal::Timer::Config timer_config, float wheel_radius, float wheel_separation
+        hal::Timer::Config timer_config, float wheel_radius, float wheels_distance
     );
 
     /**
@@ -94,7 +94,7 @@ private:
     /**
      * @brief Robot width
      */
-    const float wheel_separation;
+    const float wheels_distance;
 
     /**
      * @brief Last left rotary sensor position
