@@ -25,7 +25,7 @@ MicrasController::MicrasController() :
     rotary_sensor_left{rotary_sensor_left_config},
     rotary_sensor_right{rotary_sensor_right_config},
     torque_sensors{torque_sensors_config},
-    odometry{rotary_sensor_left, rotary_sensor_right, timer_config, wheel_radius, wheel_separation} { }
+    odometry{rotary_sensor_left, rotary_sensor_right, timer_config, wheel_radius, wheels_distance} { }
 
 void MicrasController::run() {
     odometry.update();
