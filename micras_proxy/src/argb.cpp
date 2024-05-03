@@ -14,7 +14,10 @@
 namespace micras::proxy {
 template <uint8_t num_of_leds>
 Argb<num_of_leds>::Argb(const Config& config) :
-    pwm{config.pwm}, low_bit{pwm.get_compare(low_duty_cycle)}, high_bit{pwm.get_compare(high_duty_cycle)} { }
+    pwm{config.pwm},
+    low_bit{pwm.get_compare(low_duty_cycle)},
+    high_bit{pwm.get_compare(high_duty_cycle)},
+    brightness{config.max_brightness / 100.0F} { }
 
 template <uint8_t num_of_leds>
 void Argb<num_of_leds>::set_color(const Color& color, uint8_t index) {
@@ -22,14 +25,14 @@ void Argb<num_of_leds>::set_color(const Color& color, uint8_t index) {
         return;
     }
 
-    this->encode_color(color, index);
+    this->encode_color(color * this->brightness, index);
     this->pwm.start_dma(this->buffer.data(), this->buffer.size());
 }
 
 template <uint8_t num_of_leds>
 void Argb<num_of_leds>::set_color(const Color& color) {
     for (uint8_t i = 0; i < num_of_leds; i++) {
-        this->encode_color(color, i);
+        this->encode_color(color * this->brightness, i);
     }
 
     this->pwm.start_dma(this->buffer.data(), this->buffer.size());

@@ -44,7 +44,8 @@ const proxy::Argb<2>::Config argb_config = {
         .init_function = MX_TIM8_Init,
         .handle = &htim8,
         .timer_channel = TIM_CHANNEL_1
-    }
+    },
+    .max_brightness = 20.0F
 };
 
 const proxy::Button::Config button_config = {
