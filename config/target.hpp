@@ -45,7 +45,7 @@ const proxy::Argb<2>::Config argb_config = {
         .handle = &htim8,
         .timer_channel = TIM_CHANNEL_1
     },
-    .max_brightness = 20.0F
+    .max_brightness = 10.0F
 };
 
 const proxy::Button::Config button_config = {
