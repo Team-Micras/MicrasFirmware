@@ -19,9 +19,19 @@ static volatile float orientation[3]{};
 
 int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);
-    proxy::Imu imu{imu_config};
+    proxy::Imu     imu{imu_config};
+    proxy::Argb<2> argb{argb_config};
 
-    while (true) {
+    if (imu.check_whoami()) {
+        argb.set_color({0, 255, 0});  // green
+
+    } else {
+        argb.set_color({255, 0, 0});  // red
+
+        while (true) { }
+    }
+
+    TestCore::loop([&imu]() {
         angular_velocity[0] = imu.get_angular_velocity(proxy::Imu::Axis::X);
         angular_velocity[1] = imu.get_angular_velocity(proxy::Imu::Axis::Y);
         angular_velocity[2] = imu.get_angular_velocity(proxy::Imu::Axis::Z);
@@ -33,7 +43,7 @@ int main(int argc, char* argv[]) {
         orientation[0] = imu.get_orientation(proxy::Imu::Axis::X);
         orientation[1] = imu.get_orientation(proxy::Imu::Axis::Y);
         orientation[2] = imu.get_orientation(proxy::Imu::Axis::Z);
-    }
+    });
 
     return 0;
 }

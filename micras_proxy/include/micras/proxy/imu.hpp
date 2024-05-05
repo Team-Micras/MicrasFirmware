@@ -50,6 +50,13 @@ public:
     };
 
     /**
+     * @brief Check the IMU device
+     *
+     * @return bool true if the device is correct, false otherwise
+     */
+    bool check_whoami();
+
+    /**
      * @brief Update the IMU data
      */
     void update_data();

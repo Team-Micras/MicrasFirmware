@@ -22,7 +22,11 @@ Imu::Imu(const Config& config) :
     this->dev_ctx.write_reg = platform_write;
     this->dev_ctx.handle = &this->spi;
 
-    hal::Timer::sleep_ms(10);
+    hal::Timer::sleep_ms(100);
+
+    if (not this->check_whoami()) {
+        return;
+    }
 
     lsm6dsv_reset_set(&(this->dev_ctx), LSM6DSV_RESTORE_CTRL_REGS);
 
@@ -56,6 +60,14 @@ Imu::Imu(const Config& config) :
     lsm6dsv_filt_xl_lp2_bandwidth_set(&(this->dev_ctx), config.accelerometer_filter);
 
     lsm6dsv_sflp_game_rotation_set(&dev_ctx, PROPERTY_ENABLE);
+}
+
+bool Imu::check_whoami() {
+    uint8_t whoami;
+
+    lsm6dsv_device_id_get(&(this->dev_ctx), &whoami);
+
+    return whoami == LSM6DSV_ID;
 }
 
 void Imu::update_data() {
