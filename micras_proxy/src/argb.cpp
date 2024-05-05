@@ -17,7 +17,9 @@ Argb<num_of_leds>::Argb(const Config& config) :
     pwm{config.pwm},
     low_bit{pwm.get_compare(low_duty_cycle)},
     high_bit{pwm.get_compare(high_duty_cycle)},
-    brightness{config.max_brightness / 100.0F} { }
+    brightness{config.max_brightness / 100.0F} {
+    this->set_color({0, 0, 0});
+}
 
 template <uint8_t num_of_leds>
 void Argb<num_of_leds>::set_color(const Color& color, uint8_t index) {
