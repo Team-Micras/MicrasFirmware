@@ -19,14 +19,17 @@ static volatile float orientation[3]{};
 
 int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);
+
     proxy::Imu     imu{imu_config};
     proxy::Argb<2> argb{argb_config};
 
+    hal::Timer::sleep_ms(2);
+
     if (imu.check_whoami()) {
-        argb.set_color({0, 255, 0});  // green
+        argb.set_color({0, 255, 0});
 
     } else {
-        argb.set_color({255, 0, 0});  // red
+        argb.set_color({255, 0, 0});
 
         while (true) { }
     }
