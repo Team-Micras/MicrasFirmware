@@ -65,6 +65,11 @@ private:
     std::array<uint16_t, num_of_sensors> buffer;
 
     /**
+     * @brief Reading of each sensor when no current is flowing
+     */
+    std::array<uint16_t, num_of_sensors> base_reading;
+
+    /**
      * @brief Value of the shunt resistor in ohms
      */
     const float shunt_resistor;
