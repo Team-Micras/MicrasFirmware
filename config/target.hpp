@@ -257,13 +257,13 @@ const proxy::Fan::Config fan_config = {
 
 const proxy::Locomotion::Config locomotion_config = {
     .pwm_left_forward = {
-        .init_function = MX_TIM4_Init,
-        .handle = &htim4,
+        .init_function = MX_TIM3_Init,
+        .handle = &htim3,
         .timer_channel = TIM_CHANNEL_4
     },
     .pwm_left_backwards = {
-        .init_function = MX_TIM4_Init,
-        .handle = &htim4,
+        .init_function = MX_TIM3_Init,
+        .handle = &htim3,
         .timer_channel = TIM_CHANNEL_3
     },
     .pwm_right_forward = {
