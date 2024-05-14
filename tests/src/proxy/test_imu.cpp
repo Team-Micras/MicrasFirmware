@@ -35,6 +35,8 @@ int main(int argc, char* argv[]) {
     }
 
     TestCore::loop([&imu]() {
+        imu.update_data();
+
         angular_velocity[0] = imu.get_angular_velocity(proxy::Imu::Axis::X);
         angular_velocity[1] = imu.get_angular_velocity(proxy::Imu::Axis::Y);
         angular_velocity[2] = imu.get_angular_velocity(proxy::Imu::Axis::Z);
