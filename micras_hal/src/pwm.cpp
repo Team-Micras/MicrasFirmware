@@ -18,7 +18,7 @@ Pwm::Pwm(const Config& config) : handle{config.handle}, channel{config.timer_cha
 }
 
 void Pwm::set_duty_cycle(float duty_cycle) {
-    uint32_t compare = std::lround((duty_cycle * (__HAL_TIM_GET_AUTORELOAD(this->handle) + 1) / 100) - 1);
+    uint32_t compare = std::lround((duty_cycle * (__HAL_TIM_GET_AUTORELOAD(this->handle) + 1) / 100));
     __HAL_TIM_SET_COMPARE(this->handle, this->channel, compare);
 }
 
