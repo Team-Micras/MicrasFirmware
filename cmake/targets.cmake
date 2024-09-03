@@ -68,7 +68,7 @@ function(targets_generate_format_target)
         list(APPEND FILES_LIST ${${FILE}})
     endforeach()
     add_custom_target(format
-        COMMAND clang-format -style=file -i ${FILES_LIST}
+        COMMAND clang-format -style=file -i ${FILES_LIST} --verbose
     )
 endfunction()
 
