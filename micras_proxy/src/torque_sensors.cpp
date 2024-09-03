@@ -21,7 +21,7 @@ TorqueSensors<num_of_sensors>::TorqueSensors(const Config& config) :
     hal::Timer::sleep_ms(2);
 
     for (uint8_t i = 0; i < num_of_sensors; i++) {
-        this->base_reading.at(i) = this->base_reading.at(i);
+        this->base_reading.at(i) = this->buffer.at(i);
     }
 }
 
@@ -32,7 +32,8 @@ float TorqueSensors<num_of_sensors>::get_torque(uint8_t sensor_index) const {
 
 template <uint8_t num_of_sensors>
 float TorqueSensors<num_of_sensors>::get_current(uint8_t sensor_index) const {
-    return this->adc.reference_voltage * (this->buffer.at(sensor_index) / this->adc.max_reading - 0.5F) /
+    return this->adc.reference_voltage *
+           ((this->buffer.at(sensor_index) - this->base_reading.at(sensor_index)) / this->adc.max_reading - 0.5F) /
            this->shunt_resistor;
 }
 }  // namespace micras::proxy
