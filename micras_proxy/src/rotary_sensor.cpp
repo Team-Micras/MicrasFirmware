@@ -50,7 +50,7 @@ float RotarySensor::get_position() const {
 }
 
 uint16_t RotarySensor::read_register(uint16_t address) {
-    CommandFrame command_frame = {{.rw = 1, .address = address}};
+    CommandFrame command_frame = {{.do_not_care = 0, .rw = 1, .address = address, .crc = 0}};
     DataFrame    data_frame;
 
     command_frame.fields.crc = this->crc.calculate(&command_frame.raw, 2) ^ 0xFF;
