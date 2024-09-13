@@ -10,12 +10,12 @@
 
 using namespace micras;  // NOLINT(google-build-using-namespace)
 
-// NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables, *-avoid-c-arrays)
+// NOLINTBEGIN(*-avoid-c-arrays)
 static volatile float test_angular_velocity[3]{};
 static volatile float test_linear_acceleration[3]{};
 static volatile float test_orientation[3]{};
 
-// NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables, *-avoid-c-arrays)
+// NOLINTEND(*-avoid-c-arrays)
 
 int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);

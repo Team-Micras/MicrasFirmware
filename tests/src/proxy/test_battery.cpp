@@ -10,13 +10,13 @@
 
 using namespace micras;  // NOLINT(google-build-using-namespace)
 
-static volatile float battery_voltage{};  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+static volatile float test_battery_voltage{};
 
 int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);
     proxy::Battery battery{battery_config};
 
-    TestCore::loop([&battery]() { battery_voltage = battery.get_voltage(); });
+    TestCore::loop([&battery]() { test_battery_voltage = battery.get_voltage(); });
 
     return 0;
 }

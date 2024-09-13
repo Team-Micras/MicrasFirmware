@@ -10,7 +10,7 @@
 
 using namespace micras;  // NOLINT(google-build-using-namespace)
 
-static volatile uint8_t test_dip_switch_value{};  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+static volatile uint8_t test_dip_switch_value{};
 
 int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);
