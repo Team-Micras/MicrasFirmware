@@ -16,13 +16,18 @@ Imu::Imu(const Config& config) :
     spi{config.spi},
     gy_factor{
         mdps_to_radps * 4.375F *
-        (1 << (config.gyroscope_scale == LSM6DSV_4000dps ? 5 : static_cast<uint8_t>(config.gyroscope_scale)))},
+        (1 << (config.gyroscope_scale == LSM6DSV_4000dps ? 5 : static_cast<uint8_t>(config.gyroscope_scale)))
+    },
     xl_factor{mg_to_mps2 * (0.61F * (1 << static_cast<uint8_t>(config.accelerometer_scale)))} {
     this->dev_ctx.read_reg = platform_read;
     this->dev_ctx.write_reg = platform_write;
     this->dev_ctx.handle = &this->spi;
 
-    hal::Timer::sleep_ms(10);
+    hal::Timer::sleep_ms(100);
+
+    if (not this->check_whoami()) {
+        return;
+    }
 
     lsm6dsv_reset_set(&(this->dev_ctx), LSM6DSV_RESTORE_CTRL_REGS);
 
@@ -56,6 +61,14 @@ Imu::Imu(const Config& config) :
     lsm6dsv_filt_xl_lp2_bandwidth_set(&(this->dev_ctx), config.accelerometer_filter);
 
     lsm6dsv_sflp_game_rotation_set(&dev_ctx, PROPERTY_ENABLE);
+}
+
+bool Imu::check_whoami() {
+    uint8_t whoami;
+
+    lsm6dsv_device_id_get(&(this->dev_ctx), &whoami);
+
+    return whoami == LSM6DSV_ID;
 }
 
 void Imu::update_data() {
@@ -209,25 +222,22 @@ void Imu::update_orientation(const uint16_t sflp[3]) {
     this->orientation[2] = std::atan2(sinp, cosp);
 }
 
-// NOLINTBEGIN(readability-identifier-length, readability-implicit-bool-conversion)
-float Imu::half_to_float(uint16_t x) {
-    static constexpr auto as_float = [](uint32_t x) -> float {
-        void* aux = &x;
+float Imu::half_to_float(uint16_t n) {
+    static constexpr auto as_float = [](uint32_t n) -> float {
+        void* aux = &n;
         return *reinterpret_cast<float*>(aux);
     };
-    static constexpr auto as_uint = [](float x) -> uint32_t {
-        void* aux = &x;
+    static constexpr auto as_uint = [](float n) -> uint32_t {
+        void* aux = &n;
         return *reinterpret_cast<uint32_t*>(aux);
     };
 
-    const uint32_t e = (x & 0x7C00) >> 10;
-    const uint32_t m = (x & 0x03FF) << 13;
+    const uint32_t e = (n & 0x7C00) >> 10;
+    const uint32_t m = (n & 0x03FF) << 13;
     const uint32_t v = as_uint(static_cast<float>(m)) >> 23;
     return as_float(
-        (x & 0x8000) << 16 | (e != 0) * ((e + 112) << 23 | m) |
+        (n & 0x8000) << 16 | (e != 0) * ((e + 112) << 23 | m) |
         ((e == 0) & (m != 0)) * ((v - 37) << 23 | ((m << (150 - v)) & 0x007FE000))
     );
 }
-
-// NOLINTEND(readability-identifier-length, readability-implicit-bool-conversion)
 }  // namespace micras::proxy

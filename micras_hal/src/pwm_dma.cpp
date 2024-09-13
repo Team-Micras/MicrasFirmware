@@ -18,7 +18,7 @@ PwmDma::PwmDma(const Config& config) : handle{config.handle}, channel{config.tim
 // NOLINTNEXTLINE(*-avoid-c-arrays)
 void PwmDma::start_dma(uint32_t buffer[], uint32_t size) {
     if (TIM_CHANNEL_STATE_GET(this->handle, this->channel) == HAL_TIM_CHANNEL_STATE_BUSY) {
-        HAL_TIM_PWM_Stop_DMA(this->handle, this->channel);
+        return;
     }
 
     HAL_TIM_PWM_Start_DMA(this->handle, this->channel, buffer, size);

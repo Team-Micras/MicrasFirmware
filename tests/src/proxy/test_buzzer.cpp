@@ -95,6 +95,7 @@ int main(int argc, char* argv[]) {
         buzzer.play(987, 133);
         buzzer.wait(333);
         buzzer.play(987, 133);
+        buzzer.wait(0);
     });
 
     return 0;

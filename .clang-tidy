@@ -23,6 +23,8 @@ Checks:
   readability-*,
   -readability-duplicate-include,
   -readability-magic-numbers,
+CheckOptions:
+  cppcoreguidelines-avoid-non-const-global-variables.AllowInternalLinkage: true
 WarningsAsErrors: ''
 HeaderFilterRegex: '(include|config)/.*.hpp'
 AnalyzeTemporaryDtors: false

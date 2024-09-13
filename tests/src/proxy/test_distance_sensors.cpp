@@ -10,7 +10,7 @@
 
 using namespace micras;  // NOLINT(google-build-using-namespace)
 
-static volatile float distance[4];  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables, *-avoid-c-arrays)
+static volatile float test_distance[4];  // NOLINT(*-avoid-c-arrays)
 
 int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);
@@ -18,7 +18,7 @@ int main(int argc, char* argv[]) {
 
     TestCore::loop([&distance_sensors]() {
         for (uint8_t i = 0; i < 4; i++) {
-            distance[i] = distance_sensors.get_distance(i);
+            test_distance[i] = distance_sensors.get_distance(i);
         }
     });
 

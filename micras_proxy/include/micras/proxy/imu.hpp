@@ -50,6 +50,13 @@ public:
     };
 
     /**
+     * @brief Check the IMU device
+     *
+     * @return bool true if the device is correct, false otherwise
+     */
+    bool check_whoami();
+
+    /**
      * @brief Update the IMU data
      */
     void update_data();
@@ -116,11 +123,11 @@ private:
     /**
      * @brief Function to convert half precision float to single precision float
      *
-     * @param x Half precision float
+     * @param n Half precision float
      *
      * @return float Single precision float
      */
-    static float half_to_float(uint16_t x);  // NOLINT(readability-identifier-length)
+    static float half_to_float(uint16_t n);
 
     /**
      * @brief Conversion constants

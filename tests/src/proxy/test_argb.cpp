@@ -10,8 +10,6 @@
 
 using namespace micras;  // NOLINT(google-build-using-namespace)
 
-void test_argb_init() { }
-
 int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);
 

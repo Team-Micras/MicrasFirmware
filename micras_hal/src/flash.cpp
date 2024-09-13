@@ -6,6 +6,8 @@
  * @date 03/2024
  */
 
+#include <bit>
+
 #include "micras/hal/flash.hpp"
 
 namespace micras::hal {
@@ -20,7 +22,7 @@ void Flash::read(uint32_t address, uint64_t data[], uint32_t size) {
     uint32_t end = base_address - 8 * address;
 
     for (address = end - 8 * (size - 1); address <= end; address += 8, data++) {
-        (*data) = *(reinterpret_cast<uint64_t*>(address));  // NOLINT(performance-no-int-to-ptr)
+        (*data) = *(std::bit_cast<uint64_t*>(address));
     }
 }
 
@@ -38,8 +40,7 @@ void Flash::write(uint32_t address, const uint64_t data[], uint32_t size) {
 
     while (address <= end) {
         if (size >= double_words_per_row) {
-            // NOLINTNEXTLINE(clang-diagnostic-pointer-to-int-cast)
-            HAL_FLASH_Program(FLASH_TYPEPROGRAM_FAST, address, reinterpret_cast<uint32_t>(data));
+            HAL_FLASH_Program(FLASH_TYPEPROGRAM_FAST, address, std::bit_cast<uint32_t>(data));
             address += bytes_per_row;
             data += double_words_per_row;
             size -= double_words_per_row;
