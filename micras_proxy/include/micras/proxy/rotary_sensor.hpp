@@ -34,21 +34,6 @@ public:
         Registers            registers;
     };
 
-    /**
-     * @brief Construct a new RotarySensor object
-     *
-     * @param config Configuration for the rotary sensor
-     */
-    explicit RotarySensor(const Config& config);
-
-    /**
-     * @brief Get the rotary sensor position over an axis
-     *
-     * @return float Current angular position of the sensor in radians
-     */
-    float get_position() const;
-
-private:
     union CommandFrame {
         struct Fields {
             uint8_t  do_not_care : 1;
@@ -74,6 +59,27 @@ private:
     };
 
     /**
+     * @brief Construct a new RotarySensor object
+     *
+     * @param config Configuration for the rotary sensor
+     */
+    explicit RotarySensor(const Config& config);
+
+    /**
+     * @brief Get the rotary sensor position over an axis
+     *
+     * @return float Current angular position of the sensor in radians
+     */
+    float get_position() const;
+
+    /**
+     * @brief Read a register to the rotary sensor
+     *
+     * @param command_frame Command frame to send trough SPI
+     */
+    uint16_t read_register(uint16_t address);
+
+    /**
      * @brief Write a register to the rotary sensor
      *
      * @param command_frame Command frame to send trough SPI
@@ -81,6 +87,7 @@ private:
      */
     void write_register(CommandFrame& command_frame, DataFrame& data_frame);
 
+private:
     /**
      * @brief SPI for the rotary sensor configuration
      */

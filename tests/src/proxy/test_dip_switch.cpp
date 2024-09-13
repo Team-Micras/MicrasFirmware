@@ -10,7 +10,7 @@
 
 using namespace micras;  // NOLINT(google-build-using-namespace)
 
-static volatile uint8_t dip_switch_value{};  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+static volatile uint8_t test_dip_switch_value{};
 
 int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);
@@ -20,7 +20,7 @@ int main(int argc, char* argv[]) {
 
     TestCore::loop([&dip_switch, &argb, &color]() {
         color = {0, 0, 0};
-        dip_switch_value = dip_switch.get_switches_value();
+        test_dip_switch_value = dip_switch.get_switches_value();
 
         if (dip_switch.get_switch_state(0)) {
             color.red = 127;

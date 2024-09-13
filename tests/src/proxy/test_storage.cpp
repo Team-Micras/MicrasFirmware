@@ -99,9 +99,9 @@ int main(int argc, char* argv[]) {
         while (button.get_status() == proxy::Button::Status::NO_PRESS) { }
 
         if (test_bool_0 != test_bool_1) {
-            argb.set_color({200, 0, 0});
+            argb.set_color({255, 0, 0});
         } else {
-            argb.set_color({0, 200, 0});
+            argb.set_color({0, 255, 0});
         }
 
         hal::Timer::sleep_ms(500);
@@ -109,9 +109,9 @@ int main(int argc, char* argv[]) {
         hal::Timer::sleep_ms(500);
 
         if (test_uint16_0 != test_uint16_1) {
-            argb.set_color({200, 0, 0});
+            argb.set_color({255, 0, 0});
         } else {
-            argb.set_color({0, 200, 0});
+            argb.set_color({0, 255, 0});
         }
 
         hal::Timer::sleep_ms(500);
@@ -119,9 +119,9 @@ int main(int argc, char* argv[]) {
         hal::Timer::sleep_ms(500);
 
         if (test_float_0 != test_float_1) {
-            argb.set_color({200, 0, 0});
+            argb.set_color({255, 0, 0});
         } else {
-            argb.set_color({0, 200, 0});
+            argb.set_color({0, 255, 0});
         }
 
         hal::Timer::sleep_ms(500);
@@ -129,9 +129,9 @@ int main(int argc, char* argv[]) {
         hal::Timer::sleep_ms(500);
 
         if (test_serializable_0 != test_serializable_1) {
-            argb.set_color({200, 0, 0});
+            argb.set_color({255, 0, 0});
         } else {
-            argb.set_color({0, 200, 0});
+            argb.set_color({0, 255, 0});
         }
 
         hal::Timer::sleep_ms(500);
