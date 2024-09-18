@@ -24,12 +24,12 @@ endif()
 
 # Set CubeMX and JLink executables
 if(CMAKE_HOST_WIN32)
-    set(JAVA_EXE "$ENV{CUBE_PATH}\\STM32CubeMX.exe")
-    set(CUBE_JAR "$ENV{CUBE_PATH}\\jre\\bin\\java.exe")
-    set(JLINK_EXE JLink.exe)
-else()
     set(JAVA_EXE "$ENV{CUBE_PATH}\\jre\\bin\\java.exe")
     set(CUBE_JAR "$ENV{CUBE_PATH}\\STM32CubeMX.exe")
+    set(JLINK_EXE JLink.exe)
+else()
+    set(JAVA_EXE $ENV{CUBE_PATH}/jre/bin/java)
+    set(CUBE_JAR $ENV{CUBE_PATH}/STM32CubeMX)
     set(JLINK_EXE JLinkExe)
 endif()
 
