@@ -27,13 +27,14 @@ TorqueSensors<num_of_sensors>::TorqueSensors(const Config& config) :
 
 template <uint8_t num_of_sensors>
 float TorqueSensors<num_of_sensors>::get_torque(uint8_t sensor_index) const {
-    return this->buffer.at(sensor_index) * TorqueSensors::max_torque / this->adc.max_reading;
+    return this->buffer.at(sensor_index) * TorqueSensors::max_torque / this->adc.get_max_reading();
 }
 
 template <uint8_t num_of_sensors>
 float TorqueSensors<num_of_sensors>::get_current(uint8_t sensor_index) const {
-    return this->adc.reference_voltage *
-           ((this->buffer.at(sensor_index) - this->base_reading.at(sensor_index)) / this->adc.max_reading - 0.5F) /
+    return this->adc.get_reference_voltage() *
+           ((this->buffer.at(sensor_index) - this->base_reading.at(sensor_index)) / this->adc.get_max_reading() - 0.5F
+           ) /
            this->shunt_resistor;
 }
 }  // namespace micras::proxy

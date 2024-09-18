@@ -102,14 +102,14 @@ private:
     /**
      * @brief Button pressing delays in ms
      */
-    const uint16_t debounce_delay;
-    const uint16_t long_press_delay;
-    const uint16_t extra_long_press_delay;
+    uint16_t debounce_delay;
+    uint16_t long_press_delay;
+    uint16_t extra_long_press_delay;
 
     /**
      * @brief Gpio object for button
      */
-    const hal::Gpio gpio;
+    hal::Gpio gpio;
 
     /**
      * @brief Pull resistor configuration

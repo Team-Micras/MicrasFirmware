@@ -127,7 +127,7 @@ private:
      *
      * @return float Single precision float
      */
-    static float half_to_float(uint16_t n);
+    static float half_to_float(uint16_t x);
 
     /**
      * @brief Conversion constants
@@ -163,12 +163,12 @@ private:
     /**
      * @brief Gyroscope conversion factor
      */
-    const float gy_factor;
+    float gy_factor;
 
     /**
      * @brief Accelerometer conversion factor
      */
-    const float xl_factor;
+    float xl_factor;
 };
 }  // namespace micras::proxy
 

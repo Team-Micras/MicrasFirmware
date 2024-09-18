@@ -9,6 +9,7 @@
 #ifndef MICRAS_PROXY_STORAGE_HPP
 #define MICRAS_PROXY_STORAGE_HPP
 
+#include <bit>
 #include <cstdint>
 #include <string>
 #include <type_traits>
@@ -19,7 +20,7 @@
 
 namespace micras::proxy {
 template <typename T>
-concept Fundamental = std::is_fundamental<T>::value;
+concept Fundamental = std::is_fundamental_v<T>;
 
 /**
  * @brief Class for controlling the storage
@@ -72,7 +73,7 @@ public:
     template <Fundamental T>
     void sync(const std::string& name, T& data) {
         if (this->primitives.contains(name) and this->primitives.at(name).ram_pointer == nullptr) {
-            data = reinterpret_cast<T&>(this->buffer.at(this->primitives.at(name).buffer_address));
+            data = std::bit_cast<T&>(this->buffer.at(this->primitives.at(name).buffer_address));
         }
 
         this->create<T>(name, data);

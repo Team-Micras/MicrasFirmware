@@ -72,15 +72,15 @@ private:
     /**
      * @brief Value of the shunt resistor in ohms
      */
-    const float shunt_resistor;
+    float shunt_resistor;
 
     /**
      * @brief Maximum torque that can be measured by the sensor
      */
-    const float max_torque;
+    float max_torque;
 };
 }  // namespace micras::proxy
 
-#include "../src/torque_sensors.cpp"  // NOLINT(bugprone-suspicious-include)
+#include "../src/torque_sensors.cpp"  // NOLINT(bugprone-suspicious-include, misc-header-include-cycle)
 
 #endif  // MICRAS_PROXY_TORQUE_SENSORS_HPP

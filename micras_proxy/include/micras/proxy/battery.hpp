@@ -62,7 +62,7 @@ private:
     /**
      * @brief Voltage divider ratio
      */
-    const float voltage_divider;
+    float voltage_divider;
 };
 }  // namespace micras::proxy
 

@@ -12,7 +12,7 @@
 namespace micras {
 constexpr float wheel_radius{0.0105};  // meters
 
-constexpr float wheels_distance{0.0585};  // meters
+constexpr float wheel_separation{0.0585};  // meters
 
 }  // namespace micras
 

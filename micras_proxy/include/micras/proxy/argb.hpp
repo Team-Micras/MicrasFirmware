@@ -95,8 +95,8 @@ private:
     static constexpr uint8_t bits_per_color{8};
     static constexpr uint8_t colors_per_led{3};
     static constexpr uint8_t bits_per_led{bits_per_color * colors_per_led};
-    static constexpr float   low_duty_cycle{32.0F};
-    static constexpr float   high_duty_cycle{64.0F};
+    static constexpr float   low_duty_cycle{32.0F};   // NOLINT(bugprone-dynamic-static-initializers)
+    static constexpr float   high_duty_cycle{64.0F};  // NOLINT(bugprone-dynamic-static-initializers)
     static constexpr uint8_t reset_length{225};
 
     /**
@@ -107,17 +107,17 @@ private:
     /**
      * @brief PWM autoreload value for the low signal
      */
-    const uint32_t low_bit;
+    uint32_t low_bit;
 
     /**
      * @brief PWM autoreload value for the high signal
      */
-    const uint32_t high_bit;
+    uint32_t high_bit;
 
     /**
      * @brief Maximum brightness of the addressable RGB LED
      */
-    const float brightness;
+    float brightness;
 
     /**
      * @brief Data buffer to send to the addressable RGB LED
@@ -126,6 +126,6 @@ private:
 };
 }  // namespace micras::proxy
 
-#include "../src/argb.cpp"  // NOLINT(bugprone-suspicious-include)
+#include "../src/argb.cpp"  // NOLINT(bugprone-suspicious-include, misc-header-include-cycle)
 
 #endif  // MICRAS_PROXY_ARGB_HPP

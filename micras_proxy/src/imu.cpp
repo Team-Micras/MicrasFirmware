@@ -7,6 +7,7 @@
  */
 
 #include <cmath>
+#include <numbers>
 
 #include "micras/hal/timer.hpp"
 #include "micras/proxy/imu.hpp"
@@ -64,7 +65,7 @@ Imu::Imu(const Config& config) :
 }
 
 bool Imu::check_whoami() {
-    uint8_t whoami;
+    uint8_t whoami = 0;
 
     lsm6dsv_device_id_get(&(this->dev_ctx), &whoami);
 
@@ -84,7 +85,7 @@ void Imu::update_data() {
     while ((samples--) > 0) {
         lsm6dsv_fifo_out_raw_t f_data;
         lsm6dsv_fifo_out_raw_get(&(this->dev_ctx), &f_data);
-        auto* axis = reinterpret_cast<int16_t*>(f_data.data);
+        auto* axis = reinterpret_cast<int16_t*>(f_data.data);  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
 
         switch (f_data.tag) {
             case lsm6dsv_fifo_out_raw_t::LSM6DSV_GY_NC_TAG:
@@ -100,7 +101,7 @@ void Imu::update_data() {
                 break;
 
             case lsm6dsv_fifo_out_raw_t::LSM6DSV_SFLP_GAME_ROTATION_VECTOR_TAG:
-                this->update_orientation(reinterpret_cast<uint16_t*>(axis));
+                this->update_orientation(std::bit_cast<uint16_t*>(axis));
                 break;
 
             default:
@@ -214,7 +215,7 @@ void Imu::update_orientation(const uint16_t sflp[3]) {
     // pitch (y-axis rotation)
     sinp = std::sqrt(1 + 2 * (quat[3] * quat[1] - quat[0] * quat[2]));
     cosp = std::sqrt(1 - 2 * (quat[3] * quat[1] - quat[0] * quat[2]));
-    this->orientation[1] = 2 * std::atan2(sinp, cosp) - M_PI / 2;
+    this->orientation[1] = 2 * std::atan2(sinp, cosp) - std::numbers::pi_v<float> / 2;
 
     // yaw (z-axis rotation)
     sinp = 2 * (quat[3] * quat[2] + quat[0] * quat[1]);
@@ -222,22 +223,23 @@ void Imu::update_orientation(const uint16_t sflp[3]) {
     this->orientation[2] = std::atan2(sinp, cosp);
 }
 
-float Imu::half_to_float(uint16_t n) {
-    static constexpr auto as_float = [](uint32_t n) -> float {
-        void* aux = &n;
-        return *reinterpret_cast<float*>(aux);
+// NOLINTBEGIN(readability-identifier-length, readability-implicit-bool-conversion)
+float Imu::half_to_float(uint16_t x) {
+    static constexpr auto as_float = [](uint32_t x) -> float {
+        void* aux = &x;
+        return *std::bit_cast<float*>(aux);
     };
-    static constexpr auto as_uint = [](float n) -> uint32_t {
-        void* aux = &n;
-        return *reinterpret_cast<uint32_t*>(aux);
+    static constexpr auto as_uint = [](float x) -> uint32_t {
+        void* aux = &x;
+        return *std::bit_cast<uint32_t*>(aux);
     };
 
-    const uint32_t e = (n & 0x7C00) >> 10;
-    const uint32_t m = (n & 0x03FF) << 13;
+    const uint32_t e = (x & 0x7C00) >> 10;
+    const uint32_t m = (x & 0x03FF) << 13;
     const uint32_t v = as_uint(static_cast<float>(m)) >> 23;
     return as_float(
-        (n & 0x8000) << 16 | (e != 0) * ((e + 112) << 23 | m) |
+        (x & 0x8000) << 16 | (e != 0) * ((e + 112) << 23 | m) |
         ((e == 0) & (m != 0)) * ((v - 37) << 23 | ((m << (150 - v)) & 0x007FE000))
     );
-}
+}  // NOLINTEND(readability-identifier-length, readability-implicit-bool-conversion)
 }  // namespace micras::proxy

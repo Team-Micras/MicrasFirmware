@@ -6,6 +6,8 @@
  * @date 03/2024
  */
 
+#include <bit>
+
 #include "micras/hal/adc_dma.hpp"
 
 namespace micras::hal {
@@ -22,10 +24,18 @@ void AdcDma::start_dma(uint32_t buffer[], uint32_t size) {
 
 // NOLINTNEXTLINE(*-avoid-c-arrays)
 void AdcDma::start_dma(uint16_t buffer[], uint32_t size) {
-    this->start_dma(reinterpret_cast<uint32_t*>(buffer), size);
+    this->start_dma(std::bit_cast<uint32_t*>(buffer), size);
 }
 
 void AdcDma::stop_dma() {
     HAL_ADC_Stop_DMA(this->handle);
+}
+
+uint16_t AdcDma::get_max_reading() const {
+    return this->max_reading;
+}
+
+float AdcDma::get_reference_voltage() const {
+    return this->reference_voltage;
 }
 }  // namespace micras::hal

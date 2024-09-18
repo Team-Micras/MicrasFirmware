@@ -27,7 +27,7 @@ public:
      */
     Odometry(
         const proxy::RotarySensor& left_rotary_sensor, const proxy::RotarySensor& right_rotary_sensor,
-        hal::Timer::Config timer_config, float wheel_radius, float wheels_distance
+        hal::Timer::Config timer_config, float wheel_radius, float wheel_separation
     );
 
     /**
@@ -74,12 +74,12 @@ private:
     /**
      * @brief Left rotary sensor
      */
-    const proxy::RotarySensor& left_rotary_sensor;
+    const proxy::RotarySensor& left_rotary_sensor;  // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
 
     /**
      * @brief Right rotary sensor
      */
-    const proxy::RotarySensor& right_rotary_sensor;
+    const proxy::RotarySensor& right_rotary_sensor;  // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
 
     /**
      * @brief Timer for velocity calculation
@@ -89,12 +89,12 @@ private:
     /**
      * @brief Wheel radius
      */
-    const float wheel_radius;
+    float wheel_radius;
 
     /**
      * @brief Robot width
      */
-    const float wheels_distance;
+    float wheel_separation;
 
     /**
      * @brief Last left rotary sensor position

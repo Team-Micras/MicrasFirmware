@@ -6,6 +6,8 @@
  * @date 03/2024
  */
 
+#include <bit>
+
 #include "micras/hal/flash.hpp"
 #include "micras/proxy/storage.hpp"
 
@@ -23,7 +25,7 @@ Storage::Storage(const Config& config) : start_page{config.start_page}, number_o
     uint16_t num_serializables = header;
 
     this->buffer.resize(8L * total_size);
-    hal::Flash::read(this->start_page, 1, reinterpret_cast<uint64_t*>(this->buffer.data()), total_size);
+    hal::Flash::read(this->start_page, 1, std::bit_cast<uint64_t*>(this->buffer.data()), total_size);
 
     this->primitives = deserialize_var_map<PrimitiveVariable>(this->buffer, num_primitives);
     this->serializables = deserialize_var_map<SerializableVariable>(this->buffer, num_serializables);
@@ -52,7 +54,7 @@ void Storage::save() {
             continue;
         }
 
-        const auto* aux = reinterpret_cast<const uint8_t*>(variable.ram_pointer);
+        const auto* aux = std::bit_cast<const uint8_t*>(variable.ram_pointer);
         variable.buffer_address = buffer.size();
         this->buffer.insert(this->buffer.end(), aux, aux + variable.size);
     }
@@ -88,14 +90,14 @@ void Storage::save() {
     this->buffer.emplace_back(start_symbol);
     this->buffer.emplace_back(start_symbol >> 8);
 
-    hal::Flash::write(this->start_page, 0, reinterpret_cast<uint64_t*>(buffer.data()), buffer.size() / 8);
+    hal::Flash::write(this->start_page, 0, std::bit_cast<uint64_t*>(buffer.data()), buffer.size() / 8);
 }
 
 template <typename T>
 std::vector<uint8_t> Storage::serialize_var_map(const std::unordered_map<std::string, T>& variables) {
     std::vector<uint8_t> buffer;
 
-    for (auto [name, variable] : variables) {
+    for (const auto& [name, variable] : variables) {
         buffer.emplace_back(name.size());
         buffer.insert(buffer.end(), name.begin(), name.end());
 

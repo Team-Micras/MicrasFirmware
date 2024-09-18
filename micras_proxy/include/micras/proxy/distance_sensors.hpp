@@ -86,10 +86,10 @@ private:
     /**
      * @brief Maximum distance reading in meters
      */
-    const float max_distance;
+    float max_distance;
 };
 }  // namespace micras::proxy
 
-#include "../src/distance_sensors.cpp"  // NOLINT(bugprone-suspicious-include)
+#include "../src/distance_sensors.cpp"  // NOLINT(bugprone-suspicious-include, misc-header-include-cycle)
 
 #endif  // MICRAS_PROXY_DISTANCE_SENSORS_HPP

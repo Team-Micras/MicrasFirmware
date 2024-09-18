@@ -6,6 +6,7 @@
  * @date 03/2024
  */
 
+#include <bit>
 #include <cmath>
 
 #include "micras/hal/pwm_dma.hpp"
@@ -26,7 +27,7 @@ void PwmDma::start_dma(uint32_t buffer[], uint32_t size) {
 
 // NOLINTNEXTLINE(*-avoid-c-arrays)
 void PwmDma::start_dma(uint16_t buffer[], uint32_t size) {
-    start_dma(reinterpret_cast<uint32_t*>(buffer), size);
+    start_dma(std::bit_cast<uint32_t*>(buffer), size);
 }
 
 void PwmDma::stop_dma() {

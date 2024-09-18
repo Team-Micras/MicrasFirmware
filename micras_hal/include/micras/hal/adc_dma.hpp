@@ -57,16 +57,30 @@ public:
     void stop_dma();
 
     /**
+     * @brief Get the maximum reading of the ADC
+     *
+     * @return uint16_t Maximum reading of the ADC
+     */
+    uint16_t get_max_reading() const;
+
+    /**
+     * @brief Get the reference voltage for the ADC measurement
+     *
+     * @return float Reference voltage for the ADC measurement
+     */
+    float get_reference_voltage() const;
+
+private:
+    /**
      * @brief Maximum ADC reading
      */
-    const uint16_t max_reading;  // NOLINT(*-non-private-member-variables-in-classes)
+    uint16_t max_reading;
 
     /**
      * @brief Reference voltage for the ADC measurement
      */
-    const float reference_voltage;  // NOLINT(*-non-private-member-variables-in-classes)
+    float reference_voltage;
 
-private:
     /**
      * @brief ADC handle
      */
