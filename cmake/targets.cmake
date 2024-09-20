@@ -70,6 +70,17 @@ add_custom_target(docs
     COMMAND rm -rf ${CMAKE_CURRENT_SOURCE_DIR}/docs/latex
 )
 
+function(targets_generate_test_all_target)
+    foreach(FILE ${ARGV})
+        get_filename_component(TEST_NAME ${FILE} NAME_WLE)
+        list(APPEND TEST_TARGETS ${TEST_NAME})
+    endforeach()
+
+    add_custom_target(test_all
+        COMMAND ${CMAKE_MAKE_PROGRAM} ${TEST_TARGETS}
+    )
+endfunction()
+
 function(targets_generate_format_target)
     set(FILES_LIST "")
     foreach(FILE ${ARGV})
