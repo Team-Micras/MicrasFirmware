@@ -9,7 +9,6 @@
 #ifndef MICRAS_PROXY_STORAGE_HPP
 #define MICRAS_PROXY_STORAGE_HPP
 
-#include <bit>
 #include <cstdint>
 #include <string>
 #include <type_traits>
@@ -73,7 +72,8 @@ public:
     template <Fundamental T>
     void sync(const std::string& name, T& data) {
         if (this->primitives.contains(name) and this->primitives.at(name).ram_pointer == nullptr) {
-            data = std::bit_cast<T&>(this->buffer.at(this->primitives.at(name).buffer_address));
+            // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+            data = reinterpret_cast<T&>(this->buffer.at(this->primitives.at(name).buffer_address));
         }
 
         this->create<T>(name, data);
