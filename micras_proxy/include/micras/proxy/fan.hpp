@@ -13,6 +13,7 @@
 
 #include "micras/hal/gpio.hpp"
 #include "micras/hal/pwm.hpp"
+#include "micras/hal/timer.hpp"
 
 namespace micras::proxy {
 /**
@@ -27,6 +28,7 @@ public:
         hal::Pwm::Config  pwm;
         hal::Gpio::Config direction_gpio;
         hal::Gpio::Config enable_gpio;
+        float             max_acceleration;
     };
 
     /**
@@ -52,6 +54,11 @@ public:
      * @param speed Speed percentage of the fan
      */
     void set_speed(float speed);
+
+    /**
+     * @brief Update the speed of the fan
+     */
+    float update_speed();
 
     /**
      * @brief Stop the fan
@@ -88,6 +95,26 @@ private:
      * @brief GPIO handle for the fan enable pin
      */
     hal::Gpio enable_gpio;
+
+    /**
+     * @brief Current speed of the fan
+     */
+    float current_speed{};
+
+    /**
+     * @brief Target speed of the fan
+     */
+    float target_speed{};
+
+    /**
+     * @brief Maximum acceleration of the fan in percentage per millisecond
+     */
+    float max_acceleration;
+
+    /**
+     * @brief Timer for limiting the acceleration of the fan
+     */
+    hal::Timer acceleration_timer;
 };
 }  // namespace micras::proxy
 
