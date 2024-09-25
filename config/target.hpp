@@ -45,6 +45,8 @@ const proxy::Argb<2>::Config argb_config = {
         .handle = &htim8,
         .timer_channel = TIM_CHANNEL_1
     },
+    .low_duty_cycle = 32.0F,
+    .high_duty_cycle = 64.0F,
     .max_brightness = 10.0F
 };
 
