@@ -9,8 +9,8 @@
 #ifndef MICRAS_CORE_UTILS_HPP
 #define MICRAS_CORE_UTILS_HPP
 
-#include <array>
 #include <algorithm>
+#include <array>
 
 namespace micras::core {
 /**
@@ -25,7 +25,7 @@ namespace micras::core {
  * @return T Remapped value
  */
 template <typename T>
-inline constexpr T remap(T value, T in_min, T in_max, T out_min, T out_max) {
+constexpr T remap(T value, T in_min, T in_max, T out_min, T out_max) {
     return (value - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
@@ -39,7 +39,7 @@ inline constexpr T remap(T value, T in_min, T in_max, T out_min, T out_max) {
  * @return T New value
  */
 template <typename T>
-inline constexpr T move_towards(T value, T target, T step) {
+constexpr T move_towards(T value, T target, T step) {
     return std::max(std::min(value + step, target), value - step);
 }
 
@@ -52,7 +52,7 @@ inline constexpr T move_towards(T value, T target, T step) {
  * @return T New value
  */
 template <typename T>
-inline constexpr T decay(T value, T damping) {
+constexpr T decay(T value, T damping) {
     return damping / (damping + value * value);
 }
 
@@ -66,7 +66,7 @@ inline constexpr T decay(T value, T damping) {
  * @return std::array<T, N> Array with the objects created from the parameters
  */
 template <typename T, size_t N, typename C>
-inline constexpr std::array<T, N> make_array(const std::array<C, N>& parameters) {
+constexpr std::array<T, N> make_array(const std::array<C, N>& parameters) {
     return [&]<std::size_t... I>(std::index_sequence<I...>) -> std::array<T, N> {
         return {T{parameters[I]}...};
     }(std::make_index_sequence<N>());
@@ -82,7 +82,7 @@ inline constexpr std::array<T, N> make_array(const std::array<C, N>& parameters)
  * @return std::array<T, N> Array with the objects created from the parameter
  */
 template <typename T, size_t N, typename C>
-inline constexpr std::array<T, N> make_array(C value) {
+constexpr std::array<T, N> make_array(C value) {
     return [&]<std::size_t... I>(std::index_sequence<I...>) -> std::array<T, N> {
         return {(static_cast<void>(I), T{value})...};
     }(std::make_index_sequence<N>());

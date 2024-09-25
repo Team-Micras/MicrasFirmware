@@ -34,7 +34,7 @@ void DistanceSensors<num_of_sensors>::set_led_intensity(float intensity) {
 template <uint8_t num_of_sensors>
 void DistanceSensors<num_of_sensors>::update() {
     for (uint8_t i = 0; i < num_of_sensors; i++) {
-        this->filter[i].update(this->buffer[i]);
+        this->filters[i].update(this->buffer[i]);
     }
 }
 

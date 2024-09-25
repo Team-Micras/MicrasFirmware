@@ -17,6 +17,7 @@ Checks:
   misc-*,
   -misc-include-cleaner,
   -misc-const-correctness,
+  -misc-use-anonymous-namespace,
   modernize-*,
   -modernize-use-nodiscard,
   -modernize-use-trailing-return-type,
@@ -39,7 +40,6 @@ ImplementationFileExtensions:
 HeaderFilterRegex: '(include|config)/.*.hpp'
 FormatStyle: none
 CheckOptions:
-  cppcoreguidelines-avoid-non-const-global-variables.AllowInternalLinkage: true
   readability-magic-numbers.IgnorePowersOf2IntegerValues: true
   readability-magic-numbers.IgnoreBitFieldsWidths: true
   readability-magic-numbers.IgnoreUserDefinedLiterals: true

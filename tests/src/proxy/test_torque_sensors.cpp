@@ -10,10 +10,13 @@
 
 using namespace micras;  // NOLINT(google-build-using-namespace)
 
-static volatile float test_torque[2];       // NOLINT(*-avoid-c-arrays)
-static volatile float test_torque_raw[2];   // NOLINT(*-avoid-c-arrays)
-static volatile float test_current[2];      // NOLINT(*-avoid-c-arrays)
-static volatile float test_current_raw[2];  // NOLINT(*-avoid-c-arrays)
+// NOLINTBEGIN(*-avoid-c-arrays, cppcoreguidelines-avoid-non-const-global-variables)
+static volatile float test_torque[2];
+static volatile float test_torque_raw[2];
+static volatile float test_current[2];
+static volatile float test_current_raw[2];
+
+// NOLINTEND(*-avoid-c-arrays, cppcoreguidelines-avoid-non-const-global-variables)
 
 int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);

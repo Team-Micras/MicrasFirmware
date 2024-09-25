@@ -10,7 +10,7 @@
 
 using namespace micras;  // NOLINT(google-build-using-namespace)
 
-static volatile float test_fan_speed{};
+static volatile float test_fan_speed{};  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);

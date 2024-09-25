@@ -10,8 +10,8 @@
 #define MICRAS_HAL_PWM_DMA_HPP
 
 #include <cstdint>
-#include <tim.h>
 #include <span>
+#include <tim.h>
 
 namespace micras::hal {
 /**

@@ -17,7 +17,7 @@ namespace micras::proxy {
 template <uint8_t num_of_sensors>
 TorqueSensors<num_of_sensors>::TorqueSensors(const Config& config) :
     adc{config.adc},
-    max_current{AdcDma::reference_voltage / config.shunt_resistor},
+    max_current{hal::AdcDma::reference_voltage / config.shunt_resistor},
     max_torque{config.max_torque},
     filters{core::make_array<core::ButterworthFilter<>, num_of_sensors>(config.filter_cutoff)} {
     this->adc.start_dma(this->buffer);
@@ -28,7 +28,7 @@ TorqueSensors<num_of_sensors>::TorqueSensors(const Config& config) :
     }
 
     for (uint8_t i = 0; i < num_of_sensors; i++) {
-        this->base_reading[i] = this->filters[sensor_index].get_last();
+        this->base_reading[i] = this->filters[i].get_last();
     }
 }
 

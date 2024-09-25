@@ -10,8 +10,8 @@
 
 using namespace micras;  // NOLINT(google-build-using-namespace)
 
-static volatile float test_battery_voltage_raw{};
-static volatile float test_battery_voltage{};
+static volatile float test_battery_voltage_raw{};  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+static volatile float test_battery_voltage{};      // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);
