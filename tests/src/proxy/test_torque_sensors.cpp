@@ -26,7 +26,7 @@ int main(int argc, char* argv[]) {
         }
 
         if (running) {
-            locomotion.set_command(80.0F, 80.0F);
+            locomotion.set_command(80.0F, 0.0F);
         } else {
             locomotion.set_command(0.0F, 0.0F);
         }
