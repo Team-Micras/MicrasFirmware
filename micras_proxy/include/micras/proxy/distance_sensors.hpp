@@ -12,6 +12,7 @@
 #include <array>
 #include <cstdint>
 
+#include "micras/core/butterworth_filter.hpp"
 #include "micras/hal/adc_dma.hpp"
 #include "micras/hal/pwm.hpp"
 
@@ -30,6 +31,7 @@ public:
         hal::Pwm::Config    led_0_pwm;
         hal::Pwm::Config    led_1_pwm;
         float               max_distance;
+        float               filter_cutoff;
     };
 
     /**
@@ -45,6 +47,11 @@ public:
      * @param intensity Intensity percentage of the infrared LED
      */
     void set_led_intensity(float intensity);
+
+    /**
+     * @brief Update the distance sensors readings
+     */
+    void update();
 
     /**
      * @brief Get the distance from a sensor
@@ -87,6 +94,11 @@ private:
      * @brief Maximum distance reading in meters
      */
     float max_distance;
+
+    /**
+     * @brief Butterworth filter for the ADC readings
+     */
+    std::array<core::ButterworthFilter<2>, num_of_sensors> filters;
 };
 }  // namespace micras::proxy
 

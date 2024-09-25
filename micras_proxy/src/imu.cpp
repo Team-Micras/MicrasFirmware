@@ -164,8 +164,8 @@ int32_t Imu::platform_read(void* handle, uint8_t reg, uint8_t* bufp, uint16_t le
     while (not spi->select_device()) { }
 
     reg |= 0x80;
-    spi->transmit(&reg, 1);
-    spi->receive(bufp, len);
+    spi->transmit({&reg, 1});
+    spi->receive({bufp, len});
     spi->unselect_device();
 
     return 0;
@@ -176,8 +176,8 @@ int32_t Imu::platform_write(void* handle, uint8_t reg, const uint8_t* bufp, uint
 
     while (not spi->select_device()) { }
 
-    spi->transmit(&reg, 1);
-    spi->transmit(const_cast<uint8_t*>(bufp), len);  // NOLINT(cppcoreguidelines-pro-type-const-cast)
+    spi->transmit({&reg, 1});
+    spi->transmit({const_cast<uint8_t*>(bufp), len});  // NOLINT(cppcoreguidelines-pro-type-const-cast)
     spi->unselect_device();
 
     return 0;

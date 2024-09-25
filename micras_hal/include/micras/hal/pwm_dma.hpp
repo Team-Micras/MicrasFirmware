@@ -11,6 +11,7 @@
 
 #include <cstdint>
 #include <tim.h>
+#include <span>
 
 namespace micras::hal {
 /**
@@ -38,17 +39,15 @@ public:
      * @brief Start PWM and DMA transfer
      *
      * @param buffer Buffer to transfer
-     * @param size Size of the buffer
      */
-    void start_dma(uint32_t buffer[], uint32_t size);  // NOLINT(*-avoid-c-arrays)
+    void start_dma(std::span<uint32_t> buffer);
 
     /**
      * @brief Start PWM and DMA transfer
      *
      * @param buffer Buffer to transfer
-     * @param size Size of the buffer
      */
-    void start_dma(uint16_t buffer[], uint32_t size);  // NOLINT(*-avoid-c-arrays)
+    void start_dma(std::span<uint16_t> buffer);
 
     /**
      * @brief Stop PWM and DMA transfer

@@ -16,18 +16,16 @@ PwmDma::PwmDma(const Config& config) : handle{config.handle}, channel{config.tim
     config.init_function();
 }
 
-// NOLINTNEXTLINE(*-avoid-c-arrays)
-void PwmDma::start_dma(uint32_t buffer[], uint32_t size) {
+void PwmDma::start_dma(std::span<uint32_t> buffer) {
     if (TIM_CHANNEL_STATE_GET(this->handle, this->channel) == HAL_TIM_CHANNEL_STATE_BUSY) {
         return;
     }
 
-    HAL_TIM_PWM_Start_DMA(this->handle, this->channel, buffer, size);
+    HAL_TIM_PWM_Start_DMA(this->handle, this->channel, buffer.data(), buffer.size());
 }
 
-// NOLINTNEXTLINE(*-avoid-c-arrays)
-void PwmDma::start_dma(uint16_t buffer[], uint32_t size) {
-    start_dma(std::bit_cast<uint32_t*>(buffer), size);
+void PwmDma::start_dma(std::span<uint16_t> buffer) {
+    start_dma({std::bit_cast<uint32_t*>(buffer.data()), buffer.size()});
 }
 
 void PwmDma::stop_dma() {

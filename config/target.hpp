@@ -179,19 +179,18 @@ const proxy::TorqueSensors<2>::Config torque_sensors_config = {
     .adc = {
         .init_function = MX_ADC2_Init,
         .handle = &hadc2,
-        .max_reading = 4095,
-        .reference_voltage = 3.3F
+        .max_reading = 4095
     },
     .shunt_resistor = 0.04F * 20,
-    .max_torque = 0.5F
+    .max_torque = 0.5F,
+    .filter_cutoff = 10.0F
 };
 
 const proxy::DistanceSensors<4>::Config distance_sensors_config = {
     .adc = {
         .init_function = MX_ADC1_Init,
         .handle = &hadc1,
-        .max_reading = 4095,
-        .reference_voltage = 3.3F
+        .max_reading = 4095
     },
     .led_0_pwm = {
         .init_function = MX_TIM15_Init,
@@ -203,7 +202,8 @@ const proxy::DistanceSensors<4>::Config distance_sensors_config = {
         .handle = &htim15,
         .timer_channel = TIM_CHANNEL_2
     },
-    .max_distance = 0.3F
+    .max_distance = 0.3F,
+    .filter_cutoff = 10.0F
 };
 
 const proxy::Imu::Config imu_config = {
@@ -229,10 +229,10 @@ const proxy::Battery::Config battery_config = {
     .adc = {
         .init_function = MX_ADC3_Init,
         .handle = &hadc3,
-        .max_reading = 4095,
-        .reference_voltage = 3.3F
+        .max_reading = 4095
     },
-    .voltage_divider = 3.0F
+    .voltage_divider = 3.0F,
+    .filter_cutoff = 10.0F
 };
 
 const hal::Timer::Config timer_config = {

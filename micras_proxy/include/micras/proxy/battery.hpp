@@ -11,6 +11,7 @@
 
 #include <cstdint>
 
+#include "micras/core/butterworth_filter.hpp"
 #include "micras/hal/adc_dma.hpp"
 
 namespace micras::proxy {
@@ -25,6 +26,7 @@ public:
     struct Config {
         hal::AdcDma::Config adc;
         float               voltage_divider;
+        float               filter_cutoff;
     };
 
     /**
@@ -33,6 +35,11 @@ public:
      * @param config Configuration for the battery
      */
     explicit Battery(const Config& config);
+
+    /**
+     * @brief Update the battery reading
+     */
+    void update();
 
     /**
      * @brief Get the battery voltage
@@ -63,6 +70,11 @@ private:
      * @brief Voltage divider ratio
      */
     float voltage_divider;
+
+    /**
+     * @brief Butterworth filter for the battery reading
+     */
+    core::ButterworthFilter<2> filter;
 };
 }  // namespace micras::proxy
 

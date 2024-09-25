@@ -28,7 +28,7 @@ void Argb<num_of_leds>::set_color(const Color& color, uint8_t index) {
     }
 
     this->encode_color(color * this->brightness, index);
-    this->pwm.start_dma(this->buffer.data(), this->buffer.size());
+    this->pwm.start_dma(this->buffer);
 }
 
 template <uint8_t num_of_leds>
@@ -37,7 +37,7 @@ void Argb<num_of_leds>::set_color(const Color& color) {
         this->encode_color(color * this->brightness, i);
     }
 
-    this->pwm.start_dma(this->buffer.data(), this->buffer.size());
+    this->pwm.start_dma(this->buffer);
 }
 
 template <uint8_t num_of_leds>
