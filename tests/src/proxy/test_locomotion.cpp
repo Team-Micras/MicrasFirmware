@@ -20,20 +20,18 @@ int main(int argc, char* argv[]) {
 
         switch (button_status) {
             case proxy::Button::Status::SHORT_PRESS:
-                locomotion.set_wheel_command(50.0F, 0.0F);
-                hal::Timer::sleep_ms(1000);
-                locomotion.set_wheel_command(-50.0F, 0.0F);
-                hal::Timer::sleep_ms(1000);
-                locomotion.set_wheel_command(0.0F, 50.0F);
-                hal::Timer::sleep_ms(1000);
-                locomotion.set_wheel_command(0.0F, -50.0F);
-                hal::Timer::sleep_ms(1000);
-
                 locomotion.set_command(50.0F, 0.0F);
+                hal::Timer::sleep_ms(1000);
+                locomotion.set_command(0.0F, 0.0F);
                 hal::Timer::sleep_ms(1000);
                 locomotion.set_command(-50.0F, 0.0F);
                 hal::Timer::sleep_ms(1000);
+                locomotion.set_command(0.0F, 0.0F);
+                hal::Timer::sleep_ms(1000);
+
                 locomotion.set_command(0.0F, 50.0F);
+                hal::Timer::sleep_ms(1000);
+                locomotion.set_command(0.0F, 0.0F);
                 hal::Timer::sleep_ms(1000);
                 locomotion.set_command(0.0F, -50.0F);
                 hal::Timer::sleep_ms(1000);
