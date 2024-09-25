@@ -10,9 +10,9 @@
 #define MICRAS_CONSTANTS_HPP
 
 namespace micras {
-constexpr float wheel_radius{0.0105};  // meters
+constexpr float wheel_radius{0.0105F};  // meters
 
-constexpr float wheel_separation{0.0585};  // meters
+constexpr float wheel_separation{0.0585F};  // meters
 
 }  // namespace micras
 

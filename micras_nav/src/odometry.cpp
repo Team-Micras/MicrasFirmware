@@ -46,7 +46,7 @@ void Odometry::update() {
     float angular_distance = (right_distance - left_distance) / this->wheel_separation;
     float linear_diagonal{};
 
-    if (angular_distance < 0.05) {
+    if (angular_distance < 0.05F) {
         linear_diagonal = linear_distance;
     } else {
         linear_diagonal = std::abs(
