@@ -55,7 +55,7 @@ include(cmake/linter.cmake)
 add_subdirectory(cube/cmake/stm32cubemx)
 add_subdirectory(micras_hal)
 add_subdirectory(micras_proxy)
-add_subdirectory(micras_nav)
+add_subdirectory(micras_core)
 
 ###############################################################################
 ## Input files
