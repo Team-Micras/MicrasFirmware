@@ -48,20 +48,25 @@ void Storage::save() {
     this->buffer.clear();
     hal::Flash::erase_pages(this->start_page, this->number_of_pages);
 
-    for (auto& [name, variable] : this->primitives) {
+    for (auto it = this->primitives.begin(); it != this->primitives.end();) {
+        auto& [name, variable] = *it;
+
         if (variable.ram_pointer == nullptr) {
-            this->primitives.erase(name);
+            it = this->primitives.erase(it);
             continue;
         }
 
         const auto* aux = std::bit_cast<const uint8_t*>(variable.ram_pointer);
         variable.buffer_address = buffer.size();
         this->buffer.insert(this->buffer.end(), aux, aux + variable.size);
+        it++;
     }
 
-    for (auto& [name, variable] : this->serializables) {
+    for (auto it = this->serializables.begin(); it != this->serializables.end();) {
+        auto& [name, variable] = *it;
+
         if (variable.ram_pointer == nullptr) {
-            this->serializables.erase(name);
+            it = this->serializables.erase(it);
             continue;
         }
 
@@ -69,6 +74,7 @@ void Storage::save() {
         variable.buffer_address = this->buffer.size();
         variable.size = aux.size();
         this->buffer.insert(this->buffer.end(), aux.begin(), aux.end());
+        it++;
     }
 
     auto serialized_serializables = serialize_var_map<SerializableVariable>(this->serializables);
