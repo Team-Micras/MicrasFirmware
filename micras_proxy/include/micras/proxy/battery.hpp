@@ -49,11 +49,18 @@ public:
     float get_voltage() const;
 
     /**
-     * @brief Get the raw reading from the battery
+     * @brief Get the battery voltage in volts without the filter applied
      *
-     * @return uint32_t Raw reading from the battery
+     * @return float Battery voltage in volts
      */
-    uint32_t get_voltage_raw() const;
+    float get_voltage_raw() const;
+
+    /**
+     * @brief Get the battery reading from the ADC
+     *
+     * @return float Battery reading from 0 to 1
+     */
+    float get_adc_reading() const;
 
 private:
     /**
@@ -67,9 +74,9 @@ private:
     uint16_t raw_reading{};
 
     /**
-     * @brief Voltage divider ratio
+     * @brief Maximum voltage that can be read
      */
-    float voltage_divider;
+    float max_voltage;
 
     /**
      * @brief Butterworth filter for the battery reading

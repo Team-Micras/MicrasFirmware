@@ -182,7 +182,7 @@ const proxy::TorqueSensors<2>::Config torque_sensors_config = {
         .max_reading = 4095
     },
     .shunt_resistor = 0.04F * 20,
-    .max_torque = 0.5F,
+    .max_torque = 10.0F,
     .filter_cutoff = 10.0F
 };
 
@@ -202,7 +202,7 @@ const proxy::DistanceSensors<4>::Config distance_sensors_config = {
         .handle = &htim15,
         .timer_channel = TIM_CHANNEL_2
     },
-    .max_distance = 0.3F,
+    .max_distance = 10.0F,
     .filter_cutoff = 10.0F
 };
 
@@ -232,7 +232,7 @@ const proxy::Battery::Config battery_config = {
         .max_reading = 4095
     },
     .voltage_divider = 3.0F,
-    .filter_cutoff = 10.0F
+    .filter_cutoff = 5.0F
 };
 
 const hal::Timer::Config timer_config = {

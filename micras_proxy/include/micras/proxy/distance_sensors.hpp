@@ -65,9 +65,17 @@ public:
      * @brief Get the distance from a sensor
      *
      * @param sensor_index Index of the sensor
-     * @return uint32_t Raw reading from the distance sensor
+     * @return float Raw reading from the distance sensor
      */
-    uint32_t get_distance_raw(uint8_t sensor_index) const;
+    float get_distance_raw(uint8_t sensor_index) const;
+
+    /**
+     * @brief Get the ADC reading from a sensor
+     *
+     * @param sensor_index Index of the sensor
+     * @return float ADC reading from the sensor from 0 to 1
+     */
+    float get_adc_reading(uint8_t sensor_index) const;
 
 private:
     /**

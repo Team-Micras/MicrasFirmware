@@ -10,8 +10,10 @@
 
 using namespace micras;  // NOLINT(google-build-using-namespace)
 
-static volatile float test_torque[2];   // NOLINT(*-avoid-c-arrays)
-static volatile float test_current[2];  // NOLINT(*-avoid-c-arrays)
+static volatile float test_torque[2];       // NOLINT(*-avoid-c-arrays)
+static volatile float test_torque_raw[2];   // NOLINT(*-avoid-c-arrays)
+static volatile float test_current[2];      // NOLINT(*-avoid-c-arrays)
+static volatile float test_current_raw[2];  // NOLINT(*-avoid-c-arrays)
 
 int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);
@@ -31,10 +33,16 @@ int main(int argc, char* argv[]) {
             locomotion.set_command(0.0F, 0.0F);
         }
 
+        torque_sensors.update();
+
         for (uint8_t i = 0; i < 2; i++) {
             test_torque[i] = torque_sensors.get_torque(i);
+            test_torque_raw[i] = torque_sensors.get_torque_raw(i);
             test_current[i] = torque_sensors.get_current(i);
+            test_current_raw[i] = torque_sensors.get_current_raw(i);
         }
+
+        hal::Timer::sleep_ms(2);
     });
 
     return 0;

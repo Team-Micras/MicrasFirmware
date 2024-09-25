@@ -40,12 +40,17 @@ void DistanceSensors<num_of_sensors>::update() {
 
 template <uint8_t num_of_sensors>
 float DistanceSensors<num_of_sensors>::get_distance(uint8_t sensor_index) const {
-    return 30.0F * this->max_distance * this->filters.at(sensor_index).get_last() / this->adc.get_max_reading();
+    return this->filters.at(sensor_index).get_last() * this->max_distance;
 }
 
 template <uint8_t num_of_sensors>
-uint32_t DistanceSensors<num_of_sensors>::get_distance_raw(uint8_t sensor_index) const {
-    return this->buffer.at(sensor_index);
+float DistanceSensors<num_of_sensors>::get_distance_raw(uint8_t sensor_index) const {
+    return this->get_adc_reading(sensor_index) * this->max_distance;
+}
+
+template <uint8_t num_of_sensors>
+float DistanceSensors<num_of_sensors>::get_adc_reading(uint8_t sensor_index) const {
+    return static_cast<float>(this->buffer.at(sensor_index)) / this->adc.get_max_reading();
 }
 }  // namespace micras::proxy
 
