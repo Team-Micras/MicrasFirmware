@@ -98,7 +98,7 @@ private:
     /**
      * @brief Reading of each sensor when no current is flowing
      */
-    std::array<uint16_t, num_of_sensors> base_reading{};
+    std::array<float, num_of_sensors> base_reading{};
 
     /**
      * @brief Value of the maximum current that can be measured by the sensor

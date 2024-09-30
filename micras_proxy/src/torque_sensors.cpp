@@ -62,8 +62,8 @@ float TorqueSensors<num_of_sensors>::get_current_raw(uint8_t sensor_index) const
 
 template <uint8_t num_of_sensors>
 float TorqueSensors<num_of_sensors>::get_adc_reading(uint8_t sensor_index) const {
-    return static_cast<float>(this->buffer.at(sensor_index) - this->base_reading.at(sensor_index)) /
-           this->adc.get_max_reading();
+    return static_cast<float>(this->buffer.at(sensor_index)) / this->adc.get_max_reading() -
+           this->base_reading.at(sensor_index);
 }
 }  // namespace micras::proxy
 
