@@ -31,8 +31,7 @@ Bluetooth::Status Bluetooth::process_message() {
     }
 
     const RxMessage& message = reinterpret_cast<const RxMessage&>(this->rx_buffer.at(this->rx_cursor));
-
-    RxMessage::Size size = message.fields.size;
+    RxMessage::Size  size = message.fields.size;
 
     if (message.fields.rw == RxMessage::RW::READ) {
         if (message.fields.type.read.end != RxMessage::Symbols::end) {
@@ -46,23 +45,25 @@ Bluetooth::Status Bluetooth::process_message() {
         } else {
             this->variable_dict.erase(id);
         }
-    } else {
-        switch (size) {
-            case RxMessage::Size::BYTE:
-                return receive_variable<uint8_t>(message.fields.address, message.fields.type.write_byte);
 
-            case RxMessage::Size::HALF_WORD:
-                return receive_variable<uint16_t>(message.fields.address, message.fields.type.write_half_word);
-
-            case RxMessage::Size::WORD:
-                return receive_variable<uint32_t>(message.fields.address, message.fields.type.write_word);
-
-            case RxMessage::Size::DOUBLE_WORD:
-                return receive_variable<uint64_t>(message.fields.address, message.fields.type.write_double_word);
-        }
+        return Status::OK;
     }
 
-    return Status::OK;
+    switch (size) {
+        case RxMessage::Size::BYTE:
+            return receive_variable<uint8_t>(message.fields.address, message.fields.type.write_byte);
+
+        case RxMessage::Size::HALF_WORD:
+            return receive_variable<uint16_t>(message.fields.address, message.fields.type.write_half_word);
+
+        case RxMessage::Size::WORD:
+            return receive_variable<uint32_t>(message.fields.address, message.fields.type.write_word);
+
+        case RxMessage::Size::DOUBLE_WORD:
+            return receive_variable<uint64_t>(message.fields.address, message.fields.type.write_double_word);
+    }
+
+    return Status::INVALID_MESSAGE;
 }
 
 void Bluetooth::send_variables() {
