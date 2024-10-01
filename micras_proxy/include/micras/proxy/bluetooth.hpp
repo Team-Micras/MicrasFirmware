@@ -141,11 +141,6 @@ private:
     Status process_message();
 
     /**
-     * @brief Send all the variables through the Bluetooth
-     */
-    void send_variables();
-
-    /**
      * @brief Validate the checksum of the message
      *
      * @param data Data to check
