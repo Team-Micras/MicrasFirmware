@@ -8,15 +8,27 @@ Bluetooth::Bluetooth(const hal::UartDma::Config& config) : uart(config) {
 }
 
 void Bluetooth::update() {
-    this->uart.stop_rx_dma();
     this->rx_cursor = 0;
+    this->tx_cursor = 0;
+
+    this->uart.stop_rx_dma();
 
     while (this->process_message() != Status::NO_MESSAGE) {
         this->rx_cursor++;
     }
 
     this->uart.start_rx_dma(this->rx_buffer);
-    this->send_variables();
+
+    if (this->uart.is_tx_busy()) {
+        return;
+    }
+
+    for (auto& [id, variable] : this->variable_dict) {
+        send_variable(this->tx_buffer.at(this->tx_cursor), id, variable);
+        this->tx_cursor += variable.size() + 2;
+    }
+
+    this->uart.start_tx_dma({this->tx_buffer.data(), this->tx_cursor});
 }
 
 Bluetooth::Status Bluetooth::process_message() {
@@ -46,6 +58,7 @@ Bluetooth::Status Bluetooth::process_message() {
             this->variable_dict.erase(id);
         }
 
+        send_variable(this->tx_buffer.at(this->tx_cursor), 0, {id});
         return Status::OK;
     }
 
@@ -64,33 +77,5 @@ Bluetooth::Status Bluetooth::process_message() {
     }
 
     return Status::INVALID_MESSAGE;
-}
-
-void Bluetooth::send_variables() {
-    uint16_t tx_cursor = 0;
-
-    for (auto& [id, variable] : this->variable_dict) {
-        switch (variable.size()) {
-            case 1:
-                write_tx_frame<uint8_t>(this->tx_buffer.at(tx_cursor), id, variable.data());
-                break;
-
-            case 2:
-                write_tx_frame<uint16_t>(this->tx_buffer.at(tx_cursor), id, variable.data());
-                break;
-
-            case 4:
-                write_tx_frame<uint32_t>(this->tx_buffer.at(tx_cursor), id, variable.data());
-                break;
-
-            case 8:
-                write_tx_frame<uint64_t>(this->tx_buffer.at(tx_cursor), id, variable.data());
-                break;
-        }
-
-        tx_cursor += variable.size() + 2;
-    }
-
-    this->uart.start_tx_dma({this->tx_buffer.data(), tx_cursor});
 }
 }  // namespace micras::proxy

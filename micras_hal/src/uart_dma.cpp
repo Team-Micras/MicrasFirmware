@@ -25,6 +25,10 @@ void UartDma::stop_rx_dma() {
     HAL_UART_AbortReceive(this->handle);
 }
 
+bool UartDma::is_tx_busy() const {
+    return this->handle->gState == HAL_UART_STATE_BUSY_TX;
+}
+
 uint16_t UartDma::get_rx_dma_counter() const {
     return __HAL_DMA_GET_COUNTER(this->handle->hdmarx);
 }

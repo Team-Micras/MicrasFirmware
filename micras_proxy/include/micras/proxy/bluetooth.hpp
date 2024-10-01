@@ -112,7 +112,9 @@ private:
      *     5     6   8*sizeof(T)   5
      * | BEGIN | ID |   VALUE   | END |
      *
-     * @tparam T
+     * The ACK message has ID 0 and the value is the ID of the message to be acknowledged
+     *
+     * @tparam T Type of the variable to send
      */
     template <typename T>
     union TxMessage {
@@ -211,6 +213,33 @@ private:
     }
 
     /**
+     * @brief Write a variable to the tx_buffer
+     *
+     * @param start_byte Start byte of the message on the buffer
+     * @param id ID of the variable
+     * @param variable Variable to send
+     */
+    static constexpr void send_variable(uint8_t& start_byte, uint8_t id, std::span<uint8_t> variable) {
+        switch (variable.size()) {
+            case 1:
+                write_tx_frame<uint8_t>(start_byte, id, variable.data());
+                break;
+
+            case 2:
+                write_tx_frame<uint16_t>(start_byte, id, variable.data());
+                break;
+
+            case 4:
+                write_tx_frame<uint32_t>(start_byte, id, variable.data());
+                break;
+
+            case 8:
+                write_tx_frame<uint64_t>(start_byte, id, variable.data());
+                break;
+        }
+    }
+
+    /**
      * @brief Size of the UART buffers
      */
     static constexpr uint8_t buffer_max_size{50};
@@ -227,9 +256,10 @@ private:
     std::array<uint8_t, buffer_max_size> tx_buffer{};
 
     /**
-     * @brief Cursor for navigating the rx_buffer
+     * @brief Cursor for navigating the buffers
      */
     uint16_t rx_cursor;
+    uint16_t tx_cursor;
 
     /**
      * @brief Map for storing the variables to send

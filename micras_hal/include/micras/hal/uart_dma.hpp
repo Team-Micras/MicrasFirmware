@@ -54,6 +54,13 @@ public:
     void stop_rx_dma();
 
     /**
+     * @brief Check if the TX is busy
+     *
+     * @return true TX is busy, false otherwise
+     */
+    bool is_tx_busy() const;
+
+    /**
      * @brief Get the number of bytes left in the buffer
      *
      * @return uint16_t Number of bytes left in the buffer
