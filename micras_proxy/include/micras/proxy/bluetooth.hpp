@@ -116,11 +116,16 @@ private:
      */
     template <typename T>
     union TxMessage {
+        struct Symbols {
+            static constexpr uint8_t begin{0x19};
+            static constexpr uint8_t end{0x13};
+        };
+
         struct __attribute__((__packed__)) Fields {
-            uint8_t begin : 5 = 0x19;
+            uint8_t begin : 5;
             uint8_t id    : 6;
             T       value : 8 * sizeof(T);
-            uint8_t end   : 5 = 0x13;
+            uint8_t end   : 5;
         };
 
         Fields  fields;
@@ -144,6 +149,11 @@ private:
     Status process_message();
 
     /**
+     * @brief Send all the variables through the Bluetooth
+     */
+    void send_variables();
+
+    /**
      * @brief Validate the checksum of the message
      *
      * @param data Data to check
@@ -151,12 +161,54 @@ private:
      *
      * @return true if the checksum is valid, false otherwise
      */
-    bool validate_checksum(uint64_t data, uint8_t checksum);
+    static constexpr bool validate_checksum(uint64_t data, uint8_t checksum) {
+        for (uint8_t i = 0; i < 8; i++) {
+            checksum ^= data >> (i * 8);
+        }
+
+        return checksum == 0xFF;
+    }
 
     /**
-     * @brief Send all the variables through the Bluetooth
+     * @brief Receive a variable from the message and write the value to the address
+     *
+     * @tparam T Type of the variable
+     * @param address Address of the variable
+     * @param message Message to receive the variable from
+     *
+     * @return Status Status of the variable received
      */
-    void send_variables();
+    template <typename T>
+    static constexpr Status receive_variable(uint32_t address, const RxMessage::Fields::Type::Write<T>& message) {
+        if (not validate_checksum(address ^ message.value, message.checksum)) {
+            return Status::INVALID_MESSAGE;
+        }
+
+        if (message.end != RxMessage::Symbols::end) {
+            return Status::INVALID_MESSAGE;
+        }
+
+        T* variable = std::bit_cast<T*>(address);
+        *variable = message.value;
+        return Status::OK;
+    }
+
+    /**
+     * @brief Write a variable to the tx_buffer
+     *
+     * @tparam T Type of the variable
+     * @param start_byte Start byte of the message on the buffer
+     * @param id ID of the variable
+     * @param variable_address Address of the variable on the memory
+     */
+    template <typename T>
+    static constexpr void write_tx_frame(uint8_t& start_byte, uint8_t id, uint8_t* variable_address) {
+        TxMessage<T>& message = reinterpret_cast<TxMessage<T>&>(start_byte);
+        message.fields.begin = TxMessage<T>::Symbols::begin;
+        message.fields.id = id;
+        message.fields.value = *std::bit_cast<T*>(variable_address);
+        message.fields.end = TxMessage<T>::Symbols::end;
+    }
 
     /**
      * @brief Size of the UART buffers

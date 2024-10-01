@@ -48,86 +48,21 @@ Bluetooth::Status Bluetooth::process_message() {
         }
     } else {
         switch (size) {
-            case RxMessage::Size::BYTE: {
-                uint8_t write_value = message.fields.type.write_byte.value;
+            case RxMessage::Size::BYTE:
+                return receive_variable<uint8_t>(message.fields.address, message.fields.type.write_byte);
 
-                if (not validate_checksum(
-                        message.fields.address ^ write_value, message.fields.type.write_byte.checksum
-                    )) {
-                    return Status::INVALID_MESSAGE;
-                }
+            case RxMessage::Size::HALF_WORD:
+                return receive_variable<uint16_t>(message.fields.address, message.fields.type.write_half_word);
 
-                if (message.fields.type.write_byte.end != RxMessage::Symbols::end) {
-                    return Status::INVALID_MESSAGE;
-                }
+            case RxMessage::Size::WORD:
+                return receive_variable<uint32_t>(message.fields.address, message.fields.type.write_word);
 
-                uint8_t* address = std::bit_cast<uint8_t*>(message.fields.address);
-                *address = write_value;
-                break;
-            }
-            case RxMessage::Size::HALF_WORD: {
-                uint16_t write_value = message.fields.type.write_half_word.value;
-
-                if (not validate_checksum(
-                        message.fields.address ^ write_value, message.fields.type.write_half_word.checksum
-                    )) {
-                    return Status::INVALID_MESSAGE;
-                }
-
-                if (message.fields.type.write_half_word.end != RxMessage::Symbols::end) {
-                    return Status::INVALID_MESSAGE;
-                }
-
-                uint16_t* address = std::bit_cast<uint16_t*>(message.fields.address);
-                *address = write_value;
-                break;
-            }
-            case RxMessage::Size::WORD: {
-                uint32_t write_value = message.fields.type.write_word.value;
-
-                if (not validate_checksum(
-                        message.fields.address ^ write_value, message.fields.type.write_word.checksum
-                    )) {
-                    return Status::INVALID_MESSAGE;
-                }
-
-                if (message.fields.type.write_word.end != RxMessage::Symbols::end) {
-                    return Status::INVALID_MESSAGE;
-                }
-
-                uint32_t* address = std::bit_cast<uint32_t*>(message.fields.address);
-                *address = write_value;
-                break;
-            }
-            case RxMessage::Size::DOUBLE_WORD: {
-                uint64_t write_value = message.fields.type.write_double_word.value;
-
-                if (not validate_checksum(
-                        message.fields.address ^ write_value, message.fields.type.write_double_word.checksum
-                    )) {
-                    return Status::INVALID_MESSAGE;
-                }
-
-                if (message.fields.type.write_double_word.end != RxMessage::Symbols::end) {
-                    return Status::INVALID_MESSAGE;
-                }
-
-                uint64_t* address = std::bit_cast<uint64_t*>(message.fields.address);
-                *address = write_value;
-                break;
-            }
+            case RxMessage::Size::DOUBLE_WORD:
+                return receive_variable<uint64_t>(message.fields.address, message.fields.type.write_double_word);
         }
     }
 
     return Status::OK;
-}
-
-bool Bluetooth::validate_checksum(uint64_t data, uint8_t checksum) {
-    for (uint8_t i = 0; i < 8; i++) {
-        checksum ^= data >> (i * 8);
-    }
-
-    return checksum == 0xFF;
 }
 
 void Bluetooth::send_variables() {
@@ -135,30 +70,21 @@ void Bluetooth::send_variables() {
 
     for (auto& [id, variable] : this->variable_dict) {
         switch (variable.size()) {
-            case 1: {
-                TxMessage<uint8_t>& message = reinterpret_cast<TxMessage<uint8_t>&>(this->tx_buffer.at(tx_cursor));
-                message.fields.id = id;
-                message.fields.value = variable[0];
+            case 1:
+                write_tx_frame<uint8_t>(this->tx_buffer.at(tx_cursor), id, variable.data());
                 break;
-            }
-            case 2: {
-                TxMessage<uint16_t>& message = reinterpret_cast<TxMessage<uint16_t>&>(this->tx_buffer.at(tx_cursor));
-                message.fields.id = id;
-                message.fields.value = *std::bit_cast<uint16_t*>(variable.data());
+
+            case 2:
+                write_tx_frame<uint16_t>(this->tx_buffer.at(tx_cursor), id, variable.data());
                 break;
-            }
-            case 4: {
-                TxMessage<uint32_t>& message = reinterpret_cast<TxMessage<uint32_t>&>(this->tx_buffer.at(tx_cursor));
-                message.fields.id = id;
-                message.fields.value = *std::bit_cast<uint32_t*>(variable.data());
+
+            case 4:
+                write_tx_frame<uint32_t>(this->tx_buffer.at(tx_cursor), id, variable.data());
                 break;
-            }
-            case 8: {
-                TxMessage<uint64_t>& message = reinterpret_cast<TxMessage<uint64_t>&>(this->tx_buffer.at(tx_cursor));
-                message.fields.id = id;
-                message.fields.value = *std::bit_cast<uint64_t*>(variable.data());
+
+            case 8:
+                write_tx_frame<uint64_t>(this->tx_buffer.at(tx_cursor), id, variable.data());
                 break;
-            }
         }
 
         tx_cursor += variable.size() + 2;
@@ -166,5 +92,4 @@ void Bluetooth::send_variables() {
 
     this->uart.start_tx_dma({this->tx_buffer.data(), tx_cursor});
 }
-
 }  // namespace micras::proxy
