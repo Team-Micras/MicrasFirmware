@@ -204,11 +204,11 @@ private:
      * @param variable_address Address of the variable on the memory
      */
     template <typename T>
-    static constexpr void write_tx_frame(uint8_t& start_byte, uint8_t id, uint8_t* variable_address) {
+    static constexpr void write_tx_frame(uint8_t& start_byte, uint8_t id, uint8_t* const variable_address) {
         TxMessage<T>& message = reinterpret_cast<TxMessage<T>&>(start_byte);
         message.fields.begin = TxMessage<T>::Symbols::begin;
         message.fields.id = id;
-        message.fields.value = *std::bit_cast<T*>(variable_address);
+        message.fields.value = *std::bit_cast<T* const>(variable_address);
         message.fields.end = TxMessage<T>::Symbols::end;
     }
 
@@ -242,7 +242,7 @@ private:
     /**
      * @brief Size of the UART buffers
      */
-    static constexpr uint8_t buffer_max_size{1000};
+    static constexpr uint16_t buffer_max_size{1000};
 
     /**
      * @brief UART for the bluetooth connection

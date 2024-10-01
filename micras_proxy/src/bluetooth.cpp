@@ -23,7 +23,7 @@ void Bluetooth::update() {
         return;
     }
 
-    for (auto& [id, variable] : this->variable_dict) {
+    for (const auto& [id, variable] : this->variable_dict) {
         send_variable(this->tx_buffer.at(this->tx_cursor), id, variable);
         this->tx_cursor += variable.size() + 2;
     }
@@ -58,7 +58,7 @@ Bluetooth::Status Bluetooth::process_message() {
             this->variable_dict.erase(id);
         }
 
-        send_variable(this->tx_buffer.at(this->tx_cursor), 0, {id});
+        send_variable(this->tx_buffer.at(this->tx_cursor), 0, {&id, 1});
         return Status::OK;
     }
 
