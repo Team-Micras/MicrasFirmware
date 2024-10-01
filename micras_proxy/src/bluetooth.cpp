@@ -42,18 +42,19 @@ Bluetooth::Status Bluetooth::process_message() {
         this->rx_cursor++;
     }
 
-    const RxMessage& message = reinterpret_cast<const RxMessage&>(this->rx_buffer.at(this->rx_cursor));
-    RxMessage::Size  size = message.fields.size;
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+    const auto&     message = reinterpret_cast<const RxMessage&>(this->rx_buffer.at(this->rx_cursor));
+    RxMessage::Size size = message.size;
 
-    if (message.fields.rw == RxMessage::RW::READ) {
-        if (message.fields.type.read.end != RxMessage::Symbols::end) {
+    if (message.rw == RxMessage::RW::READ) {
+        if (message.type.read.end != RxMessage::Symbols::end) {
             return Status::INVALID_MESSAGE;
         }
 
-        uint8_t id = message.fields.type.read.id;
+        uint8_t id = message.type.read.id;
 
-        if (message.fields.type.read.start_stop == RxMessage::StartStop::START) {
-            this->variable_dict[id] = std::span<uint8_t>(std::bit_cast<uint8_t*>(message.fields.address), 1 << size);
+        if (message.type.read.start_stop == RxMessage::StartStop::START) {
+            this->variable_dict[id] = std::span<uint8_t>(std::bit_cast<uint8_t*>(message.address), 1 << size);
         } else {
             this->variable_dict.erase(id);
         }
@@ -64,16 +65,16 @@ Bluetooth::Status Bluetooth::process_message() {
 
     switch (size) {
         case RxMessage::Size::BYTE:
-            return receive_variable<uint8_t>(message.fields.address, message.fields.type.write_byte);
+            return receive_variable<uint8_t>(message.address, message.type.write_byte);
 
         case RxMessage::Size::HALF_WORD:
-            return receive_variable<uint16_t>(message.fields.address, message.fields.type.write_half_word);
+            return receive_variable<uint16_t>(message.address, message.type.write_half_word);
 
         case RxMessage::Size::WORD:
-            return receive_variable<uint32_t>(message.fields.address, message.fields.type.write_word);
+            return receive_variable<uint32_t>(message.address, message.type.write_word);
 
         case RxMessage::Size::DOUBLE_WORD:
-            return receive_variable<uint64_t>(message.fields.address, message.fields.type.write_double_word);
+            return receive_variable<uint64_t>(message.address, message.type.write_double_word);
     }
 
     return Status::INVALID_MESSAGE;

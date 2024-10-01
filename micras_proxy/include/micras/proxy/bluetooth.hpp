@@ -29,7 +29,7 @@ public:
      *
      * @param config Configuration for the UART communication
      */
-    Bluetooth(const hal::UartDma::Config& config);
+    explicit Bluetooth(const hal::UartDma::Config& config);
 
     /**
      * @brief Process all received messages and send chosen variables
@@ -47,7 +47,7 @@ private:
      *     7       1       32       2     8*2^SIZE     7        7
      * | BEGIN | WRITE | ADDRESS | SIZE |  VALUE  | CHECKSUM | END |
      */
-    union RxMessage {
+    struct __attribute__((__packed__)) RxMessage {
         enum Size : uint8_t {
             BYTE,
             HALF_WORD,
@@ -72,37 +72,32 @@ private:
             static constexpr uint8_t end{0x7F};
         };
 
-        struct __attribute__((__packed__)) Fields {
-            union Type {
-                struct __attribute__((__packed__)) Read {
-                    uint8_t id         : 6;
-                    uint8_t start_stop : 1;
-                    uint8_t end        : 7;
-                };
-
-                template <typename T>
-                struct __attribute__((__packed__)) Write {
-                    T       value    : 8 * sizeof(T);
-                    uint8_t checksum : 7;
-                    uint8_t end      : 7;
-                };
-
-                Read            read;
-                Write<uint8_t>  write_byte;
-                Write<uint16_t> write_half_word;
-                Write<uint32_t> write_word;
-                Write<uint64_t> write_double_word;
+        union Type {
+            struct __attribute__((__packed__)) Read {
+                uint8_t id         : 6;
+                uint8_t start_stop : 1;
+                uint8_t end        : 7;
             };
 
-            uint8_t  begin   : 7;
-            RW       rw      : 1;
-            uint32_t address : 32;
-            Size     size    : 2;
-            Type     type;
+            template <typename T>
+            struct __attribute__((__packed__)) Write {
+                T       value    : 8 * sizeof(T);
+                uint8_t checksum : 7;
+                uint8_t end      : 7;
+            };
+
+            Read            read;
+            Write<uint8_t>  write_byte;
+            Write<uint16_t> write_half_word;
+            Write<uint32_t> write_word;
+            Write<uint64_t> write_double_word;
         };
 
-        Fields  fields;
-        uint8_t data[15];
+        uint8_t  begin   : 7;
+        RW       rw      : 1;
+        uint32_t address : 32;
+        Size     size    : 2;
+        Type     type;
     };
 
     /**
@@ -117,27 +112,22 @@ private:
      * @tparam T Type of the variable to send
      */
     template <typename T>
-    union TxMessage {
+    struct __attribute__((__packed__)) TxMessage {
         struct Symbols {
             static constexpr uint8_t begin{0x19};
             static constexpr uint8_t end{0x13};
         };
 
-        struct __attribute__((__packed__)) Fields {
-            uint8_t begin : 5;
-            uint8_t id    : 6;
-            T       value : 8 * sizeof(T);
-            uint8_t end   : 5;
-        };
-
-        Fields  fields;
-        uint8_t data[sizeof(T) + 2];
+        uint8_t begin : 5;
+        uint8_t id    : 6;
+        T       value : 8 * sizeof(T);
+        uint8_t end   : 5;
     };
 
     /**
      * @brief Enum for representing the status of the message processing
      */
-    enum Status {
+    enum Status : uint8_t {
         OK,
         NO_MESSAGE,
         INVALID_MESSAGE
@@ -181,7 +171,7 @@ private:
      * @return Status Status of the variable received
      */
     template <typename T>
-    static constexpr Status receive_variable(uint32_t address, const RxMessage::Fields::Type::Write<T>& message) {
+    static constexpr Status receive_variable(uint32_t address, const RxMessage::Type::Write<T>& message) {
         if (not validate_checksum(address ^ message.value, message.checksum)) {
             return Status::INVALID_MESSAGE;
         }
@@ -205,11 +195,12 @@ private:
      */
     template <typename T>
     static constexpr void write_tx_frame(uint8_t& start_byte, uint8_t id, uint8_t* const variable_address) {
-        TxMessage<T>& message = reinterpret_cast<TxMessage<T>&>(start_byte);
-        message.fields.begin = TxMessage<T>::Symbols::begin;
-        message.fields.id = id;
-        message.fields.value = *std::bit_cast<T* const>(variable_address);
-        message.fields.end = TxMessage<T>::Symbols::end;
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+        auto& message = reinterpret_cast<TxMessage<T>&>(start_byte);
+        message.begin = TxMessage<T>::Symbols::begin;
+        message.id = id;
+        message.value = *std::bit_cast<T* const>(variable_address);
+        message.end = TxMessage<T>::Symbols::end;
     }
 
     /**
@@ -236,6 +227,9 @@ private:
             case 8:
                 write_tx_frame<uint64_t>(start_byte, id, variable.data());
                 break;
+
+            default:
+                break;
         }
     }
 
@@ -258,8 +252,8 @@ private:
     /**
      * @brief Cursor for navigating the buffers
      */
-    uint16_t rx_cursor;
-    uint16_t tx_cursor;
+    uint16_t rx_cursor{};
+    uint16_t tx_cursor{};
 
     /**
      * @brief Map for storing the variables to send
