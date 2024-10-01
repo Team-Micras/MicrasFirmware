@@ -242,7 +242,7 @@ private:
     /**
      * @brief Size of the UART buffers
      */
-    static constexpr uint8_t buffer_max_size{50};
+    static constexpr uint8_t buffer_max_size{1000};
 
     /**
      * @brief UART for the bluetooth connection
