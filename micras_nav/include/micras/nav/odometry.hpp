@@ -3,7 +3,7 @@
  *
  * @brief Nav Odometry class declaration
  *
- * @date 04/2024
+ * @date 10/2024
  */
 
 #ifndef MICRAS_NAV_ODOMETRY_HPP
@@ -11,7 +11,10 @@
 
 #include <cstdint>
 
+#include "micras/core/butterworth_filter.hpp"
 #include "micras/hal/timer.hpp"
+#include "micras/nav/state.hpp"
+#include "micras/proxy/imu.hpp"
 #include "micras/proxy/rotary_sensor.hpp"
 
 namespace micras::nav {
@@ -20,14 +23,24 @@ namespace micras::nav {
  */
 class Odometry {
 public:
+    struct Config {
+        float linear_cutoff_frequency;
+        float angular_cutoff_frequency;
+        float wheel_radius;
+        float wheel_separation;
+        Pose  initial_pose;
+    };
+
     /**
      * @brief Constructor for the Odometry class
      *
+     * @param left_rotary_sensor Left rotary sensor
+     * @param right_rotary_sensor Right rotary sensor
      * @param config Configuration for the odometry
      */
     Odometry(
         const proxy::RotarySensor& left_rotary_sensor, const proxy::RotarySensor& right_rotary_sensor,
-        hal::Timer::Config timer_config, float wheel_radius, float wheel_separation
+        const proxy::Imu& imu, hal::Timer::Config timer_config, Config config
     );
 
     /**
@@ -36,39 +49,18 @@ public:
     void update();
 
     /**
-     * @brief Get the position x
+     * @brief Get the state of the robot
      *
-     * @return float Position x
+     * @return State current state of the robot in space
      */
-    float get_position_x() const;
+    const State& get_state() const;
 
     /**
-     * @brief Get the position y
+     * @brief Get the state of the robot calculated using the IMU
      *
-     * @return float Position y
+     * @return State current state of the robot in space
      */
-    float get_position_y() const;
-
-    /**
-     * @brief Get the orientation
-     *
-     * @return float Orientation
-     */
-    float get_orientation() const;
-
-    /**
-     * @brief Get the linear velocity
-     *
-     * @return float Linear velocity
-     */
-    float get_linear_velocity() const;
-
-    /**
-     * @brief Get the angular velocity
-     *
-     * @return float Angular velocity
-     */
-    float get_angular_velocity() const;
+    const State& get_imu_state() const;
 
 private:
     /**
@@ -80,6 +72,11 @@ private:
      * @brief Right rotary sensor
      */
     const proxy::RotarySensor& right_rotary_sensor;  // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
+
+    /**
+     * @brief IMU sensor
+     */
+    const proxy::Imu& imu;  // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
 
     /**
      * @brief Timer for velocity calculation
@@ -107,15 +104,25 @@ private:
     float right_last_position{};
 
     /**
-     * @brief Odometry variables
+     * @brief Linear velocity filter
      */
-    float position_x{};
-    float position_y{};
-    float orientation{};
-    float linear_velocity{};
-    float angular_velocity{};
-};
+    core::ButterworthFilter linear_filter;
 
+    /**
+     * @brief Angular velocity filter
+     */
+    core::ButterworthFilter angular_filter;
+
+    /**
+     * @brief Current state of the robot in space
+     */
+    State state;
+
+    /**
+     * @brief Current state of the robot in space calculated using the IMU
+     */
+    State imu_state;
+};
 }  // namespace micras::nav
 
 #endif  // MICRAS_NAV_ODOMETRY_HPP
