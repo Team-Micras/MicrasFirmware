@@ -79,8 +79,7 @@ void Maze<width, height>::update(const GridPose& pose, Information information) 
 
 template <uint8_t width, uint8_t height>
 GridPoint Maze<width, height>::get_current_goal(const GridPoint& position, bool force_costmap) const {
-    const Cell& current_cell = this->get_cell(position);
-    uint16_t    current_cost = current_cell.cost;
+    uint16_t current_cost = this->get_cell(position).cost;
 
     if (not force_costmap and (not this->exploring or this->returning) and this->best_route.contains(current_cost) and
         this->best_route.at(current_cost) == position) {
@@ -91,12 +90,11 @@ GridPoint Maze<width, height>::get_current_goal(const GridPoint& position, bool 
 
     GridPoint next_position = position;
 
-    for (uint8_t i = Side::LEFT; i <= Side::DOWN; i++) {
+    for (uint8_t i = Side::RIGHT; i <= Side::DOWN; i++) {
         Side      side = static_cast<Side>(i);
         GridPoint front_position = position + side;
 
-        if ((current_cell.wall_count[side] < current_cell.free_count[side]) and
-            this->get_cell(front_position).cost <= current_cost) {
+        if (not this->has_wall({position, side}) and this->get_cell(front_position).cost <= current_cost) {
             current_cost = this->get_cell(front_position).cost;
             next_position = front_position;
         }
@@ -137,6 +135,12 @@ void Maze<width, height>::update_wall(const GridPose& pose, bool wall) {
 }
 
 template <uint8_t width, uint8_t height>
+bool Maze<width, height>::has_wall(const GridPose& pose) const {
+    return this->get_cell(pose.position).wall_count[pose.orientation] >
+           this->get_cell(pose.position).free_count[pose.orientation];
+}
+
+template <uint8_t width, uint8_t height>
 void Maze<width, height>::calculate_costmap() {
     std::array<std::array<bool, width>, height> visited{};
     std::array<std::array<Side, width>, height> origin{};
@@ -151,13 +155,13 @@ void Maze<width, height>::calculate_costmap() {
         GridPoint current_position = queue.front();
         queue.pop();
 
-        Cell& current_cell = this->get_cell(current_position);
+        const Cell& current_cell = this->get_cell(current_position);
 
-        for (uint8_t i = Side::LEFT; i <= Side::DOWN; i++) {
+        for (uint8_t i = Side::RIGHT; i <= Side::DOWN; i++) {
             Side      side = static_cast<Side>(i);
             GridPoint front_position = current_position + side;
 
-            if ((current_cell.wall_count[side] < current_cell.free_count[side]) and
+            if (not this->has_wall({current_position, side}) and
                 not visited.at(front_position.y).at(front_position.x)) {
                 visited.at(front_position.y).at(front_position.x) = true;
                 origin.at(front_position.y).at(front_position.x) = side;

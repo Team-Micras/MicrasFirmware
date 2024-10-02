@@ -40,8 +40,8 @@ struct Information {
      */
     enum Existence : uint8_t {
         UNKNOWN = 0,
-        WALL = 1,
-        FREE = 2
+        FREE = 1,
+        WALL = 2
     };
 
     /**

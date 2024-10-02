@@ -90,6 +90,14 @@ private:
     void update_wall(const GridPose& pose, bool wall);
 
     /**
+     * @brief Checks whether there is a wall at the front of a given pose
+     *
+     * @param pose The pose to check
+     * @return True if there is a wall, false otherwise
+     */
+    bool has_wall(const GridPose& pose) const;
+
+    /**
      * @brief Cells matrix representing the maze
      */
     std::array<std::array<Cell, width>, height> cells{};
