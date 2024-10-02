@@ -1,14 +1,10 @@
-#ifndef MICRAS_CORE_BUTTERWORTH_FILTER_CPP
-#define MICRAS_CORE_BUTTERWORTH_FILTER_CPP
-
 #include <cmath>
 #include <numbers>
 
 #include "micras/core/butterworth_filter.hpp"
 
 namespace micras::core {
-template <uint8_t filter_order>
-ButterworthFilter<filter_order>::ButterworthFilter(float cutoff_frequency, float sampling_frequency) {
+ButterworthFilter::ButterworthFilter(float cutoff_frequency, float sampling_frequency) {
     float relative_frequency = cutoff_frequency / sampling_frequency;
     float relative_frequency_2 = relative_frequency * relative_frequency;
 
@@ -29,8 +25,7 @@ ButterworthFilter<filter_order>::ButterworthFilter(float cutoff_frequency, float
     this->b_array[2] = b0 / a0;
 }
 
-template <uint8_t filter_order>
-float ButterworthFilter<filter_order>::update(float x0) {
+float ButterworthFilter::update(float x0) {
     this->x_array[0] = this->x_array[1];
     this->x_array[1] = this->x_array[2];
     this->x_array[2] = x0;
@@ -55,11 +50,7 @@ float ButterworthFilter<filter_order>::update(float x0) {
     return y0;
 }
 
-template <uint8_t filter_order>
-float ButterworthFilter<filter_order>::get_last() const {
+float ButterworthFilter::get_last() const {
     return this->y_array[1];
 }
-
 }  // namespace micras::core
-
-#endif  // MICRAS_CORE_BUTTERWORTH_FILTER_CPP

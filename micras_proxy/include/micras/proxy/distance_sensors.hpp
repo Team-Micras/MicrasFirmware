@@ -106,7 +106,7 @@ private:
     /**
      * @brief Butterworth filter for the ADC readings
      */
-    std::array<core::ButterworthFilter<2>, num_of_sensors> filters;
+    std::array<core::ButterworthFilter, num_of_sensors> filters;
 };
 }  // namespace micras::proxy
 

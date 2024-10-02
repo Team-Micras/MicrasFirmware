@@ -19,7 +19,7 @@ DistanceSensors<num_of_sensors>::DistanceSensors(const Config& config) :
     led_0_pwm{config.led_0_pwm},
     led_1_pwm{config.led_1_pwm},
     max_distance{config.max_distance},
-    filters{core::make_array<core::ButterworthFilter<>, num_of_sensors>(config.filter_cutoff)} {
+    filters{core::make_array<core::ButterworthFilter, num_of_sensors>(config.filter_cutoff)} {
     this->adc.start_dma(this->buffer);
     this->led_0_pwm.set_duty_cycle(100.0F);
     this->led_1_pwm.set_duty_cycle(100.0F);

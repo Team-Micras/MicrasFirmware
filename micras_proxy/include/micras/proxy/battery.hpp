@@ -81,7 +81,7 @@ private:
     /**
      * @brief Butterworth filter for the battery reading
      */
-    core::ButterworthFilter<2> filter;
+    core::ButterworthFilter filter;
 };
 }  // namespace micras::proxy
 

@@ -30,7 +30,6 @@ namespace micras::core {
  *        The discrete version were computed with the Tustin method:
  *        https://en.wikipedia.org/wiki/Bilinear_transform
  */
-template <uint8_t filter_order = 2>
 class ButterworthFilter {
 public:
     /**
@@ -59,6 +58,11 @@ public:
 
 private:
     /**
+     * @brief Order of the filter
+     */
+    static constexpr uint8_t filter_order{2};
+
+    /**
      * @brief Last input values of the filter
      */
     std::array<float, filter_order + 1> x_array{};
@@ -79,7 +83,5 @@ private:
     std::array<float, filter_order + 1> b_array{};
 };
 }  // namespace micras::core
-
-#include "../src/butterworth_filter.cpp"  // NOLINT(bugprone-suspicious-include, misc-header-include-cycle)
 
 #endif  // MICRAS_CORE_BUTTERWORTH_FILTER_HPP

@@ -19,7 +19,7 @@ TorqueSensors<num_of_sensors>::TorqueSensors(const Config& config) :
     adc{config.adc},
     max_current{hal::AdcDma::reference_voltage / config.shunt_resistor},
     max_torque{config.max_torque},
-    filters{core::make_array<core::ButterworthFilter<>, num_of_sensors>(config.filter_cutoff)} {
+    filters{core::make_array<core::ButterworthFilter, num_of_sensors>(config.filter_cutoff)} {
     this->adc.start_dma(this->buffer);
 
     for (uint8_t i = 0; i < 50; i++) {

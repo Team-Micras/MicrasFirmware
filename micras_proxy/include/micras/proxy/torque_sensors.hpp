@@ -113,7 +113,7 @@ private:
     /**
      * @brief Butterworth filters for the torque reading
      */
-    std::array<core::ButterworthFilter<2>, num_of_sensors> filters;
+    std::array<core::ButterworthFilter, num_of_sensors> filters;
 };
 }  // namespace micras::proxy
 
