@@ -6,6 +6,7 @@
  * @date 03/2024
  */
 
+#include <bit>
 #include <numbers>
 
 #include "micras/proxy/rotary_sensor.hpp"
