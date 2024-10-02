@@ -11,6 +11,8 @@
 
 #include <algorithm>
 #include <array>
+#include <cmath>
+#include <numbers>
 
 namespace micras::core {
 /**
@@ -86,6 +88,17 @@ constexpr std::array<T, N> make_array(C value) {
     return [&]<std::size_t... I>(std::index_sequence<I...>) -> std::array<T, N> {
         return {(static_cast<void>(I), T{value})...};
     }(std::make_index_sequence<N>());
+}
+
+/**
+ * @brief Assert an angle to be in the range [-pi, pi]
+ *
+ * @param angle Angle to be asserted
+ * @return float Asserted angle
+ */
+constexpr float assert_angle(float angle) {
+    angle = std::fmod(angle, 2 * std::numbers::pi_v<float>);
+    return angle > std::numbers::pi_v<float> ? angle - 2 * std::numbers::pi_v<float> : angle;
 }
 }  // namespace micras::core
 
