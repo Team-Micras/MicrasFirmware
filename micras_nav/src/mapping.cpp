@@ -17,7 +17,7 @@ namespace micras::nav {
 template <uint8_t width, uint8_t height>
 Mapping<width, height>::Mapping(const proxy::DistanceSensors<4>& distance_sensors, Mapping::Config config) :
     distance_sensors{distance_sensors},
-    maze{config.start},
+    maze{config.start, config.goal},
     wall_thickness{config.wall_thickness},
     cell_size{config.cell_size},
     wall_distance_threshold{config.wall_distance_threshold},

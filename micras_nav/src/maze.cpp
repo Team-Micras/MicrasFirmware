@@ -16,14 +16,7 @@
 
 namespace micras::nav {
 template <uint8_t width, uint8_t height>
-Maze<width, height>::Maze(const GridPose& start) :
-    start(start),
-    goal(
-        {{width / 2, height / 2},
-         {(width - 1) / 2, height / 2},
-         {width / 2, (height - 1) / 2},
-         {(width - 1) / 2, (height - 1) / 2}}
-    ) {
+Maze<width, height>::Maze(const GridPose& start, std::unordered_set<GridPoint> goal) : start{start}, goal{goal} {
     for (uint8_t row = 0; row < height; row++) {
         this->cells[row][0].wall_count[Side::LEFT] = 0xFFFF;
         this->cells[row][width - 1].wall_count[Side::RIGHT] = 0xFFFF;

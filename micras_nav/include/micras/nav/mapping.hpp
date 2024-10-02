@@ -29,14 +29,21 @@ public:
      * @brief Configuration for the Mapping class
      */
     struct Config {
-        float    wall_thickness;
-        float    cell_size;
-        float    wall_distance_threshold;
-        float    free_distance_threshold;
-        float    alignment_threshold;
-        Pose     front_sensor_pose;
-        Pose     side_sensor_pose;
-        GridPose start;
+        float wall_thickness;
+        float cell_size;
+        float wall_distance_threshold;
+        float free_distance_threshold;
+        float alignment_threshold;
+        Pose  front_sensor_pose;
+        Pose  side_sensor_pose;
+
+        GridPose                      start;
+        std::unordered_set<GridPoint> goal{
+            {{width / 2, height / 2},
+             {(width - 1) / 2, height / 2},
+             {width / 2, (height - 1) / 2},
+             {(width - 1) / 2, (height - 1) / 2}}
+        };
     };
 
     /**

@@ -30,8 +30,9 @@ public:
      * @brief Construct a new Maze object
      *
      * @param start The start pose of the robot
+     * @param goal The goal points in the maze
      */
-    explicit Maze(const GridPose& start);
+    Maze(const GridPose& start, std::unordered_set<GridPoint> goal);
 
     /**
      * @brief Updates the maze walls with the current pose and new information
