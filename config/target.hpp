@@ -267,22 +267,22 @@ const proxy::Locomotion::Config locomotion_config = {
     .pwm_left_forward = {
         .init_function = MX_TIM3_Init,
         .handle = &htim3,
-        .timer_channel = TIM_CHANNEL_3
+        .timer_channel = TIM_CHANNEL_4
     },
     .pwm_left_backwards = {
         .init_function = MX_TIM3_Init,
         .handle = &htim3,
-        .timer_channel = TIM_CHANNEL_4
+        .timer_channel = TIM_CHANNEL_3
     },
     .pwm_right_forward = {
         .init_function = MX_TIM1_Init,
         .handle = &htim1,
-        .timer_channel = TIM_CHANNEL_1
+        .timer_channel = TIM_CHANNEL_2
     },
     .pwm_right_backwards = {
         .init_function = MX_TIM1_Init,
         .handle = &htim1,
-        .timer_channel = TIM_CHANNEL_2
+        .timer_channel = TIM_CHANNEL_1
     },
     .enable_gpio = {
         .port = Motors_Enable_GPIO_Port,
