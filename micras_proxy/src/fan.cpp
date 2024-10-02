@@ -28,11 +28,11 @@ void Fan::disable() {
 }
 
 void Fan::set_speed(float speed) {
-    this->update_speed();
+    this->update();
     this->target_speed = speed;
 }
 
-float Fan::update_speed() {
+float Fan::update() {
     this->current_speed = core::move_towards<float>(
         this->current_speed, this->target_speed, this->acceleration_timer.elapsed_time_ms() * this->max_acceleration
     );

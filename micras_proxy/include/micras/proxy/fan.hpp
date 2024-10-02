@@ -58,7 +58,7 @@ public:
     /**
      * @brief Update the speed of the fan
      */
-    float update_speed();
+    float update();
 
     /**
      * @brief Stop the fan
