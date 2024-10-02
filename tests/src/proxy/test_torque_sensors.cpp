@@ -21,19 +21,19 @@ static volatile float test_current_raw[2];
 int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);
     bool                    running = false;
-    proxy::TorqueSensors<2> torque_sensors{torque_sensors_config};
     proxy::Locomotion       locomotion{locomotion_config};
+    proxy::TorqueSensors<2> torque_sensors{torque_sensors_config};
     proxy::Button           button{button_config};
 
     TestCore::loop([&torque_sensors, &locomotion, &button, &running]() {
         if (button.get_status() != proxy::Button::Status::NO_PRESS) {
             running = not running;
-        }
 
-        if (running) {
-            locomotion.set_command(80.0F, 0.0F);
-        } else {
-            locomotion.set_command(0.0F, 0.0F);
+            if (running) {
+                locomotion.set_command(80.0F, 0.0F);
+            } else {
+                locomotion.set_command(-80.0F, 0.0F);
+            }
         }
 
         torque_sensors.update();
