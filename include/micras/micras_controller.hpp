@@ -9,6 +9,10 @@
 #ifndef MICRAS_CONTROLLER_HPP
 #define MICRAS_CONTROLLER_HPP
 
+#include "constants.hpp"
+#include "micras/nav/go_to_point.hpp"
+#include "micras/nav/look_at_point.hpp"
+#include "micras/nav/mapping.hpp"
 #include "micras/nav/odometry.hpp"
 #include "micras/proxy/argb.hpp"
 #include "micras/proxy/battery.hpp"
@@ -53,7 +57,13 @@ private:
     proxy::RotarySensor       rotary_sensor_left;
     proxy::RotarySensor       rotary_sensor_right;
     proxy::TorqueSensors<2>   torque_sensors;
-    nav::Odometry             odometry;
+
+    nav::Odometry                         odometry;
+    nav::Mapping<maze_width, maze_height> mapping;
+    nav::LookAtPoint                      look_at_point;
+    nav::GoToPoint                        go_to_point;
+
+    nav::Mapping<maze_width, maze_height>::Action current_action{};
 };
 }  // namespace micras
 
