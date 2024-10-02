@@ -8,6 +8,10 @@ Bluetooth::Bluetooth(const hal::UartDma::Config& config) : uart(config) {
 }
 
 void Bluetooth::update() {
+    if (this->uart.is_tx_busy()) {
+        return;
+    }
+
     this->rx_cursor = 0;
     this->tx_cursor = 0;
 
@@ -18,10 +22,6 @@ void Bluetooth::update() {
     }
 
     this->uart.start_rx_dma(this->rx_buffer);
-
-    if (this->uart.is_tx_busy()) {
-        return;
-    }
 
     for (const auto& [id, variable] : this->variable_dict) {
         send_variable(this->tx_buffer.at(this->tx_cursor), id, variable);
