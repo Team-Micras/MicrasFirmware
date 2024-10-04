@@ -17,8 +17,9 @@ int main(int argc, char* argv[]) {
     hal::Timer timer{timer_config};
 
     TestCore::loop([&timer]() {
-        timer_value = timer.elapsed_time_us();
+        timer_value += timer.elapsed_time_us();
         timer.reset_us();
+        hal::Timer::sleep_ms(2);
     });
 
     return 0;

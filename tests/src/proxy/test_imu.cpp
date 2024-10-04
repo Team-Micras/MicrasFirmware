@@ -35,7 +35,7 @@ int main(int argc, char* argv[]) {
     }
 
     TestCore::loop([&imu]() {
-        imu.update_data();
+        imu.update();
 
         test_angular_velocity[0] = imu.get_angular_velocity(proxy::Imu::Axis::X);
         test_angular_velocity[1] = imu.get_angular_velocity(proxy::Imu::Axis::Y);
@@ -44,10 +44,6 @@ int main(int argc, char* argv[]) {
         test_linear_acceleration[0] = imu.get_linear_acceleration(proxy::Imu::Axis::X);
         test_linear_acceleration[1] = imu.get_linear_acceleration(proxy::Imu::Axis::Y);
         test_linear_acceleration[2] = imu.get_linear_acceleration(proxy::Imu::Axis::Z);
-
-        test_orientation[0] = imu.get_orientation(proxy::Imu::Axis::X);
-        test_orientation[1] = imu.get_orientation(proxy::Imu::Axis::Y);
-        test_orientation[2] = imu.get_orientation(proxy::Imu::Axis::Z);
     });
 
     return 0;
