@@ -41,15 +41,18 @@ public:
      *
      * @param state The current state of the robot
      * @param goal The goal point
+     * @param elapsed_time The time elapsed since the last update
+     *
      * @return The command to go to the point
      */
-    Twist action(const State& state, const Point& goal);
+    Twist action(const State& state, const Point& goal, float elapsed_time);
 
     /**
      * @brief Checks if the robot has reached the goal
      *
      * @param state The current state of the robot
      * @param goal The goal point
+     *
      * @return True if the robot has reached the goal, false otherwise
      */
     bool finished(const State& state, const Point& goal) const;

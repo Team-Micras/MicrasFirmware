@@ -22,7 +22,8 @@ public:
      * @brief Configuration for the LookAtPoint class
      */
     struct Config {
-        PidController::Config pid;
+        PidController::Config linear_pid;
+        PidController::Config angular_pid;
         float                 tolerance{};
     };
 
@@ -38,24 +39,32 @@ public:
      *
      * @param pose The current pose of the robot
      * @param goal The goal point
+     * @param elapsed_time The time elapsed since the last update
+     *
      * @return The command to look at the point
      */
-    Twist action(const Pose& pose, const Point& goal);
+    Twist action(const State& state, const Point& goal, float elapsed_time);
 
     /**
      * @brief Checks if the robot has reached the goal
      *
      * @param pose The current pose of the robot
      * @param goal The goal point
+     *
      * @return True if the robot has reached the goal, false otherwise
      */
     bool finished(const Pose& pose, const Point& goal) const;
 
 private:
     /**
+     * @brief PID controller for the linear velocity
+     */
+    PidController linear_pid;
+
+    /**
      * @brief PID controller for the angular velocity
      */
-    PidController pid;
+    PidController angular_pid;
 
     /**
      * @brief Angular tolerance for the goal

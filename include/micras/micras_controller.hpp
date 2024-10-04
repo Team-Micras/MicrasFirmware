@@ -44,6 +44,8 @@ public:
     void run();
 
 private:
+    hal::Timer timer;
+
     proxy::Argb<2>            argb;
     proxy::Battery            battery;
     proxy::Button             button;

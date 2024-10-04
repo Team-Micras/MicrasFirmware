@@ -11,6 +11,7 @@
 
 namespace micras {
 MicrasController::MicrasController() :
+    timer{timer_config},
     argb{argb_config},
     battery{battery_config},
     button{button_config},
@@ -24,18 +25,20 @@ MicrasController::MicrasController() :
     rotary_sensor_left{rotary_sensor_left_config},
     rotary_sensor_right{rotary_sensor_right_config},
     torque_sensors{torque_sensors_config},
-    odometry{rotary_sensor_left, rotary_sensor_right, imu, timer_config, odometry_config},
+    odometry{rotary_sensor_left, rotary_sensor_right, imu, odometry_config},
     mapping{distance_sensors, mapping_config},
     look_at_point{look_at_point_config},
     go_to_point{go_to_point_config},
     current_action{mapping.get_action(odometry_config.initial_pose)} { }
 
 void MicrasController::run() {
+    float elapsed_time = timer.elapsed_time_us() / 1000000.0F;
+    timer.reset_us();
     distance_sensors.update();
     fan.update();
     imu.update();
     torque_sensors.update();
-    odometry.update();
+    odometry.update(elapsed_time);
 
     const micras::nav::State& state = odometry.get_state();
     mapping.update(state.pose);
@@ -47,7 +50,7 @@ void MicrasController::run() {
                 current_action = mapping.get_action(state.pose);
             }
 
-            command = look_at_point.action(state.pose, current_action.point);
+            command = look_at_point.action(state, current_action.point);
             break;
 
         case micras::nav::Mapping<maze_width, maze_height>::Action::Type::GO_TO:

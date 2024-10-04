@@ -50,20 +50,22 @@ public:
      * @brief Update PID with new state and return response
      *
      * @param state Current value of the controlled variable
+     * @param elapsed_time Time since the last update
      *
      * @return Response
      */
-    float update(float state);
+    float update(float state, float elapsed_time);
 
     /**
      * @brief Update PID with new state and return response
      *
      * @param state Current value of the controlled variable
      * @param state_change Derivative of the controlled variable
+     * @param elapsed_time Time since the last update
      *
      * @return Response
      */
-    float update(float state, float state_change);
+    float update(float state, float elapsed_time, float state_change);
 
 private:
     float kp;                /**< Proportional constant */
@@ -75,8 +77,6 @@ private:
     float error_acc = 0;     /**< Accumulated error for i term */
     float prev_state = 0;    /**< Previous state for d term */
     float last_response = 0; /**< Last response returned by the controller */
-
-    hal::Timer timer; /**< Timer used to compute the loop time */
 };
 }  // namespace micras::nav
 

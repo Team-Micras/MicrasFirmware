@@ -40,13 +40,15 @@ public:
      */
     Odometry(
         const proxy::RotarySensor& left_rotary_sensor, const proxy::RotarySensor& right_rotary_sensor,
-        const proxy::Imu& imu, hal::Timer::Config timer_config, Config config
+        const proxy::Imu& imu, Config config
     );
 
     /**
      * @brief Update the odometry
+     *
+     * @param elapsed_time Time since the last update
      */
-    void update();
+    void update(float elapsed_time);
 
     /**
      * @brief Get the state of the robot
@@ -64,6 +66,31 @@ public:
 
 private:
     /**
+     * @brief Update a state based on the position variation
+     *
+     * @param state State to be updated
+     * @param linear_distance Linear distance from last state
+     * @param angular_distance Angular distance from last state
+     * @param linear_velocity Measured linear velocity of the robot
+     * @param angular_velocity Measured angular velocity of the robot
+     */
+    static constexpr void update_state(
+        State& state, float linear_distance, float angular_distance, float linear_velocity, float angular_velocity
+    ) {
+        float half_angle = angular_distance / 2;
+        float linear_diagonal =
+            angular_distance < 0.05F ? linear_distance : std::abs(std::sin(half_angle) * linear_distance / half_angle);
+
+        state.pose.position.x += linear_diagonal * std::cos(state.pose.orientation + half_angle);
+        state.pose.position.y += linear_diagonal * std::sin(state.pose.orientation + half_angle);
+
+        state.pose.orientation += angular_distance;
+
+        state.velocity.linear = linear_velocity;
+        state.velocity.angular = angular_velocity;
+    }
+
+    /**
      * @brief Left rotary sensor
      */
     const proxy::RotarySensor& left_rotary_sensor;  // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
@@ -77,11 +104,6 @@ private:
      * @brief IMU sensor
      */
     const proxy::Imu& imu;  // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
-
-    /**
-     * @brief Timer for velocity calculation
-     */
-    hal::Timer timer;
 
     /**
      * @brief Wheel radius

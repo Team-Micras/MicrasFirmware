@@ -19,12 +19,12 @@ GoToPoint::GoToPoint(Config config) :
     linear_decay_damping{config.linear_decay_damping},
     tolerance{config.tolerance} { }
 
-Twist GoToPoint::action(const State& state, const Point& goal) {
+Twist GoToPoint::action(const State& state, const Point& goal, float elapsed_time) {
     float angular_error = core::assert_angle(state.pose.orientation - state.pose.position.angle_between(goal));
     float linear_target = core::decay(angular_error, this->linear_decay_damping) * this->base_speed;
 
-    float angular_command = this->angular_pid.update(angular_error);
-    float linear_command = this->linear_pid.update(state.velocity.linear - linear_target);
+    float angular_command = this->angular_pid.update(angular_error, elapsed_time);
+    float linear_command = this->linear_pid.update(state.velocity.linear - linear_target, elapsed_time);
 
     return {linear_command, angular_command};
 }

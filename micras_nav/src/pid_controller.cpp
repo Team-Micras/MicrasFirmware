@@ -30,27 +30,12 @@ void PidController::reset() {
     this->last_response = 0;
 }
 
-float PidController::update(float state) {
-    float loop_time = this->timer.elapsed_time_us() / 1000000.0F;
-
-    if (loop_time == 0) {
-        return this->last_response;
-    }
-
-    float state_change = (state - this->prev_state) / loop_time;
-
-    return this->update(state, state_change);
+float PidController::update(float state, float elapsed_time) {
+    float state_change = (state - this->prev_state) / elapsed_time;
+    return this->update(state, elapsed_time, state_change);
 }
 
-float PidController::update(float state, float state_change) {
-    float loop_time = this->timer.elapsed_time_us() / 1000000.0F;
-
-    if (loop_time == 0) {
-        return this->last_response;
-    }
-
-    this->timer.reset_us();
-
+float PidController::update(float state, float elapsed_time, float state_change) {
     float error = this->setpoint - state;
     this->prev_state = state;
 
@@ -58,7 +43,7 @@ float PidController::update(float state, float state_change) {
 
     if (this->saturation < 0 or std::abs(response) < this->saturation or
         (this->error_acc != 0 and std::signbit(this->error_acc) != std::signbit(error))) {
-        this->error_acc += error * loop_time;
+        this->error_acc += error * elapsed_time;
     }
 
     if (this->max_integral >= 0 and this->ki > 0) {
