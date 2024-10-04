@@ -6,6 +6,8 @@
  * @date 03/2024
  */
 
+#include <limits>
+
 #include "micras/hal/timer.hpp"
 
 namespace micras::hal {
@@ -40,7 +42,13 @@ uint32_t Timer::elapsed_time_ms() const {
 }
 
 uint32_t Timer::elapsed_time_us() const {
-    return this->get_counter_us() - this->counter;
+    uint32_t counter = this->get_counter_us();
+
+    if (counter < this->counter) {
+        return std::numeric_limits<uint16_t>::max() - this->counter + counter;
+    } else {
+        return counter - this->counter;
+    }
 }
 
 void Timer::sleep_ms(uint32_t time) {
