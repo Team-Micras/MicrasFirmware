@@ -71,7 +71,7 @@ private:
      */
     enum RotationDirection : uint8_t {
         FORWARD,
-        BACKWARD
+        BACKWARDS
     };
 
     /**

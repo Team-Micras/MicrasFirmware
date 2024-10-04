@@ -12,11 +12,7 @@
 
 namespace micras::proxy {
 Locomotion::Locomotion(const Config& config) :
-    pwm_left_forward{config.pwm_left_forward},
-    pwm_left_backwards{config.pwm_left_backwards},
-    pwm_right_forward{config.pwm_right_forward},
-    pwm_right_backwards{config.pwm_right_backwards},
-    enable_gpio{config.enable_gpio} {
+    left_motor{config.left_motor}, right_motor{config.right_motor}, enable_gpio{config.enable_gpio} {
     this->stop();
     this->enable();
 }
@@ -30,27 +26,8 @@ void Locomotion::disable() {
 }
 
 void Locomotion::set_wheel_command(float left_command, float right_command) {
-    if (left_command > 0.0F) {
-        this->pwm_left_forward.set_duty_cycle(left_command);
-        this->pwm_left_backwards.set_duty_cycle(0.0F);
-    } else if (left_command < 0.0F) {
-        this->pwm_left_forward.set_duty_cycle(0.0F);
-        this->pwm_left_backwards.set_duty_cycle(-left_command);
-    } else {
-        this->pwm_left_forward.set_duty_cycle(0.0F);
-        this->pwm_left_backwards.set_duty_cycle(0.0F);
-    }
-
-    if (right_command > 0.0F) {
-        this->pwm_right_forward.set_duty_cycle(right_command);
-        this->pwm_right_backwards.set_duty_cycle(0.0F);
-    } else if (right_command < 0.0F) {
-        this->pwm_right_forward.set_duty_cycle(0.0F);
-        this->pwm_right_backwards.set_duty_cycle(-right_command);
-    } else {
-        this->pwm_right_forward.set_duty_cycle(0.0F);
-        this->pwm_right_backwards.set_duty_cycle(0.0F);
-    }
+    this->left_motor.set_command(left_command);
+    this->right_motor.set_command(right_command);
 }
 
 void Locomotion::set_command(float linear, float angular) {
@@ -71,10 +48,6 @@ void Locomotion::set_command(float linear, float angular) {
 }
 
 void Locomotion::stop() {
-    this->pwm_left_forward.set_duty_cycle(0.0F);
-    this->pwm_left_backwards.set_duty_cycle(0.0F);
-
-    this->pwm_right_forward.set_duty_cycle(0.0F);
-    this->pwm_right_backwards.set_duty_cycle(0.0F);
+    this->set_wheel_command(0.0F, 0.0F);
 }
 }  // namespace micras::proxy

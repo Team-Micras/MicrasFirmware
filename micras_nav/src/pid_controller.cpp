@@ -49,6 +49,8 @@ float PidController::update(float state, float state_change) {
         return this->last_response;
     }
 
+    this->timer.reset_us();
+
     float error = this->setpoint - state;
     this->prev_state = state;
 
@@ -72,7 +74,6 @@ float PidController::update(float state, float state_change) {
     }
 
     this->last_response = response;
-    this->timer.reset_us();
 
     return response;
 }

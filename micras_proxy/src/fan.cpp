@@ -43,7 +43,7 @@ float Fan::update() {
         this->set_direction(RotationDirection::FORWARD);
         this->pwm.set_duty_cycle(this->current_speed);
     } else if (this->current_speed < 0.0F) {
-        this->set_direction(RotationDirection::BACKWARD);
+        this->set_direction(RotationDirection::BACKWARDS);
         this->pwm.set_duty_cycle(-this->current_speed);
     } else {
         this->stop();
