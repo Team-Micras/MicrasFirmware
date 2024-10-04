@@ -33,7 +33,7 @@ MicrasController::MicrasController() :
 void MicrasController::run() {
     distance_sensors.update();
     fan.update();
-    imu.update_data();
+    imu.update();
     torque_sensors.update();
     odometry.update();
 

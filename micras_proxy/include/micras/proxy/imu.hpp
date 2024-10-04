@@ -59,16 +59,7 @@ public:
     /**
      * @brief Update the IMU data
      */
-    void update_data();
-
-    /**
-     * @brief Get the IMU orientation over an axis
-     *
-     * @param axis Axis to get the orientation from
-     *
-     * @return float Orientation over the desired axis using quaternions
-     */
-    float get_orientation(Axis axis) const;
+    void update();
 
     /**
      * @brief Get the IMU angular velocity over an axis
@@ -154,11 +145,6 @@ private:
      * @brief Current linear acceleration on each axis
      */
     std::array<float, 3> linear_acceleration{};
-
-    /**
-     * @brief Current orientation
-     */
-    std::array<float, 4> orientation{};
 
     /**
      * @brief Gyroscope conversion factor
