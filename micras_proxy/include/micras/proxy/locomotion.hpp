@@ -67,13 +67,6 @@ public:
      */
     void stop();
 
-    /**
-     * @brief Update the locomotion state
-     *
-     * @param elapsed_time Time since the last update
-     */
-    void update(float elapsed_time);
-
 private:
     /**
      * @brief Left motor of the robot
