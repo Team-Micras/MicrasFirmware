@@ -23,7 +23,7 @@ Argb<num_of_leds>::Argb(const Config& config) :
 
 template <uint8_t num_of_leds>
 void Argb<num_of_leds>::set_color(const Color& color, uint8_t index) {
-    if (index >= num_of_leds) {
+    if (index >= num_of_leds or this->pwm.is_busy()) {
         return;
     }
 
@@ -33,6 +33,10 @@ void Argb<num_of_leds>::set_color(const Color& color, uint8_t index) {
 
 template <uint8_t num_of_leds>
 void Argb<num_of_leds>::set_color(const Color& color) {
+    if (this->pwm.is_busy()) {
+        return;
+    }
+
     for (uint8_t i = 0; i < num_of_leds; i++) {
         this->encode_color(color * this->brightness, i);
     }

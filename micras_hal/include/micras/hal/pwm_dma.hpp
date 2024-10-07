@@ -62,6 +62,13 @@ public:
      */
     uint32_t get_compare(float duty_cycle) const;
 
+    /**
+     * @brief Check if the PWM is busy
+     *
+     * @return true If the PWM is busy, false otherwise
+     */
+    bool is_busy();
+
 private:
     /**
      * @brief Timer handle
