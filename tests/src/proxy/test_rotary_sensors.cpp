@@ -24,9 +24,10 @@ int main(int argc, char* argv[]) {
     proxy::Button       button{button_config};
     bool                running{};
 
+    locomotion.enable();
+
     proxy::RotarySensor::CommandFrame command_frame{};
     proxy::RotarySensor::DataFrame    data_frame{};
-
 
     command_frame.fields.address = proxy::RotarySensor::Registers::settings3_addr;
     data_frame.fields.data = rotary_sensor_right_config.registers.settings3.raw;

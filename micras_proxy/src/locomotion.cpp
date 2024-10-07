@@ -14,7 +14,7 @@ namespace micras::proxy {
 Locomotion::Locomotion(const Config& config) :
     left_motor{config.left_motor}, right_motor{config.right_motor}, enable_gpio{config.enable_gpio} {
     this->stop();
-    this->enable();
+    this->disable();
 }
 
 void Locomotion::enable() {

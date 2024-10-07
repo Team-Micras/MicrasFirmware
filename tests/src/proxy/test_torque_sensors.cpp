@@ -25,6 +25,8 @@ int main(int argc, char* argv[]) {
     proxy::TorqueSensors<2> torque_sensors{torque_sensors_config};
     proxy::Button           button{button_config};
 
+    locomotion.enable();
+
     TestCore::loop([&torque_sensors, &locomotion, &button, &running]() {
         if (button.get_status() != proxy::Button::Status::NO_PRESS) {
             running = not running;
