@@ -24,6 +24,29 @@ GridPoint Point::to_grid(float cell_size) const {
     return {static_cast<uint8_t>(this->x / cell_size), static_cast<uint8_t>(this->y / cell_size)};
 }
 
+Point Point::rotate(Side angle) {
+    switch (angle) {
+        case Side::RIGHT:
+            return {-this->y, this->x};
+        case Side::UP:
+            return *this;
+        case Side::LEFT:
+            return {this->y, -this->x};
+        case Side::DOWN:
+            return {-this->x, -this->y};
+    }
+
+    return *this;
+}
+
+Point Point::operator-(const Point& other) const {
+    return {this->x - other.x, this->y - other.y};
+}
+
+bool Point::operator==(const Point& other) const {
+    return this->x == other.x and this->y == other.y;
+}
+
 Point Point::operator%(float value) const {
     return {std::fmod(this->x, value), std::fmod(this->y, value)};
 }

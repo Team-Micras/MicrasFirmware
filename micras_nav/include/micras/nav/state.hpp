@@ -41,6 +41,30 @@ struct Point {
     GridPoint to_grid(float cell_size) const;
 
     /**
+     * @brief Rotates the point by a given angle
+     *
+     * @param angle The angle to rotate the point by
+     * @return The rotated point
+     */
+    Point rotate(Side angle);
+
+    /**
+     * @brief Subtracts a point from another
+     *
+     * @param other The point to subtract
+     * @return The result of the subtraction
+     */
+    Point operator-(const Point& other) const;
+
+    /**
+     * @brief Compares two points for equality
+     *
+     * @param other The other point to compare
+     * @return True if the points are equal, false otherwise
+     */
+    bool operator==(const Point& other) const;
+
+    /**
      * @brief Calculates the remainder of the division of the point by a value
      *
      * @param value The value to divide the point by
