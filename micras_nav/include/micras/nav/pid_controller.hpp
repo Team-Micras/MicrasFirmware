@@ -51,10 +51,11 @@ public:
      *
      * @param state Current value of the controlled variable
      * @param elapsed_time Time since the last update
+     * @param save Whether to save the variables for calibration
      *
      * @return Response
      */
-    float update(float state, float elapsed_time);
+    float update(float state, float elapsed_time, bool save = false);
 
     /**
      * @brief Update PID with new state and return response
@@ -62,10 +63,11 @@ public:
      * @param state Current value of the controlled variable
      * @param state_change Derivative of the controlled variable
      * @param elapsed_time Time since the last update
+     * @param save Whether to save the variables for calibration
      *
      * @return Response
      */
-    float update(float state, float elapsed_time, float state_change);
+    float update(float state, float elapsed_time, float state_change, bool save = false);
 
 private:
     float kp;                /**< Proportional constant */
