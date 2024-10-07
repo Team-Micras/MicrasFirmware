@@ -27,6 +27,10 @@ Maze<width, height>::Maze(const GridPose& start, std::unordered_set<GridPoint> g
         this->cells[height - 1][col].wall_count[Side::UP] = 0xFFFF;
     }
 
+    this->cells[start.position.y][start.position.x].wall_count[start.turned_right().orientation] = 0xFFFF;
+    GridPose right_pose = start.turned_right().front();
+    this->get_cell(right_pose.position).wall_count[right_pose.turned_back().orientation] = 0xFFFF;
+
     for (const auto& position : this->goal) {
         this->get_cell(position).cost = 0;
     }
