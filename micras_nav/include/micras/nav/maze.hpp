@@ -38,7 +38,7 @@ public:
      * @brief Updates the maze walls with the current pose and new information
      *
      * @param pose The pose of the robot
-     * @param information The information from the distance sensors
+     * @param information The information from the wall sensors
      */
     void update(const GridPose& pose, Information information);
 
@@ -49,7 +49,7 @@ public:
      * @param force_costmap Whether to force the use of the update of the costmap
      * @return The next point the robot should go to
      */
-    GridPoint get_current_goal(const GridPoint& position, bool force_costmap = false) const;
+    GridPose get_current_goal(const GridPoint& position, bool force_costmap = false) const;
 
 private:
     /**
@@ -126,7 +126,7 @@ private:
     /**
      * @brief Current best found route to the goal
      */
-    std::map<uint16_t, GridPoint, std::greater<>> best_route;
+    std::map<uint16_t, GridPose, std::greater<>> best_route;
 };
 }  // namespace micras::nav
 

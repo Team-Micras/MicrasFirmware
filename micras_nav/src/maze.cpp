@@ -51,41 +51,42 @@ void Maze<width, height>::update(const GridPose& pose, Information information) 
         return;
     }
 
-    if (information.left != Information::UNKNOWN) {
-        this->update_wall(pose.turned_left(), information.left == Information::WALL);
+    if (information.left != core::Observation::UNKNOWN) {
+        this->update_wall(pose.turned_left(), information.left == core::Observation::WALL);
     }
 
-    if (information.front_left != Information::UNKNOWN) {
-        this->update_wall(pose.front().turned_left(), information.front_left == Information::WALL);
+    if (information.front_left != core::Observation::UNKNOWN) {
+        this->update_wall(pose.front().turned_left(), information.front_left == core::Observation::WALL);
     }
 
-    if (information.front != Information::UNKNOWN) {
-        this->update_wall(pose, information.front == Information::WALL);
+    if (information.front != core::Observation::UNKNOWN) {
+        this->update_wall(pose, information.front == core::Observation::WALL);
     }
 
-    if (information.front_right != Information::UNKNOWN) {
-        this->update_wall(pose.front().turned_right(), information.front_right == Information::WALL);
+    if (information.front_right != core::Observation::UNKNOWN) {
+        this->update_wall(pose.front().turned_right(), information.front_right == core::Observation::WALL);
     }
 
-    if (information.right != Information::UNKNOWN) {
-        this->update_wall(pose.turned_right(), information.right == Information::WALL);
+    if (information.right != core::Observation::UNKNOWN) {
+        this->update_wall(pose.turned_right(), information.right == core::Observation::WALL);
     }
 
     this->calculate_costmap();
 }
 
 template <uint8_t width, uint8_t height>
-GridPoint Maze<width, height>::get_current_goal(const GridPoint& position, bool force_costmap) const {
+GridPose Maze<width, height>::get_current_goal(const GridPoint& position, bool force_costmap) const {
     uint16_t current_cost = this->get_cell(position).cost;
 
     if (not force_costmap and (not this->exploring or this->returning) and this->best_route.contains(current_cost) and
-        this->best_route.at(current_cost) == position) {
+        this->best_route.at(current_cost).position == position) {
         return (this->returning ? std::prev(this->best_route.find(current_cost)) :
                                   std::next(this->best_route.find(current_cost)))
             ->second;
     }
 
     GridPoint next_position = position;
+    Side      next_side{};
 
     for (uint8_t i = Side::RIGHT; i <= Side::DOWN; i++) {
         Side      side = static_cast<Side>(i);
@@ -94,10 +95,11 @@ GridPoint Maze<width, height>::get_current_goal(const GridPoint& position, bool 
         if (not this->has_wall({position, side}) and this->get_cell(front_position).cost <= current_cost) {
             current_cost = this->get_cell(front_position).cost;
             next_position = front_position;
+            next_side = side;
         }
     }
 
-    return next_position;
+    return {next_position, next_side};
 }
 
 template <uint8_t width, uint8_t height>
@@ -112,6 +114,10 @@ Maze<width, height>::Cell& Maze<width, height>::get_cell(const GridPoint& positi
 
 template <uint8_t width, uint8_t height>
 void Maze<width, height>::update_wall(const GridPose& pose, bool wall) {
+    if (pose.position.x >= width or pose.position.y >= height) {
+        return;
+    }
+
     if (wall) {
         this->get_cell(pose.position).wall_count[pose.orientation]++;
     } else {
@@ -177,13 +183,13 @@ void Maze<width, height>::calculate_costmap() {
         return;
     }
 
-    GridPoint current_position = this->start.position;
+    GridPose current_pose = this->start;
     this->best_route.clear();
-    this->best_route.try_emplace(this->get_cell(this->start.position).cost, this->start.position);
+    this->best_route.try_emplace(this->get_cell(this->start.position).cost, this->start);
 
-    while (not this->goal.contains(current_position)) {
-        current_position = this->get_current_goal(current_position, true);
-        this->best_route.try_emplace(this->get_cell(current_position).cost, current_position);
+    while (not this->goal.contains(current_pose.position)) {
+        current_pose = this->get_current_goal(current_pose.position, true);
+        this->best_route.try_emplace(this->get_cell(current_pose.position).cost, current_pose);
     }
 }
 }  // namespace micras::nav

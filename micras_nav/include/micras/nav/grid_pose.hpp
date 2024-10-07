@@ -12,6 +12,8 @@
 #include <cstdint>
 #include <functional>
 
+#include "micras/core/types.hpp"
+
 namespace micras::nav {
 /**
  * @brief Possible directions in the grid
@@ -32,26 +34,17 @@ enum Side : uint8_t {
 Side angle_to_grid(float angle);
 
 /**
- * @brief Type to store information originating from the distance sensors
+ * @brief Type to store information originating from the wall sensors
  */
 struct Information {
     /**
-     * @brief Possible values for the existence of a wall
-     */
-    enum Existence : uint8_t {
-        UNKNOWN = 0,
-        FREE = 1,
-        WALL = 2
-    };
-
-    /**
      * @brief Possible walls in the grid to be checked
      */
-    Existence left;
-    Existence front_left;
-    Existence front;
-    Existence front_right;
-    Existence right;
+    core::Observation left;
+    core::Observation front_left;
+    core::Observation front;
+    core::Observation front_right;
+    core::Observation right;
 };
 
 /**
