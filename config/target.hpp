@@ -16,7 +16,7 @@
 #include "micras/proxy/button.hpp"
 #include "micras/proxy/buzzer.hpp"
 #include "micras/proxy/dip_switch.hpp"
-#include "micras/proxy/distance_sensors.hpp"
+#include "micras/proxy/wall_sensors.hpp"
 #include "micras/proxy/fan.hpp"
 #include "micras/proxy/imu.hpp"
 #include "micras/proxy/led.hpp"
@@ -199,7 +199,7 @@ const proxy::TorqueSensors<2>::Config torque_sensors_config = {
     .filter_cutoff = 10.0F,
 };
 
-const proxy::DistanceSensors<4>::Config distance_sensors_config = {
+const proxy::WallSensors<4>::Config wall_sensors_config = {
     .adc =
         {
             .init_function = MX_ADC1_Init,
@@ -218,8 +218,22 @@ const proxy::DistanceSensors<4>::Config distance_sensors_config = {
             .handle = &htim15,
             .timer_channel = TIM_CHANNEL_2,
         },
-    .max_distance = 10.0F,
     .filter_cutoff = 10.0F,
+    .uncertainty = 0.1F,
+    .wall_threshold =
+        {
+            0.80F,
+            0.33F,
+            0.33F,
+            0.70F,
+        },
+    .free_threshold =
+        {
+            0.51F,
+            0.30F,
+            0.30F,
+            0.33F,
+        },
 };
 
 const proxy::Imu::Config imu_config = {
@@ -234,8 +248,8 @@ const proxy::Imu::Config imu_config = {
                 },
             .timeout = 2,
         },
-    .gyroscope_data_rate = LSM6DSV_ODR_AT_3840Hz,
-    .accelerometer_data_rate = LSM6DSV_ODR_AT_3840Hz,
+    .gyroscope_data_rate = LSM6DSV_ODR_AT_960Hz,
+    .accelerometer_data_rate = LSM6DSV_ODR_AT_960Hz,
     .orientation_data_rate = LSM6DSV_SFLP_480Hz,
     .gyroscope_scale = LSM6DSV_4000dps,
     .accelerometer_scale = LSM6DSV_8g,
@@ -298,8 +312,8 @@ const proxy::Locomotion::Config locomotion_config = {
                     .handle = &htim3,
                     .timer_channel = TIM_CHANNEL_3,
                 },
-            .max_stopped_command = 0.02F,
-            .deadzone = 0.15F,
+            .max_stopped_command = 1.0F,
+            .deadzone = 33.0F,
         },
     .right_motor =
         {
@@ -315,8 +329,8 @@ const proxy::Locomotion::Config locomotion_config = {
                     .handle = &htim1,
                     .timer_channel = TIM_CHANNEL_1,
                 },
-            .max_stopped_command = 0.02F,
-            .deadzone = 0.15F,
+            .max_stopped_command = 1.0F,
+            .deadzone = 30.0F,
         },
     .enable_gpio =
         {
