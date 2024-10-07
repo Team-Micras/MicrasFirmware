@@ -98,7 +98,44 @@ constexpr std::array<T, N> make_array(C value) {
  */
 constexpr float assert_angle(float angle) {
     angle = std::fmod(angle, 2 * std::numbers::pi_v<float>);
-    return angle > std::numbers::pi_v<float> ? angle - 2 * std::numbers::pi_v<float> : angle;
+
+    if (angle > std::numbers::pi_v<float>) {
+        angle -= 2 * std::numbers::pi_v<float>;
+    } else if (angle < -std::numbers::pi_v<float>) {
+        angle += 2 * std::numbers::pi_v<float>;
+    }
+
+    return angle;
+}
+
+/**
+ * @brief Assert an angle to be in the range [-pi/2, pi/2]
+ *
+ * @param angle Angle to be asserted
+ * @return float Asserted angle
+ */
+constexpr float assert_half_angle(float angle) {
+    angle = std::fmod(angle, std::numbers::pi_v<float>);
+
+    if (angle > std::numbers::pi_v<float> / 2.0F) {
+        angle -= std::numbers::pi_v<float>;
+    } else if (angle < -std::numbers::pi_v<float> / 2.0F) {
+        angle += std::numbers::pi_v<float>;
+    }
+
+    return angle;
+}
+
+/**
+ * @brief Check if two floating point numbers are near each other
+ *
+ * @param a First number
+ * @param b Second number
+ * @param tolerance Tolerance
+ * @return true If the numbers are near each other, false otherwise
+ */
+constexpr bool is_near(float a, float b, float tolerance = 0.001) {
+    return std::abs(a - b) < tolerance;
 }
 }  // namespace micras::core
 
