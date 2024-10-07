@@ -24,7 +24,8 @@ public:
     struct Config {
         PidController::Config linear_pid;
         PidController::Config angular_pid;
-        float                 tolerance{};
+        float                 distance_tolerance;
+        float                 velocity_tolerance;
     };
 
     /**
@@ -46,6 +47,11 @@ public:
     Twist action(const State& state, const Point& goal, float elapsed_time);
 
     /**
+     * @brief Resets the PID controllers
+     */
+    void reset();
+
+    /**
      * @brief Checks if the robot has reached the goal
      *
      * @param pose The current pose of the robot
@@ -53,7 +59,7 @@ public:
      *
      * @return True if the robot has reached the goal, false otherwise
      */
-    bool finished(const Pose& pose, const Point& goal) const;
+    bool finished(const State& state, const Point& goal, bool stop = true) const;
 
 private:
     /**
@@ -69,7 +75,12 @@ private:
     /**
      * @brief Angular tolerance for the goal
      */
-    float tolerance;
+    float distance_tolerance;
+
+    /**
+     * @brief Velocity tolerance for the goal
+     */
+    float velocity_tolerance;
 };
 }  // namespace micras::nav
 
