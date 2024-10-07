@@ -46,9 +46,9 @@ uint32_t Timer::elapsed_time_us() const {
 
     if (counter < this->counter) {
         return std::numeric_limits<uint16_t>::max() - this->counter + counter;
-    } else {
-        return counter - this->counter;
     }
+
+    return counter - this->counter;
 }
 
 void Timer::sleep_ms(uint32_t time) {

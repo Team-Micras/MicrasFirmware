@@ -129,13 +129,13 @@ constexpr float assert_half_angle(float angle) {
 /**
  * @brief Check if two floating point numbers are near each other
  *
- * @param a First number
- * @param b Second number
+ * @param x First number
+ * @param y Second number
  * @param tolerance Tolerance
  * @return true If the numbers are near each other, false otherwise
  */
-constexpr bool is_near(float a, float b, float tolerance = 0.001) {
-    return std::abs(a - b) < tolerance;
+constexpr bool is_near(float x, float y, float tolerance = 0.001) {
+    return std::abs(x - y) < tolerance;
 }
 }  // namespace micras::core
 

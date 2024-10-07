@@ -24,10 +24,10 @@ public:
      */
     struct Config {
         PidController::Config pid;
-        float                 can_follow_tolerance;
-        float                 base_left_reading;
-        float                 base_right_reading;
-        float                 cutoff_frequency;
+        float                 can_follow_tolerance{};
+        float                 base_left_reading{};
+        float                 base_right_reading{};
+        float                 cutoff_frequency{};
     };
 
     /**
@@ -82,7 +82,7 @@ private:
     /**
      * @brief Wall sensors of the robot
      */
-    const proxy::WallSensors<4>& wall_sensors;
+    const proxy::WallSensors<4>& wall_sensors;  // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
 
     /**
      * @brief PID controller for the wall following

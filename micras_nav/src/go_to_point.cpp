@@ -26,8 +26,8 @@ GoToPoint::GoToPoint(
     velocity_tolerance{config.velocity_tolerance} { }
 
 Twist GoToPoint::action(const State& state, const Point& goal, float elapsed_time, bool stop) {
-    float linear_command;
-    float angular_command;
+    float linear_command{};
+    float angular_command{};
     Point goal_distance = goal - state.pose.position;
 
     float linear_target{};

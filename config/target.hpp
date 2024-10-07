@@ -16,7 +16,6 @@
 #include "micras/proxy/button.hpp"
 #include "micras/proxy/buzzer.hpp"
 #include "micras/proxy/dip_switch.hpp"
-#include "micras/proxy/wall_sensors.hpp"
 #include "micras/proxy/fan.hpp"
 #include "micras/proxy/imu.hpp"
 #include "micras/proxy/led.hpp"
@@ -24,6 +23,7 @@
 #include "micras/proxy/rotary_sensor.hpp"
 #include "micras/proxy/storage.hpp"
 #include "micras/proxy/torque_sensors.hpp"
+#include "micras/proxy/wall_sensors.hpp"
 
 namespace micras {
 /*****************************************

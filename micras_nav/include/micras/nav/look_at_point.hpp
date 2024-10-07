@@ -24,8 +24,8 @@ public:
     struct Config {
         PidController::Config linear_pid;
         PidController::Config angular_pid;
-        float                 distance_tolerance;
-        float                 velocity_tolerance;
+        float                 distance_tolerance{};
+        float                 velocity_tolerance{};
     };
 
     /**

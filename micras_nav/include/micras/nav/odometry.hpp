@@ -23,11 +23,12 @@ namespace micras::nav {
  */
 class Odometry {
 public:
+    /**
+     * @brief Configuration for the odometry
+     */
     struct Config {
         float linear_cutoff_frequency;
-        float angular_cutoff_frequency;
         float wheel_radius;
-        float wheel_separation;
         Pose  initial_pose;
     };
 
@@ -63,45 +64,13 @@ public:
     const State& get_state() const;
 
     /**
-     * @brief Get the state of the robot calculated using the IMU
-     *
-     * @return State current state of the robot in space
-     */
-    const State& get_imu_state() const;
-
-    /**
      * @brief Set the state of the robot
      *
      * @param state New state of the robot
      */
-    void set_state(const State&);
+    void set_state(const State& new_state);
 
 private:
-    /**
-     * @brief Update a state based on the position variation
-     *
-     * @param state State to be updated
-     * @param linear_distance Linear distance from last state
-     * @param angular_distance Angular distance from last state
-     * @param linear_velocity Measured linear velocity of the robot
-     * @param angular_velocity Measured angular velocity of the robot
-     */
-    static constexpr void update_state(
-        State& state, float linear_distance, float angular_distance, float linear_velocity, float angular_velocity
-    ) {
-        float half_angle = angular_distance / 2;
-        float linear_diagonal =
-            angular_distance < 0.05F ? linear_distance : std::abs(std::sin(half_angle) * linear_distance / half_angle);
-
-        state.pose.position.x += linear_diagonal * std::cos(state.pose.orientation + half_angle);
-        state.pose.position.y += linear_diagonal * std::sin(state.pose.orientation + half_angle);
-
-        state.pose.orientation += angular_distance;
-
-        state.velocity.linear = linear_velocity;
-        state.velocity.angular = angular_velocity;
-    }
-
     /**
      * @brief Left rotary sensor
      */
@@ -123,11 +92,6 @@ private:
     float wheel_radius;
 
     /**
-     * @brief Robot width
-     */
-    float wheel_separation;
-
-    /**
      * @brief Last left rotary sensor position
      */
     float left_last_position{};
@@ -143,19 +107,9 @@ private:
     core::ButterworthFilter linear_filter;
 
     /**
-     * @brief Angular velocity filter
-     */
-    core::ButterworthFilter angular_filter;
-
-    /**
      * @brief Current state of the robot in space
      */
     State state;
-
-    /**
-     * @brief Current state of the robot in space calculated using the IMU
-     */
-    State imu_state;
 
     friend class Interface;
 };

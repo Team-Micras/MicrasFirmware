@@ -32,7 +32,7 @@ public:
      *
      * @param config Configuration for the motor driver
      */
-    Motor(const Config& config);
+    explicit Motor(const Config& config);
 
     /**
      * @brief Set the command for the motor

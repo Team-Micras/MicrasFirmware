@@ -26,11 +26,11 @@ public:
         PidController::Config linear_pid;
         PidController::Config stop_pid;
         PidController::Config angular_pid;
-        float                 cell_size;
-        float                 base_speed;
-        float                 linear_decay_damping;
-        float                 distance_tolerance;
-        float                 velocity_tolerance;
+        float                 cell_size{};
+        float                 base_speed{};
+        float                 linear_decay_damping{};
+        float                 distance_tolerance{};
+        float                 velocity_tolerance{};
     };
 
     /**

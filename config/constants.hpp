@@ -106,11 +106,11 @@ const nav::Mapping<maze_width, maze_height>::Config mapping_config{
     .side_sensor_pose = {{0.015F, 0.06F}, std::numbers::pi_v<float> / 4.0F},
     .front_alignment_tolerance = 0.05F,
     .side_alignment_tolerance = 0.03F,
-    .front_alignment_measure{{
+    .front_alignment_measure = {{
         0.93F,
         0.89F,
     }},
-    .side_alignment_measure{{
+    .side_alignment_measure = {{
         0.37F,
         0.36F,
     }},
@@ -120,9 +120,7 @@ const nav::Mapping<maze_width, maze_height>::Config mapping_config{
 
 const nav::Odometry::Config odometry_config{
     .linear_cutoff_frequency = 5.0F,
-    .angular_cutoff_frequency = 5.0F,
     .wheel_radius = 0.011F,
-    .wheel_separation = 0.0775F,
     .initial_pose =
         {
             nav::Point::from_grid(mapping_config.start.position, cell_size),

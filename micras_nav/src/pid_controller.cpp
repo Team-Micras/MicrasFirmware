@@ -11,11 +11,14 @@
 
 #include "micras/nav/pid_controller.hpp"
 
+// NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
 static volatile float test_error;
 static volatile float test_proportional;
 static volatile float test_integrative;
 static volatile float test_derivative;
 static volatile float test_response;
+
+// NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 namespace micras::nav {
 PidController::PidController(Config config) :

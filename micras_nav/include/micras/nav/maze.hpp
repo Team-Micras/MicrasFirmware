@@ -32,7 +32,7 @@ public:
      * @param start The start pose of the robot
      * @param goal The goal points in the maze
      */
-    Maze(const GridPose& start, std::unordered_set<GridPoint> goal);
+    Maze(const GridPose& start, const std::unordered_set<GridPoint>& goal);
 
     /**
      * @brief Updates the maze walls with the current pose and new information

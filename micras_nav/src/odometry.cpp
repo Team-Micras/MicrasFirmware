@@ -21,13 +21,10 @@ Odometry::Odometry(
     right_rotary_sensor{right_rotary_sensor},
     imu{imu},
     wheel_radius{config.wheel_radius},
-    wheel_separation{config.wheel_separation},
     left_last_position{left_rotary_sensor.get_position()},
     right_last_position{right_rotary_sensor.get_position()},
     linear_filter{config.linear_cutoff_frequency},
-    angular_filter{config.angular_cutoff_frequency},
-    state{config.initial_pose, {0.0F, 0.0F}},
-    imu_state{config.initial_pose, {0.0F, 0.0F}} { }
+    state{config.initial_pose, {0.0F, 0.0F}} { }
 
 void Odometry::update(float elapsed_time) {
     float left_position = this->left_rotary_sensor.get_position();
@@ -40,14 +37,20 @@ void Odometry::update(float elapsed_time) {
     this->right_last_position = right_position;
 
     float linear_distance = (left_distance + right_distance) / 2;
-    float angular_distance = (right_distance - left_distance) / this->wheel_separation;
-    float linear_velocity = this->linear_filter.update(linear_distance / elapsed_time);
-    float angular_velocity = this->angular_filter.update(angular_distance / elapsed_time);
-    update_state(this->state, linear_distance, angular_distance, linear_velocity, angular_velocity);
 
-    angular_velocity = this->imu.get_angular_velocity(proxy::Imu::Axis::Z);
-    angular_distance = angular_velocity * elapsed_time;
-    update_state(this->imu_state, linear_distance, angular_distance, linear_velocity, angular_velocity);
+    this->state.velocity.linear = this->linear_filter.update(linear_distance / elapsed_time);
+    this->state.velocity.angular = this->imu.get_angular_velocity(proxy::Imu::Axis::Z);
+
+    float angular_distance = this->state.velocity.angular * elapsed_time;
+
+    float half_angle = angular_distance / 2;
+    float linear_diagonal =
+        angular_distance < 0.05F ? linear_distance : std::abs(std::sin(half_angle) * linear_distance / half_angle);
+
+    this->state.pose.position.x += linear_diagonal * std::cos(this->state.pose.orientation + half_angle);
+    this->state.pose.position.y += linear_diagonal * std::sin(this->state.pose.orientation + half_angle);
+
+    this->state.pose.orientation += angular_distance;
 }
 
 void Odometry::reset() {
@@ -59,12 +62,7 @@ const nav::State& Odometry::get_state() const {
     return this->state;
 }
 
-const nav::State& Odometry::get_imu_state() const {
-    return this->imu_state;
-}
-
-void Odometry::set_state(const nav::State& state) {
-    this->state = state;
-    this->imu_state = state;
+void Odometry::set_state(const nav::State& new_state) {
+    this->state = new_state;
 }
 }  // namespace micras::nav

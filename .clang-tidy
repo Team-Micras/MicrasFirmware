@@ -4,6 +4,7 @@ Checks:
   bugprone-*,
   -bugprone-easily-swappable-parameters,
   -bugprone-narrowing-conversions,
+  -bugprone-dynamic-static-initializers,
   clang-*,
   -clang-diagnostic-unused-command-line-argument,
   cppcoreguidelines-*,
