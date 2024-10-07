@@ -51,6 +51,11 @@ public:
     void update(float elapsed_time);
 
     /**
+     * @brief Reset the odometry
+     */
+    void reset();
+
+    /**
      * @brief Get the state of the robot
      *
      * @return State current state of the robot in space
@@ -63,6 +68,13 @@ public:
      * @return State current state of the robot in space
      */
     const State& get_imu_state() const;
+
+    /**
+     * @brief Set the state of the robot
+     *
+     * @param state New state of the robot
+     */
+    void set_state(const State&);
 
 private:
     /**
@@ -144,6 +156,8 @@ private:
      * @brief Current state of the robot in space calculated using the IMU
      */
     State imu_state;
+
+    friend class Interface;
 };
 }  // namespace micras::nav
 

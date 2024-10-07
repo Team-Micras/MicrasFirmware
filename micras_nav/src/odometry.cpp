@@ -50,11 +50,21 @@ void Odometry::update(float elapsed_time) {
     update_state(this->imu_state, linear_distance, angular_distance, linear_velocity, angular_velocity);
 }
 
+void Odometry::reset() {
+    this->left_last_position = this->left_rotary_sensor.get_position();
+    this->right_last_position = this->right_rotary_sensor.get_position();
+}
+
 const nav::State& Odometry::get_state() const {
     return this->state;
 }
 
 const nav::State& Odometry::get_imu_state() const {
     return this->imu_state;
+}
+
+void Odometry::set_state(const nav::State& state) {
+    this->state = state;
+    this->imu_state = state;
 }
 }  // namespace micras::nav
