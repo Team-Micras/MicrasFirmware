@@ -38,10 +38,10 @@ const nav::LookAtPoint::Config look_at_point_config{
         {
             .kp = 300.0F,
             .ki = 0.5F,
-            .kd = 0.05F,
+            .kd = 0.01F,
             .setpoint = 0.0F,
-            .saturation = 35.0F,
-            .max_integral = 35.0F,
+            .saturation = 30.0F,
+            .max_integral = 30.0F,
         },
     .distance_tolerance = 0.015F,
     .velocity_tolerance = 0.015F,
@@ -50,18 +50,18 @@ const nav::LookAtPoint::Config look_at_point_config{
 const nav::GoToPoint::Config go_to_point_config{
     .linear_pid =
         {
-            .kp = 20.0F,
-            .ki = 10.0F,
+            .kp = 8.0F,
+            .ki = 14.0F,
             .kd = 0.0F,
             .setpoint = 0.0F,
-            .saturation = 60.0F,
-            .max_integral = 50.0F,
+            .saturation = 50.0F,
+            .max_integral = 40.0F,
         },
     .stop_pid =
         {
-            .kp = 200.0F,
+            .kp = 150.0F,
             .ki = 0.5F,
-            .kd = 0.06F,
+            .kd = 0.08F,
             .setpoint = 0.0F,
             .saturation = 25.0F,
             .max_integral = 25.0F,
@@ -70,7 +70,7 @@ const nav::GoToPoint::Config go_to_point_config{
         {
             .kp = 15.0F,
             .ki = 0.0F,
-            .kd = 0.05F,
+            .kd = 0.02F,
             .setpoint = 0.0F,
             .saturation = 20.0F,
             .max_integral = -1.0F,
@@ -93,8 +93,8 @@ const nav::FollowWall::Config follow_wall_config = {
             .max_integral = -1.0F,
         },
     .can_follow_tolerance = 0.05F,
-    .base_left_reading = 0.37,
-    .base_right_reading = 0.36F,
+    .base_left_reading = 0.38,
+    .base_right_reading = 0.31F,
     .cutoff_frequency = 5.0F,
 };
 
@@ -104,15 +104,15 @@ const nav::Mapping<maze_width, maze_height>::Config mapping_config{
     .alignment_threshold = 0.15F,
     .front_sensor_pose = {{0.028F, 0.045F}, 0.0F},
     .side_sensor_pose = {{0.015F, 0.06F}, std::numbers::pi_v<float> / 4.0F},
-    .front_alignment_tolerance = 0.05F,
+    .front_alignment_tolerance = 0.06F,
     .side_alignment_tolerance = 0.03F,
     .front_alignment_measure = {{
         0.93F,
-        0.89F,
+        0.93F,
     }},
     .side_alignment_measure = {{
-        0.37F,
-        0.36F,
+        0.38F,
+        0.31F,
     }},
     .start = {{0, 0}, nav::Side::UP},
     .goal = {{1, 0}},
