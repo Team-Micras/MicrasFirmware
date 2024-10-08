@@ -15,21 +15,23 @@
 
 namespace micras::nav {
 template <uint8_t width, uint8_t height>
-Mapping<width, height>::Mapping(const proxy::DistanceSensors<4>& distance_sensors, Mapping::Config config) :
-    distance_sensors{distance_sensors},
+Mapping<width, height>::Mapping(const proxy::WallSensors<4>& wall_sensors, Mapping::Config config) :
+    wall_sensors{wall_sensors},
     maze{config.start, config.goal},
     wall_thickness{config.wall_thickness},
     cell_size{config.cell_size},
-    wall_distance_threshold{config.wall_distance_threshold},
-    free_distance_threshold{config.free_distance_threshold},
     alignment_threshold{config.alignment_threshold},
     front_sensor_pose{config.front_sensor_pose},
     side_sensor_pose{config.side_sensor_pose},
+    front_sensors_region_division{cell_size - wall_thickness / 2.0F - front_sensor_pose.position.y},
     side_sensors_region_division{
         cell_size - wall_thickness / 2.0F - side_sensor_pose.position.y +
         (side_sensor_pose.position.x + (wall_thickness - cell_size) / 2.0F) * std::tan(side_sensor_pose.orientation)
     },
-    front_sensors_region_division{cell_size - wall_thickness / 2.0F - front_sensor_pose.position.y} { }
+    front_alignment_tolerance{config.front_alignment_tolerance},
+    side_alignment_tolerance{config.side_alignment_tolerance},
+    front_alignment_measure{config.front_alignment_measure},
+    side_alignment_measure{config.side_alignment_measure} { }
 
 template <uint8_t width, uint8_t height>
 void Mapping<width, height>::update(const Pose& pose) {
@@ -67,23 +69,23 @@ void Mapping<width, height>::update(const Pose& pose) {
     Information information{};
 
     if (cell_advance < this->front_sensors_region_division) {
-        if (this->get_wall_information(Sensor::FRONT_LEFT) == Information::WALL and
-            this->get_wall_information(Sensor::FRONT_RIGHT) == Information::WALL) {
-            information.front = Information::WALL;
-        } else if (this->get_wall_information(Sensor::FRONT_LEFT) == Information::FREE and
-                   this->get_wall_information(Sensor::FRONT_RIGHT) == Information::FREE) {
-            information.front = Information::FREE;
+        if (this->wall_sensors.get_observation(Sensor::FRONT_LEFT) == core::Observation::WALL and
+            this->wall_sensors.get_observation(Sensor::FRONT_RIGHT) == core::Observation::WALL) {
+            information.front = core::Observation::WALL;
+        } else if (this->wall_sensors.get_observation(Sensor::FRONT_LEFT) == core::Observation::FREE_SPACE and
+                   this->wall_sensors.get_observation(Sensor::FRONT_RIGHT) == core::Observation::FREE_SPACE) {
+            information.front = core::Observation::FREE_SPACE;
         }
     }
 
     if (cell_alignment < this->alignment_threshold * this->cell_size) {
         if (cell_advance < this->side_sensors_region_division) {
-            information.left = this->get_wall_information(Sensor::LEFT);
-            information.right = this->get_wall_information(Sensor::RIGHT);
-        } else if (information.front == Information::FREE and
+            information.left = this->wall_sensors.get_observation(Sensor::LEFT);
+            information.right = this->wall_sensors.get_observation(Sensor::RIGHT);
+        } else if (information.front != core::Observation::WALL and
                    cell_advance > this->side_sensors_region_division + this->wall_thickness) {
-            information.front_left = this->get_wall_information(Sensor::LEFT);
-            information.front_right = this->get_wall_information(Sensor::RIGHT);
+            information.front_left = this->wall_sensors.get_observation(Sensor::LEFT);
+            information.front_right = this->wall_sensors.get_observation(Sensor::RIGHT);
         }
     }
 
@@ -92,29 +94,97 @@ void Mapping<width, height>::update(const Pose& pose) {
 
 template <uint8_t width, uint8_t height>
 Mapping<width, height>::Action Mapping<width, height>::get_action(const Pose& pose) const {
-    Point current_goal =
-        Point::from_grid(this->maze.get_current_goal(pose.position.to_grid(this->cell_size)), this->cell_size);
+    GridPose current_grid_goal = this->maze.get_current_goal(pose.position.to_grid(this->cell_size));
+    Point    current_goal = Point::from_grid(current_grid_goal.position, this->cell_size);
+    Point    current_goal_rotated = current_goal.rotate(current_grid_goal.orientation);
 
-    float angle_error = core::assert_angle(pose.orientation - pose.position.angle_between(current_goal));
-
-    if (std::abs(angle_error) > std::numbers::pi_v<float> / 4.0F) {
-        return {Action::Type::LOOK_AT, current_goal};
+    if (std::abs(core::assert_angle(pose.orientation - pose.position.angle_between(current_goal))) >
+        std::numbers::pi_v<float> / 8.0F) {
+        return {Action::Type::LOOK_AT, current_goal_rotated, current_grid_goal.orientation};
     }
 
-    return {Action::Type::GO_TO, current_goal};
+    return {Action::Type::GO_TO, current_goal_rotated, current_grid_goal.orientation};
 }
 
 template <uint8_t width, uint8_t height>
-Information::Existence Mapping<width, height>::get_wall_information(Sensor sensor) const {
-    if (this->distance_sensors.get_distance(sensor) < this->wall_distance_threshold) {
-        return Information::WALL;
+Pose Mapping<width, height>::correct_pose(const Pose& pose) const {
+    float reliability = 50.0F * (std::cos(4 * pose.orientation) + 1);
+
+    if (reliability < 50.0F) {
+        return pose;
     }
 
-    if (this->distance_sensors.get_distance(sensor) < this->free_distance_threshold) {
-        return Information::FREE;
+    Pose corrected_pose = pose;
+    Side side = angle_to_grid(pose.orientation);
+
+    switch (side) {
+        case Side::RIGHT:
+            if (this->is_front_aligned()) {
+                corrected_pose.position.x -= std::fmod(pose.position.x, this->cell_size) - this->cell_size / 2.0F;
+            } else if (this->is_side_aligned()) {
+                corrected_pose.orientation = 0.0F;
+                corrected_pose.position.y -= std::fmod(pose.position.y, this->cell_size) - this->cell_size / 2.0F;
+            }
+            break;
+        case Side::UP:
+            if (this->is_front_aligned()) {
+                corrected_pose.position.y -= std::fmod(pose.position.y, this->cell_size) - this->cell_size / 2.0F;
+            } else if (this->is_side_aligned()) {
+                corrected_pose.orientation = std::numbers::pi_v<float> / 2.0F;
+                corrected_pose.position.x -= std::fmod(pose.position.x, this->cell_size) - this->cell_size / 2.0F;
+            }
+            break;
+        case Side::LEFT:
+            if (this->is_front_aligned()) {
+                corrected_pose.position.x -= std::fmod(pose.position.x, this->cell_size) - this->cell_size / 2.0F;
+            } else if (this->is_side_aligned()) {
+                corrected_pose.orientation = std::numbers::pi_v<float>;
+                corrected_pose.position.y -= std::fmod(pose.position.y, this->cell_size) - this->cell_size / 2.0F;
+            }
+            break;
+        case Side::DOWN:
+            if (this->is_front_aligned()) {
+                corrected_pose.position.y -= std::fmod(pose.position.y, this->cell_size) - this->cell_size / 2.0F;
+            } else if (this->is_side_aligned()) {
+                corrected_pose.orientation = -std::numbers::pi_v<float> / 2.0F;
+                corrected_pose.position.x -= std::fmod(pose.position.x, this->cell_size) - this->cell_size / 2.0F;
+            }
+            break;
     }
 
-    return Information::UNKNOWN;
+    return corrected_pose;
+}
+
+template <uint8_t width, uint8_t height>
+void Mapping<width, height>::calibrate_front() {
+    this->front_alignment_measure[0] = this->wall_sensors.get_reading(0);
+    this->front_alignment_measure[1] = this->wall_sensors.get_reading(3);
+}
+
+template <uint8_t width, uint8_t height>
+void Mapping<width, height>::calibrate_side() {
+    this->side_alignment_measure[0] = this->wall_sensors.get_reading(1);
+    this->side_alignment_measure[1] = this->wall_sensors.get_reading(2);
+}
+
+template <uint8_t width, uint8_t height>
+bool Mapping<width, height>::is_front_aligned() const {
+    return core::is_near(
+               this->wall_sensors.get_reading(0), this->front_alignment_measure[0], this->front_alignment_tolerance
+           ) and
+           core::is_near(
+               this->wall_sensors.get_reading(3), this->front_alignment_measure[1], this->front_alignment_tolerance
+           );
+}
+
+template <uint8_t width, uint8_t height>
+bool Mapping<width, height>::is_side_aligned() const {
+    return core::is_near(
+               this->wall_sensors.get_reading(1), this->side_alignment_measure[0], this->side_alignment_tolerance
+           ) and
+           core::is_near(
+               this->wall_sensors.get_reading(2), this->side_alignment_measure[1], this->side_alignment_tolerance
+           );
 }
 }  // namespace micras::nav
 

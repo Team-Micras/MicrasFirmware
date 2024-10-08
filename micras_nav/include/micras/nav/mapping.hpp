@@ -13,7 +13,7 @@
 
 #include "micras/nav/maze.hpp"
 #include "micras/nav/state.hpp"
-#include "micras/proxy/distance_sensors.hpp"
+#include "micras/proxy/wall_sensors.hpp"
 
 namespace micras::nav {
 /**
@@ -29,15 +29,17 @@ public:
      * @brief Configuration for the Mapping class
      */
     struct Config {
-        float wall_thickness;
-        float cell_size;
-        float wall_distance_threshold;
-        float free_distance_threshold;
-        float alignment_threshold;
-        Pose  front_sensor_pose;
-        Pose  side_sensor_pose;
+        float                wall_thickness{};
+        float                cell_size{};
+        float                alignment_threshold{};
+        Pose                 front_sensor_pose{};
+        Pose                 side_sensor_pose{};
+        float                front_alignment_tolerance{};
+        float                side_alignment_tolerance{};
+        std::array<float, 2> front_alignment_measure{};
+        std::array<float, 2> side_alignment_measure{};
 
-        GridPose                      start;
+        GridPose                      start{};
         std::unordered_set<GridPoint> goal{
             {{width / 2, height / 2},
              {(width - 1) / 2, height / 2},
@@ -47,7 +49,7 @@ public:
     };
 
     /**
-     * @brief Type to identify the distance sensors
+     * @brief Type to identify the wall sensors
      */
     enum Sensor : uint8_t {
         FRONT_LEFT,
@@ -77,44 +79,73 @@ public:
          * @brief The next goal point
          */
         Point point;
+
+        /**
+         * @brief The orientation of the goal point
+         */
+        Side side;
     };
 
     /**
      * @brief Constructor for the Mapping class
      *
-     * @param distance_sensors The distance sensors
+     * @param wall_sensors The wall sensors
      * @param config The configuration for the mapping
      */
-    Mapping(const proxy::DistanceSensors<4>& distance_sensors, Config config);
+    Mapping(const proxy::WallSensors<4>& wall_sensors, Config config);
 
     /**
-     * @brief Update the mapping of the maze using the current pose and distance sensors
+     * @brief Update the mapping of the maze using the current pose and wall sensors
      *
      * @param pose The current pose of the robot
      */
     void update(const Pose& pose);
 
     /**
-     * @brief Get the action to take based on the current pose
+     * @brief Get the action to be taken based on the current pose
      *
      * @param pose The current pose of the robot
-     * @return The action to take
+     * @return The action to be taken
      */
     Action get_action(const Pose& pose) const;
 
-private:
     /**
-     * @brief Get the wall information for a sensor
+     * @brief Fix the pose based on the mapping information
      *
-     * @param sensor The sensor to get the wall information
-     * @return The wall information for the sensor
+     * @param pose The current pose of the robot
+     * @return The fixed pose
      */
-    Information::Existence get_wall_information(Sensor sensor) const;
+    Pose correct_pose(const Pose& pose) const;
 
     /**
-     * @brief Distance sensors of the robot
+     * @brief Calibrate front alignment of the wall sensors
      */
-    const proxy::DistanceSensors<4>& distance_sensors;  // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
+    void calibrate_front();
+
+    /**
+     * @brief Calibrate side alignment of the wall sensors
+     */
+    void calibrate_side();
+
+    /**
+     * @brief Check if the robot is aligned with a wall at the front
+     *
+     * @return True if the robot is front aligned, false otherwise
+     */
+    bool is_front_aligned() const;
+
+    /**
+     * @brief Check if the robot is aligned with a wall at the sides
+     *
+     * @return True if the robot is side aligned, false otherwise
+     */
+    bool is_side_aligned() const;
+
+private:
+    /**
+     * @brief Wall sensors of the robot
+     */
+    const proxy::WallSensors<4>& wall_sensors;  // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
 
     /**
      * @brief The maze information the robot has
@@ -132,29 +163,24 @@ private:
     float cell_size;
 
     /**
-     * @brief Threshold for the distance to consider a wall
-     */
-    float wall_distance_threshold;
-
-    /**
-     * @brief Threshold for the distance to consider free space
-     */
-    float free_distance_threshold;
-
-    /**
      * @brief Threshold for the robot alignment with the side walls
      */
     float alignment_threshold;
 
     /**
-     * @brief Pose of the front distance sensors
+     * @brief Pose of the front wall sensors
      */
     Pose front_sensor_pose;
 
     /**
-     * @brief Pose of the side distance sensors
+     * @brief Pose of the side wall sensors
      */
     Pose side_sensor_pose;
+
+    /**
+     * @brief Region of the cell to consider the information of the front sensors to the current cell
+     */
+    float front_sensors_region_division;
 
     /**
      * @brief Region of the cell to consider the information of the side sensors to the current cell
@@ -162,9 +188,24 @@ private:
     float side_sensors_region_division;
 
     /**
-     * @brief Region of the cell to consider the information of the front sensors to the current cell
+     * @brief Sensor readings tolerance for the front alignment of the robot
      */
-    float front_sensors_region_division;
+    float front_alignment_tolerance;
+
+    /**
+     * @brief Sensor readings tolerance for the side alignment of the robot
+     */
+    float side_alignment_tolerance;
+
+    /**
+     * @brief Sensor readings for the front alignment of the robot
+     */
+    std::array<float, 2> front_alignment_measure{};
+
+    /**
+     * @brief Sensor readings for the side alignment of the robot
+     */
+    std::array<float, 2> side_alignment_measure{};
 };
 }  // namespace micras::nav
 
