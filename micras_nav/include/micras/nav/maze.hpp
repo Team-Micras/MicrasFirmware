@@ -76,6 +76,11 @@ private:
     void calculate_costmap();
 
     /**
+     * @brief Improves the route to the goal
+     */
+    void optimize_route();
+
+    /**
      * @brief Returns the cell at the given position
      *
      * @param position The position of the cell

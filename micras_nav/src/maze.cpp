@@ -45,6 +45,7 @@ void Maze<width, height>::update(const GridPose& pose, Information information) 
     } else if (pose == start.turned_back()) {
         this->exploring = false;
         this->returning = false;
+        this->optimize_route();
     }
 
     if (not this->exploring) {
@@ -80,9 +81,13 @@ GridPose Maze<width, height>::get_current_goal(const GridPoint& position, bool f
 
     if (not force_costmap and (not this->exploring or this->returning) and this->best_route.contains(current_cost) and
         this->best_route.at(current_cost).position == position) {
-        return (this->returning ? std::prev(this->best_route.find(current_cost)) :
-                                  std::next(this->best_route.find(current_cost)))
-            ->second;
+        auto current = this->best_route.find(current_cost);
+
+        if (this->returning) {
+            return std::prev(current)->second.turned_back();
+        }
+
+        return {std::next(current)->second.position, current->second.orientation};
     }
 
     GridPoint next_position = position;
@@ -210,6 +215,22 @@ void Maze<width, height>::calculate_costmap() {
     while (not this->goal.contains(current_pose.position)) {
         current_pose = this->get_current_goal(current_pose.position, true);
         this->best_route.try_emplace(this->get_cell(current_pose.position).cost, current_pose);
+    }
+}
+
+template <uint8_t width, uint8_t height>
+void Maze<width, height>::optimize_route() {
+    for (auto it = this->best_route.begin(); it != this->best_route.end();) {
+        auto next = std::next(it);
+
+        if (next != this->best_route.end()) {
+            if (it->second.orientation == next->second.orientation) {
+                this->best_route.erase(next);
+                continue;
+            }
+        }
+
+        it++;
     }
 }
 }  // namespace micras::nav
