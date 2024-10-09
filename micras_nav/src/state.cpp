@@ -58,4 +58,32 @@ Point Point::from_grid(const GridPoint& grid_point, float cell_size) {
 GridPose Pose::to_grid(float cell_size) const {
     return {this->position.to_grid(cell_size), angle_to_grid(this->orientation)};
 };
+
+Point Pose::to_cell(float cell_size) const {
+    Point cell_position = this->position % cell_size;
+
+    float cell_advance = 0.0F;
+    float cell_alignment = 0.0F;
+
+    switch (angle_to_grid(this->orientation)) {
+        case Side::RIGHT:
+            cell_advance = cell_position.x;
+            cell_alignment = std::abs(cell_size / 2.0F - cell_position.y);
+            break;
+        case Side::UP:
+            cell_advance = cell_position.y;
+            cell_alignment = std::abs(cell_size / 2.0F - cell_position.x);
+            break;
+        case Side::LEFT:
+            cell_advance = cell_size - cell_position.x;
+            cell_alignment = std::abs(cell_size / 2.0F - cell_position.y);
+            break;
+        case Side::DOWN:
+            cell_advance = cell_size - cell_position.y;
+            cell_alignment = std::abs(cell_size / 2.0F - cell_position.x);
+            break;
+    }
+
+    return {cell_alignment, cell_advance};
+}
 }  // namespace micras::nav

@@ -105,6 +105,14 @@ struct Pose {
     GridPose to_grid(float cell_size) const;
 
     /**
+     * @brief Converts the pose to a cell reference
+     *
+     * @param cell_size The size of the grid cells
+     * @return The point inside the cell reference
+     */
+    Point to_cell(float cell_size) const;
+
+    /**
      * @brief The position of the pose
      */
     Point position;

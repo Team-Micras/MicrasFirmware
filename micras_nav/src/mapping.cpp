@@ -25,7 +25,7 @@ Mapping<width, height>::Mapping(const proxy::WallSensors<4>& wall_sensors, Mappi
     side_sensor_pose{config.side_sensor_pose},
     front_sensors_region_division{cell_size - wall_thickness / 2.0F - front_sensor_pose.position.y},
     side_sensors_region_division{
-        cell_size - wall_thickness / 2.0F - side_sensor_pose.position.y +
+        cell_size + wall_thickness - side_sensor_pose.position.y +
         (side_sensor_pose.position.x + (wall_thickness - cell_size) / 2.0F) * std::tan(side_sensor_pose.orientation)
     },
     front_alignment_tolerance{config.front_alignment_tolerance},
@@ -38,38 +38,14 @@ template <uint8_t width, uint8_t height>
 void Mapping<width, height>::update(const Pose& pose) {
     float reliability = 50.0F * (std::cos(4 * pose.orientation) + 1);
 
-    if (reliability < 50.0F) {
+    if (reliability < 60.0F) {
         return;
     }
 
-    Point cell_position = pose.position % this->cell_size;
-    Side  side = angle_to_grid(pose.orientation);
-
-    float cell_advance = 0.0F;
-    float cell_alignment = 0.0F;
-
-    switch (side) {
-        case Side::RIGHT:
-            cell_advance = cell_position.x;
-            cell_alignment = std::abs(this->cell_size / 2.0F - cell_position.y);
-            break;
-        case Side::UP:
-            cell_advance = cell_position.y;
-            cell_alignment = std::abs(this->cell_size / 2.0F - cell_position.x);
-            break;
-        case Side::LEFT:
-            cell_advance = this->cell_size - cell_position.x;
-            cell_alignment = std::abs(this->cell_size / 2.0F - cell_position.y);
-            break;
-        case Side::DOWN:
-            cell_advance = this->cell_size - cell_position.y;
-            cell_alignment = std::abs(this->cell_size / 2.0F - cell_position.x);
-            break;
-    }
-
     Information information{};
+    nav::Point  cell_position = pose.to_cell(cell_size);
 
-    if (cell_advance < this->front_sensors_region_division) {
+    if (cell_position.y < this->front_sensors_region_division) {
         if (this->wall_sensors.get_observation(Sensor::FRONT_LEFT) == core::Observation::WALL and
             this->wall_sensors.get_observation(Sensor::FRONT_RIGHT) == core::Observation::WALL) {
             information.front = core::Observation::WALL;
@@ -79,18 +55,13 @@ void Mapping<width, height>::update(const Pose& pose) {
         }
     }
 
-    if (cell_alignment < this->alignment_threshold * this->cell_size) {
-        if (cell_advance < this->side_sensors_region_division) {
-            information.left = this->wall_sensors.get_observation(Sensor::LEFT);
-            information.right = this->wall_sensors.get_observation(Sensor::RIGHT);
-        } else if (information.front != core::Observation::WALL and
-                   cell_advance > this->side_sensors_region_division + this->wall_thickness) {
-            information.front_left = this->wall_sensors.get_observation(Sensor::LEFT);
-            information.front_right = this->wall_sensors.get_observation(Sensor::RIGHT);
-        }
+    if (cell_position.x < this->alignment_threshold * this->cell_size and
+        information.front != core::Observation::WALL and cell_position.y > this->side_sensors_region_division) {
+        information.front_left = this->wall_sensors.get_observation(Sensor::LEFT);
+        information.front_right = this->wall_sensors.get_observation(Sensor::RIGHT);
     }
 
-    this->maze.update({pose.position.to_grid(this->cell_size), side}, information);
+    this->maze.update(pose.to_grid(this->cell_size), information);
 }
 
 template <uint8_t width, uint8_t height>
