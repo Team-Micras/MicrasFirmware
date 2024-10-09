@@ -84,10 +84,10 @@ GridPose Maze<width, height>::get_current_goal(const GridPoint& position, bool f
         auto current = this->best_route.find(current_cost);
 
         if (this->returning) {
-            return std::prev(current)->second.turned_back();
+            return {std::prev(current)->second.position, current->second.turned_back().orientation};
         }
 
-        return {std::next(current)->second.position, current->second.orientation};
+        return std::next(current)->second;
     }
 
     GridPoint next_position = position;
@@ -220,12 +220,12 @@ void Maze<width, height>::calculate_costmap() {
 
 template <uint8_t width, uint8_t height>
 void Maze<width, height>::optimize_route() {
-    for (auto it = this->best_route.begin(); it != this->best_route.end();) {
+    for (auto it = std::next(this->best_route.begin()); it != this->best_route.end();) {
         auto next = std::next(it);
 
         if (next != this->best_route.end()) {
             if (it->second.orientation == next->second.orientation) {
-                this->best_route.erase(next);
+                it = this->best_route.erase(it);
                 continue;
             }
         }
