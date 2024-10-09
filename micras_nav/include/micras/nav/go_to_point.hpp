@@ -49,12 +49,16 @@ public:
      *
      * @param state The current state of the robot
      * @param goal The goal point
+     * @param follow_wall_type The type of wall following to perform
      * @param elapsed_time The time elapsed since the last update
      * @param stop Whether to stop at the goal
      *
      * @return The command to go to the point
      */
-    Twist action(const State& state, const Point& goal, bool can_follow_wall, float elapsed_time, bool stop = true);
+    Twist action(
+        const State& state, const Point& goal, core::FollowWallType follow_wall_type, float elapsed_time,
+        bool stop = true
+    );
 
     /**
      * @brief Checks if the robot has reached the goal

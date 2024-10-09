@@ -24,7 +24,6 @@ public:
      */
     struct Config {
         PidController::Config pid;
-        float                 can_follow_tolerance{};
         float                 base_left_reading{};
         float                 base_right_reading{};
         float                 cutoff_frequency{};
@@ -41,11 +40,12 @@ public:
     /**
      * @brief Update the PID controller and return the response
      *
+     * @param follow_wall_type The type of wall following to perform
      * @param elapsed_time The time elapsed since the last update
      *
      * @return The response of the PID controller
      */
-    float action(float elapsed_time);
+    float action(core::FollowWallType follow_wall_type, float elapsed_time);
 
     /**
      * @brief Resets the PID controller
@@ -91,11 +91,6 @@ private:
      * @brief Last difference between the left and right wall sensors
      */
     float last_diff{};
-
-    /**
-     * @brief Tolerance for the robot to follow the wall
-     */
-    float can_follow_tolerance;
 
     /**
      * @brief Base reading of the left wall sensor when aligned with the wall

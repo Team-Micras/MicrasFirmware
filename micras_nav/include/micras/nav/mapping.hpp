@@ -37,7 +37,6 @@ public:
         float                front_alignment_tolerance{};
         float                side_alignment_tolerance{};
         float                orientation_alignment_tolerance{};
-        float                can_follow_wall_tolerance{};
         std::array<float, 2> front_alignment_measure{};
         std::array<float, 2> side_alignment_measure{};
 
@@ -115,9 +114,10 @@ public:
      * @brief Fix the pose based on the mapping information
      *
      * @param pose The current pose of the robot
+     * @param follow_wall_type The type of wall following being performed
      * @return The fixed pose
      */
-    Pose correct_pose(const Pose& pose, bool can_follow_wall) const;
+    Pose correct_pose(const Pose& pose, core::FollowWallType follow_wall_type) const;
 
     /**
      * @brief Calibrate front alignment of the wall sensors
@@ -130,27 +130,40 @@ public:
     void calibrate_side();
 
     /**
-     * @brief Check if the robot is aligned with a wall at the front
+     * @brief Check if the robot is at a distance from a wall at the front
      *
-     * @return True if the robot is front aligned, false otherwise
+     * @return True if the robot is aligned, false otherwise
      */
-    bool is_front_aligned() const;
+    bool is_distance_front_aligned() const;
 
     /**
-     * @brief Check if the robot is aligned with a wall at the sides
+     * @brief Check if the robot orientation is aligned with walls at the front
      *
-     * @return True if the robot is side aligned, false otherwise
+     * @return True if the robot is aligned, false otherwise
      */
-    bool is_side_aligned() const;
-
-    bool is_orientation_aligned() const;
+    bool is_orientation_front_aligned() const;
 
     /**
-     * @brief Check if the robot can follow a wall
+     * @brief Check if the robot is at a distance from a wall at the sides
      *
-     * @return True if the robot can follow a wall, false otherwise
+     * @return True if the robot is aligned, false otherwise
      */
-    bool can_follow_wall(const Pose& pose) const;
+    bool is_distance_side_aligned() const;
+
+    /**
+     * @brief Check if the robot orientation is aligned with walls at the sides
+     *
+     * @return True if the robot is aligned, false otherwise
+     */
+    bool is_orientation_side_aligned() const;
+
+    /**
+     * @brief Get the type of wall following the robot can do
+     *
+     * @param pose The current pose of the robot
+     * @return The type of wall following
+     */
+    core::FollowWallType get_follow_wall_type(const Pose& pose) const;
 
 private:
     /**
@@ -212,8 +225,6 @@ private:
      * @brief Sensor readings for the front alignment of the robot
      */
     float orientation_alignment_tolerance;
-
-    float can_follow_wall_tolerance;
 
     /**
      * @brief Sensor readings for the front alignment of the robot

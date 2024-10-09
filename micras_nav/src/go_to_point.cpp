@@ -25,16 +25,18 @@ GoToPoint::GoToPoint(
     distance_tolerance{config.distance_tolerance},
     velocity_tolerance{config.velocity_tolerance} { }
 
-Twist GoToPoint::action(const State& state, const Point& goal, bool can_follow_wall, float elapsed_time, bool stop) {
+Twist GoToPoint::action(
+    const State& state, const Point& goal, core::FollowWallType follow_wall_type, float elapsed_time, bool stop
+) {
     float linear_command{};
     float angular_command{};
     Point goal_distance = goal - state.pose.position;
 
     float linear_target{};
 
-    if (can_follow_wall) {
+    if (follow_wall_type != core::FollowWallType::NONE) {
         linear_target = this->base_speed;
-        angular_command = this->follow_wall.action(elapsed_time);
+        angular_command = this->follow_wall.action(follow_wall_type, elapsed_time);
     } else {
         float angular_error = core::assert_angle(state.pose.orientation - std::atan2(this->cell_size, goal_distance.x));
         linear_target = core::decay(angular_error, this->linear_decay_damping) * this->base_speed;

@@ -95,13 +95,13 @@ void MicrasController::run() {
     micras::nav::State state = odometry.get_state();
     this->mapping.update(state.pose);
 
-    bool can_follow_wall = this->mapping.can_follow_wall(state.pose);
+    core::FollowWallType follow_wall_type = this->mapping.get_follow_wall_type(state.pose);
 
     nav::Twist command{};
 
     nav::State relative_state = {
-        state.pose.position.rotate(current_action.side),
-        core::assert_angle(state.pose.orientation + std::numbers::pi_v<float> / 2.0F * (1 - current_action.side)),
+        {state.pose.position.rotate(current_action.side),
+         core::assert_angle(state.pose.orientation + std::numbers::pi_v<float> / 2.0F * (1 - current_action.side))},
         state.velocity
     };
 
@@ -113,27 +113,19 @@ void MicrasController::run() {
                 return;
             }
 
-            this->argb.set_color({0, 0, 255});
-
             command = this->look_at_point.action(relative_state, current_action.point, elapsed_time);
             break;
 
         case micras::nav::Mapping<maze_width, maze_height>::Action::Type::GO_TO:
-            if (can_follow_wall) {
-                this->argb.set_color({0, 255, 0});
-            } else {
-                this->argb.set_color({255, 0, 0});
-            }
-
             if (this->go_to_point.finished(relative_state, current_action.point)) {
                 current_action = this->mapping.get_action(state.pose);
                 this->go_to_point.reset();
                 return;
             }
 
-            command = this->go_to_point.action(relative_state, current_action.point, can_follow_wall, elapsed_time);
+            command = this->go_to_point.action(relative_state, current_action.point, follow_wall_type, elapsed_time);
 
-            state.pose = this->mapping.correct_pose(state.pose, can_follow_wall);
+            state.pose = this->mapping.correct_pose(state.pose, follow_wall_type);
             this->odometry.set_state(state);
             break;
     }

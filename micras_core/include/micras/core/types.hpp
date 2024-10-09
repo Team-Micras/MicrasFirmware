@@ -12,6 +12,17 @@ enum Observation : uint8_t {
     FREE_SPACE = 1,
     WALL = 2
 };
+
+/**
+ * @brief Type of wall following the robot is able ot do
+ */
+enum FollowWallType : uint8_t {
+    NONE = 0,
+    FRONT = 1,
+    LEFT = 2,
+    RIGHT = 3,
+    PARALLEL = 4
+};
 }  // namespace micras::core
 
 #endif  // MICRAS_CORE_TYPES_HPP

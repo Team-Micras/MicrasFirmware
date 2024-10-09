@@ -52,13 +52,13 @@ public:
     GridPose get_current_goal(const GridPoint& position, bool force_costmap = false) const;
 
     /**
-     * @brief Checks whether the robot can follow a wall
+     * @brief Checks the type of wall following the robot can do
      *
      * @param pose The pose of the robot
      * @param front_cell Whether to check the cell at the front of the robot
-     * @return True if the robot can follow the wall, false otherwise
+     * @return The type of wall following
      */
-    bool can_follow_wall(const GridPose& pose, bool front_cell) const;
+    core::FollowWallType get_follow_wall_type(const GridPose& pose, bool front_cell) const;
 
 private:
     /**

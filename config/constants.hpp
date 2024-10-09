@@ -86,14 +86,13 @@ const nav::GoToPoint::Config go_to_point_config{
 const nav::FollowWall::Config follow_wall_config = {
     .pid =
         {
-            .kp = 90.0F,
+            .kp = 60.0F,
             .ki = 0.0F,
             .kd = 0.04F,
             .setpoint = 0.0F,
             .saturation = 15.0F,
             .max_integral = -1.0F,
         },
-    .can_follow_tolerance = 0.05F,
     .base_left_reading = 0.4195,
     .base_right_reading = 0.4010F,
     .cutoff_frequency = 5.0F,
@@ -108,7 +107,6 @@ const nav::Mapping<maze_width, maze_height>::Config mapping_config{
     .front_alignment_tolerance = 0.04F,
     .side_alignment_tolerance = 0.02F,
     .orientation_alignment_tolerance = 0.02F,
-    .can_follow_wall_tolerance = 0.08F,
     .front_alignment_measure = {{
         0.9207F,
         0.9225F,

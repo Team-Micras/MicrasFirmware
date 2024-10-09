@@ -149,23 +149,40 @@ bool Maze<width, height>::has_wall(const GridPose& pose) const {
 }
 
 template <uint8_t width, uint8_t height>
-bool Maze<width, height>::can_follow_wall(const GridPose& pose, bool front_cell) const {
+core::FollowWallType Maze<width, height>::get_follow_wall_type(const GridPose& pose, bool front_cell) const {
     if (pose.position.x >= width or pose.position.y >= height) {
-        return false;
+        return core::FollowWallType::NONE;
     }
 
-    if (not front_cell) {
-        return this->has_wall(pose.turned_left()) and this->has_wall(pose.turned_right());
+    GridPose check_pose{};
+
+    if (front_cell) {
+        if (this->has_wall(pose)) {
+            return core::FollowWallType::FRONT;
+        }
+
+        check_pose = pose.front();
+
+        if (check_pose.position.x >= width or check_pose.position.y >= height) {
+            return core::FollowWallType::NONE;
+        }
+    } else {
+        check_pose = pose;
     }
 
-    GridPose front_pose = pose.front();
-
-    if (front_pose.position.x >= width or front_pose.position.y >= height) {
-        return false;
+    if (this->has_wall(check_pose.turned_left()) and this->has_wall(check_pose.turned_right())) {
+        return core::FollowWallType::PARALLEL;
     }
 
-    return not this->has_wall(pose) and this->has_wall(front_pose.turned_left()) and
-           this->has_wall(front_pose.turned_right());
+    if (this->has_wall(check_pose.turned_left())) {
+        return core::FollowWallType::LEFT;
+    }
+
+    if (this->has_wall(check_pose.turned_right())) {
+        return core::FollowWallType::RIGHT;
+    }
+
+    return core::FollowWallType::NONE;
 }
 
 template <uint8_t width, uint8_t height>
