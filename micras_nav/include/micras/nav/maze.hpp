@@ -51,6 +51,15 @@ public:
      */
     GridPose get_current_goal(const GridPoint& position, bool force_costmap = false) const;
 
+    /**
+     * @brief Checks whether the robot can follow a wall
+     *
+     * @param pose The pose of the robot
+     * @param front_cell Whether to check the cell at the front of the robot
+     * @return True if the robot can follow the wall, false otherwise
+     */
+    bool can_follow_wall(const GridPose& pose, bool front_cell) const;
+
 private:
     /**
      * @brief Type to store the information of a cell in the maze

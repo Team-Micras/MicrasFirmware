@@ -25,14 +25,14 @@ GoToPoint::GoToPoint(
     distance_tolerance{config.distance_tolerance},
     velocity_tolerance{config.velocity_tolerance} { }
 
-Twist GoToPoint::action(const State& state, const Point& goal, float elapsed_time, bool stop) {
+Twist GoToPoint::action(const State& state, const Point& goal, bool can_follow_wall, float elapsed_time, bool stop) {
     float linear_command{};
     float angular_command{};
     Point goal_distance = goal - state.pose.position;
 
     float linear_target{};
 
-    if (this->follow_wall.can_follow()) {
+    if (can_follow_wall) {
         linear_target = this->base_speed;
         angular_command = this->follow_wall.action(elapsed_time);
     } else {

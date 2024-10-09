@@ -54,7 +54,7 @@ public:
      *
      * @return The command to go to the point
      */
-    Twist action(const State& state, const Point& goal, float elapsed_time, bool stop = true);
+    Twist action(const State& state, const Point& goal, bool can_follow_wall, float elapsed_time, bool stop = true);
 
     /**
      * @brief Checks if the robot has reached the goal

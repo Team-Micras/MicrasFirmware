@@ -30,6 +30,7 @@ Mapping<width, height>::Mapping(const proxy::WallSensors<4>& wall_sensors, Mappi
     },
     front_alignment_tolerance{config.front_alignment_tolerance},
     side_alignment_tolerance{config.side_alignment_tolerance},
+    can_follow_wall_tolerance{config.can_follow_wall_tolerance},
     front_alignment_measure{config.front_alignment_measure},
     side_alignment_measure{config.side_alignment_measure} { }
 
@@ -107,7 +108,7 @@ Mapping<width, height>::Action Mapping<width, height>::get_action(const Pose& po
 }
 
 template <uint8_t width, uint8_t height>
-Pose Mapping<width, height>::correct_pose(const Pose& pose) const {
+Pose Mapping<width, height>::correct_pose(const Pose& pose, bool can_follow_wall) const {
     float reliability = 50.0F * (std::cos(4 * pose.orientation) + 1);
 
     if (reliability < 50.0F) {

@@ -31,10 +31,6 @@ float FollowWall::action(float elapsed_time) {
     return response;
 }
 
-bool FollowWall::can_follow() {
-    return std::abs(this->get_left_value() + this->get_right_value()) < this->can_follow_tolerance;
-}
-
 float FollowWall::get_left_value() const {
     return this->wall_sensors.get_reading(1) - this->base_left_reading;
 }

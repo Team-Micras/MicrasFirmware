@@ -36,6 +36,7 @@ public:
         Pose                 side_sensor_pose{};
         float                front_alignment_tolerance{};
         float                side_alignment_tolerance{};
+        float                can_follow_wall_tolerance{};
         std::array<float, 2> front_alignment_measure{};
         std::array<float, 2> side_alignment_measure{};
 
@@ -115,7 +116,7 @@ public:
      * @param pose The current pose of the robot
      * @return The fixed pose
      */
-    Pose correct_pose(const Pose& pose) const;
+    Pose correct_pose(const Pose& pose, bool can_follow_wall) const;
 
     /**
      * @brief Calibrate front alignment of the wall sensors
@@ -140,6 +141,13 @@ public:
      * @return True if the robot is side aligned, false otherwise
      */
     bool is_side_aligned() const;
+
+    /**
+     * @brief Check if the robot can follow a wall
+     *
+     * @return True if the robot can follow a wall, false otherwise
+     */
+    bool can_follow_wall(const Pose& pose) const;
 
 private:
     /**
@@ -196,6 +204,8 @@ private:
      * @brief Sensor readings tolerance for the side alignment of the robot
      */
     float side_alignment_tolerance;
+
+    float can_follow_wall_tolerance;
 
     /**
      * @brief Sensor readings for the front alignment of the robot

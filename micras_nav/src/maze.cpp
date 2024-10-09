@@ -144,6 +144,26 @@ bool Maze<width, height>::has_wall(const GridPose& pose) const {
 }
 
 template <uint8_t width, uint8_t height>
+bool Maze<width, height>::can_follow_wall(const GridPose& pose, bool front_cell) const {
+    if (pose.position.x >= width or pose.position.y >= height) {
+        return false;
+    }
+
+    if (not front_cell) {
+        return this->has_wall(pose.turned_left()) and this->has_wall(pose.turned_right());
+    }
+
+    GridPose front_pose = pose.front();
+
+    if (front_pose.position.x >= width or front_pose.position.y >= height) {
+        return false;
+    }
+
+    return not this->has_wall(pose) and this->has_wall(front_pose.turned_left()) and
+           this->has_wall(front_pose.turned_right());
+}
+
+template <uint8_t width, uint8_t height>
 void Maze<width, height>::calculate_costmap() {
     std::array<std::array<bool, width>, height> visited{};
     std::array<std::array<Side, width>, height> origin{};

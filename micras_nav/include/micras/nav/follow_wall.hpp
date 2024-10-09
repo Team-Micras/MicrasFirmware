@@ -48,13 +48,6 @@ public:
     float action(float elapsed_time);
 
     /**
-     * @brief Checks if the robot can follow the wall
-     *
-     * @return True if the robot can follow the wall, false otherwise
-     */
-    bool can_follow();
-
-    /**
      * @brief Resets the PID controller
      */
     void reset();
