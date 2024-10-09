@@ -219,20 +219,20 @@ const proxy::WallSensors<4>::Config wall_sensors_config = {
             .timer_channel = TIM_CHANNEL_2,
         },
     .filter_cutoff = 10.0F,
-    .uncertainty = 0.1F,
+    .uncertainty = 0.35F,
     .wall_threshold =
         {
-            0.80F,
-            0.33F,
-            0.33F,
-            0.70F,
+            0.81388F,
+            0.327295F,
+            0.340525F,
+            0.6677475F,
         },
     .free_threshold =
         {
-            0.51F,
-            0.30F,
-            0.30F,
-            0.33F,
+            0.73912F,
+            0.313505F,
+            0.332475F,
+            0.5901525F,
         },
 };
 
@@ -254,7 +254,7 @@ const proxy::Imu::Config imu_config = {
     .gyroscope_scale = LSM6DSV_4000dps,
     .accelerometer_scale = LSM6DSV_8g,
     .gyroscope_filter = LSM6DSV_GY_ULTRA_LIGHT,
-    .accelerometer_filter = LSM6DSV_XL_ULTRA_LIGHT,
+    .accelerometer_filter = LSM6DSV_XL_MEDIUM
 };
 
 const proxy::Battery::Config battery_config = {

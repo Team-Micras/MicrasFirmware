@@ -20,9 +20,10 @@
 #include "micras/nav/pid_controller.hpp"
 
 namespace micras {
-constexpr uint8_t maze_width{4};
-constexpr uint8_t maze_height{4};
-constexpr float   cell_size{0.18};
+constexpr uint8_t  maze_width{4};
+constexpr uint8_t  maze_height{4};
+constexpr float    cell_size{0.18};
+constexpr uint32_t loop_time_us{1042};
 
 const nav::LookAtPoint::Config look_at_point_config{
     .linear_pid =
@@ -40,8 +41,8 @@ const nav::LookAtPoint::Config look_at_point_config{
             .ki = 0.5F,
             .kd = 0.01F,
             .setpoint = 0.0F,
-            .saturation = 30.0F,
-            .max_integral = 30.0F,
+            .saturation = 20.0F,
+            .max_integral = 20.0F,
         },
     .distance_tolerance = 0.015F,
     .velocity_tolerance = 0.015F,
@@ -93,29 +94,31 @@ const nav::FollowWall::Config follow_wall_config = {
             .max_integral = -1.0F,
         },
     .can_follow_tolerance = 0.05F,
-    .base_left_reading = 0.38,
-    .base_right_reading = 0.31F,
+    .base_left_reading = 0.4195,
+    .base_right_reading = 0.4010F,
     .cutoff_frequency = 5.0F,
 };
 
 const nav::Mapping<maze_width, maze_height>::Config mapping_config{
     .wall_thickness = 0.015F,
     .cell_size = cell_size,
-    .alignment_threshold = 0.15F,
+    .alignment_threshold = 0.1F,
     .front_sensor_pose = {{0.028F, 0.045F}, 0.0F},
     .side_sensor_pose = {{0.015F, 0.06F}, std::numbers::pi_v<float> / 4.0F},
-    .front_alignment_tolerance = 0.06F,
-    .side_alignment_tolerance = 0.03F,
+    .front_alignment_tolerance = 0.04F,
+    .side_alignment_tolerance = 0.02F,
+    .orientation_alignment_tolerance = 0.02F,
+    .can_follow_wall_tolerance = 0.08F,
     .front_alignment_measure = {{
-        0.93F,
-        0.93F,
+        0.9207F,
+        0.9225F,
     }},
     .side_alignment_measure = {{
-        0.38F,
-        0.31F,
+        0.4195F,
+        0.4010F,
     }},
     .start = {{0, 0}, nav::Side::UP},
-    .goal = {{1, 0}},
+    .goal = {{3, 0}},
 };
 
 const nav::Odometry::Config odometry_config{
