@@ -19,7 +19,7 @@ Imu::Imu(const Config& config) :
         mdps_to_radps * 4.375F *
         (1 << (config.gyroscope_scale == LSM6DSV_4000dps ? 5 : static_cast<uint8_t>(config.gyroscope_scale)))
     },
-    xl_factor{mg_to_mps2 * (0.61F * (1 << static_cast<uint8_t>(config.accelerometer_scale)))} {
+    xl_factor{mg_to_mps2 * (0.061F * (1 << static_cast<uint8_t>(config.accelerometer_scale)))} {
     this->dev_ctx.read_reg = platform_read;
     this->dev_ctx.write_reg = platform_write;
     this->dev_ctx.handle = &this->spi;
@@ -46,7 +46,7 @@ Imu::Imu(const Config& config) :
     lsm6dsv_gy_full_scale_set(&(this->dev_ctx), config.gyroscope_scale);
     lsm6dsv_xl_full_scale_set(&(this->dev_ctx), config.accelerometer_scale);
 
-    lsm6dsv_filt_settling_mask_set(&dev_ctx, {.drdy = 1, .ois_drdy = 0, .irq_xl = 1, .irq_g = 1});
+    lsm6dsv_filt_settling_mask_set(&dev_ctx, {.drdy = 1, .ois_drdy = 0, .irq_xl = 0, .irq_g = 0});
 
     lsm6dsv_filt_gy_lp1_set(&(this->dev_ctx), PROPERTY_ENABLE);
     lsm6dsv_filt_gy_lp1_bandwidth_set(&(this->dev_ctx), config.gyroscope_filter);
