@@ -25,7 +25,7 @@ Mapping<width, height>::Mapping(const proxy::WallSensors<4>& wall_sensors, Mappi
     side_sensor_pose{config.side_sensor_pose},
     front_sensors_region_division{cell_size - wall_thickness / 2.0F - front_sensor_pose.position.y},
     side_sensors_region_division{
-        cell_size + wall_thickness - side_sensor_pose.position.y +
+        cell_size + wall_thickness / 2 - side_sensor_pose.position.y +
         (side_sensor_pose.position.x + (wall_thickness - cell_size) / 2.0F) * std::tan(side_sensor_pose.orientation)
     },
     front_alignment_tolerance{config.front_alignment_tolerance},
@@ -194,15 +194,11 @@ bool Mapping<width, height>::can_follow_wall(const Pose& pose) const {
         return false;
     }
 
-    if (cell_position.y < this->side_sensors_region_division - 2 * this->wall_thickness) {
+    if (cell_position.y < this->side_sensors_region_division - this->wall_thickness / 2.0F) {
         return this->maze.can_follow_wall(pose.to_grid(this->cell_size), false);
     }
 
-    if (cell_position.y > this->side_sensors_region_division) {
-        return this->maze.can_follow_wall(pose.to_grid(this->cell_size), true);
-    }
-
-    return false;
+    return this->maze.can_follow_wall(pose.to_grid(this->cell_size), true);
 }
 }  // namespace micras::nav
 
