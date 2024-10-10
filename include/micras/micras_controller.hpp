@@ -44,6 +44,29 @@ public:
     void run();
 
 private:
+
+    enum State : uint8_t {
+        INIT = 0,
+        IDLE = 1,
+        CALIBRATE = 2,
+        STARTING = 3,
+        RUN = 4,
+        ERROR = 5,
+    };
+
+    enum ActionStatus: uint8_t {
+        ON_GOING = 0,
+        FINISHED = 1,
+    };
+
+    void set_state(State next_state);
+
+    State state{State::IDLE};
+    State next_state{State::IDLE};
+    State previous_state{State::IDLE};
+
+    hal::Timer status_timer;
+
     hal::Timer timer;
 
     proxy::Argb<2>        argb;
@@ -66,8 +89,6 @@ private:
     nav::GoToPoint                        go_to_point;
 
     nav::Mapping<maze_width, maze_height>::Action current_action{};
-
-    bool started{};
 };
 }  // namespace micras
 
