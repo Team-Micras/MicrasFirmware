@@ -158,7 +158,6 @@ ActionStatus MicrasController::calibrate_action() {
     static bool first_step_done = false;
     static bool second_step_done = false;
     static bool third_step_done = false;
-    static bool fourth_step_done = false;
 
     if (this->status_timer.elapsed_time_ms() < 3000) {
         return ActionStatus::ON_GOING;
@@ -203,26 +202,20 @@ ActionStatus MicrasController::calibrate_action() {
         return ActionStatus::ON_GOING;
     }
 
-    if (!fourth_step_done) {
-        this->mapping.calibrate_front();
-        this->wall_sensors.calibrate_left_free_space();
-        this->wall_sensors.update_thresholds();
-        this->argb.set_color({0, 0, 0});
-
-        fourth_step_done = true;
-    }
+    this->mapping.calibrate_front();
+    this->wall_sensors.calibrate_left_free_space();
+    this->wall_sensors.update_thresholds();
+    this->argb.set_color({0, 0, 0});
 
     first_step_done = false;
     second_step_done = false;
     third_step_done = false;
-    fourth_step_done = false;
 
     return ActionStatus::FINISHED;
 }
 
 ActionStatus MicrasController::starting_action() {
     bool first_step_done = false;
-    bool second_step_done = false;
 
     if (!first_step_done) {
         this->locomotion.enable();
@@ -234,16 +227,11 @@ ActionStatus MicrasController::starting_action() {
         return ActionStatus::ON_GOING;
     }
 
-    if (!second_step_done) {
-        this->odometry.reset();
-        this->look_at_point.reset();
-        this->go_to_point.reset();
-
-        second_step_done = true;
-    }
+    this->odometry.reset();
+    this->look_at_point.reset();
+    this->go_to_point.reset();
 
     first_step_done = false;
-    second_step_done = false;
 
     return ActionStatus::FINISHED;
 }
