@@ -75,8 +75,8 @@ void MicrasController::run() {
     if (button_status == proxy::Button::Status::LONG_PRESS) {
         locomotion.enable();
         this->argb.set_color({0, 0, 255});
-        this->argb.set_color({0, 255, 0});
         hal::Timer::sleep_ms(3000);
+        this->argb.set_color({0, 255, 0});
         this->started = true;
         this->odometry.reset();
         this->look_at_point.reset();
@@ -110,6 +110,14 @@ void MicrasController::run() {
             if (this->look_at_point.finished(relative_state, current_action.point)) {
                 current_action = this->mapping.get_action(state.pose);
                 this->look_at_point.reset();
+
+                if (current_action.type == micras::nav::Mapping<maze_width, maze_height>::Action::Type::GO_TO) {
+                    this->argb.set_color({0, 255, 0});
+
+                } else {
+                    this->argb.set_color({255, 0, 0});
+                }
+
                 return;
             }
 
@@ -120,9 +128,18 @@ void MicrasController::run() {
             if (this->go_to_point.finished(relative_state, current_action.point)) {
                 current_action = this->mapping.get_action(state.pose);
                 this->go_to_point.reset();
+
+                if (current_action.type == micras::nav::Mapping<maze_width, maze_height>::Action::Type::GO_TO) {
+                    this->argb.set_color({0, 255, 0});
+
+                } else {
+                    this->argb.set_color({255, 0, 0});
+                }
+
                 return;
             }
 
+            core::FollowWallType follow_wall_type = this->mapping.get_follow_wall_type(state.pose);
             command = this->go_to_point.action(relative_state, current_action.point, follow_wall_type, elapsed_time);
 
             state.pose = this->mapping.correct_pose(state.pose, follow_wall_type);

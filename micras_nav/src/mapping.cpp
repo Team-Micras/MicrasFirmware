@@ -28,11 +28,13 @@ Mapping<width, height>::Mapping(const proxy::WallSensors<4>& wall_sensors, Mappi
         cell_size + wall_thickness / 2 - side_sensor_pose.position.y +
         (side_sensor_pose.position.x + (wall_thickness - cell_size) / 2.0F) * std::tan(side_sensor_pose.orientation)
     },
-    front_alignment_tolerance{config.front_alignment_tolerance},
-    side_alignment_tolerance{config.side_alignment_tolerance},
-    orientation_alignment_tolerance{config.orientation_alignment_tolerance},
-    front_alignment_measure{config.front_alignment_measure},
-    side_alignment_measure{config.side_alignment_measure} { }
+    front_distance_alignment_tolerance{config.front_distance_alignment_tolerance},
+    side_distance_alignment_tolerance{config.side_distance_alignment_tolerance},
+    front_orientation_alignment_tolerance{config.front_orientation_alignment_tolerance},
+    side_orientation_alignment_tolerance{config.side_orientation_alignment_tolerance},
+    front_distance_reading{config.front_distance_reading},
+    front_orientation_reading{config.front_orientation_reading},
+    side_distance_reading{config.side_distance_reading} { }
 
 template <uint8_t width, uint8_t height>
 void Mapping<width, height>::update(const Pose& pose) {
@@ -55,7 +57,7 @@ void Mapping<width, height>::update(const Pose& pose) {
         }
     }
 
-    if (cell_position.x < this->alignment_threshold * this->cell_size and
+    if (std::abs(cell_position.x) < this->alignment_threshold * this->cell_size and
         information.front != core::Observation::WALL and cell_position.y > this->side_sensors_region_division) {
         information.front_left = this->wall_sensors.get_observation(Sensor::LEFT);
         information.front_right = this->wall_sensors.get_observation(Sensor::RIGHT);
@@ -98,72 +100,82 @@ Pose Mapping<width, height>::correct_pose(const Pose& pose, core::FollowWallType
             }
 
             if (this->is_orientation_front_aligned()) {
-                corrected_pose.orientation = static_cast<uint8_t>(direction) * std::numbers::pi_v<float> / 2.0F;
+                corrected_pose.orientation =
+                    core::assert_angle(static_cast<uint8_t>(direction) * std::numbers::pi_v<float> / 2.0F);
             }
             break;
         case core::FollowWallType::PARALLEL:
             if (this->is_distance_side_aligned()) {
                 pose_correction.x = cell_position.x;
-                corrected_pose.orientation = static_cast<uint8_t>(direction) * std::numbers::pi_v<float> / 2.0F;
+                corrected_pose.orientation =
+                    core::assert_angle(static_cast<uint8_t>(direction) * std::numbers::pi_v<float> / 2.0F);
             } else if (this->is_orientation_side_aligned()) {
-                corrected_pose.orientation = static_cast<uint8_t>(direction) * std::numbers::pi_v<float> / 2.0F;
+                corrected_pose.orientation =
+                    core::assert_angle(static_cast<uint8_t>(direction) * std::numbers::pi_v<float> / 2.0F);
             }
             break;
         default:
             return pose;
     }
 
-    corrected_pose.position = corrected_pose.position - pose_correction.rotate(direction);
+    pose_correction = pose_correction.rotate(static_cast<Side>((6 - direction) % 4));
+    corrected_pose.position = corrected_pose.position - pose_correction;
 
     return corrected_pose;
 }
 
 template <uint8_t width, uint8_t height>
 void Mapping<width, height>::calibrate_front() {
-    this->front_alignment_measure[0] = this->wall_sensors.get_reading(0);
-    this->front_alignment_measure[1] = this->wall_sensors.get_reading(3);
+    this->front_distance_reading[0] = this->wall_sensors.get_reading(0);
+    front_orientation_reading[0] = this->wall_sensors.get_reading(1);
+    front_orientation_reading[1] = this->wall_sensors.get_reading(2);
+    this->front_distance_reading[1] = this->wall_sensors.get_reading(3);
 }
 
 template <uint8_t width, uint8_t height>
 void Mapping<width, height>::calibrate_side() {
-    this->side_alignment_measure[0] = this->wall_sensors.get_reading(1);
-    this->side_alignment_measure[1] = this->wall_sensors.get_reading(2);
+    this->side_distance_reading[0] = this->wall_sensors.get_reading(1);
+    this->side_distance_reading[1] = this->wall_sensors.get_reading(2);
 }
 
 template <uint8_t width, uint8_t height>
 bool Mapping<width, height>::is_distance_front_aligned() const {
     return core::is_near(
-               this->wall_sensors.get_reading(0), this->front_alignment_measure[0], this->front_alignment_tolerance
+               this->wall_sensors.get_reading(0), this->front_distance_reading[0],
+               this->front_distance_alignment_tolerance
            ) and
            core::is_near(
-               this->wall_sensors.get_reading(3), this->front_alignment_measure[1], this->front_alignment_tolerance
+               this->wall_sensors.get_reading(3), this->front_distance_reading[1],
+               this->front_distance_alignment_tolerance
            );
 }
 
 template <uint8_t width, uint8_t height>
 bool Mapping<width, height>::is_orientation_front_aligned() const {
     return std::abs(
-               (this->wall_sensors.get_reading(1) - this->side_alignment_measure[0]) -
-               (this->wall_sensors.get_reading(2) - this->side_alignment_measure[1])
-           ) <= this->orientation_alignment_tolerance;
+               (this->wall_sensors.get_reading(1) - this->front_orientation_reading[0]) +
+               (this->wall_sensors.get_reading(2) - this->front_orientation_reading[1])
+           ) <= this->front_orientation_alignment_tolerance;
 }
 
 template <uint8_t width, uint8_t height>
 bool Mapping<width, height>::is_distance_side_aligned() const {
     return core::is_near(
-               this->wall_sensors.get_reading(1), this->side_alignment_measure[0], this->side_alignment_tolerance
+               this->wall_sensors.get_reading(1), this->side_distance_reading[0],
+               this->side_distance_alignment_tolerance
            ) and
            core::is_near(
-               this->wall_sensors.get_reading(2), this->side_alignment_measure[1], this->side_alignment_tolerance
+               this->wall_sensors.get_reading(2), this->side_distance_reading[1],
+               this->side_distance_alignment_tolerance
            );
 }
 
 template <uint8_t width, uint8_t height>
 bool Mapping<width, height>::is_orientation_side_aligned() const {
     return std::abs(
-               (this->wall_sensors.get_reading(1) - this->side_alignment_measure[0]) +
-               (this->wall_sensors.get_reading(2) - this->side_alignment_measure[1])
-           ) <= this->orientation_alignment_tolerance;
+               (this->wall_sensors.get_reading(1) - this->side_distance_reading[0]) +
+               (this->wall_sensors.get_reading(2) - this->side_distance_reading[1])
+           ) <= this->side_orientation_alignment_tolerance;
 }
 
 template <uint8_t width, uint8_t height>

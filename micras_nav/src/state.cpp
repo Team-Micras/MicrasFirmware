@@ -68,19 +68,19 @@ Point Pose::to_cell(float cell_size) const {
     switch (angle_to_grid(this->orientation)) {
         case Side::RIGHT:
             cell_advance = cell_position.x;
-            cell_alignment = std::abs(cell_size / 2.0F - cell_position.y);
+            cell_alignment = cell_size / 2.0F - cell_position.y;
             break;
         case Side::UP:
             cell_advance = cell_position.y;
-            cell_alignment = std::abs(cell_size / 2.0F - cell_position.x);
+            cell_alignment = cell_position.x - cell_size / 2.0F;
             break;
         case Side::LEFT:
             cell_advance = cell_size - cell_position.x;
-            cell_alignment = std::abs(cell_size / 2.0F - cell_position.y);
+            cell_alignment = cell_position.y - cell_size / 2.0F;
             break;
         case Side::DOWN:
             cell_advance = cell_size - cell_position.y;
-            cell_alignment = std::abs(cell_size / 2.0F - cell_position.x);
+            cell_alignment = cell_size / 2.0F - cell_position.x;
             break;
     }
 

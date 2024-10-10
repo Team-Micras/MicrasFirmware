@@ -29,7 +29,7 @@ float FollowWall::action(core::FollowWallType follow_wall_type, float elapsed_ti
             break;
 
         case core::FollowWallType::RIGHT:
-            error = 2.0F * this->get_right_value();
+            error = -2.0F * this->get_right_value();
             break;
 
         case core::FollowWallType::PARALLEL:

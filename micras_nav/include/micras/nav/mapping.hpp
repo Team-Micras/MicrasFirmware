@@ -34,11 +34,13 @@ public:
         float                alignment_threshold{};
         Pose                 front_sensor_pose{};
         Pose                 side_sensor_pose{};
-        float                front_alignment_tolerance{};
-        float                side_alignment_tolerance{};
-        float                orientation_alignment_tolerance{};
-        std::array<float, 2> front_alignment_measure{};
-        std::array<float, 2> side_alignment_measure{};
+        float                front_distance_alignment_tolerance{};
+        float                side_distance_alignment_tolerance{};
+        float                front_orientation_alignment_tolerance{};
+        float                side_orientation_alignment_tolerance{};
+        std::array<float, 2> front_distance_reading{};
+        std::array<float, 2> front_orientation_reading{};
+        std::array<float, 2> side_distance_reading{};
 
         GridPose                      start{};
         std::unordered_set<GridPoint> goal{
@@ -214,27 +216,37 @@ private:
     /**
      * @brief Sensor readings tolerance for the front alignment of the robot
      */
-    float front_alignment_tolerance;
+    float front_distance_alignment_tolerance;
 
     /**
      * @brief Sensor readings tolerance for the side alignment of the robot
      */
-    float side_alignment_tolerance;
+    float side_distance_alignment_tolerance;
 
     /**
-     * @brief Sensor readings for the front alignment of the robot
+     * @brief Sensor readings for the front alignment of the robot at the front
      */
-    float orientation_alignment_tolerance;
+    float front_orientation_alignment_tolerance;
 
     /**
-     * @brief Sensor readings for the front alignment of the robot
+     * @brief Sensor readings for the front alignment of the robot with walls at the side
      */
-    std::array<float, 2> front_alignment_measure{};
+    float side_orientation_alignment_tolerance;
 
     /**
-     * @brief Sensor readings for the side alignment of the robot
+     * @brief Sensor readings when the front of the robot is distance aligned
      */
-    std::array<float, 2> side_alignment_measure{};
+    std::array<float, 2> front_distance_reading{};
+
+    /**
+     * @brief Sensor readings when the front of the robot is orientation aligned
+     */
+    std::array<float, 2> front_orientation_reading{};
+
+    /**
+     * @brief Sensor readings when the sides of the robot are distance aligned
+     */
+    std::array<float, 2> side_distance_reading{};
 };
 }  // namespace micras::nav
 

@@ -104,14 +104,19 @@ const nav::Mapping<maze_width, maze_height>::Config mapping_config{
     .alignment_threshold = 0.1F,
     .front_sensor_pose = {{0.028F, 0.045F}, 0.0F},
     .side_sensor_pose = {{0.015F, 0.06F}, std::numbers::pi_v<float> / 4.0F},
-    .front_alignment_tolerance = 0.04F,
-    .side_alignment_tolerance = 0.02F,
-    .orientation_alignment_tolerance = 0.02F,
-    .front_alignment_measure = {{
+    .front_distance_alignment_tolerance = 0.04F,
+    .side_distance_alignment_tolerance = 0.02F,
+    .front_orientation_alignment_tolerance = 0.02F,
+    .side_orientation_alignment_tolerance = 0.02F,
+    .front_distance_reading = {{
         0.9207F,
         0.9225F,
     }},
-    .side_alignment_measure = {{
+    .front_orientation_reading = {{
+        0.6937F,
+        0.8353F,
+    }},
+    .side_distance_reading = {{
         0.4195F,
         0.4010F,
     }},
