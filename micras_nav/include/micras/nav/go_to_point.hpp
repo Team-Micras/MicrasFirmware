@@ -23,12 +23,13 @@ public:
      * @brief Configuration for the GoToPoint class
      */
     struct Config {
-        PidController::Config linear_pid;
         PidController::Config stop_pid;
         PidController::Config angular_pid;
         float                 cell_size{};
-        float                 base_speed{};
-        float                 linear_decay_damping{};
+        float                 min_linear_command{};
+        float                 max_linear_command{};
+        float                 deceleration_factor{};
+        float                 linear_decay_resistance{};
         float                 distance_tolerance{};
         float                 velocity_tolerance{};
     };
@@ -83,11 +84,6 @@ public:
 
 private:
     /**
-     * @brief PID controller for the linear velocity
-     */
-    PidController linear_pid;
-
-    /**
      * @brief PID controller for stoppping at the goal
      */
     PidController stop_pid;
@@ -107,15 +103,16 @@ private:
      */
     float cell_size;
 
-    /**
-     * @brief Base linear speed for the robot
-     */
-    float base_speed;
+    float min_linear_command;
+
+    float max_linear_command;
+
+    float deceleration_factor;
 
     /**
      * @brief Damping factor for the linear decay
      */
-    float linear_decay_damping;
+    float linear_decay_resistance;
 
     /**
      * @brief Linear tolerance for the goal point
@@ -126,6 +123,8 @@ private:
      * @brief Velocity tolerance at the goal point
      */
     float velocity_tolerance;
+
+    float max_deceleration;
 
     friend class Interface;
 };

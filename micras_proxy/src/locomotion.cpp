@@ -10,6 +10,9 @@
 
 #include "micras/proxy/locomotion.hpp"
 
+static volatile float test_left_command{};
+static volatile float test_right_command{};
+
 namespace micras::proxy {
 Locomotion::Locomotion(const Config& config) :
     left_motor{config.left_motor}, right_motor{config.right_motor}, enable_gpio{config.enable_gpio} {
@@ -26,6 +29,9 @@ void Locomotion::disable() {
 }
 
 void Locomotion::set_wheel_command(float left_command, float right_command) {
+    test_left_command = left_command;
+    test_right_command = right_command;
+
     this->left_motor.set_command(left_command);
     this->right_motor.set_command(right_command);
 }

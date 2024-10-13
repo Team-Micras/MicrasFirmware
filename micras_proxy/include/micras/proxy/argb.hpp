@@ -70,6 +70,8 @@ public:
      */
     void set_color(const Color& color);
 
+    void set_colors(const std::array<Color, num_of_leds>& colors);
+
     /**
      * @brief Turn off the ARGB at the specified index
      *

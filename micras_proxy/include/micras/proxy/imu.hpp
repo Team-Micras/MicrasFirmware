@@ -14,6 +14,7 @@
 #include <lsm6dsv_reg.h>
 #include <numbers>
 
+#include "micras/core/butterworth_filter.hpp"
 #include "micras/hal/spi.hpp"
 
 namespace micras::proxy {
@@ -79,6 +80,8 @@ public:
      */
     float get_linear_acceleration(Axis axis) const;
 
+    void calibrate();
+
 private:
     /**
      * @brief Read data from the IMU
@@ -103,22 +106,6 @@ private:
      * @return int32_t 0 if the operation was successful, -1 otherwise
      */
     static int32_t platform_write(void* handle, uint8_t reg, const uint8_t* bufp, uint16_t len);
-
-    /**
-     * @brief Function to convert raw data to orientation
-     *
-     * @param sflp Raw data from the IMU
-     */
-    void update_orientation(const uint16_t sflp[3]);  // NOLINT(*-avoid-c-arrays)
-
-    /**
-     * @brief Function to convert half precision float to single precision float
-     *
-     * @param n Half precision float
-     *
-     * @return float Single precision float
-     */
-    static float half_to_float(uint16_t x);
 
     /**
      * @brief Conversion constants
@@ -155,6 +142,9 @@ private:
      * @brief Accelerometer conversion factor
      */
     float xl_factor;
+
+    core::ButterworthFilter calibration_filter{5.0F};
+    bool                    calibrated{};
 };
 }  // namespace micras::proxy
 

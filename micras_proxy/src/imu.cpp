@@ -12,6 +12,8 @@
 #include "micras/hal/timer.hpp"
 #include "micras/proxy/imu.hpp"
 
+static volatile float test_base_imu{};
+
 namespace micras::proxy {
 Imu::Imu(const Config& config) :
     spi{config.spi},
@@ -80,6 +82,10 @@ void Imu::update() {
         this->angular_velocity[1] = raw_data[1] * gy_factor;
         this->angular_velocity[2] = raw_data[2] * gy_factor;
     }
+
+    if (not this->calibrated) {
+        test_base_imu = this->calibration_filter.update(this->angular_velocity[2]);
+    }
 }
 
 float Imu::get_angular_velocity(Axis axis) const {
@@ -91,7 +97,7 @@ float Imu::get_angular_velocity(Axis axis) const {
             return this->angular_velocity[1];
 
         case Axis::Z:
-            return this->angular_velocity[2];
+            return this->angular_velocity[2] - this->calibration_filter.get_last();
 
         default:
             return 0.0F;
@@ -137,5 +143,9 @@ int32_t Imu::platform_write(void* handle, uint8_t reg, const uint8_t* bufp, uint
     spi->unselect_device();
 
     return 0;
+}
+
+void Imu::calibrate() {
+    this->calibrated = true;
 }
 }  // namespace micras::proxy

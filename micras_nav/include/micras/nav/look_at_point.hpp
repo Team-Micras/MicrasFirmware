@@ -81,6 +81,8 @@ private:
      * @brief Velocity tolerance for the goal
      */
     float velocity_tolerance;
+
+    friend class Interface;
 };
 }  // namespace micras::nav
 

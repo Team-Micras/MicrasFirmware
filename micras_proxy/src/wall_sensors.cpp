@@ -12,6 +12,8 @@
 #include "micras/core/utils.hpp"
 #include "micras/proxy/wall_sensors.hpp"
 
+// static volatile float test_reading[4];
+
 namespace micras::proxy {
 template <uint8_t num_of_sensors>
 WallSensors<num_of_sensors>::WallSensors(const Config& config) :
@@ -62,6 +64,7 @@ core::Observation WallSensors<num_of_sensors>::get_observation(uint8_t sensor_in
 
 template <uint8_t num_of_sensors>
 float WallSensors<num_of_sensors>::get_reading(uint8_t sensor_index) const {
+    // test_reading[sensor_index] = 100.0F * this->filters.at(sensor_index).get_last();
     return this->filters.at(sensor_index).get_last();
 }
 
