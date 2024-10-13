@@ -70,33 +70,33 @@ Mapping<width, height>::Action Mapping<width, height>::get_action(const Pose& po
     GridPoint grid_position = pose.position.to_grid(this->cell_size);
     GridPose  current_grid_goal{};
 
-    Point current_goal{};
-    Side  orientation{};
+    Point     current_goal{};
+    Direction orientation{};
 
     switch (objective) {
         case core::Objective::EXPLORE:
             if (this->maze.finished(grid_position)) {
-                return {Action::Type::FINISHED, pose.position, Side::RIGHT};
+                return {Action::Type::FINISHED, pose.position, Direction::EAST};
             }
 
             current_grid_goal = this->maze.get_current_exploration_goal(grid_position);
             current_goal = Point::from_grid(current_grid_goal.position, this->cell_size);
-            orientation = current_grid_goal.orientation;
+            orientation = static_cast<Direction>(2 * current_grid_goal.orientation);
             break;
         case core::Objective::RETURN:
             if (this->maze.returned(grid_position)) {
                 this->maze.optimize_route();
-                return {Action::Type::FINISHED, pose.position, Side::RIGHT};
+                return {Action::Type::FINISHED, pose.position, Direction::EAST};
             }
 
             this->maze.calculate_best_route();
             current_grid_goal = this->maze.get_current_returning_goal(grid_position);
             current_goal = Point::from_grid(current_grid_goal.position, this->cell_size);
-            orientation = current_grid_goal.orientation;
+            orientation = static_cast<Direction>(2 * current_grid_goal.orientation);
             break;
         case core::Objective::SOLVE:
             if (this->maze.finished(grid_position)) {
-                return {Action::Type::FINISHED, pose.position, Side::RIGHT};
+                return {Action::Type::FINISHED, pose.position, Direction::EAST};
             }
 
             this->best_route_iterator++;
@@ -108,7 +108,7 @@ Mapping<width, height>::Action Mapping<width, height>::get_action(const Pose& po
     Point current_goal_rotated = current_goal.rotate(orientation);
 
     if (std::abs(core::assert_angle(pose.orientation - pose.position.angle_between(current_goal))) >
-        std::numbers::pi_v<float> / 8.0F) {
+        0.375F * std::numbers::pi_v<float>) {
         if (objective == core::Objective::SOLVE) {
             this->best_route_iterator--;
         }
@@ -152,6 +152,8 @@ Pose Mapping<width, height>::correct_pose(const Pose& pose, core::FollowWallType
         case core::FollowWallType::PARALLEL:
             if (this->is_distance_side_aligned()) {
                 pose_correction.x = cell_position.x;
+                pose_correction.y = cell_position.y - std::hypot(cell_position.x, cell_position.y);
+
                 corrected_pose.orientation =
                     core::assert_angle(static_cast<uint8_t>(direction) * std::numbers::pi_v<float> / 2.0F);
             } else if (this->is_orientation_side_aligned()) {
@@ -163,7 +165,7 @@ Pose Mapping<width, height>::correct_pose(const Pose& pose, core::FollowWallType
             return pose;
     }
 
-    pose_correction = pose_correction.rotate(static_cast<Side>((6 - direction) % 4));
+    pose_correction = pose_correction.rotate(static_cast<Direction>((12 - 2 * direction) % 8));
     corrected_pose.position = corrected_pose.position - pose_correction;
 
     return corrected_pose;
@@ -275,7 +277,7 @@ void Mapping<width, height>::deserialize(const uint8_t* buffer, uint16_t size) {
 
     for (uint32_t i = 0; i < size; i += 3) {
         this->best_route.emplace_back(
-            Point::from_grid({buffer[i], buffer[i + 1]}, this->cell_size), static_cast<Side>(buffer[i + 2])
+            Point::from_grid({buffer[i], buffer[i + 1]}, this->cell_size), static_cast<Direction>(2 * buffer[i + 2])
         );
     }
 
@@ -288,7 +290,55 @@ bool Mapping<width, height>::can_align_back(const Pose& pose) const {
 }
 
 template <uint8_t width, uint8_t height>
-void Mapping<width, height>::diagonalize_best_route() { }
+void Mapping<width, height>::diagonalize_best_route() {
+    for (auto it = std::next(this->best_route.begin()); it != this->best_route.end(); it++) {
+        auto next_it = std::next(it);
+
+        auto value = *it;
+
+        if (next_it == this->best_route.end()) {
+            break;
+        }
+
+        Direction diagonal_direction = static_cast<Direction>((next_it->second + it->second) / 2);
+
+        if (std::abs(next_it->second - it->second) > 2) {
+            diagonal_direction = Direction::SOUTHEAST;
+        }
+
+        this->best_route.insert(it, {it->first.move_towards(std::prev(it)->first, this->cell_size / 2), it->second});
+        this->best_route.insert(it, {it->first.move_towards(next_it->first, this->cell_size / 2), diagonal_direction});
+    }
+
+    uint8_t i = 1;
+
+    for (auto it = std::next(this->best_route.begin()); it != this->best_route.end(); i++) {
+        if (i % 3 == 0) {
+            it = this->best_route.erase(it);
+        } else {
+            it++;
+        }
+    }
+
+    for (auto it = std::next(this->best_route.begin()); it != this->best_route.end();) {
+        auto next_it = std::next(it);
+
+        auto value = *it;
+        auto next_value = *next_it;
+
+        if (next_it == this->best_route.end()) {
+            break;
+        }
+
+        if (it->second == next_it->second) {
+            it = this->best_route.erase(it);
+        } else if (it->first == next_it->first) {
+            this->best_route.erase(next_it);
+        } else {
+            it++;
+        }
+    }
+}
 }  // namespace micras::nav
 
 #endif  // MICRAS_NAV_MAPPING_CPP

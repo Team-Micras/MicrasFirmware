@@ -16,6 +16,7 @@ GoToPoint::GoToPoint(
     const proxy::WallSensors<4>& wall_sensors, const Config& config, const FollowWall::Config& follow_wall_config
 ) :
     stop_pid(config.stop_pid),
+    stop_angular_pid{config.stop_angular_pid},
     angular_pid(config.angular_pid),
     follow_wall{wall_sensors, follow_wall_config},
     cell_size{config.cell_size},
@@ -37,7 +38,12 @@ Twist GoToPoint::action(
         angular_command = this->follow_wall.action(follow_wall_type, elapsed_time);
     } else {
         float angular_error = core::assert_angle(state.pose.orientation - std::atan2(this->cell_size, goal_distance.x));
-        angular_command = this->angular_pid.update(angular_error, elapsed_time, state.velocity.angular);
+
+        if (stop) {
+            angular_command = this->stop_angular_pid.update(angular_error, elapsed_time, state.velocity.angular);
+        } else {
+            angular_command = this->angular_pid.update(angular_error, elapsed_time, state.velocity.angular);
+        }
     }
 
     if (stop) {
@@ -66,6 +72,7 @@ bool GoToPoint::finished(const State& state, const Point& goal, bool stop) const
 void GoToPoint::reset() {
     this->follow_wall.reset();
     this->stop_pid.reset();
+    this->stop_angular_pid.reset();
     this->angular_pid.reset();
 }
 

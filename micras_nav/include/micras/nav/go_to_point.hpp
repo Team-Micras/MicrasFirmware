@@ -24,6 +24,7 @@ public:
      */
     struct Config {
         PidController::Config stop_pid;
+        PidController::Config stop_angular_pid;
         PidController::Config angular_pid;
         float                 cell_size{};
         float                 min_linear_command{};
@@ -87,6 +88,11 @@ private:
      * @brief PID controller for stoppping at the goal
      */
     PidController stop_pid;
+
+    /**
+     * @brief PID controller for the orientation
+     */
+    PidController stop_angular_pid;
 
     /**
      * @brief PID controller for the orientation

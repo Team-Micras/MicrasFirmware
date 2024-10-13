@@ -21,8 +21,8 @@
 #include "micras/proxy/storage.hpp"
 
 namespace micras {
-constexpr uint8_t  maze_width{4};
-constexpr uint8_t  maze_height{4};
+constexpr uint8_t  maze_width{16};
+constexpr uint8_t  maze_height{16};
 constexpr float    cell_size{0.18};
 constexpr uint32_t loop_time_us{1042};
 
@@ -56,12 +56,21 @@ const nav::GoToPoint::Config go_to_point_config{
             .ki = 0.5F,
             .kd = 0.08F,
             .setpoint = 0.0F,
-            .saturation = 25.0F,
-            .max_integral = 25.0F,
+            .saturation = 30.0F,
+            .max_integral = 30.0F,
+        },
+    .stop_angular_pid =
+        {
+            .kp = 15.0F,
+            .ki = 0.0F,
+            .kd = 0.02F,
+            .setpoint = 0.0F,
+            .saturation = 40.0F,
+            .max_integral = -1.0F,
         },
     .angular_pid =
         {
-            .kp = 15.0F,
+            .kp = 30.0F,
             .ki = 0.0F,
             .kd = 0.02F,
             .setpoint = 0.0F,
@@ -69,7 +78,7 @@ const nav::GoToPoint::Config go_to_point_config{
             .max_integral = -1.0F,
         },
     .cell_size = cell_size,
-    .min_linear_command = 15.0F,
+    .min_linear_command = 5.0F,
     .max_linear_command = 40.0F,
     .deceleration_factor = 0.3F,
     .linear_decay_resistance = 150.0F,
@@ -93,7 +102,7 @@ const nav::FollowWall::Config follow_wall_config = {
 };
 
 const nav::Mapping<maze_width, maze_height>::Config mapping_config{
-    .wall_thickness = 0.015,  // 0.0126,
+    .wall_thickness = 0.0126,
     .cell_size = cell_size,
     .front_sensor_pose = {{0.028F, 0.045F}, 0.0F},
     .side_sensor_pose = {{0.009F, 0.055F}, std::numbers::pi_v<float> / 6.0F},
@@ -114,7 +123,6 @@ const nav::Mapping<maze_width, maze_height>::Config mapping_config{
         0.210F,
     }},
     .start = {{0, 0}, nav::Side::UP},
-    .goal = {{3, 0}},
 };
 
 const nav::Odometry::Config odometry_config{
@@ -122,7 +130,7 @@ const nav::Odometry::Config odometry_config{
     .wheel_radius = 0.0112F,
     .initial_pose =
         {
-            nav::Point::from_grid(mapping_config.start.position, cell_size),
+            {0.09F, 0.04f + mapping_config.wall_thickness / 2.0F},
             static_cast<uint8_t>(mapping_config.start.orientation) * std::numbers::pi_v<float> / 2,
         },
 };

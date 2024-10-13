@@ -179,13 +179,16 @@ bool MicrasController::run(float elapsed_time) {
     nav::Twist command{};
 
     nav::State relative_state = {
-        {state.pose.position.rotate(this->current_action.side),
-         core::assert_angle(state.pose.orientation + std::numbers::pi_v<float> / 2.0F * (1 - this->current_action.side))
-        },
+        {state.pose.position.rotate(this->current_action.direction),
+         core::assert_angle(
+             state.pose.orientation + std::numbers::pi_v<float> / 4.0F * (2 - this->current_action.direction)
+         )},
         state.velocity
     };
 
     core::FollowWallType follow_wall_type = this->mapping.get_follow_wall_type(state.pose);
+
+    bool stop = (this->objective != core::Objective::SOLVE);
 
     switch (this->current_action.type) {
         case nav::Mapping<maze_width, maze_height>::Action::Type::LOOK_AT:
@@ -206,18 +209,24 @@ bool MicrasController::run(float elapsed_time) {
             break;
 
         case nav::Mapping<maze_width, maze_height>::Action::Type::GO_TO:
-            if (this->go_to_point.finished(relative_state, this->current_action.point)) {
+            if (this->go_to_point.finished(relative_state, this->current_action.point, stop)) {
                 this->current_action = this->mapping.get_action(state.pose, this->objective);
                 this->go_to_point.reset();
 
                 return false;
             }
 
-            command =
-                this->go_to_point.action(relative_state, this->current_action.point, follow_wall_type, elapsed_time);
+            if (this->current_action.direction % 2 == 1) {
+                follow_wall_type = core::FollowWallType::NONE;
+            } else {
+                state.pose = this->mapping.correct_pose(state.pose, follow_wall_type);
+                this->odometry.set_state(state);
+            }
 
-            state.pose = this->mapping.correct_pose(state.pose, follow_wall_type);
-            this->odometry.set_state(state);
+            command = this->go_to_point.action(
+                relative_state, this->current_action.point, follow_wall_type, elapsed_time, stop
+            );
+
             break;
         case nav::Mapping<maze_width, maze_height>::Action::Type::ALIGN_BACK:
             command = {-5.0F, 0.0F};

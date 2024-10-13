@@ -38,6 +38,24 @@ Maze<width, height>::Maze(const GridPose& start, const std::unordered_set<GridPo
     GridPose right_pose = start.turned_right().front();
     this->get_cell(right_pose.position).wall_count[right_pose.turned_back().orientation] = 0xFFFF;
 
+    // HARDCODED WALLS
+    this->cells.at(7).at(7).wall_count[Side::DOWN] = 0xFFFF;
+    this->cells.at(7).at(7).wall_count[Side::LEFT] = 0xFFFF;
+    this->cells.at(6).at(7).wall_count[Side::UP] = 0xFFFF;
+    this->cells.at(7).at(6).wall_count[Side::RIGHT] = 0xFFFF;
+    this->cells.at(7).at(8).wall_count[Side::DOWN] = 0xFFFF;
+    this->cells.at(6).at(8).wall_count[Side::UP] = 0xFFFF;
+    this->cells.at(7).at(8).free_count[Side::RIGHT] = 0xFFFF;
+    this->cells.at(7).at(9).free_count[Side::LEFT] = 0xFFFF;
+    this->cells.at(8).at(7).wall_count[Side::LEFT] = 0xFFFF;
+    this->cells.at(8).at(7).wall_count[Side::UP] = 0xFFFF;
+    this->cells.at(8).at(6).wall_count[Side::RIGHT] = 0xFFFF;
+    this->cells.at(9).at(7).wall_count[Side::DOWN] = 0xFFFF;
+    this->cells.at(8).at(8).wall_count[Side::UP] = 0xFFFF;
+    this->cells.at(8).at(8).wall_count[Side::RIGHT] = 0xFFFF;
+    this->cells.at(9).at(8).wall_count[Side::DOWN] = 0xFFFF;
+    this->cells.at(8).at(9).wall_count[Side::LEFT] = 0xFFFF;
+
     for (const auto& position : this->goal) {
         this->get_cell(position).cost = 0;
     }

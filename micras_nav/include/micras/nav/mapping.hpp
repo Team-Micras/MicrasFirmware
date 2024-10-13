@@ -90,7 +90,7 @@ public:
         /**
          * @brief The orientation of the goal point
          */
-        Side side;
+        Direction direction;
     };
 
     /**
@@ -255,9 +255,9 @@ private:
      */
     std::array<float, 2> side_distance_reading{};
 
-    std::list<std::pair<Point, Side>> best_route{};
+    std::list<std::pair<Point, Direction>> best_route{};
 
-    std::list<std::pair<Point, Side>>::iterator best_route_iterator{best_route.begin()};
+    std::list<std::pair<Point, Direction>>::iterator best_route_iterator{best_route.begin()};
 };
 }  // namespace micras::nav
 
