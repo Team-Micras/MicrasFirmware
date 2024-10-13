@@ -84,7 +84,7 @@ private:
     proxy::Locomotion     locomotion;
     proxy::RotarySensor   rotary_sensor_left;
     proxy::RotarySensor   rotary_sensor_right;
-    // proxy::Storage        maze_storage;
+    proxy::Storage        maze_storage;
     // proxy::TorqueSensors<2> torque_sensors;
 
     nav::Odometry                         odometry;

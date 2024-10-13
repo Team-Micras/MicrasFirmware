@@ -178,6 +178,8 @@ public:
     bool can_align_back(const Pose& pose) const;
 
 private:
+    void diagonalize_best_route();
+
     /**
      * @brief Wall sensors of the robot
      */

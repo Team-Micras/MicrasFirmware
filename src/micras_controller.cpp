@@ -38,7 +38,7 @@ MicrasController::MicrasController() :
     rotary_sensor_left{rotary_sensor_left_config},
     rotary_sensor_right{rotary_sensor_right_config},
     // torque_sensors{torque_sensors_config},
-    // maze_storage{maze_storage_config},
+    maze_storage{maze_storage_config},
     odometry{rotary_sensor_left, rotary_sensor_right, imu, odometry_config},
     mapping{wall_sensors, mapping_config},
     look_at_point{look_at_point_config},
@@ -81,7 +81,7 @@ void MicrasController::update() {
                 this->locomotion.enable();
                 this->objective = core::Objective::SOLVE;
                 this->next_state = State::RUN;
-                // this->maze_storage.sync("maze", this->mapping);
+                this->maze_storage.sync("maze", this->mapping);
             }
 
             if (button_status == proxy::Button::Status::EXTRA_LONG_PRESS) {
@@ -122,8 +122,8 @@ void MicrasController::update() {
 
                     case core::Objective::RETURN:
                         this->objective = core::Objective::SOLVE;
-                        // this->maze_storage.create("maze", this->mapping);
-                        // this->maze_storage.save();
+                        this->maze_storage.create("maze", this->mapping);
+                        this->maze_storage.save();
                     default:
                         this->state = State::IDLE;
                         this->wall_sensors.turn_off();
@@ -220,7 +220,7 @@ bool MicrasController::run(float elapsed_time) {
             this->odometry.set_state(state);
             break;
         case nav::Mapping<maze_width, maze_height>::Action::Type::ALIGN_BACK:
-            command = {-10.0F, 0.0F};
+            command = {-5.0F, 0.0F};
 
             if (this->align_back_timer.elapsed_time_ms() > 500) {
                 state.pose = this->mapping.correct_pose(state.pose, core::FollowWallType::BACK);

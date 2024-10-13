@@ -273,19 +273,22 @@ template <uint8_t width, uint8_t height>
 void Mapping<width, height>::deserialize(const uint8_t* buffer, uint16_t size) {
     this->best_route.clear();
 
-    for (uint32_t i = 0; i < size / 3; i += 3) {
+    for (uint32_t i = 0; i < size; i += 3) {
         this->best_route.emplace_back(
             Point::from_grid({buffer[i], buffer[i + 1]}, this->cell_size), static_cast<Side>(buffer[i + 2])
         );
     }
 
-    // this->diagonalize_best_route();
+    this->diagonalize_best_route();
 }
 
 template <uint8_t width, uint8_t height>
 bool Mapping<width, height>::can_align_back(const Pose& pose) const {
     return this->maze.has_wall(pose.to_grid(this->cell_size).turned_back());
 }
+
+template <uint8_t width, uint8_t height>
+void Mapping<width, height>::diagonalize_best_route() { }
 }  // namespace micras::nav
 
 #endif  // MICRAS_NAV_MAPPING_CPP
