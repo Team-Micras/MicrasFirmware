@@ -28,8 +28,8 @@ WallSensors<num_of_sensors>::WallSensors(const Config& config) :
 
 template <uint8_t num_of_sensors>
 void WallSensors<num_of_sensors>::turn_on() {
-    this->led_0_pwm.set_duty_cycle(100.0F);
-    this->led_1_pwm.set_duty_cycle(100.0F);
+    this->led_0_pwm.set_duty_cycle(50.0F);
+    this->led_1_pwm.set_duty_cycle(50.0F);
 }
 
 template <uint8_t num_of_sensors>
@@ -67,7 +67,9 @@ float WallSensors<num_of_sensors>::get_reading(uint8_t sensor_index) const {
 
 template <uint8_t num_of_sensors>
 float WallSensors<num_of_sensors>::get_adc_reading(uint8_t sensor_index) const {
-    return static_cast<float>(this->buffer.at(sensor_index)) / this->adc.get_max_reading();
+    return static_cast<float>(std::abs(this->buffer.at(sensor_index) - this->buffer.at(sensor_index + num_of_sensors))
+           ) /
+           this->adc.get_max_reading();
 }
 
 template <uint8_t num_of_sensors>

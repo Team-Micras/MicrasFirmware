@@ -137,7 +137,7 @@ private:
     /**
      * @brief Buffer to store the ADC values
      */
-    std::array<uint16_t, num_of_sensors> buffer;
+    std::array<uint16_t, 2 * num_of_sensors> buffer;
 
     /**
      * @brief Butterworth filter for the ADC readings
