@@ -6,6 +6,8 @@
  * @date 03/2024
  */
 
+#include <limits>
+
 #include "micras/hal/timer.hpp"
 
 namespace micras::hal {
@@ -19,8 +21,9 @@ Timer::Timer(const Config& config) : handle{config.handle} {
     uint32_t base_freq = HAL_RCC_GetPCLK1Freq();
     uint32_t prescaler = this->handle->Instance->PSC;
 
-    if (base_freq / (prescaler + 1) == 1000000 and __HAL_TIM_GetAutoreload(this->handle) == 999) {
+    if (base_freq / (prescaler + 1) == 1000000) {
         this->enable_microseconds = true;
+        HAL_TIM_Base_Start(this->handle);
     }
 
     this->reset_us();
@@ -39,7 +42,13 @@ uint32_t Timer::elapsed_time_ms() const {
 }
 
 uint32_t Timer::elapsed_time_us() const {
-    return this->get_counter_us() - this->counter;
+    uint32_t counter = this->get_counter_us();
+
+    if (counter < this->counter) {
+        return std::numeric_limits<uint16_t>::max() - this->counter + counter;
+    }
+
+    return counter - this->counter;
 }
 
 void Timer::sleep_ms(uint32_t time) {
@@ -60,7 +69,7 @@ uint32_t Timer::get_counter_ms() {
 
 uint32_t Timer::get_counter_us() const {
     if (this->enable_microseconds) {
-        return 1000 * HAL_GetTick() + __HAL_TIM_GET_COUNTER(this->handle);
+        return __HAL_TIM_GET_COUNTER(this->handle);
     }
 
     return 1000 * HAL_GetTick();

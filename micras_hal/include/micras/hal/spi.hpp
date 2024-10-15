@@ -10,6 +10,7 @@
 #define MICRAS_HAL_SPI_HPP
 
 #include <cstdint>
+#include <span>
 #include <spi.h>
 
 #include "micras/hal/gpio.hpp"
@@ -53,17 +54,15 @@ public:
      * @brief Transmit data over SPI
      *
      * @param data Data to transmit
-     * @param size Size of the buffer
      */
-    void transmit(uint8_t data[], uint32_t size);  // NOLINT(*-avoid-c-arrays)
+    void transmit(std::span<uint8_t> data);
 
     /**
      * @brief Receive data over SPI
      *
      * @param data Data to receive data
-     * @param size Size of the data
      */
-    void receive(uint8_t data[], uint32_t size);  // NOLINT(*-avoid-c-arrays)
+    void receive(std::span<uint8_t> data);
 
 private:
     /**

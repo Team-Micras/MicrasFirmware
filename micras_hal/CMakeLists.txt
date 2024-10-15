@@ -25,6 +25,10 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     stm32cubemx
 )
 
+target_link_libraries(${PROJECT_NAME} PUBLIC
+    micras::core
+)
+
 target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
     ${CUBE_INCLUDE_DIRECTORIES}
 )

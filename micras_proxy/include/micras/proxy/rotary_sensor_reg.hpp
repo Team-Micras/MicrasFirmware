@@ -20,7 +20,7 @@ struct Registers {
      * @brief Registers union types definition
      */
     union Disable {
-        struct Fields {
+        struct __attribute__((__packed__)) Fields {
             uint8_t UVW_off        : 1;
             uint8_t ABI_off        : 1;
             uint8_t na             : 4;
@@ -32,7 +32,7 @@ struct Registers {
     };
 
     union Zposm {
-        struct Fields {
+        struct __attribute__((__packed__)) Fields {
             uint8_t ZPOSM : 8;
         };
 
@@ -41,7 +41,7 @@ struct Registers {
     };
 
     union Zposl {
-        struct Fields {
+        struct __attribute__((__packed__)) Fields {
             uint8_t ZPOSL   : 6;
             uint8_t Dia1_en : 1;
             uint8_t Dia2_en : 1;
@@ -52,7 +52,7 @@ struct Registers {
     };
 
     union Settings1 {
-        struct Fields {
+        struct __attribute__((__packed__)) Fields {
             uint8_t K_max   : 3;
             uint8_t K_min   : 3;
             uint8_t Dia3_en : 1;
@@ -64,7 +64,7 @@ struct Registers {
     };
 
     union Settings2 {
-        struct Fields {
+        struct __attribute__((__packed__)) Fields {
             uint8_t IWIDTH      : 1;
             uint8_t NOISESET    : 1;
             uint8_t DIR         : 1;
@@ -80,7 +80,7 @@ struct Registers {
     };
 
     union Settings3 {
-        struct Fields {
+        struct __attribute__((__packed__)) Fields {
             uint8_t UVWPP  : 3;
             uint8_t HYS    : 2;
             uint8_t ABIRES : 3;
@@ -91,7 +91,7 @@ struct Registers {
     };
 
     union Ecc {
-        struct Fields {
+        struct __attribute__((__packed__)) Fields {
             uint8_t ECC_chsum : 7;
             uint8_t ECC_en    : 1;
         };

@@ -73,12 +73,12 @@ private:
     /**
      * @brief Flag to check if the buzzer is playing
      */
-    bool is_playing{false};
+    bool is_playing{};
 
     /**
      * @brief Duration of the sound
      */
-    uint32_t duration{0};
+    uint32_t duration{};
 };
 }  // namespace micras::proxy
 

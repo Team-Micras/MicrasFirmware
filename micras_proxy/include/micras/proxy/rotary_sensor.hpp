@@ -35,11 +35,11 @@ public:
     };
 
     union CommandFrame {
-        struct Fields {
-            uint8_t  do_not_care : 1;
-            uint8_t  rw          : 1;
-            uint16_t address     : 14;
+        struct __attribute__((__packed__)) Fields {
             uint8_t  crc         : 8;
+            uint16_t address     : 14;
+            uint8_t  rw          : 1;
+            uint8_t  do_not_care : 1;
         };
 
         Fields   fields;
@@ -47,11 +47,11 @@ public:
     };
 
     union DataFrame {
-        struct Fields {
-            uint8_t  warning : 1;
-            uint8_t  error   : 1;
-            uint16_t data    : 14;
+        struct __attribute__((__packed__)) Fields {
             uint8_t  crc     : 8;
+            uint16_t data    : 14;
+            uint8_t  error   : 1;
+            uint8_t  warning : 1;
         };
 
         Fields   fields;
