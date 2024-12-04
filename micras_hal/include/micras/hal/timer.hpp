@@ -1,9 +1,5 @@
 /**
- * @file timer.hpp
- *
- * @brief STM32 Timer HAL wrapper
- *
- * @date 03/2024
+ * @file
  */
 
 #ifndef MICRAS_HAL_TIMER_HPP

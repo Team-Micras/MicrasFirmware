@@ -1,9 +1,5 @@
 /**
- * @file spi.cpp
- *
- * @brief Proxy SPI Switch class source
- *
- * @date 03/2024
+ * @file
  */
 
 #include "micras/hal/spi.hpp"

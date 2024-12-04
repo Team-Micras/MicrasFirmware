@@ -1,9 +1,5 @@
 /**
- * @file motor.cpp
- *
- * @brief Proxy Motor class source
- *
- * @date 10/2024
+ * @file
  */
 
 #include <cmath>

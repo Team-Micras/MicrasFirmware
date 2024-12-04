@@ -1,9 +1,5 @@
 /**
- * @file pid_controller.hpp
- *
- * @brief Nav Pid Controller class declaration
- *
- * @date 10/2024
+ * @file
  */
 
 #ifndef MICRAS_NAV_PID_CONTROLLER_HPP

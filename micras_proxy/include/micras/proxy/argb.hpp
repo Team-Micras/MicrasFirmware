@@ -1,9 +1,5 @@
 /**
- * @file argb.hpp
- *
- * @brief Proxy Argb class declaration
- *
- * @date 03/2024
+ * @file
  */
 
 #ifndef MICRAS_PROXY_ARGB_HPP

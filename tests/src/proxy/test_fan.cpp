@@ -1,9 +1,5 @@
 /**
- * @file test_fan.cpp
- *
- * @brief Test for the Fan class
- *
- * @date 05/2024
+ * @file
  */
 
 #include "test_core.hpp"

@@ -1,9 +1,5 @@
 /**
- * @file follow_wall.cpp
- *
- * @brief Nav FollowWall class implementation
- *
- * @date 10/2024
+ * @file
  */
 
 #include "micras/nav/follow_wall.hpp"

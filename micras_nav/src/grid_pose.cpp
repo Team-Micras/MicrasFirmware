@@ -1,9 +1,5 @@
 /**
- * @file grid_pose.cpp
- *
- * @brief Types for grid-based navigation
- *
- * @date 10/2024
+ * @file
  */
 
 #include <cmath>

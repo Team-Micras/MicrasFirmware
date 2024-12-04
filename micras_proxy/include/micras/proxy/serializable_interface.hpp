@@ -1,9 +1,5 @@
 /**
- * @file serializable_interface.hpp
- *
- * @brief Serializable interface for all classes that need to be serialized
- *
- * @date 03/2024
+ * @file
  */
 
 #ifndef MICRAS_PROXY_SERIALIZABLE_INTERFACE_HPP

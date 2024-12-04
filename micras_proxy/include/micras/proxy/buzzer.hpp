@@ -1,9 +1,5 @@
 /**
- * @file buzzer.hpp
- *
- * @brief Proxy Buzzer class declaration
- *
- * @date 03/2024
+ * @file
  */
 
 #ifndef MICRAS_PROXY_BUZZER_HPP

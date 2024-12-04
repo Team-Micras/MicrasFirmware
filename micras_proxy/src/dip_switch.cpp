@@ -1,9 +1,5 @@
 /**
- * @file dip_switch.cpp
- *
- * @brief Proxy DIP Switch class source
- *
- * @date 03/2024
+ * @file
  */
 
 #ifndef MICRAS_PROXY_DIP_SWITCH_CPP

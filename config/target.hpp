@@ -1,9 +1,5 @@
 /**
- * @file target.hpp
- *
- * @brief Target specific configuration
- *
- * @date 03/2024
+ * @file
  */
 
 #ifndef MICRAS_TARGET_HPP

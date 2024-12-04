@@ -1,9 +1,5 @@
 /**
- * @file test_rotary_sensors.cpp
- *
- * @brief Test for the Rotary Sensor class
- *
- * @date 05/2024
+ * @file
  */
 
 #include "test_core.hpp"

@@ -1,9 +1,5 @@
 /**
- * @file torque_sensors.cpp
- *
- * @brief Proxy TorqueSensors class implementation
- *
- * @date 03/2024
+ * @file
  */
 
 #ifndef MICRAS_PROXY_TORQUE_SENSORS_CPP

@@ -1,7 +1,5 @@
 /**
- * @file mcu.cpp
- *
- * @brief MCU related
+ * @file
  */
 
 #include <crc.h>

@@ -1,9 +1,5 @@
 /**
- * @file look_at_point.cpp
- *
- * @brief Nav LookAtPoint class implementation
- *
- * @date 10/2024
+ * @file
  */
 
 #include "micras/core/utils.hpp"

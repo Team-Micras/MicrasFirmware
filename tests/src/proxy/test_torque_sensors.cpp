@@ -1,9 +1,5 @@
 /**
- * @file test_torque_sensors.cpp
- *
- * @brief Test for the TorqueSensors class
- *
- * @date 05/2024
+ * @file
  */
 
 #include "test_core.hpp"

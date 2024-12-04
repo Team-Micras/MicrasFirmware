@@ -1,9 +1,5 @@
 /**
- * @file timer.cpp
- *
- * @brief STM32 TIM HAL wrapper
- *
- * @date 03/2024
+ * @file
  */
 
 #include <limits>

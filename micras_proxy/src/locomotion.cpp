@@ -1,9 +1,5 @@
 /**
- * @file locomotion.cpp
- *
- * @brief Proxy Locomotion class source
- *
- * @date 03/2024
+ * @file
  */
 
 #include <cmath>

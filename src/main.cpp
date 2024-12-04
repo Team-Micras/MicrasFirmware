@@ -1,9 +1,5 @@
 /**
- * @file main.cpp
- *
- * @brief Main function
- *
- * @date 03/2024
+ * @file
  */
 
 #include "micras/micras_controller.hpp"

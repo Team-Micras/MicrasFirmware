@@ -1,9 +1,5 @@
 /**
- * @file test_led.cpp
- *
- * @brief Test for the LED class
- *
- * @date 05/2024
+ * @file
  */
 
 #include "test_core.hpp"

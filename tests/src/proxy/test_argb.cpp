@@ -1,9 +1,5 @@
 /**
- * @file test_argb.cpp
- *
- * @brief Test for the Addressable RGB class
- *
- * @date 05/2024
+ * @file
  */
 
 #include "test_core.hpp"

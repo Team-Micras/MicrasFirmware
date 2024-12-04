@@ -1,9 +1,5 @@
 /**
- * @file wall_sensors.hpp
- *
- * @brief Proxy WallSensors class header
- *
- * @date 03/2024
+ * @file
  */
 
 #ifndef MICRAS_PROXY_WALL_SENSORS_HPP

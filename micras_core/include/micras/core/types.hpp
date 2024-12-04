@@ -1,3 +1,7 @@
+/**
+ * @file
+ */
+
 #ifndef MICRAS_CORE_TYPES_HPP
 #define MICRAS_CORE_TYPES_HPP
 

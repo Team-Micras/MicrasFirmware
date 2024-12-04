@@ -1,9 +1,5 @@
 /**
- * @file odometry.hpp
- *
- * @brief Nav Odometry class declaration
- *
- * @date 10/2024
+ * @file
  */
 
 #ifndef MICRAS_NAV_ODOMETRY_HPP

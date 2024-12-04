@@ -1,9 +1,5 @@
 /**
- * @file test_timer.cpp
- *
- * @brief Test for the Timer class
- *
- * @date 05/2024
+ * @file
  */
 
 #include "test_core.hpp"

@@ -1,9 +1,5 @@
 /**
- * @file test_locomotion.cpp
- *
- * @brief Test for the Locomotion class
- *
- * @date 05/2024
+ * @file
  */
 
 #include "test_core.hpp"

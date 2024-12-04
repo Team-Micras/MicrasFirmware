@@ -1,9 +1,5 @@
 /**
- * @file pid_controller.cpp
- *
- * @brief Nav Pid Controller class implementation
- *
- * @date 10/2024
+ * @file
  */
 
 #include <algorithm>

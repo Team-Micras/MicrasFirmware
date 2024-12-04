@@ -1,9 +1,5 @@
 /**
- * @file test_core.cpp
- *
- * @brief Core class to the test
- *
- * @date 04/2024
+ * @file
  */
 
 #include "micras/hal/mcu.hpp"

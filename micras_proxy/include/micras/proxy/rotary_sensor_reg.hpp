@@ -1,10 +1,5 @@
-
 /**
- * @file rotary_sensor_reg.hpp
- *
- * @brief AS5047U rotary sensor registers definition
- *
- * @date 03/2024
+ * @file
  */
 
 #ifndef MICRAS_PROXY_ROTARY_SENSOR_REG_HPP

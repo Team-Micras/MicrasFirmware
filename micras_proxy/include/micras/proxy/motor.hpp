@@ -1,9 +1,5 @@
 /**
- * @file motor.hpp
- *
- * @brief Proxy Motor class declaration
- *
- * @date 10/2024
+ * @file
  */
 
 #ifndef MICRAS_PROXY_MOTOR_HPP

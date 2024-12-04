@@ -1,9 +1,5 @@
 /**
- * @file rotary_sensor.cpp
- *
- * @brief Proxy RotarySensor class source
- *
- * @date 03/2024
+ * @file
  */
 
 #include <bit>

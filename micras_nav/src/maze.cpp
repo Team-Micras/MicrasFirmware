@@ -1,9 +1,5 @@
 /**
- * @file maze.cpp
- *
- * @brief Nav Maze class implementation
- *
- * @date 10/2024
+ * @file
  */
 
 #ifndef MICRAS_NAV_MAZE_CPP

@@ -1,9 +1,5 @@
 /**
- * @file grid_pose.hpp
- *
- * @brief Types for grid-based navigation
- *
- * @date 10/2024
+ * @file
  */
 
 #ifndef MICRAS_NAV_GRID_POSE_HPP

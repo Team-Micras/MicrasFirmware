@@ -1,9 +1,5 @@
 /**
- * @file go_to_point.hpp
- *
- * @brief Nav GoToPoint class declaration
- *
- * @date 10/2024
+ * @file
  */
 
 #ifndef MICRAS_NAV_GO_TO_POINT_HPP

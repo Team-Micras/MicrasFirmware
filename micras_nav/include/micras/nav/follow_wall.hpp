@@ -1,9 +1,5 @@
 /**
- * @file follow_wall.hpp
- *
- * @brief Nav FollowWall class declaration
- *
- * @date 10/2024
+ * @file
  */
 
 #ifndef MICRAS_NAV_FOLLOW_WALL

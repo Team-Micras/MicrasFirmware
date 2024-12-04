@@ -1,9 +1,5 @@
 /**
- * @file test_dip_switch.cpp
- *
- * @brief Test for the DipSwitch class
- *
- * @date 05/2024
+ * @file
  */
 
 #include "test_core.hpp"

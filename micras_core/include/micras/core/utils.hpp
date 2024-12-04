@@ -1,9 +1,5 @@
 /**
- * @file utils.hpp
- *
- * @brief Core Utils functions
- *
- * @date 09/2024
+ * @file
  */
 
 #ifndef MICRAS_CORE_UTILS_HPP

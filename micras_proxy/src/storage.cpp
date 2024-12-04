@@ -1,9 +1,5 @@
 /**
- * @file storage.cpp
- *
- * @brief Proxy Storage class source
- *
- * @date 03/2024
+ * @file
  */
 
 #include <bit>

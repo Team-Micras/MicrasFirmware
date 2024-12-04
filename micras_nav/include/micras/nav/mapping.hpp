@@ -1,9 +1,5 @@
 /**
- * @file mapping.hpp
- *
- * @brief Nav Mapping class declaration
- *
- * @date 10/2024
+ * @file
  */
 
 #ifndef MICRAS_NAV_MAPPING_HPP

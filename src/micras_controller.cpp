@@ -1,9 +1,5 @@
 /**
- * @file micras_controller.cpp
- *
- * @brief Micras Controller class implementation
- *
- * @date 03/2024
+ * @file
  */
 
 #include "micras/micras_controller.hpp"

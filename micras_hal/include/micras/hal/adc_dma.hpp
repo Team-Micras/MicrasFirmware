@@ -1,9 +1,5 @@
 /**
- * @file adc_dma.hpp
- *
- * @brief ADC DMA HAL header
- *
- * @date 03/2024
+ * @file
  */
 
 #ifndef MICRAS_HAL_ADC_DMA_HPP

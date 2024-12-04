@@ -1,9 +1,5 @@
 /**
- * @file go_to_point.cpp
- *
- * @brief Nav GoToPoint class implementation
- *
- * @date 10/2024
+ * @file
  */
 
 #include <cmath>

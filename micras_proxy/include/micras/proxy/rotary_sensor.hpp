@@ -1,9 +1,5 @@
 /**
- * @file rotary_sensor.hpp
- *
- * @brief STM32 rotary sensor HAL wrapper
- *
- * @date 03/2024
+ * @file
  */
 
 #ifndef MICRAS_PROXY_ROTARY_SENSOR_HPP

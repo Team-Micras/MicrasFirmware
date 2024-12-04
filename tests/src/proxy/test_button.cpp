@@ -1,9 +1,5 @@
 /**
- * @file test_button.cpp
- *
- * @brief Test for the Button class
- *
- * @date 05/2024
+ * @file
  */
 
 #include "test_core.hpp"

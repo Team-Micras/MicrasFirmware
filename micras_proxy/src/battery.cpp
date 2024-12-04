@@ -1,9 +1,5 @@
 /**
- * @file battery.cpp
- *
- * @brief Proxy Battery class implementation
- *
- * @date 03/2024
+ * @file
  */
 
 #include "micras/core/utils.hpp"

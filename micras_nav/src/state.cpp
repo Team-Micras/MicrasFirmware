@@ -1,9 +1,5 @@
 /**
- * @file state.cpp
- *
- * @brief Types for robot state representation
- *
- * @date 10/2024
+ * @file
  */
 
 #include <cmath>

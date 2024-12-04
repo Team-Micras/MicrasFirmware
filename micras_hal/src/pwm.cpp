@@ -1,9 +1,5 @@
 /**
- * @file pwm.cpp
- *
- * @brief STM32 PWM HAL wrapper
- *
- * @date 03/2024
+ * @file
  */
 
 #include <cmath>

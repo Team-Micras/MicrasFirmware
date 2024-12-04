@@ -1,9 +1,5 @@
 /**
- * @file state.hpp
- *
- * @brief Types for robot state representation
- *
- * @date 10/2024
+ * @file
  */
 
 #ifndef MICRAS_NAV_POSE_HPP

@@ -1,9 +1,5 @@
 /**
- * @file flash.cpp
- *
- * @brief STM32 flash HAL wrapper
- *
- * @date 03/2024
+ * @file
  */
 
 #include <bit>

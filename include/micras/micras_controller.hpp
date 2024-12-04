@@ -1,9 +1,5 @@
 /**
- * @file micras_controller_test.hpp
- *
- * @brief Micras Controller Test class header
- *
- * @date 03/2024
+ * @file
  */
 
 #ifndef MICRAS_CONTROLLER_HPP

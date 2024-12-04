@@ -1,9 +1,5 @@
 /**
- * @file battery.hpp
- *
- * @brief Proxy Battery class declaration
- *
- * @date 03/2024
+ * @file
  */
 
 #ifndef MICRAS_PROXY_BATTERY_HPP

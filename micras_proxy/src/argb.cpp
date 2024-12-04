@@ -1,9 +1,5 @@
 /**
- * @file argb.cpp
- *
- * @brief Proxy Argb class implementation
- *
- * @date 03/2024
+ * @file
  */
 
 #ifndef MICRAS_PROXY_ARGB_CPP

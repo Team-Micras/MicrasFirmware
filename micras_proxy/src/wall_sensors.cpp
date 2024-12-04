@@ -1,9 +1,5 @@
 /**
- * @file wall_sensor.cpp
- *
- * @brief Proxy WallSensors class implementation
- *
- * @date 03/2024
+ * @file
  */
 
 #ifndef MICRAS_PROXY_WALL_SENSORS_CPP

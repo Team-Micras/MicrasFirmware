@@ -1,9 +1,5 @@
 /**
- * @file locomotion.hpp
- *
- * @brief Proxy Locomotion class declaration
- *
- * @date 03/2024
+ * @file
  */
 
 #ifndef MICRAS_PROXY_LOCOMOTION_HPP

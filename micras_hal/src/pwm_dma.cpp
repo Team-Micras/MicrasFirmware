@@ -1,9 +1,5 @@
 /**
- * @file pwm_dma.cpp
- *
- * @brief STM32 PWM DMA HAL wrapper
- *
- * @date 03/2024
+ * @file
  */
 
 #include <bit>

@@ -1,9 +1,5 @@
 /**
- * @file odometry.cpp
- *
- * @brief Nav Odometry class implementation
- *
- * @date 04/2024
+ * @file
  */
 
 #include <cmath>

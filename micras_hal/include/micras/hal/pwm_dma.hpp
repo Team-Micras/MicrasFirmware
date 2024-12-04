@@ -1,9 +1,5 @@
 /**
- * @file pwm_dma.hpp
- *
- * @brief STM32 PWM DMA HAL wrapper
- *
- * @date 03/2024
+ * @file
  */
 
 #ifndef MICRAS_HAL_PWM_DMA_HPP

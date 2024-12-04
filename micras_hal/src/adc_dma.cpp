@@ -1,9 +1,5 @@
 /**
- * @file adc_dma.cpp
- *
- * @brief STM32 ADC DMA HAL wrapper
- *
- * @date 03/2024
+ * @file
  */
 
 #include <bit>

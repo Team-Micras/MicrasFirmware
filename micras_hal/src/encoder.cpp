@@ -1,9 +1,5 @@
 /**
- * @file encoder.cpp
- *
- * @brief STM32 encoder HAL wrapper
- *
- * @date 03/2024
+ * @file
  */
 
 #include "micras/hal/encoder.hpp"

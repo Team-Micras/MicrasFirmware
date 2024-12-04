@@ -1,9 +1,5 @@
 /**
- * @file test_storage.cpp
- *
- * @brief Test for the Storage class
- *
- * @date 05/2024
+ * @file
  */
 
 #include "test_core.hpp"

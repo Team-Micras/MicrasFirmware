@@ -1,9 +1,5 @@
 /**
- * @file mapping.cpp
- *
- * @brief Nav Mapping class implementation
- *
- * @date 10/2024
+ * @file
  */
 
 #ifndef MICRAS_NAV_MAPPING_CPP

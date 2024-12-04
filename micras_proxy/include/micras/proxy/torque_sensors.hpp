@@ -1,9 +1,5 @@
 /**
- * @file torque_sensors.hpp
- *
- * @brief Proxy TorqueSensors class header
- *
- * @date 03/2024
+ * @file
  */
 
 #ifndef MICRAS_PROXY_TORQUE_SENSORS_HPP

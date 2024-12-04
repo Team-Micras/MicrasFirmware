@@ -1,9 +1,5 @@
 /**
- * @file buzzer.cpp
- *
- * @brief Proxy Buzzer class implementation
- *
- * @date 03/2024
+ * @file
  */
 
 #include "micras/proxy/buzzer.hpp"

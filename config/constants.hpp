@@ -1,9 +1,5 @@
 /**
- * @file constants.hpp
- *
- * @brief Navigation constants
- *
- * @date 04/2024
+ * @file
  */
 
 #ifndef MICRAS_CONSTANTS_HPP

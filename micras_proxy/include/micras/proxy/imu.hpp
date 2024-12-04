@@ -1,9 +1,5 @@
 /**
- * @file imu.hpp
- *
- * @brief STM32 IMU HAL wrapper
- *
- * @date 03/2024
+ * @file
  */
 
 #ifndef MICRAS_PROXY_IMU_HPP

@@ -1,9 +1,5 @@
 /**
- * @file fan.cpp
- *
- * @brief Proxy Fan class source
- *
- * @date 03/2024
+ * @file
  */
 
 #include "micras/core/utils.hpp"

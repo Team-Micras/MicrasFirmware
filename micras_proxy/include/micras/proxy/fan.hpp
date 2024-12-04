@@ -1,9 +1,5 @@
 /**
- * @file fan.hpp
- *
- * @brief Proxy Fan class declaration
- *
- * @date 03/2024
+ * @file
  */
 
 #ifndef MICRAS_PROXY_FAN_HPP

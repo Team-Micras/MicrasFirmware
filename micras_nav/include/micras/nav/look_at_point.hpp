@@ -1,9 +1,5 @@
 /**
- * @file look_at_point.hpp
- *
- * @brief Nav LookAtPoint class declaration
- *
- * @date 10/2024
+ * @file
  */
 
 #ifndef MICRAS_NAV_LOOK_AT_POINT_HPP

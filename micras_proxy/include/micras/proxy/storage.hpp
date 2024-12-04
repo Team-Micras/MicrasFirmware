@@ -1,9 +1,5 @@
 /**
- * @file storage.hpp
- *
- * @brief Proxy Storage class declaration
- *
- * @date 03/2024
+ * @file
  */
 
 #ifndef MICRAS_PROXY_STORAGE_HPP

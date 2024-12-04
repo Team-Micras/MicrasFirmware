@@ -1,9 +1,5 @@
 /**
- * @file button.hpp
- *
- * @brief Proxy Button class header
- *
- * @date 03/2024
+ * @file
  */
 
 #ifndef MICRAS_PROXY_BUTTON_HPP

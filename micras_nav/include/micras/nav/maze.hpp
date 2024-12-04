@@ -1,9 +1,5 @@
 /**
- * @file maze.hpp
- *
- * @brief Nav Maze class declaration
- *
- * @date 10/2024
+ * @file
  */
 
 #ifndef MICRAS_NAV_MAZE_HPP

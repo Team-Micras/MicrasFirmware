@@ -1,9 +1,5 @@
 /**
- * @file imu.cpp
- *
- * @brief Proxy Imu class source
- *
- * @date 03/2024
+ * @file
  */
 
 #include <cmath>

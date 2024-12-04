@@ -1,9 +1,5 @@
 /**
- * @file test_battery.cpp
- *
- * @brief Test for the Battery class
- *
- * @date 05/2024
+ * @file
  */
 
 #include "test_core.hpp"
