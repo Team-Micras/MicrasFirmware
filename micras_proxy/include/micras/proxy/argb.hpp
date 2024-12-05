@@ -67,6 +67,13 @@ public:
     void set_color(const Color& color);
 
     /**
+     * @brief Set the colors of all ARGBs
+     *
+     * @param colors The colors to set the ARGBs to
+     */
+    void set_colors(const std::array<Color, num_of_leds>& colors);
+
+    /**
      * @brief Turn off the ARGB at the specified index
      *
      * @param index The index of the ARGB to turn off

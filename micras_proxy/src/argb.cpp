@@ -41,6 +41,19 @@ void Argb<num_of_leds>::set_color(const Color& color) {
 }
 
 template <uint8_t num_of_leds>
+void Argb<num_of_leds>::set_colors(const std::array<Color, num_of_leds>& colors) {
+    if (this->pwm.is_busy()) {
+        return;
+    }
+
+    for (uint8_t i = 0; i < num_of_leds; i++) {
+        this->encode_color(colors[i] * this->brightness, i);
+    }
+
+    this->pwm.start_dma(this->buffer);
+}
+
+template <uint8_t num_of_leds>
 void Argb<num_of_leds>::turn_off(uint8_t index) {
     this->set_color(index, {0, 0, 0});
 }
