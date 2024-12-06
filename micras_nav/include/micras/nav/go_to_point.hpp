@@ -19,12 +19,12 @@ public:
      * @brief Configuration for the GoToPoint class
      */
     struct Config {
-        PidController::Config linear_pid;
         PidController::Config stop_pid;
         PidController::Config angular_pid;
         float                 cell_size{};
-        float                 base_speed{};
-        float                 linear_decay_damping{};
+        float                 min_linear_command{};
+        float                 max_linear_command{};
+        float                 deceleration_factor{};
         float                 distance_tolerance{};
         float                 velocity_tolerance{};
     };
@@ -79,11 +79,6 @@ public:
 
 private:
     /**
-     * @brief PID controller for the linear velocity
-     */
-    PidController linear_pid;
-
-    /**
      * @brief PID controller for stoppping at the goal
      */
     PidController stop_pid;
@@ -104,14 +99,19 @@ private:
     float cell_size;
 
     /**
-     * @brief Base linear speed for the robot
+     * @brief Minimum linear command
      */
-    float base_speed;
+    float min_linear_command;
 
     /**
-     * @brief Damping factor for the linear decay
+     * @brief Maximum linear command
      */
-    float linear_decay_damping;
+    float max_linear_command;
+
+    /**
+     * @brief Deceleration factor for the linear command transition
+     */
+    float deceleration_factor;
 
     /**
      * @brief Linear tolerance for the goal point
@@ -122,8 +122,6 @@ private:
      * @brief Velocity tolerance at the goal point
      */
     float velocity_tolerance;
-
-    friend class Interface;
 };
 }  // namespace micras::nav
 
