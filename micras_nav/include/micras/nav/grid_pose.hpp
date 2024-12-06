@@ -12,7 +12,7 @@
 
 namespace micras::nav {
 /**
- * @brief Possible directions in the grid
+ * @brief Possible sides in the grid
  */
 enum Side : uint8_t {
     RIGHT = 0,

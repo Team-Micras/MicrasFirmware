@@ -25,7 +25,14 @@ enum FollowWallType : uint8_t {
     FRONT = 1,
     LEFT = 2,
     RIGHT = 3,
-    PARALLEL = 4
+    PARALLEL = 4,
+    BACK = 5,
+};
+
+enum Objective : uint8_t {
+    EXPLORE = 0,
+    RETURN = 1,
+    SOLVE = 2
 };
 }  // namespace micras::core
 
