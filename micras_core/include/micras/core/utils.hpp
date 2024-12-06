@@ -42,16 +42,18 @@ constexpr T move_towards(T value, T target, T step) {
 }
 
 /**
- * @brief Decay a value towards zero with a damping factor
+ * @brief Varies a value from start to end smoothly
  *
  * @tparam T Type of the value
  * @param value Current value
- * @param damping Damping factor
+ * @param resistance Value resistance to variation
+ * @param start Start value
+ * @param end End value
  * @return T New value
  */
 template <typename T>
-constexpr T decay(T value, T damping) {
-    return damping / (damping + value * value);
+constexpr T transition(T value, T start, T end, T resistance) {
+    return end - (end - start) * resistance / (resistance + value * value);
 }
 
 /**
