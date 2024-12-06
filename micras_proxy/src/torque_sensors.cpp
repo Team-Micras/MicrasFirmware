@@ -17,12 +17,10 @@ TorqueSensors<num_of_sensors>::TorqueSensors(const Config& config) :
     max_torque{config.max_torque},
     filters{core::make_array<core::ButterworthFilter, num_of_sensors>(config.filter_cutoff)} {
     this->adc.start_dma(this->buffer);
+}
 
-    for (uint8_t i = 0; i < 50; i++) {
-        hal::Timer::sleep_ms(2);
-        this->update();
-    }
-
+template <uint8_t num_of_sensors>
+void TorqueSensors<num_of_sensors>::calibrate() {
     for (uint8_t i = 0; i < num_of_sensors; i++) {
         this->base_reading[i] = this->filters[i].get_last();
     }

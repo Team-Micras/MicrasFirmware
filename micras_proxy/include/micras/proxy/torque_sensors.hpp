@@ -36,6 +36,11 @@ public:
     explicit TorqueSensors(const Config& config);
 
     /**
+     * @brief Calibrate the torque sensors
+     */
+    void calibrate();
+
+    /**
      * @brief Update the torque sensors readings
      */
     void update();
