@@ -7,10 +7,10 @@
 
 #include "micras/hal/pwm.hpp"
 
-namespace micras::proxy { /**
-                           * @brief Class for controlling a motor driver
-                           */
-
+namespace micras::proxy {
+/**
+ * @brief Class for controlling a motor driver
+ */
 class Motor {
 public:
     /**
