@@ -27,6 +27,26 @@ Maze<width, height>::Maze(const GridPose& start, const std::unordered_set<GridPo
     GridPose right_pose = start.turned_right().front();
     this->get_cell(right_pose.position).wall_count[right_pose.turned_back().orientation] = 0xFFFF;
 
+    // Hardcoded walls at the end region
+    if (width == 16 and height == 16) {
+        this->cells.at(7).at(7).wall_count[Side::DOWN] = 0xFFFF;
+        this->cells.at(7).at(7).wall_count[Side::LEFT] = 0xFFFF;
+        this->cells.at(6).at(7).wall_count[Side::UP] = 0xFFFF;
+        this->cells.at(7).at(6).wall_count[Side::RIGHT] = 0xFFFF;
+        this->cells.at(7).at(8).wall_count[Side::DOWN] = 0xFFFF;
+        this->cells.at(6).at(8).wall_count[Side::UP] = 0xFFFF;
+        this->cells.at(7).at(8).free_count[Side::RIGHT] = 0xFFFF;
+        this->cells.at(7).at(9).free_count[Side::LEFT] = 0xFFFF;
+        this->cells.at(8).at(7).wall_count[Side::LEFT] = 0xFFFF;
+        this->cells.at(8).at(7).wall_count[Side::UP] = 0xFFFF;
+        this->cells.at(8).at(6).wall_count[Side::RIGHT] = 0xFFFF;
+        this->cells.at(9).at(7).wall_count[Side::DOWN] = 0xFFFF;
+        this->cells.at(8).at(8).wall_count[Side::UP] = 0xFFFF;
+        this->cells.at(8).at(8).wall_count[Side::RIGHT] = 0xFFFF;
+        this->cells.at(9).at(8).wall_count[Side::DOWN] = 0xFFFF;
+        this->cells.at(8).at(9).wall_count[Side::LEFT] = 0xFFFF;
+    }
+
     for (const auto& position : this->goal) {
         this->get_cell(position).cost = 0;
     }
@@ -36,56 +56,38 @@ Maze<width, height>::Maze(const GridPose& start, const std::unordered_set<GridPo
 
 template <uint8_t width, uint8_t height>
 void Maze<width, height>::update(const GridPose& pose, Information information) {
-    if (this->goal.contains(pose.position)) {
-        this->returning = true;
-    } else if (pose == start.turned_back()) {
-        this->exploring = false;
-        this->returning = false;
-        this->optimize_route();
-    }
-
-    if (not this->exploring) {
-        return;
-    }
+    bool new_information{};
 
     if (information.left != core::Observation::UNKNOWN) {
-        this->update_wall(pose.turned_left(), information.left == core::Observation::WALL);
+        new_information |= this->update_wall(pose.turned_left(), information.left == core::Observation::WALL);
     }
 
     if (information.front_left != core::Observation::UNKNOWN) {
-        this->update_wall(pose.front().turned_left(), information.front_left == core::Observation::WALL);
+        new_information |=
+            this->update_wall(pose.front().turned_left(), information.front_left == core::Observation::WALL);
     }
 
     if (information.front != core::Observation::UNKNOWN) {
-        this->update_wall(pose, information.front == core::Observation::WALL);
+        new_information |= this->update_wall(pose, information.front == core::Observation::WALL);
     }
 
     if (information.front_right != core::Observation::UNKNOWN) {
-        this->update_wall(pose.front().turned_right(), information.front_right == core::Observation::WALL);
+        new_information |=
+            this->update_wall(pose.front().turned_right(), information.front_right == core::Observation::WALL);
     }
 
     if (information.right != core::Observation::UNKNOWN) {
-        this->update_wall(pose.turned_right(), information.right == core::Observation::WALL);
+        new_information |= this->update_wall(pose.turned_right(), information.right == core::Observation::WALL);
     }
 
-    this->calculate_costmap();
+    if (new_information) {
+        this->calculate_costmap();
+    }
 }
 
 template <uint8_t width, uint8_t height>
-GridPose Maze<width, height>::get_current_goal(const GridPoint& position, bool force_costmap) const {
-    uint16_t current_cost = this->get_cell(position).cost;
-
-    if (not force_costmap and (not this->exploring or this->returning) and this->best_route.contains(current_cost) and
-        this->best_route.at(current_cost).position == position) {
-        auto current = this->best_route.find(current_cost);
-
-        if (this->returning) {
-            return {std::prev(current)->second.position, current->second.turned_back().orientation};
-        }
-
-        return std::next(current)->second;
-    }
-
+GridPose Maze<width, height>::get_current_exploration_goal(const GridPoint& position) const {
+    uint16_t  current_cost = this->get_cell(position).cost;
     GridPoint next_position = position;
     Side      next_side{};
 
@@ -93,7 +95,7 @@ GridPose Maze<width, height>::get_current_goal(const GridPoint& position, bool f
         Side      side = static_cast<Side>(i);
         GridPoint front_position = position + side;
 
-        if (not this->has_wall({position, side}) and this->get_cell(front_position).cost <= current_cost) {
+        if (not this->has_wall({position, side}) and this->get_cell(front_position).cost < current_cost) {
             current_cost = this->get_cell(front_position).cost;
             next_position = front_position;
             next_side = side;
@@ -101,6 +103,18 @@ GridPose Maze<width, height>::get_current_goal(const GridPoint& position, bool f
     }
 
     return {next_position, next_side};
+}
+
+template <uint8_t width, uint8_t height>
+GridPose Maze<width, height>::get_current_returning_goal(const GridPoint& position) const {
+    uint16_t current_cost = this->get_cell(position).cost;
+
+    if (this->best_route.contains(current_cost) and this->best_route.at(current_cost).position == position) {
+        auto current = this->best_route.find(current_cost);
+        return {std::prev(current)->second.position, current->second.turned_back().orientation};
+    }
+
+    return get_current_exploration_goal(position);
 }
 
 template <uint8_t width, uint8_t height>
@@ -114,10 +128,12 @@ Maze<width, height>::Cell& Maze<width, height>::get_cell(const GridPoint& positi
 }
 
 template <uint8_t width, uint8_t height>
-void Maze<width, height>::update_wall(const GridPose& pose, bool wall) {
+bool Maze<width, height>::update_wall(const GridPose& pose, bool wall) {
     if (pose.position.x >= width or pose.position.y >= height) {
-        return;
+        return false;
     }
+
+    bool new_information = this->has_wall(pose);
 
     if (wall) {
         this->get_cell(pose.position).wall_count[pose.orientation]++;
@@ -125,17 +141,25 @@ void Maze<width, height>::update_wall(const GridPose& pose, bool wall) {
         this->get_cell(pose.position).free_count[pose.orientation]++;
     }
 
+    new_information ^= this->has_wall(pose);
+
     GridPose front_pose = pose.front();
 
     if (front_pose.position.x >= width or front_pose.position.y >= height) {
-        return;
+        return new_information;
     }
+
+    bool new_front_information = this->has_wall(front_pose);
 
     if (wall) {
         this->get_cell(front_pose.position).wall_count[pose.turned_back().orientation]++;
     } else {
         this->get_cell(front_pose.position).free_count[pose.turned_back().orientation]++;
     }
+
+    new_front_information ^= this->has_wall(front_pose);
+
+    return new_information or new_front_information;
 }
 
 template <uint8_t width, uint8_t height>
@@ -145,40 +169,71 @@ bool Maze<width, height>::has_wall(const GridPose& pose) const {
 }
 
 template <uint8_t width, uint8_t height>
-core::FollowWallType Maze<width, height>::get_follow_wall_type(const GridPose& pose, bool front_cell) const {
+core::FollowWallType Maze<width, height>::get_follow_wall_type(const GridPose& pose) const {
     if (pose.position.x >= width or pose.position.y >= height) {
         return core::FollowWallType::NONE;
     }
 
-    GridPose check_pose{};
-
-    if (front_cell) {
-        if (this->has_wall(pose)) {
-            return core::FollowWallType::FRONT;
-        }
-
-        check_pose = pose.front();
-
-        if (check_pose.position.x >= width or check_pose.position.y >= height) {
-            return core::FollowWallType::NONE;
-        }
-    } else {
-        check_pose = pose;
+    if (this->has_wall(pose)) {
+        return core::FollowWallType::FRONT;
     }
 
-    if (this->has_wall(check_pose.turned_left()) and this->has_wall(check_pose.turned_right())) {
+    if (this->has_wall(pose.turned_left()) and this->has_wall(pose.turned_right())) {
         return core::FollowWallType::PARALLEL;
     }
 
-    if (this->has_wall(check_pose.turned_left())) {
+    if (this->has_wall(pose.turned_left())) {
         return core::FollowWallType::LEFT;
     }
 
-    if (this->has_wall(check_pose.turned_right())) {
+    if (this->has_wall(pose.turned_right())) {
         return core::FollowWallType::RIGHT;
     }
 
     return core::FollowWallType::NONE;
+}
+
+template <uint8_t width, uint8_t height>
+bool Maze<width, height>::finished(const GridPoint& position) const {
+    return this->goal.contains(position);
+}
+
+template <uint8_t width, uint8_t height>
+bool Maze<width, height>::returned(const GridPoint& position) const {
+    return this->start.position == position;
+}
+
+template <uint8_t width, uint8_t height>
+void Maze<width, height>::calculate_best_route() {
+    GridPose current_pose = this->start;
+    this->best_route.clear();
+    this->best_route.try_emplace(this->get_cell(this->start.position).cost, this->start);
+
+    while (not this->goal.contains(current_pose.position)) {
+        current_pose = this->get_current_exploration_goal(current_pose.position);
+        this->best_route.try_emplace(this->get_cell(current_pose.position).cost, current_pose);
+    }
+}
+
+template <uint8_t width, uint8_t height>
+void Maze<width, height>::optimize_route() {
+    for (auto it = std::next(this->best_route.begin()); it != this->best_route.end();) {
+        auto next = std::next(it);
+
+        if (next != this->best_route.end()) {
+            if (it->second.orientation == next->second.orientation) {
+                it = this->best_route.erase(it);
+                continue;
+            }
+        }
+
+        it++;
+    }
+}
+
+template <uint8_t width, uint8_t height>
+const std::map<uint16_t, GridPose, std::greater<>>& Maze<width, height>::get_best_route() const {
+    return this->best_route;
 }
 
 template <uint8_t width, uint8_t height>
@@ -215,35 +270,6 @@ void Maze<width, height>::calculate_costmap() {
                 queue.push(front_position);
             }
         }
-    }
-
-    if (not this->returning) {
-        return;
-    }
-
-    GridPose current_pose = this->start;
-    this->best_route.clear();
-    this->best_route.try_emplace(this->get_cell(this->start.position).cost, this->start);
-
-    while (not this->goal.contains(current_pose.position)) {
-        current_pose = this->get_current_goal(current_pose.position, true);
-        this->best_route.try_emplace(this->get_cell(current_pose.position).cost, current_pose);
-    }
-}
-
-template <uint8_t width, uint8_t height>
-void Maze<width, height>::optimize_route() {
-    for (auto it = std::next(this->best_route.begin()); it != this->best_route.end();) {
-        auto next = std::next(it);
-
-        if (next != this->best_route.end()) {
-            if (it->second.orientation == next->second.orientation) {
-                it = this->best_route.erase(it);
-                continue;
-            }
-        }
-
-        it++;
     }
 }
 }  // namespace micras::nav

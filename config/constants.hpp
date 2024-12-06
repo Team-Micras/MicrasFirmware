@@ -14,10 +14,11 @@
 #include "micras/nav/mapping.hpp"
 #include "micras/nav/odometry.hpp"
 #include "micras/nav/pid_controller.hpp"
+#include "micras/proxy/storage.hpp"
 
 namespace micras {
-constexpr uint8_t  maze_width{4};
-constexpr uint8_t  maze_height{4};
+constexpr uint8_t  maze_width{16};
+constexpr uint8_t  maze_height{16};
 constexpr float    cell_size{0.18};
 constexpr uint32_t loop_time_us{1042};
 
@@ -37,35 +38,26 @@ const nav::LookAtPoint::Config look_at_point_config{
             .ki = 0.5F,
             .kd = 0.01F,
             .setpoint = 0.0F,
-            .saturation = 20.0F,
-            .max_integral = 20.0F,
+            .saturation = 30.0F,
+            .max_integral = 30.0F,
         },
     .distance_tolerance = 0.015F,
     .velocity_tolerance = 0.015F,
 };
 
 const nav::GoToPoint::Config go_to_point_config{
-    .linear_pid =
-        {
-            .kp = 8.0F,
-            .ki = 14.0F,
-            .kd = 0.0F,
-            .setpoint = 0.0F,
-            .saturation = 50.0F,
-            .max_integral = 40.0F,
-        },
     .stop_pid =
         {
             .kp = 150.0F,
             .ki = 0.5F,
             .kd = 0.08F,
             .setpoint = 0.0F,
-            .saturation = 25.0F,
-            .max_integral = 25.0F,
+            .saturation = 30.0F,
+            .max_integral = 30.0F,
         },
     .angular_pid =
         {
-            .kp = 15.0F,
+            .kp = 30.0F,
             .ki = 0.0F,
             .kd = 0.02F,
             .setpoint = 0.0F,
@@ -73,8 +65,9 @@ const nav::GoToPoint::Config go_to_point_config{
             .max_integral = -1.0F,
         },
     .cell_size = cell_size,
-    .base_speed = 0.3F,
-    .linear_decay_damping = 0.1F,
+    .min_linear_command = 5.0F,
+    .max_linear_command = 40.0F,
+    .deceleration_factor = 0.3F,
     .distance_tolerance = 0.02F,
     .velocity_tolerance = 0.02F,
 };
@@ -82,52 +75,54 @@ const nav::GoToPoint::Config go_to_point_config{
 const nav::FollowWall::Config follow_wall_config = {
     .pid =
         {
-            .kp = 60.0F,
+            .kp = 17.0F,
             .ki = 0.0F,
             .kd = 0.04F,
             .setpoint = 0.0F,
             .saturation = 15.0F,
             .max_integral = -1.0F,
         },
-    .base_left_reading = 0.4195,
-    .base_right_reading = 0.4010F,
-    .cutoff_frequency = 5.0F,
+    .base_left_reading = 0.18,
+    .base_right_reading = 0.20F,
 };
 
 const nav::Mapping<maze_width, maze_height>::Config mapping_config{
-    .wall_thickness = 0.015F,
+    .wall_thickness = 0.0126,
     .cell_size = cell_size,
-    .alignment_threshold = 0.1F,
     .front_sensor_pose = {{0.028F, 0.045F}, 0.0F},
-    .side_sensor_pose = {{0.015F, 0.06F}, std::numbers::pi_v<float> / 4.0F},
+    .side_sensor_pose = {{0.009F, 0.055F}, std::numbers::pi_v<float> / 6.0F},
     .front_distance_alignment_tolerance = 0.04F,
     .side_distance_alignment_tolerance = 0.02F,
     .front_orientation_alignment_tolerance = 0.02F,
     .side_orientation_alignment_tolerance = 0.02F,
     .front_distance_reading = {{
-        0.9207F,
-        0.9225F,
+        0.58F,
+        0.61F,
     }},
     .front_orientation_reading = {{
-        0.6937F,
-        0.8353F,
+        0.291F,
+        0.392F,
     }},
     .side_distance_reading = {{
-        0.4195F,
-        0.4010F,
+        0.18F,
+        0.20F,
     }},
     .start = {{0, 0}, nav::Side::UP},
-    .goal = {{3, 0}},
 };
 
 const nav::Odometry::Config odometry_config{
     .linear_cutoff_frequency = 5.0F,
-    .wheel_radius = 0.011F,
+    .wheel_radius = 0.0112F,
     .initial_pose =
         {
-            nav::Point::from_grid(mapping_config.start.position, cell_size),
+            {0.09F, 0.04F + mapping_config.wall_thickness / 2.0F},
             static_cast<uint8_t>(mapping_config.start.orientation) * std::numbers::pi_v<float> / 2,
         },
+};
+
+const proxy::Storage::Config maze_storage_config{
+    .start_page = 2,
+    .number_of_pages = 1,
 };
 }  // namespace micras
 

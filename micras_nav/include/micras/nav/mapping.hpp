@@ -6,9 +6,11 @@
 #define MICRAS_NAV_MAPPING_HPP
 
 #include <array>
+#include <list>
 
 #include "micras/nav/maze.hpp"
 #include "micras/nav/state.hpp"
+#include "micras/proxy/serializable_interface.hpp"
 #include "micras/proxy/wall_sensors.hpp"
 
 namespace micras::nav {
@@ -19,7 +21,7 @@ namespace micras::nav {
  * @tparam height The height of the maze
  */
 template <uint8_t width, uint8_t height>
-class Mapping {
+class Mapping : public proxy::ISerializable {
 public:
     /**
      * @brief Configuration for the Mapping class
@@ -27,7 +29,6 @@ public:
     struct Config {
         float                wall_thickness{};
         float                cell_size{};
-        float                alignment_threshold{};
         Pose                 front_sensor_pose{};
         Pose                 side_sensor_pose{};
         float                front_distance_alignment_tolerance{};
@@ -62,11 +63,14 @@ public:
      */
     struct Action {
         /**
-         * @brief TPossible types of actions
+         * @brief Possible types of actions
          */
         enum Type : uint8_t {
             LOOK_AT,
-            GO_TO
+            GO_TO,
+            ALIGN_BACK,
+            FINISHED,
+            ERROR,
         };
 
         /**
@@ -82,7 +86,7 @@ public:
         /**
          * @brief The orientation of the goal point
          */
-        Side side;
+        Direction direction;
     };
 
     /**
@@ -104,9 +108,10 @@ public:
      * @brief Get the action to be taken based on the current pose
      *
      * @param pose The current pose of the robot
+     * @param objective The curent objective of the robot
      * @return The action to be taken
      */
-    Action get_action(const Pose& pose) const;
+    Action get_action(const Pose& pose, core::Objective objective);
 
     /**
      * @brief Fix the pose based on the mapping information
@@ -163,6 +168,34 @@ public:
      */
     core::FollowWallType get_follow_wall_type(const Pose& pose) const;
 
+    /**
+     * @brief Serialize the best route to the goal
+     *
+     * @return The serialized data
+     */
+    std::vector<uint8_t> serialize() const override;
+
+    /**
+     * @brief Deserialize the best route to the goal
+     *
+     * @param buffer The serialized data
+     * @param size The size of the serialized data
+     */
+    void deserialize(const uint8_t* buffer, uint16_t size) override;
+
+    /**
+     * @brief Check if the robot can align its back with a wall
+     *
+     * @param pose The current pose of the robot
+     * @return True if the robot can align its back, false otherwise
+     */
+    bool can_align_back(const Pose& pose) const;
+
+    /**
+     * @brief Adds diagonal movements to the best route
+     */
+    void diagonalize_best_route();
+
 private:
     /**
      * @brief Wall sensors of the robot
@@ -183,11 +216,6 @@ private:
      * @brief Size of the cells in the maze
      */
     float cell_size;
-
-    /**
-     * @brief Threshold for the robot alignment with the side walls
-     */
-    float alignment_threshold;
 
     /**
      * @brief Pose of the front wall sensors
@@ -243,6 +271,16 @@ private:
      * @brief Sensor readings when the sides of the robot are distance aligned
      */
     std::array<float, 2> side_distance_reading{};
+
+    /**
+     * @brief List of points and directions that represent the best route to the goal
+     */
+    std::list<std::pair<Point, Direction>> best_route;
+
+    /**
+     * @brief Current iterator of the best route
+     */
+    std::list<std::pair<Point, Direction>>::iterator best_route_iterator{best_route.begin()};
 };
 }  // namespace micras::nav
 

@@ -214,21 +214,21 @@ const proxy::WallSensors<4>::Config wall_sensors_config = {
             .handle = &htim15,
             .timer_channel = TIM_CHANNEL_2,
         },
-    .filter_cutoff = 10.0F,
+    .filter_cutoff = 5.0F,
     .uncertainty = 0.35F,
     .wall_threshold =
         {
-            0.81388F,
-            0.327295F,
-            0.340525F,
-            0.6677475F,
+            0.42418F,
+            0.0961F,
+            0.09384F,
+            0.31886F,
         },
     .free_threshold =
         {
-            0.73912F,
-            0.313505F,
-            0.332475F,
-            0.5901525F,
+            0.39012F,
+            0.0881F,
+            0.08916F,
+            0.28704F,
         },
 };
 

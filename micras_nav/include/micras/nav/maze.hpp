@@ -39,13 +39,20 @@ public:
     void update(const GridPose& pose, Information information);
 
     /**
-     * @brief Returns the next point the robot should go to
+     * @brief Returns the next point the robot should go to when exploring
      *
      * @param position The current position of the robot
-     * @param force_costmap Whether to force the use of the update of the costmap
-     * @return The next point the robot should go to
+     * @return The next point the robot should go to when exploring
      */
-    GridPose get_current_goal(const GridPoint& position, bool force_costmap = false) const;
+    GridPose get_current_exploration_goal(const GridPoint& position) const;
+
+    /**
+     * @brief Returns the next point the robot should go to when returning
+     *
+     * @param position The current position of the robot
+     * @return The next point the robot should go to when returning
+     */
+    GridPose get_current_returning_goal(const GridPoint& position) const;
 
     /**
      * @brief Checks the type of wall following the robot can do
@@ -54,7 +61,48 @@ public:
      * @param front_cell Whether to check the cell at the front of the robot
      * @return The type of wall following
      */
-    core::FollowWallType get_follow_wall_type(const GridPose& pose, bool front_cell) const;
+    core::FollowWallType get_follow_wall_type(const GridPose& pose) const;
+
+    /**
+     * @brief Checks whether the robot has finished the maze
+     *
+     * @param position The current position of the robot
+     * @return True if the robot has finished the maze, false otherwise
+     */
+    bool finished(const GridPoint& position) const;
+
+    /**
+     * @brief Checks whether the robot has returned to the start
+     *
+     * @param position The current position of the robot
+     * @return True if the robot has returned to the start, false otherwise
+     */
+    bool returned(const GridPoint& position) const;
+
+    /**
+     * @brief Calculates the best route to the goal using the current costmap
+     */
+    void calculate_best_route();
+
+    /**
+     * @brief Improves the route to the goal
+     */
+    void optimize_route();
+
+    /**
+     * @brief Returns the best route to the goal
+     *
+     * @return The best route to the goal
+     */
+    const std::map<uint16_t, GridPose, std::greater<>>& get_best_route() const;
+
+    /**
+     * @brief Checks whether there is a wall at the front of a given pose
+     *
+     * @param pose The pose to check
+     * @return True if there is a wall, false otherwise
+     */
+    bool has_wall(const GridPose& pose) const;
 
 private:
     /**
@@ -70,11 +118,6 @@ private:
      * @brief Calculates the costmap for the flood fill algorithm
      */
     void calculate_costmap();
-
-    /**
-     * @brief Improves the route to the goal
-     */
-    void optimize_route();
 
     /**
      * @brief Returns the cell at the given position
@@ -97,16 +140,9 @@ private:
      *
      * @param pose The pose of the robot
      * @param wall Whether there is a wall in front of the robot
+     * @return True if the information is new, false otherwise
      */
-    void update_wall(const GridPose& pose, bool wall);
-
-    /**
-     * @brief Checks whether there is a wall at the front of a given pose
-     *
-     * @param pose The pose to check
-     * @return True if there is a wall, false otherwise
-     */
-    bool has_wall(const GridPose& pose) const;
+    bool update_wall(const GridPose& pose, bool wall);
 
     /**
      * @brief Cells matrix representing the maze
@@ -122,16 +158,6 @@ private:
      * @brief Goal points in the maze
      */
     std::unordered_set<GridPoint> goal;
-
-    /**
-     * @brief Whether the robot is returning to the start
-     */
-    bool returning{};
-
-    /**
-     * @brief Whether the robot is exploring the maze
-     */
-    bool exploring{true};
 
     /**
      * @brief Current best found route to the goal

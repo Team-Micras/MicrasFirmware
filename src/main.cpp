@@ -14,7 +14,7 @@ int main() {
     micras::MicrasController micras_controller;
 
     while (true) {
-        micras_controller.run();
+        micras_controller.update();
     }
 
     return 0;
