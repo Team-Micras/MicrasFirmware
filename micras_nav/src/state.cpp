@@ -20,19 +20,34 @@ GridPoint Point::to_grid(float cell_size) const {
     return {static_cast<uint8_t>(this->x / cell_size), static_cast<uint8_t>(this->y / cell_size)};
 }
 
-Point Point::rotate(Side angle) {
+Point Point::rotate(Direction angle) {
+    constexpr float sqrt2_2 = std::numbers::sqrt2_v<float> / 2.0F;
+
     switch (angle) {
-        case Side::RIGHT:
+        case Direction::EAST:
             return {-this->y, this->x};
-        case Side::UP:
+        case Direction::NORTHEAST:
+            return {sqrt2_2 * (this->x - this->y), sqrt2_2 * (this->x + this->y)};
+        case Direction::NORTH:
             return *this;
-        case Side::LEFT:
+        case Direction::NORTHWEST:
+            return {sqrt2_2 * (this->x + this->y), sqrt2_2 * (-this->x + this->y)};
+        case Direction::WEST:
             return {this->y, -this->x};
-        case Side::DOWN:
+        case Direction::SOUTHWEST:
+            return {sqrt2_2 * (-this->x + this->y), sqrt2_2 * (-this->x - this->y)};
+        case Direction::SOUTH:
             return {-this->x, -this->y};
+        case Direction::SOUTHEAST:
+            return {sqrt2_2 * (-this->x - this->y), sqrt2_2 * (this->x - this->y)};
     }
 
     return *this;
+}
+
+Point Point::move_towards(const Point& other, float distance) const {
+    float angle = this->angle_between(other);
+    return {this->x + distance * std::cos(angle), this->y + distance * std::sin(angle)};
 }
 
 Point Point::operator-(const Point& other) const {
