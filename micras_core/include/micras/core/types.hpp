@@ -18,7 +18,7 @@ enum Observation : uint8_t {
 };
 
 /**
- * @brief Type of wall following the robot is able ot do
+ * @brief Type of wall following the robot is able to do
  */
 enum FollowWallType : uint8_t {
     NONE = 0,
