@@ -26,11 +26,19 @@ endif()
 if(CMAKE_HOST_WIN32 OR CMAKE_HOST_SYSTEM_NAME STREQUAL MSYS)
     set(JAVA_EXE "$ENV{CUBE_PATH}\\jre\\bin\\java.exe")
     set(CUBE_JAR "$ENV{CUBE_PATH}\\STM32CubeMX.exe")
+    set(CUBE_CMD ${JAVA_EXE} -jar ${CUBE_JAR})
     set(JLINK_EXE JLink.exe)
+    message(STATUS "Windows or MSYS detected")
+elseif(NOT "$ENV{WSL_DISTRO_NAME}" STREQUAL "")
+    set(CUBE_CMD "$ENV{CUBE_PATH}/STM32CubeMX.exe")
+    set(JLINK_EXE JLink.exe)
+    message(STATUS "WSL detected")
 else()
     set(JAVA_EXE $ENV{CUBE_PATH}/jre/bin/java)
     set(CUBE_JAR $ENV{CUBE_PATH}/STM32CubeMX)
+    set(CUBE_CMD ${JAVA_EXE} -jar ${CUBE_JAR})
     set(JLINK_EXE JLinkExe)
+    message(STATUS "Linux detected")
 endif()
 
 # Check if OpenOCD variables are properly defined
@@ -74,10 +82,10 @@ if(CUBE_LENGHT EQUAL 0)
     message(STATUS "Cube directory is empty. Generating cube files...")
 
     file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/.cube
-        "config load ${CMAKE_CURRENT_SOURCE_DIR}/cube/${PROJECT_RELEASE}.ioc\n"
+        "config load ../cube/${PROJECT_RELEASE}.ioc\n"
         "project generate\n"
         "exit\n"
     )
 
-    execute_process(COMMAND ${JAVA_EXE} -jar ${CUBE_JAR} -q ${CMAKE_CURRENT_BINARY_DIR}/.cube)
+    execute_process(COMMAND ${CUBE_CMD} -q ${CMAKE_CURRENT_BINARY_DIR}/.cube)
 endif()

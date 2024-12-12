@@ -7,6 +7,12 @@
 ## Auxiliary Targets
 ###############################################################################
 
+if("$ENV{PROGRAMMER_CMD}" STREQUAL "")
+    set(PROGRAMMER_CMD "STM32_Programmer_CLI")
+else()
+    set(PROGRAMMER_CMD $ENV{PROGRAMMER_CMD})
+endif()
+
 add_custom_target(helpme
     COMMAND cat ${CMAKE_CURRENT_BINARY_DIR}/.helpme
 )
@@ -22,12 +28,12 @@ add_custom_target(cube
 )
 
 add_custom_target(info
-    STM32_Programmer_CLI -c port=SWD
+    COMMAND ${PROGRAMMER_CMD} -c port=SWD
 )
 
 add_custom_target(reset
     COMMAND echo "Reseting device"
-    COMMAND STM32_Programmer_CLI -c port=SWD -rst
+    COMMAND ${PROGRAMMER_CMD} -c port=SWD -rst
 )
 
 add_custom_target(clear
@@ -101,7 +107,7 @@ function(targets_generate_flash_target TARGET)
 
     add_custom_target(flash${TARGET_SUFFIX}
         COMMAND echo "Flashing..."
-        COMMAND STM32_Programmer_CLI -c port=SWD -w ${TARGET}.hex -v -rst
+        COMMAND ${PROGRAMMER_CMD} -c port=SWD -w ${TARGET}.hex -v -rst
     )
 
     add_dependencies(flash${TARGET_SUFFIX} ${TARGET})
