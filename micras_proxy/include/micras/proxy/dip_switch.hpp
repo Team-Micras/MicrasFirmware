@@ -1,9 +1,5 @@
 /**
- * @file dip_switch.hpp
- *
- * @brief Proxy Dip Switch class header
- *
- * @date 03/2024
+ * @file
  */
 
 #ifndef MICRAS_PROXY_DIP_SWITCH_HPP
@@ -58,6 +54,6 @@ private:
 };
 }  // namespace micras::proxy
 
-#include "../src/dip_switch.cpp"  // NOLINT(bugprone-suspicious-include)
+#include "../src/dip_switch.cpp"  // NOLINT(bugprone-suspicious-include, misc-header-include-cycle)
 
 #endif  // MICRAS_PROXY_DIP_SWITCH_HPP

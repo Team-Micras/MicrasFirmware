@@ -1,9 +1,5 @@
 /**
- * @file mcu.hpp
- *
- * @brief MCU related
- *
- * @date 03/2024
+ * @file
  */
 
 #ifndef MICRAS_HAL_MCU_HPP

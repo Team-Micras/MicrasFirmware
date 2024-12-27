@@ -7,6 +7,12 @@
 ## Auxiliary Targets
 ###############################################################################
 
+if("$ENV{PROGRAMMER_CMD}" STREQUAL "")
+    set(PROGRAMMER_CMD "STM32_Programmer_CLI")
+else()
+    set(PROGRAMMER_CMD $ENV{PROGRAMMER_CMD})
+endif()
+
 add_custom_target(helpme
     COMMAND cat ${CMAKE_CURRENT_BINARY_DIR}/.helpme
 )
@@ -22,20 +28,29 @@ add_custom_target(cube
 )
 
 add_custom_target(info
-    STM32_Programmer_CLI -c port=SWD
+    COMMAND ${PROGRAMMER_CMD} -c port=SWD
 )
 
 add_custom_target(reset
     COMMAND echo "Reseting device"
-    COMMAND STM32_Programmer_CLI -c port=SWD -rst
+    COMMAND ${PROGRAMMER_CMD} -c port=SWD -rst
 )
 
-add_custom_target(clean_all
+add_custom_target(clear
     COMMAND echo "Cleaning all build files..."
     COMMAND rm -rf ${CMAKE_CURRENT_BINARY_DIR}/*
 )
 
-add_custom_target(clean_cube
+add_custom_target(clear_cube
+    COMMAND echo "Cleaning cube files..."
+    COMMAND mv ${CMAKE_CURRENT_SOURCE_DIR}/cube/*.ioc .
+    COMMAND rm -rf ${CMAKE_CURRENT_SOURCE_DIR}/cube/*
+    COMMAND mv *.ioc ${CMAKE_CURRENT_SOURCE_DIR}/cube/
+)
+
+add_custom_target(clear_all
+    COMMAND echo "Cleaning all build files..."
+    COMMAND rm -rf ${CMAKE_CURRENT_BINARY_DIR}/*
     COMMAND echo "Cleaning cube files..."
     COMMAND mv ${CMAKE_CURRENT_SOURCE_DIR}/cube/*.ioc .
     COMMAND rm -rf ${CMAKE_CURRENT_SOURCE_DIR}/cube/*
@@ -43,14 +58,13 @@ add_custom_target(clean_cube
 )
 
 add_custom_target(rebuild
-    COMMAND ${CMAKE_MAKE_PROGRAM} clean_all
+    COMMAND ${CMAKE_MAKE_PROGRAM} clear
     COMMAND cmake ..
     COMMAND ${CMAKE_MAKE_PROGRAM}
 )
 
 add_custom_target(rebuild_all
-    COMMAND ${CMAKE_MAKE_PROGRAM} clean_cube
-    COMMAND ${CMAKE_MAKE_PROGRAM} clean_all
+    COMMAND ${CMAKE_MAKE_PROGRAM} clear_all
     COMMAND cmake ..
     COMMAND ${CMAKE_MAKE_PROGRAM}
 )
@@ -61,6 +75,17 @@ add_custom_target(docs
     COMMAND mv ${CMAKE_CURRENT_SOURCE_DIR}/docs/latex/refman.pdf ${CMAKE_CURRENT_SOURCE_DIR}/docs/
     COMMAND rm -rf ${CMAKE_CURRENT_SOURCE_DIR}/docs/latex
 )
+
+function(targets_generate_test_all_target)
+    foreach(FILE ${ARGV})
+        get_filename_component(TEST_NAME ${FILE} NAME_WLE)
+        list(APPEND TEST_TARGETS ${TEST_NAME})
+    endforeach()
+
+    add_custom_target(test_all
+        COMMAND ${CMAKE_MAKE_PROGRAM} ${TEST_TARGETS}
+    )
+endfunction()
 
 function(targets_generate_format_target)
     set(FILES_LIST "")
@@ -82,7 +107,7 @@ function(targets_generate_flash_target TARGET)
 
     add_custom_target(flash${TARGET_SUFFIX}
         COMMAND echo "Flashing..."
-        COMMAND STM32_Programmer_CLI -c port=SWD -w ${TARGET}.hex -v -rst
+        COMMAND ${PROGRAMMER_CMD} -c port=SWD -w ${TARGET}.hex -v -rst
     )
 
     add_dependencies(flash${TARGET_SUFFIX} ${TARGET})

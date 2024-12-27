@@ -1,9 +1,5 @@
 /**
- * @file flash.cpp
- *
- * @brief STM32 flash HAL wrapper
- *
- * @date 03/2024
+ * @file
  */
 
 #include <bit>
@@ -63,13 +59,15 @@ void Flash::write(uint16_t page, uint16_t page_address, const uint64_t data[], u
 void Flash::erase_pages(uint16_t page, uint16_t number_of_pages) {
     FLASH_EraseInitTypeDef erase_struct = {
         .TypeErase = FLASH_TYPEERASE_PAGES,
-        .Banks = 0,
+        .Banks = FLASH_BANK_2,
         .Page = FLASH_PAGE_NB - page - number_of_pages,
         .NbPages = number_of_pages,
     };
 
     uint32_t page_error{};
 
+    HAL_FLASH_Unlock();
     HAL_FLASHEx_Erase(&erase_struct, &page_error);
+    HAL_FLASH_Lock();
 }
 }  // namespace micras::hal

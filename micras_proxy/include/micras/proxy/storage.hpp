@@ -1,9 +1,5 @@
 /**
- * @file storage.hpp
- *
- * @brief Proxy Storage class declaration
- *
- * @date 03/2024
+ * @file
  */
 
 #ifndef MICRAS_PROXY_STORAGE_HPP
@@ -19,7 +15,7 @@
 
 namespace micras::proxy {
 template <typename T>
-concept Fundamental = std::is_fundamental<T>::value;
+concept Fundamental = std::is_fundamental_v<T>;
 
 /**
  * @brief Class for controlling the storage
@@ -72,6 +68,7 @@ public:
     template <Fundamental T>
     void sync(const std::string& name, T& data) {
         if (this->primitives.contains(name) and this->primitives.at(name).ram_pointer == nullptr) {
+            // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
             data = reinterpret_cast<T&>(this->buffer.at(this->primitives.at(name).buffer_address));
         }
 

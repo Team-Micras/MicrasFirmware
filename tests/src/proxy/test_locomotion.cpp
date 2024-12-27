@@ -1,9 +1,5 @@
 /**
- * @file test_locomotion.cpp
- *
- * @brief Test for the Locomotion class
- *
- * @date 05/2024
+ * @file
  */
 
 #include "test_core.hpp"
@@ -20,20 +16,18 @@ int main(int argc, char* argv[]) {
 
         switch (button_status) {
             case proxy::Button::Status::SHORT_PRESS:
-                locomotion.set_wheel_command(50.0F, 0.0F);
-                hal::Timer::sleep_ms(1000);
-                locomotion.set_wheel_command(-50.0F, 0.0F);
-                hal::Timer::sleep_ms(1000);
-                locomotion.set_wheel_command(0.0F, 50.0F);
-                hal::Timer::sleep_ms(1000);
-                locomotion.set_wheel_command(0.0F, -50.0F);
-                hal::Timer::sleep_ms(1000);
-
                 locomotion.set_command(50.0F, 0.0F);
+                hal::Timer::sleep_ms(1000);
+                locomotion.set_command(0.0F, 0.0F);
                 hal::Timer::sleep_ms(1000);
                 locomotion.set_command(-50.0F, 0.0F);
                 hal::Timer::sleep_ms(1000);
+                locomotion.set_command(0.0F, 0.0F);
+                hal::Timer::sleep_ms(1000);
+
                 locomotion.set_command(0.0F, 50.0F);
+                hal::Timer::sleep_ms(1000);
+                locomotion.set_command(0.0F, 0.0F);
                 hal::Timer::sleep_ms(1000);
                 locomotion.set_command(0.0F, -50.0F);
                 hal::Timer::sleep_ms(1000);

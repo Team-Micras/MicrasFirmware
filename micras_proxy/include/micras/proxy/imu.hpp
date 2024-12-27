@@ -1,9 +1,5 @@
 /**
- * @file imu.hpp
- *
- * @brief STM32 IMU HAL wrapper
- *
- * @date 03/2024
+ * @file
  */
 
 #ifndef MICRAS_PROXY_IMU_HPP
@@ -14,6 +10,7 @@
 #include <lsm6dsv_reg.h>
 #include <numbers>
 
+#include "micras/core/butterworth_filter.hpp"
 #include "micras/hal/spi.hpp"
 
 namespace micras::proxy {
@@ -59,16 +56,7 @@ public:
     /**
      * @brief Update the IMU data
      */
-    void update_data();
-
-    /**
-     * @brief Get the IMU orientation over an axis
-     *
-     * @param axis Axis to get the orientation from
-     *
-     * @return float Orientation over the desired axis using quaternions
-     */
-    float get_orientation(Axis axis) const;
+    void update();
 
     /**
      * @brief Get the IMU angular velocity over an axis
@@ -87,6 +75,11 @@ public:
      * @return float Linear acceleration over the desired axis in m/s²
      */
     float get_linear_acceleration(Axis axis) const;
+
+    /**
+     * @brief Define the base reading to be removed from the IMU value
+     */
+    void calibrate();
 
 private:
     /**
@@ -112,22 +105,6 @@ private:
      * @return int32_t 0 if the operation was successful, -1 otherwise
      */
     static int32_t platform_write(void* handle, uint8_t reg, const uint8_t* bufp, uint16_t len);
-
-    /**
-     * @brief Function to convert raw data to orientation
-     *
-     * @param sflp Raw data from the IMU
-     */
-    void update_orientation(const uint16_t sflp[3]);  // NOLINT(*-avoid-c-arrays)
-
-    /**
-     * @brief Function to convert half precision float to single precision float
-     *
-     * @param n Half precision float
-     *
-     * @return float Single precision float
-     */
-    static float half_to_float(uint16_t n);
 
     /**
      * @brief Conversion constants
@@ -156,19 +133,24 @@ private:
     std::array<float, 3> linear_acceleration{};
 
     /**
-     * @brief Current orientation
-     */
-    std::array<float, 4> orientation{};
-
-    /**
      * @brief Gyroscope conversion factor
      */
-    const float gy_factor;
+    float gy_factor;
 
     /**
      * @brief Accelerometer conversion factor
      */
-    const float xl_factor;
+    float xl_factor;
+
+    /**
+     * @brief Gyroscope Butterworth filter for the calibration
+     */
+    core::ButterworthFilter calibration_filter{5.0F};
+
+    /**
+     * @brief Flag to check if the IMU is calibrated
+     */
+    bool calibrated{};
 };
 }  // namespace micras::proxy
 

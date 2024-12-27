@@ -1,9 +1,5 @@
 /**
- * @file adc_dma.hpp
- *
- * @brief ADC DMA HAL header
- *
- * @date 03/2024
+ * @file
  */
 
 #ifndef MICRAS_HAL_ADC_DMA_HPP
@@ -11,6 +7,7 @@
 
 #include <adc.h>
 #include <cstdint>
+#include <span>
 
 namespace micras::hal {
 /**
@@ -25,7 +22,6 @@ public:
         void (*init_function)();
         ADC_HandleTypeDef* handle;
         uint16_t           max_reading;
-        float              reference_voltage;
     };
 
     /**
@@ -39,17 +35,15 @@ public:
      * @brief Enable ADC, start conversion of regular group and transfer result through DMA
      *
      * @param buffer Destination Buffer address
-     * @param size Number of data to be transferred from ADC DMA peripheral to memory
      */
-    void start_dma(uint32_t buffer[], uint32_t size);  // NOLINT(*-avoid-c-arrays)
+    void start_dma(std::span<uint32_t> buffer);
 
     /**
      * @brief Enable ADC, start conversion of regular group and transfer result through DMA
      *
      * @param buffer Destination Buffer address
-     * @param size Number of data to be transferred from ADC DMA peripheral to memory
      */
-    void start_dma(uint16_t buffer[], uint32_t size);  // NOLINT(*-avoid-c-arrays)
+    void start_dma(std::span<uint16_t> buffer);
 
     /**
      * @brief Stop ADC conversion of regular group (and injected group in case of auto_injection mode)
@@ -57,16 +51,23 @@ public:
     void stop_dma();
 
     /**
-     * @brief Maximum ADC reading
+     * @brief Get the maximum reading of the ADC
+     *
+     * @return uint16_t Maximum reading of the ADC
      */
-    const uint16_t max_reading;  // NOLINT(*-non-private-member-variables-in-classes)
+    uint16_t get_max_reading() const;
 
     /**
      * @brief Reference voltage for the ADC measurement
      */
-    const float reference_voltage;  // NOLINT(*-non-private-member-variables-in-classes)
+    static constexpr float reference_voltage{3.3F};
 
 private:
+    /**
+     * @brief Maximum ADC reading
+     */
+    uint16_t max_reading;
+
     /**
      * @brief ADC handle
      */

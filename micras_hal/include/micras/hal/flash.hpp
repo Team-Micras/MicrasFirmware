@@ -1,9 +1,5 @@
 /**
- * @file flash.hpp
- *
- * @brief STM32 flash HAL wrapper
- *
- * @date 03/2024
+ * @file
  */
 
 #ifndef MICRAS_HAL_FLASH_HPP

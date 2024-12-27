@@ -1,9 +1,5 @@
 /**
- * @file argb.cpp
- *
- * @brief Proxy Argb class implementation
- *
- * @date 03/2024
+ * @file
  */
 
 #ifndef MICRAS_PROXY_ARGB_CPP
@@ -15,29 +11,46 @@ namespace micras::proxy {
 template <uint8_t num_of_leds>
 Argb<num_of_leds>::Argb(const Config& config) :
     pwm{config.pwm},
-    low_bit{pwm.get_compare(low_duty_cycle)},
-    high_bit{pwm.get_compare(high_duty_cycle)},
+    low_bit{pwm.get_compare(config.low_duty_cycle)},
+    high_bit{pwm.get_compare(config.high_duty_cycle)},
     brightness{config.max_brightness / 100.0F} {
     this->set_color({0, 0, 0});
 }
 
 template <uint8_t num_of_leds>
 void Argb<num_of_leds>::set_color(const Color& color, uint8_t index) {
-    if (index >= num_of_leds) {
+    if (index >= num_of_leds or this->pwm.is_busy()) {
         return;
     }
 
     this->encode_color(color * this->brightness, index);
-    this->pwm.start_dma(this->buffer.data(), this->buffer.size());
+    this->pwm.start_dma(this->buffer);
 }
 
 template <uint8_t num_of_leds>
 void Argb<num_of_leds>::set_color(const Color& color) {
+    if (this->pwm.is_busy()) {
+        return;
+    }
+
     for (uint8_t i = 0; i < num_of_leds; i++) {
         this->encode_color(color * this->brightness, i);
     }
 
-    this->pwm.start_dma(this->buffer.data(), this->buffer.size());
+    this->pwm.start_dma(this->buffer);
+}
+
+template <uint8_t num_of_leds>
+void Argb<num_of_leds>::set_colors(const std::array<Color, num_of_leds>& colors) {
+    if (this->pwm.is_busy()) {
+        return;
+    }
+
+    for (uint8_t i = 0; i < num_of_leds; i++) {
+        this->encode_color(colors[i] * this->brightness, i);
+    }
+
+    this->pwm.start_dma(this->buffer);
 }
 
 template <uint8_t num_of_leds>

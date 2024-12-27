@@ -1,9 +1,5 @@
 /**
- * @file led.hpp
- *
- * @brief Proxy Led class header
- *
- * @date 03/2024
+ * @file
  */
 
 #ifndef MICRAS_PROXY_LED_HPP

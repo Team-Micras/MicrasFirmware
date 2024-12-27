@@ -1,9 +1,5 @@
 /**
- * @file locomotion.hpp
- *
- * @brief Proxy Locomotion class declaration
- *
- * @date 03/2024
+ * @file
  */
 
 #ifndef MICRAS_PROXY_LOCOMOTION_HPP
@@ -12,7 +8,7 @@
 #include <cstdint>
 
 #include "micras/hal/gpio.hpp"
-#include "micras/hal/pwm.hpp"
+#include "micras/proxy/motor.hpp"
 
 namespace micras::proxy {
 /**
@@ -24,10 +20,8 @@ public:
      * @brief Configuration structure for the locomotion
      */
     struct Config {
-        hal::Pwm::Config  pwm_left_forward;
-        hal::Pwm::Config  pwm_left_backwards;
-        hal::Pwm::Config  pwm_right_forward;
-        hal::Pwm::Config  pwm_right_backwards;
+        Motor::Config     left_motor;
+        Motor::Config     right_motor;
         hal::Gpio::Config enable_gpio;
     };
 
@@ -71,24 +65,14 @@ public:
 
 private:
     /**
-     * @brief PWM handle for the left motor forward
+     * @brief Left motor of the robot
      */
-    hal::Pwm pwm_left_forward;
+    Motor left_motor;
 
     /**
-     * @brief PWM handle for the left motor backward
+     * @brief Right motor of the robot
      */
-    hal::Pwm pwm_left_backwards;
-
-    /**
-     * @brief PWM handle for the right motor forward
-     */
-    hal::Pwm pwm_right_forward;
-
-    /**
-     * @brief PWM handle for the right motor backward
-     */
-    hal::Pwm pwm_right_backwards;
+    Motor right_motor;
 
     /**
      * @brief GPIO handle for the motor driver enable pin

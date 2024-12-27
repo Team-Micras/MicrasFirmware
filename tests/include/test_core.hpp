@@ -1,9 +1,5 @@
 /**
- * @file test_core.hpp
- *
- * @brief Core class to the test
- *
- * @date 04/2024
+ * @file
  */
 
 #ifndef MICRAS_TEST_CORE_HPP

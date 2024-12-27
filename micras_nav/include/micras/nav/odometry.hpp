@@ -1,0 +1,114 @@
+/**
+ * @file
+ */
+
+#ifndef MICRAS_NAV_ODOMETRY_HPP
+#define MICRAS_NAV_ODOMETRY_HPP
+
+#include <cstdint>
+
+#include "micras/core/butterworth_filter.hpp"
+#include "micras/hal/timer.hpp"
+#include "micras/nav/state.hpp"
+#include "micras/proxy/imu.hpp"
+#include "micras/proxy/rotary_sensor.hpp"
+
+namespace micras::nav {
+/**
+ * @brief Class for calculating the robot odometry
+ */
+class Odometry {
+public:
+    /**
+     * @brief Configuration for the odometry
+     */
+    struct Config {
+        float linear_cutoff_frequency;
+        float wheel_radius;
+        Pose  initial_pose;
+    };
+
+    /**
+     * @brief Constructor for the Odometry class
+     *
+     * @param left_rotary_sensor Left rotary sensor
+     * @param right_rotary_sensor Right rotary sensor
+     * @param config Configuration for the odometry
+     */
+    Odometry(
+        const proxy::RotarySensor& left_rotary_sensor, const proxy::RotarySensor& right_rotary_sensor,
+        const proxy::Imu& imu, Config config
+    );
+
+    /**
+     * @brief Update the odometry
+     *
+     * @param elapsed_time Time since the last update
+     */
+    void update(float elapsed_time);
+
+    /**
+     * @brief Reset the odometry
+     */
+    void reset();
+
+    /**
+     * @brief Get the state of the robot
+     *
+     * @return State current state of the robot in space
+     */
+    const State& get_state() const;
+
+    /**
+     * @brief Set the state of the robot
+     *
+     * @param state New state of the robot
+     */
+    void set_state(const State& new_state);
+
+private:
+    /**
+     * @brief Left rotary sensor
+     */
+    const proxy::RotarySensor& left_rotary_sensor;  // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
+
+    /**
+     * @brief Right rotary sensor
+     */
+    const proxy::RotarySensor& right_rotary_sensor;  // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
+
+    /**
+     * @brief IMU sensor
+     */
+    const proxy::Imu& imu;  // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
+
+    /**
+     * @brief Wheel radius
+     */
+    float wheel_radius;
+
+    /**
+     * @brief Last left rotary sensor position
+     */
+    float left_last_position{};
+
+    /**
+     * @brief Last right rotary sensor position
+     */
+    float right_last_position{};
+
+    /**
+     * @brief Linear velocity filter
+     */
+    core::ButterworthFilter linear_filter;
+
+    /**
+     * @brief Current state of the robot in space
+     */
+    State state;
+
+    friend class Interface;
+};
+}  // namespace micras::nav
+
+#endif  // MICRAS_NAV_ODOMETRY_HPP

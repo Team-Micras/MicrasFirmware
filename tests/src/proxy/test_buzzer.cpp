@@ -1,9 +1,5 @@
 /**
- * @file test_buzzer.cpp
- *
- * @brief Test for the Buzzer class
- *
- * @date 05/2024
+ * @file
  */
 
 #include "test_core.hpp"

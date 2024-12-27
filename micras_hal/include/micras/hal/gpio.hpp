@@ -1,9 +1,5 @@
 /**
- * @file gpio.hpp
- *
- * @brief HAL GPIO class header
- *
- * @date 03/2024
+ * @file
  */
 
 #ifndef MICRAS_HAL_GPIO_HPP

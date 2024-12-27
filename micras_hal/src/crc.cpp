@@ -1,9 +1,5 @@
 /**
- * @file crc.cpp
- *
- * @brief STM32 CRC HAL wrapper
- *
- * @date 03/2024
+ * @file
  */
 
 #include "micras/hal/crc.hpp"

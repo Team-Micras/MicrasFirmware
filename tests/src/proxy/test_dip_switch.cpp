@@ -1,16 +1,12 @@
 /**
- * @file test_dip_switch.cpp
- *
- * @brief Test for the DipSwitch class
- *
- * @date 05/2024
+ * @file
  */
 
 #include "test_core.hpp"
 
 using namespace micras;  // NOLINT(google-build-using-namespace)
 
-static volatile uint8_t test_dip_switch_value{};
+static volatile uint8_t test_dip_switch_value{};  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);

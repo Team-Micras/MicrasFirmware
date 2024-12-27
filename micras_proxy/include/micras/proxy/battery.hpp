@@ -1,9 +1,5 @@
 /**
- * @file battery.hpp
- *
- * @brief Proxy Battery class declaration
- *
- * @date 03/2024
+ * @file
  */
 
 #ifndef MICRAS_PROXY_BATTERY_HPP
@@ -11,6 +7,7 @@
 
 #include <cstdint>
 
+#include "micras/core/butterworth_filter.hpp"
 #include "micras/hal/adc_dma.hpp"
 
 namespace micras::proxy {
@@ -25,6 +22,7 @@ public:
     struct Config {
         hal::AdcDma::Config adc;
         float               voltage_divider;
+        float               filter_cutoff;
     };
 
     /**
@@ -35,6 +33,11 @@ public:
     explicit Battery(const Config& config);
 
     /**
+     * @brief Update the battery reading
+     */
+    void update();
+
+    /**
      * @brief Get the battery voltage
      *
      * @return float Battery voltage in volts
@@ -42,11 +45,18 @@ public:
     float get_voltage() const;
 
     /**
-     * @brief Get the raw reading from the battery
+     * @brief Get the battery voltage in volts without the filter applied
      *
-     * @return uint32_t Raw reading from the battery
+     * @return float Battery voltage in volts
      */
-    uint32_t get_voltage_raw() const;
+    float get_voltage_raw() const;
+
+    /**
+     * @brief Get the battery reading from the ADC
+     *
+     * @return float Battery reading from 0 to 1
+     */
+    float get_adc_reading() const;
 
 private:
     /**
@@ -60,9 +70,14 @@ private:
     uint16_t raw_reading{};
 
     /**
-     * @brief Voltage divider ratio
+     * @brief Maximum voltage that can be read
      */
-    const float voltage_divider;
+    float max_voltage;
+
+    /**
+     * @brief Butterworth filter for the battery reading
+     */
+    core::ButterworthFilter filter;
 };
 }  // namespace micras::proxy
 
