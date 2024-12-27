@@ -22,10 +22,10 @@ int main(int argc, char* argv[]) {
     hal::Timer::sleep_ms(2);
 
     if (imu.check_whoami()) {
-        argb.set_color({0, 255, 0});
+        argb.set_color(proxy::Argb::green);
 
     } else {
-        argb.set_color({255, 0, 0});
+        argb.set_color(proxy::Argb::red);
 
         while (true) { }
     }
