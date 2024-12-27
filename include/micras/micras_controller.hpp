@@ -68,8 +68,8 @@ private:
     enum Switch : uint8_t {
         DIAGONAL = 0,
         FAN = 1,
-        STOP = 3,
-        TURBO = 4,
+        STOP = 2,
+        TURBO = 3,
     };
 
     /**
