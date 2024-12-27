@@ -36,8 +36,8 @@ public:
      * @param config The configuration for the GoToPoint class
      * @param follow_wall_config The configuration for the FollowWall class
      */
-    explicit GoToPoint(
-        const proxy::WallSensors<4>& wall_sensors, const Config& config, const FollowWall::Config& follow_wall_config
+    GoToPoint(
+        const proxy::TWallSensors<4>& wall_sensors, const Config& config, const FollowWall::Config& follow_wall_config
     );
 
     /**

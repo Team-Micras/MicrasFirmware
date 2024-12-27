@@ -9,7 +9,7 @@
 
 namespace micras::proxy {
 template <uint8_t num_of_leds>
-Argb<num_of_leds>::Argb(const Config& config) :
+TArgb<num_of_leds>::TArgb(const Config& config) :
     pwm{config.pwm},
     low_bit{pwm.get_compare(config.low_duty_cycle)},
     high_bit{pwm.get_compare(config.high_duty_cycle)},
@@ -18,7 +18,7 @@ Argb<num_of_leds>::Argb(const Config& config) :
 }
 
 template <uint8_t num_of_leds>
-void Argb<num_of_leds>::set_color(const Color& color, uint8_t index) {
+void TArgb<num_of_leds>::set_color(const Color& color, uint8_t index) {
     if (index >= num_of_leds or this->pwm.is_busy()) {
         return;
     }
@@ -28,7 +28,7 @@ void Argb<num_of_leds>::set_color(const Color& color, uint8_t index) {
 }
 
 template <uint8_t num_of_leds>
-void Argb<num_of_leds>::set_color(const Color& color) {
+void TArgb<num_of_leds>::set_color(const Color& color) {
     if (this->pwm.is_busy()) {
         return;
     }
@@ -41,7 +41,7 @@ void Argb<num_of_leds>::set_color(const Color& color) {
 }
 
 template <uint8_t num_of_leds>
-void Argb<num_of_leds>::set_colors(const std::array<Color, num_of_leds>& colors) {
+void TArgb<num_of_leds>::set_colors(const std::array<Color, num_of_leds>& colors) {
     if (this->pwm.is_busy()) {
         return;
     }
@@ -54,17 +54,17 @@ void Argb<num_of_leds>::set_colors(const std::array<Color, num_of_leds>& colors)
 }
 
 template <uint8_t num_of_leds>
-void Argb<num_of_leds>::turn_off(uint8_t index) {
+void TArgb<num_of_leds>::turn_off(uint8_t index) {
     this->set_color(index, {0, 0, 0});
 }
 
 template <uint8_t num_of_leds>
-void Argb<num_of_leds>::turn_off() {
+void TArgb<num_of_leds>::turn_off() {
     this->set_color({0, 0, 0});
 }
 
 template <uint8_t num_of_leds>
-void Argb<num_of_leds>::encode_color(const Color& color, uint8_t index) {
+void TArgb<num_of_leds>::encode_color(const Color& color, uint8_t index) {
     uint32_t data = (color.green << (2 * bits_per_color)) | (color.red << bits_per_color) | color.blue;
 
     for (uint32_t i = bits_per_led * index, j = bits_per_led - 1; i < bits_per_led * (index + 1U); i++, j--) {

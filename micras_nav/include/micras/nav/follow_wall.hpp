@@ -31,7 +31,7 @@ public:
      * @param wall_sensors The wall sensors of the robot
      * @param config The configuration for the FollowWall class
      */
-    FollowWall(const proxy::WallSensors<4>& wall_sensors, const Config& config);
+    FollowWall(const proxy::TWallSensors<4>& wall_sensors, const Config& config);
 
     /**
      * @brief Update the PID controller and return the response
@@ -71,7 +71,7 @@ private:
     /**
      * @brief Wall sensors of the robot
      */
-    const proxy::WallSensors<4>& wall_sensors;  // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
+    const proxy::TWallSensors<4>& wall_sensors;  // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
 
     /**
      * @brief PID controller for the wall following

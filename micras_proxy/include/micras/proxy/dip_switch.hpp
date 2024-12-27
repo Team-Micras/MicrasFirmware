@@ -15,7 +15,7 @@ namespace micras::proxy {
  * @brief Class for acquiring a dip switch data
  */
 template <uint8_t num_of_switches>
-class DipSwitch {
+class TDipSwitch {
 public:
     /**
      * @brief Configuration struct for DipSwitch
@@ -29,7 +29,7 @@ public:
      *
      * @param config Configuration struct for DipSwitch
      */
-    explicit DipSwitch(const Config& config);
+    explicit TDipSwitch(const Config& config);
 
     /**
      * @brief Get the state of a switch

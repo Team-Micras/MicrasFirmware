@@ -10,7 +10,7 @@
 
 #include "micras/nav/maze.hpp"
 #include "micras/nav/state.hpp"
-#include "micras/proxy/serializable_interface.hpp"
+#include "micras/proxy/serializable.hpp"
 #include "micras/proxy/wall_sensors.hpp"
 
 namespace micras::nav {
@@ -21,7 +21,7 @@ namespace micras::nav {
  * @tparam height The height of the maze
  */
 template <uint8_t width, uint8_t height>
-class Mapping : public proxy::ISerializable {
+class TMapping : public proxy::ISerializable {
 public:
     /**
      * @brief Configuration for the Mapping class
@@ -95,7 +95,7 @@ public:
      * @param wall_sensors The wall sensors
      * @param config The configuration for the mapping
      */
-    Mapping(const proxy::WallSensors<4>& wall_sensors, Config config);
+    TMapping(const proxy::TWallSensors<4>& wall_sensors, Config config);
 
     /**
      * @brief Update the mapping of the maze using the current pose and wall sensors
@@ -200,12 +200,12 @@ private:
     /**
      * @brief Wall sensors of the robot
      */
-    const proxy::WallSensors<4>& wall_sensors;  // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
+    const proxy::TWallSensors<4>& wall_sensors;  // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
 
     /**
      * @brief The maze information the robot has
      */
-    Maze<width, height> maze;
+    TMaze<width, height> maze;
 
     /**
      * @brief Thickness of the maze walls

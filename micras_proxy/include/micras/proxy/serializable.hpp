@@ -2,8 +2,8 @@
  * @file
  */
 
-#ifndef MICRAS_PROXY_SERIALIZABLE_INTERFACE_HPP
-#define MICRAS_PROXY_SERIALIZABLE_INTERFACE_HPP
+#ifndef MICRAS_PROXY_SERIALIZABLE_HPP
+#define MICRAS_PROXY_SERIALIZABLE_HPP
 
 #include <cstdint>
 #include <vector>
@@ -50,4 +50,4 @@ protected:
 };
 }  // namespace micras::proxy
 
-#endif  // MICRAS_PROXY_SERIALIZABLE_INTERFACE_HPP
+#endif  // MICRAS_PROXY_SERIALIZABLE_HPP

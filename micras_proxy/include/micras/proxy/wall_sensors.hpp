@@ -18,7 +18,7 @@ namespace micras::proxy {
  * @brief Class for controlling WallSensors
  */
 template <uint8_t num_of_sensors>
-class WallSensors {
+class TWallSensors {
 public:
     /**
      * @brief Configuration structure for wall sensors
@@ -38,7 +38,7 @@ public:
      *
      * @param config Configuration for the wall sensors
      */
-    explicit WallSensors(const Config& config);
+    explicit TWallSensors(const Config& config);
 
     /**
      * @brief Turn on the wall sensors IR LED

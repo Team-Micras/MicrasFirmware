@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) {
     proxy::Storage::Config storage_test_config = {.start_page = 0, .number_of_pages = 1};
 
     proxy::Button  button{button_config};
-    proxy::Argb<2> argb{argb_config};
+    proxy::Argb    argb{argb_config};
     proxy::Storage storage_0{storage_test_config};
 
     bool    test_bool_0 = true;

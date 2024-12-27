@@ -17,10 +17,27 @@
 #include "micras/proxy/storage.hpp"
 
 namespace micras {
+/*****************************************
+ * Constants
+ *****************************************/
+
 constexpr uint8_t  maze_width{16};
 constexpr uint8_t  maze_height{16};
 constexpr float    cell_size{0.18};
 constexpr uint32_t loop_time_us{1042};
+
+/*****************************************
+ * Template Instantiations
+ *****************************************/
+
+namespace nav {
+using Maze = TMaze<maze_width, maze_height>;
+using Mapping = TMapping<maze_width, maze_height>;
+}  // namespace nav
+
+/*****************************************
+ * Configurations
+ *****************************************/
 
 const nav::LookAtPoint::Config look_at_point_config{
     .linear_pid =
@@ -86,7 +103,7 @@ const nav::FollowWall::Config follow_wall_config = {
     .base_right_reading = 0.20F,
 };
 
-const nav::Mapping<maze_width, maze_height>::Config mapping_config{
+const nav::Mapping::Config mapping_config{
     .wall_thickness = 0.0126,
     .cell_size = cell_size,
     .front_sensor_pose = {{0.028F, 0.045F}, 0.0F},
@@ -118,11 +135,6 @@ const nav::Odometry::Config odometry_config{
             {0.09F, 0.04F + mapping_config.wall_thickness / 2.0F},
             static_cast<uint8_t>(mapping_config.start.orientation) * std::numbers::pi_v<float> / 2,
         },
-};
-
-const proxy::Storage::Config maze_storage_config{
-    .start_page = 2,
-    .number_of_pages = 1,
 };
 }  // namespace micras
 

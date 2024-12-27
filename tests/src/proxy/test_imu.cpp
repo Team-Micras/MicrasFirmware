@@ -16,8 +16,8 @@ static volatile float test_orientation[3]{};
 int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);
 
-    proxy::Imu     imu{imu_config};
-    proxy::Argb<2> argb{argb_config};
+    proxy::Imu  imu{imu_config};
+    proxy::Argb argb{argb_config};
 
     hal::Timer::sleep_ms(2);
 

@@ -23,6 +23,31 @@
 
 namespace micras {
 /*****************************************
+ * Template Instantiations
+ *****************************************/
+
+namespace proxy {
+using Argb = proxy::TArgb<2>;
+using DipSwitch = TDipSwitch<4>;
+using TorqueSensors = TTorqueSensors<2>;
+using WallSensors = TWallSensors<4>;
+}  // namespace proxy
+
+/*****************************************
+ * Internal
+ *****************************************/
+
+const hal::Timer::Config timer_config = {
+    .init_function = MX_TIM6_Init,
+    .handle = &htim6,
+};
+
+const proxy::Storage::Config maze_storage_config{
+    .start_page = 2,
+    .number_of_pages = 1,
+};
+
+/*****************************************
  * Interface
  *****************************************/
 
@@ -34,7 +59,7 @@ const proxy::Led::Config led_config = {
         },
 };
 
-const proxy::Argb<2>::Config argb_config = {
+const proxy::Argb::Config argb_config = {
     .pwm =
         {
             .init_function = MX_TIM8_Init,
@@ -55,7 +80,7 @@ const proxy::Button::Config button_config = {
     .pull_resistor = proxy::Button::PullResistor::PULL_UP,
 };
 
-const proxy::DipSwitch<4>::Config dip_switch_config = {
+const proxy::DipSwitch::Config dip_switch_config = {
     .gpio_array = {{
         {
             .port = Switch_0_GPIO_Port,
@@ -183,7 +208,7 @@ const proxy::RotarySensor::Config rotary_sensor_right_config = {
     .registers = rotary_sensor_reg_config,
 };
 
-const proxy::TorqueSensors<2>::Config torque_sensors_config = {
+const proxy::TorqueSensors::Config torque_sensors_config = {
     .adc =
         {
             .init_function = MX_ADC2_Init,
@@ -195,7 +220,7 @@ const proxy::TorqueSensors<2>::Config torque_sensors_config = {
     .filter_cutoff = 10.0F,
 };
 
-const proxy::WallSensors<4>::Config wall_sensors_config = {
+const proxy::WallSensors::Config wall_sensors_config = {
     .adc =
         {
             .init_function = MX_ADC1_Init,
@@ -262,11 +287,6 @@ const proxy::Battery::Config battery_config = {
         },
     .voltage_divider = 3.0F,
     .filter_cutoff = 5.0F,
-};
-
-const hal::Timer::Config timer_config = {
-    .init_function = MX_TIM6_Init,
-    .handle = &htim6,
 };
 
 /*****************************************

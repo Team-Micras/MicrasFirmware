@@ -18,10 +18,10 @@ static volatile float test_current_raw[2];
 
 int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);
-    bool                    running = false;
-    proxy::Locomotion       locomotion{locomotion_config};
-    proxy::TorqueSensors<2> torque_sensors{torque_sensors_config};
-    proxy::Button           button{button_config};
+    bool                 running = false;
+    proxy::Locomotion    locomotion{locomotion_config};
+    proxy::TorqueSensors torque_sensors{torque_sensors_config};
+    proxy::Button        button{button_config};
 
     locomotion.enable();
 

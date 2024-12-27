@@ -11,7 +11,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "serializable_interface.hpp"
+#include "serializable.hpp"
 
 namespace micras::proxy {
 template <typename T>
