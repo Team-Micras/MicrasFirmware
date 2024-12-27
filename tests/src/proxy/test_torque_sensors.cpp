@@ -6,6 +6,8 @@
 
 using namespace micras;  // NOLINT(google-build-using-namespace)
 
+static constexpr float linear_speed{80.0F};
+
 // NOLINTBEGIN(*-avoid-c-arrays, cppcoreguidelines-avoid-non-const-global-variables)
 static volatile float test_torque[2];
 static volatile float test_torque_raw[2];
@@ -28,9 +30,9 @@ int main(int argc, char* argv[]) {
             running = not running;
 
             if (running) {
-                locomotion.set_command(80.0F, 0.0F);
+                locomotion.set_command(linear_speed, 0.0F);
             } else {
-                locomotion.set_command(-80.0F, 0.0F);
+                locomotion.set_command(-linear_speed, 0.0F);
             }
         }
 

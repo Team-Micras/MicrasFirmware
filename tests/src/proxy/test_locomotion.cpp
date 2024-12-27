@@ -6,6 +6,8 @@
 
 using namespace micras;  // NOLINT(google-build-using-namespace)
 
+static constexpr float test_speed{50.0F};
+
 int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);
     proxy::Button     button{button_config};
@@ -16,20 +18,20 @@ int main(int argc, char* argv[]) {
 
         switch (button_status) {
             case proxy::Button::Status::SHORT_PRESS:
-                locomotion.set_command(50.0F, 0.0F);
+                locomotion.set_command(test_speed, 0.0F);
                 hal::Timer::sleep_ms(1000);
                 locomotion.set_command(0.0F, 0.0F);
                 hal::Timer::sleep_ms(1000);
-                locomotion.set_command(-50.0F, 0.0F);
+                locomotion.set_command(-test_speed, 0.0F);
                 hal::Timer::sleep_ms(1000);
                 locomotion.set_command(0.0F, 0.0F);
                 hal::Timer::sleep_ms(1000);
 
-                locomotion.set_command(0.0F, 50.0F);
+                locomotion.set_command(0.0F, test_speed);
                 hal::Timer::sleep_ms(1000);
                 locomotion.set_command(0.0F, 0.0F);
                 hal::Timer::sleep_ms(1000);
-                locomotion.set_command(0.0F, -50.0F);
+                locomotion.set_command(0.0F, -test_speed);
                 hal::Timer::sleep_ms(1000);
                 locomotion.set_command(0.0F, 0.0F);
                 break;

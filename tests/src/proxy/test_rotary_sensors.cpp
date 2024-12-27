@@ -6,6 +6,8 @@
 
 using namespace micras;  // NOLINT(google-build-using-namespace)
 
+static constexpr float linear_speed{50.0F};
+
 static volatile float test_left_position{};
 static volatile float test_right_position{};
 
@@ -40,7 +42,7 @@ int main(int argc, char* argv[]) {
 
         if (button_status != proxy::Button::Status::NO_PRESS) {
             running = not running;
-            locomotion.set_command(50.0F * running, 0.0F);
+            locomotion.set_command(linear_speed * running, 0.0F);
         }
     });
 
