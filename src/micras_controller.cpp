@@ -94,32 +94,34 @@ void MicrasController::update() {
             break;
 
         case Status::RUN:
-            if (this->run(elapsed_time)) {
-                if (this->current_action.type == nav::Mapping<maze_width, maze_height>::Action::Type::ERROR) {
-                    this->status = Status::ERROR;
+            if (not this->run(elapsed_time)) {
+                break;
+            }
+
+            if (this->current_action.type == nav::Mapping<maze_width, maze_height>::Action::Type::ERROR) {
+                this->status = Status::ERROR;
+                this->stop();
+                break;
+            }
+
+            switch (this->objective) {
+                case core::Objective::EXPLORE:
+                    this->status = Status::WAIT;
+                    this->wait_timer.reset_ms();
+                    this->objective = core::Objective::RETURN;
+                    break;
+
+                case core::Objective::RETURN:
+                    this->objective = core::Objective::SOLVE;
+                    this->maze_storage.create("maze", this->mapping);
+                    this->maze_storage.save();
                     this->stop();
                     break;
-                }
 
-                switch (this->objective) {
-                    case core::Objective::EXPLORE:
-                        this->status = Status::WAIT;
-                        this->wait_timer.reset_ms();
-                        this->objective = core::Objective::RETURN;
-                        break;
-
-                    case core::Objective::RETURN:
-                        this->objective = core::Objective::SOLVE;
-                        this->maze_storage.create("maze", this->mapping);
-                        this->maze_storage.save();
-                        this->stop();
-                        break;
-
-                    default:
-                        this->status = Status::IDLE;
-                        this->stop();
-                        break;
-                }
+                default:
+                    this->status = Status::IDLE;
+                    this->stop();
+                    break;
             }
 
             break;
