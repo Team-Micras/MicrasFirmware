@@ -246,7 +246,7 @@ const proxy::WallSensors::Config wall_sensors_config = {
             0.42418F,
             0.0961F,
             0.09384F,
-            0.31886F,
+            0.31986F,
         },
     .free_threshold =
         {

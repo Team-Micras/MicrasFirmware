@@ -9,7 +9,6 @@ using namespace micras;  // NOLINT(google-build-using-namespace)
 // NOLINTBEGIN(*-avoid-c-arrays, cppcoreguidelines-avoid-non-const-global-variables)
 static volatile float test_angular_velocity[3]{};
 static volatile float test_linear_acceleration[3]{};
-static volatile float test_orientation[3]{};
 
 // NOLINTEND(*-avoid-c-arrays, cppcoreguidelines-avoid-non-const-global-variables)
 

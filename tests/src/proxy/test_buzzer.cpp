@@ -26,9 +26,9 @@ int main(int argc, char* argv[]) {
     TestCore::loop([&button, &buzzer]() {
         while (button.get_status() == proxy::Button::Status::NO_PRESS) { }
 
-        for (uint8_t i = 0; i < frequencies.size(); i++) {
-            buzzer.play(frequencies[i], duration);
-            buzzer.wait(intervals[i]);
+        for (uint32_t i = 0; i < frequencies.size(); i++) {
+            buzzer.play(frequencies.at(i), duration);
+            buzzer.wait(intervals.at(i));
         }
     });
 
