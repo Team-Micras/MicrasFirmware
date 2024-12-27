@@ -28,7 +28,7 @@ MicrasController::MicrasController() :
     go_to_point{wall_sensors, go_to_point_config, follow_wall_config} { }
 
 void MicrasController::update() {
-    float elapsed_time = loop_timer.elapsed_time_us() / 1000000.0F;
+    float elapsed_time = loop_timer.elapsed_time_us() / 1e6F;
     loop_timer.reset_us();
 
     auto button_status = button.get_status();
@@ -138,6 +138,7 @@ void MicrasController::update() {
             break;
 
         case Status::ERROR:
+            this->led.turn_on();
             break;
 
         default:
