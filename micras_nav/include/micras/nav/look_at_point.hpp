@@ -34,7 +34,7 @@ public:
     /**
      * @brief Calculates the command to look at a point.
      *
-     * @param pose The current pose of the robot.
+     * @param state The current state of the robot.
      * @param goal The goal point.
      * @param elapsed_time The time elapsed since the last update.
      * @return The command to look at the point.
@@ -49,8 +49,9 @@ public:
     /**
      * @brief Checks if the robot has reached the goal.
      *
-     * @param pose The current pose of the robot.
+     * @param state The current state of the robot.
      * @param goal The goal point.
+     * @param stop Whether to stop the robot when it reaches the goal.
      * @return True if the robot has reached the goal, false otherwise.
      */
     bool finished(const State& state, const Point& goal, bool stop = true) const;

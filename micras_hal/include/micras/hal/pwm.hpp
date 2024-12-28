@@ -40,8 +40,9 @@ public:
     /**
      * @brief Set the PWM frequency.
      *
-     * @note Changing the pwm frequency will also change the duty cycle and reset the counter.
-     * There is a minimum and maximum frequency that can be set by changing the auto-reload register.
+     * @note Changing the pwm frequency will modify the autoreload and reset the counter,
+     * but the compare value will stay the same, so the duty cycle will be different from the previously set value.
+     * There is a minimum and maximum frequency that can be set by changing the autoreload register.
      * The minimum frequency is base_freq / (2^timer_resolution * (prescaler + 1)).
      * The maximum frequency is base_freq / (prescaler + 1).
      *
