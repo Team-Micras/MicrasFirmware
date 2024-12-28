@@ -6,11 +6,16 @@
 
 using namespace micras;  // NOLINT(google-build-using-namespace)
 
+static constexpr float linear_speed{50.0F};
+
+// NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
 static volatile float test_left_position{};
 static volatile float test_right_position{};
 
 static volatile uint16_t test_resolution_byte{};
 static volatile uint16_t test_decimal_byte{};
+
+// NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);
@@ -40,7 +45,7 @@ int main(int argc, char* argv[]) {
 
         if (button_status != proxy::Button::Status::NO_PRESS) {
             running = not running;
-            locomotion.set_command(50.0F * running, 0.0F);
+            locomotion.set_command(running ? linear_speed : 0.0F, 0.0F);
         }
     });
 

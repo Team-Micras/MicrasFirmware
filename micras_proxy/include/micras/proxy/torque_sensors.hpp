@@ -16,7 +16,7 @@ namespace micras::proxy {
  * @brief Class for acquiring torque sensors data
  */
 template <uint8_t num_of_sensors>
-class TorqueSensors {
+class TTorqueSensors {
 public:
     /**
      * @brief Configuration structure for torque sensors
@@ -33,7 +33,7 @@ public:
      *
      * @param config Configuration for the torque sensors
      */
-    explicit TorqueSensors(const Config& config);
+    explicit TTorqueSensors(const Config& config);
 
     /**
      * @brief Calibrate the torque sensors

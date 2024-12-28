@@ -49,11 +49,11 @@ public:
     void stop();
 
     /**
-     * @brief Wait for a duration updating the buzzer
+     * @brief Wait for a time interval updating the buzzer
      *
-     * @param duration Duration to wait in ms
+     * @param interval Time to wait in ms
      */
-    void wait(uint32_t duration);
+    void wait(uint32_t interval);
 
 private:
     /**

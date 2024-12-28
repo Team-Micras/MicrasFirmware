@@ -10,9 +10,9 @@ static volatile uint8_t test_dip_switch_value{};  // NOLINT(cppcoreguidelines-av
 
 int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);
-    proxy::DipSwitch<4>   dip_switch{dip_switch_config};
-    proxy::Argb<2>        argb{argb_config};
-    proxy::Argb<2>::Color color{};
+    proxy::DipSwitch   dip_switch{dip_switch_config};
+    proxy::Argb        argb{argb_config};
+    proxy::Argb::Color color{};
 
     TestCore::loop([&dip_switch, &argb, &color]() {
         color = {0, 0, 0};

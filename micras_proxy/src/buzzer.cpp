@@ -26,14 +26,14 @@ void Buzzer::update() {
     }
 }
 
-void Buzzer::wait(uint32_t duration) {
+void Buzzer::wait(uint32_t interval) {
     while (this->duration > 0 and this->is_playing) {
         this->update();
     }
 
     hal::Timer wait_timer;
 
-    while (wait_timer.elapsed_time_ms() < duration) {
+    while (wait_timer.elapsed_time_ms() < interval) {
         this->update();
     }
 }

@@ -15,7 +15,7 @@ namespace micras::proxy {
  * @brief Class for controlling an addressable RGB LED
  */
 template <uint8_t num_of_leds>
-class Argb {
+class TArgb {
 public:
     /**
      * @brief Configuration structure for the addressable RGB LED
@@ -45,11 +45,22 @@ public:
     };
 
     /**
+     * @brief Predefined colors
+     */
+    static constexpr Color red{255, 0, 0};
+    static constexpr Color green{0, 255, 0};
+    static constexpr Color blue{0, 0, 255};
+    static constexpr Color yellow{255, 255, 0};
+    static constexpr Color cyan{0, 255, 255};
+    static constexpr Color magenta{255, 0, 255};
+    static constexpr Color white{255, 255, 255};
+
+    /**
      * @brief Constructor for the Argb class
      *
      * @param config Configuration for the addressable RGB LED
      */
-    explicit Argb(const Config& config);
+    explicit TArgb(const Config& config);
 
     /**
      * @brief Set the color of the ARGB at the specified index

@@ -20,7 +20,7 @@ namespace micras::nav {
  * @tparam height The height of the maze
  */
 template <uint8_t width, uint8_t height>
-class Maze {
+class TMaze {
 public:
     /**
      * @brief Construct a new Maze object
@@ -28,7 +28,7 @@ public:
      * @param start The start pose of the robot
      * @param goal The goal points in the maze
      */
-    Maze(const GridPose& start, const std::unordered_set<GridPoint>& goal);
+    TMaze(const GridPose& start, const std::unordered_set<GridPoint>& goal);
 
     /**
      * @brief Updates the maze walls with the current pose and new information

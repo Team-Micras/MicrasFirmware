@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) {
     proxy::Storage::Config storage_test_config = {.start_page = 0, .number_of_pages = 1};
 
     proxy::Button  button{button_config};
-    proxy::Argb<2> argb{argb_config};
+    proxy::Argb    argb{argb_config};
     proxy::Storage storage_0{storage_test_config};
 
     bool    test_bool_0 = true;
@@ -95,43 +95,43 @@ int main(int argc, char* argv[]) {
         while (button.get_status() == proxy::Button::Status::NO_PRESS) { }
 
         if (test_bool_0 != test_bool_1) {
-            argb.set_color({255, 0, 0});
+            argb.set_color(proxy::Argb::red);
         } else {
-            argb.set_color({0, 255, 0});
+            argb.set_color(proxy::Argb::green);
         }
 
         hal::Timer::sleep_ms(500);
-        argb.set_color({0, 0, 0});
+        argb.turn_off();
         hal::Timer::sleep_ms(500);
 
         if (test_int16_0 != test_int16_1) {
-            argb.set_color({255, 0, 0});
+            argb.set_color(proxy::Argb::red);
         } else {
-            argb.set_color({0, 255, 0});
+            argb.set_color(proxy::Argb::green);
         }
 
         hal::Timer::sleep_ms(500);
-        argb.set_color({0, 0, 0});
+        argb.turn_off();
         hal::Timer::sleep_ms(500);
 
         if (test_float_0 != test_float_1) {
-            argb.set_color({255, 0, 0});
+            argb.set_color(proxy::Argb::red);
         } else {
-            argb.set_color({0, 255, 0});
+            argb.set_color(proxy::Argb::green);
         }
 
         hal::Timer::sleep_ms(500);
-        argb.set_color({0, 0, 0});
+        argb.turn_off();
         hal::Timer::sleep_ms(500);
 
         if (test_serializable_0 != test_serializable_1) {
-            argb.set_color({255, 0, 0});
+            argb.set_color(proxy::Argb::red);
         } else {
-            argb.set_color({0, 255, 0});
+            argb.set_color(proxy::Argb::green);
         }
 
         hal::Timer::sleep_ms(500);
-        argb.set_color({0, 0, 0});
+        argb.turn_off();
     });
 
     return 0;

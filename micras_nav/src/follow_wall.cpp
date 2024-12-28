@@ -5,7 +5,7 @@
 #include "micras/nav/follow_wall.hpp"
 
 namespace micras::nav {
-FollowWall::FollowWall(const proxy::WallSensors<4>& wall_sensors, const Config& config) :
+FollowWall::FollowWall(const proxy::TWallSensors<4>& wall_sensors, const Config& config) :
     wall_sensors{wall_sensors},
     pid{config.pid},
     filter{config.cutoff_frequency},

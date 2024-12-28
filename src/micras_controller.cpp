@@ -98,7 +98,7 @@ void MicrasController::update() {
                 break;
             }
 
-            if (this->current_action.type == nav::Mapping<maze_width, maze_height>::Action::Type::ERROR) {
+            if (this->current_action.type == nav::Mapping::Action::Type::ERROR) {
                 this->status = Status::ERROR;
                 this->stop();
                 break;
@@ -173,13 +173,13 @@ bool MicrasController::run(float elapsed_time) {
     bool stop = (this->objective != core::Objective::SOLVE) or not this->dip_switch.get_switch_state(Switch::STOP);
 
     switch (this->current_action.type) {
-        case nav::Mapping<maze_width, maze_height>::Action::Type::LOOK_AT:
+        case nav::Mapping::Action::Type::LOOK_AT:
             if (this->look_at_point.finished(relative_state, this->current_action.point)) {
                 this->current_action = this->mapping.get_action(state.pose, this->objective);
 
-                if (this->current_action.type == nav::Mapping<maze_width, maze_height>::Action::Type::GO_TO and
+                if (this->current_action.type == nav::Mapping::Action::Type::GO_TO and
                     this->mapping.can_align_back(state.pose) and this->objective != core::Objective::SOLVE) {
-                    this->current_action.type = nav::Mapping<maze_width, maze_height>::Action::Type::ALIGN_BACK;
+                    this->current_action.type = nav::Mapping::Action::Type::ALIGN_BACK;
                     this->align_back_timer.reset_ms();
                 }
 
@@ -190,7 +190,7 @@ bool MicrasController::run(float elapsed_time) {
             command = this->look_at_point.action(relative_state, this->current_action.point, elapsed_time);
             break;
 
-        case nav::Mapping<maze_width, maze_height>::Action::Type::GO_TO:
+        case nav::Mapping::Action::Type::GO_TO:
             if (this->go_to_point.finished(relative_state, this->current_action.point, stop)) {
                 this->current_action = this->mapping.get_action(state.pose, this->objective);
                 this->go_to_point.reset();
@@ -210,7 +210,7 @@ bool MicrasController::run(float elapsed_time) {
             );
 
             break;
-        case nav::Mapping<maze_width, maze_height>::Action::Type::ALIGN_BACK:
+        case nav::Mapping::Action::Type::ALIGN_BACK:
             command = {-5.0F, 0.0F};
 
             if (this->align_back_timer.elapsed_time_ms() > 500) {
@@ -225,34 +225,34 @@ bool MicrasController::run(float elapsed_time) {
             return true;
     }
 
-    if (this->current_action.type == nav::Mapping<maze_width, maze_height>::Action::Type::LOOK_AT) {
-        this->argb.set_color({0, 0, 255});
-    } else if (this->current_action.type == nav::Mapping<maze_width, maze_height>::Action::Type::GO_TO) {
+    if (this->current_action.type == nav::Mapping::Action::Type::LOOK_AT) {
+        this->argb.set_color(proxy::Argb::blue);
+    } else if (this->current_action.type == nav::Mapping::Action::Type::GO_TO) {
         switch (follow_wall_type) {
             case core::FollowWallType::NONE:
-                this->argb.set_color({255, 0, 255});
+                this->argb.set_color(proxy::Argb::magenta);
                 break;
 
             case core::FollowWallType::FRONT:
-                this->argb.set_color({255, 255, 255});
+                this->argb.set_color(proxy::Argb::white);
                 break;
 
             case core::FollowWallType::LEFT:
-                this->argb.set_color({0, 255, 0});
+                this->argb.set_color(proxy::Argb::green);
                 break;
 
             case core::FollowWallType::RIGHT:
-                this->argb.set_color({255, 0, 0});
+                this->argb.set_color(proxy::Argb::red);
                 break;
 
             case core::FollowWallType::PARALLEL:
-                this->argb.set_color({255, 255, 0});
+                this->argb.set_color(proxy::Argb::yellow);
                 break;
             default:
                 break;
         }
     } else {
-        this->argb.set_color({0, 255, 255});
+        this->argb.set_color(proxy::Argb::cyan);
     }
 
     locomotion.set_command(command.linear, command.angular);
