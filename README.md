@@ -46,6 +46,7 @@ NTF Classic Micromouse project with a STM32 microcontroller
 
 - [micras_hal](./micras_hal/) - Wrapper to the STM32 HAL, implementing the needed functionalities in C++ classes.
 - [micras_proxy](./micras_proxy/) - Intermediate abstraction layer for the hardware components.
+- [micras_nav](./micras_nav/) - Mapping, planning and control algorithms to navigate inside a maze.
 
 ## 🔨 Building
 
@@ -53,6 +54,12 @@ To build the project, it is first necessary to install some dependencies:
 
 ```bash
 sudo apt install cmake build-essential gcc-arm-none-eabi
+```
+
+And initialize the libraries submodules:
+
+```bash
+git submodule update --init --recursive
 ```
 
 The [STM32CubeMX](https://www.st.com/en/development-tools/stm32cubemx.html) program is also needed. After the installation is completed, it is necessary to set the environment variable `CUBE_PATH` to the installation directory path of STM32CubeMX.
@@ -101,6 +108,12 @@ make [test_name] -j
 
 ```bash
 make flash_[test_name] -j
+```
+
+It also possible to build all tests at once, using the command:
+
+```bash
+make test_all -j
 ```
 
 ## 🐛 Debugging
@@ -190,7 +203,7 @@ cmake .. -DLINTER_MODE=FIX
 The project is documented using Doxygen. In Ubuntu, it is possible to install it with the following command:
 
 ```bash
-sudo apt install doxygen pdflatex
+sudo apt install doxygen texlive-latex-extra texlive-fonts-extra
 ```
 
 For other operating systems, you can see download options on the [official Doxygen page](https://www.doxygen.nl/download.html).
@@ -218,7 +231,7 @@ To learn how to contribute to the project, see the following contribution guidel
   - 🎨 `:art:` for formatting code
   - ✨ `:sparkles:` for new features
 
-  For more examples, see [this reference](https://gitmoji.carloscuesta.me/).
+  For more examples, see [this reference](https://gitmoji.dev/).
 
 ### 🔀 Git workflow
 
