@@ -12,15 +12,15 @@
 
 namespace micras::core {
 /**
- * @brief Remap a value from one range to another
+ * @brief Remap a value from one range to another.
  *
- * @tparam T Type of the value
- * @param value Value to be remapped
- * @param in_min Minimum value of the input range
- * @param in_max Maximum value of the input range
- * @param out_min Minimum value of the output range
- * @param out_max Maximum value of the output range
- * @return T Remapped value
+ * @tparam T Type of the value.
+ * @param value Value to be remapped.
+ * @param in_min Minimum value of the input range.
+ * @param in_max Maximum value of the input range.
+ * @param out_min Minimum value of the output range.
+ * @param out_max Maximum value of the output range.
+ * @return Remapped value.
  */
 template <typename T>
 constexpr T remap(T value, T in_min, T in_max, T out_min, T out_max) {
@@ -28,13 +28,13 @@ constexpr T remap(T value, T in_min, T in_max, T out_min, T out_max) {
 }
 
 /**
- * @brief Move a value towards a target limiting the step size
+ * @brief Move a value towards a target limiting by the step size.
  *
- * @tparam T Type of the value
- * @param value Current value
- * @param target Target value
- * @param step Step size
- * @return T New value
+ * @tparam T Type of the value.
+ * @param value Current value.
+ * @param target Target value.
+ * @param step Step size.
+ * @return New value.
  */
 template <typename T>
 constexpr T move_towards(T value, T target, T step) {
@@ -42,14 +42,14 @@ constexpr T move_towards(T value, T target, T step) {
 }
 
 /**
- * @brief Varies a value from start to end smoothly
+ * @brief Vary a value from start to end smoothly.
  *
- * @tparam T Type of the value
- * @param value Current value
- * @param resistance Value resistance to variation
- * @param start Start value
- * @param end End value
- * @return T New value
+ * @tparam T Type of the value.
+ * @param value Current value.
+ * @param start Start value.
+ * @param end End value.
+ * @param resistance Value resistance to variation.
+ * @return New value.
  */
 template <typename T>
 constexpr T transition(T value, T start, T end, T resistance) {
@@ -57,13 +57,13 @@ constexpr T transition(T value, T start, T end, T resistance) {
 }
 
 /**
- * @brief Create an array objects calling its constructors from an array of parameters
+ * @brief Create an array objects calling its constructors from an array of parameters.
  *
- * @tparam T Type of the array
- * @tparam N Size of the array
- * @tparam C Type of the parameters
- * @param parameters List of parameters
- * @return std::array<T, N> Array with the objects created from the parameters
+ * @tparam T Type of the array.
+ * @tparam N Size of the array.
+ * @tparam C Type of the parameters.
+ * @param parameters List of parameters.
+ * @return Array with the objects created from the parameters.
  */
 template <typename T, size_t N, typename C>
 constexpr std::array<T, N> make_array(const std::array<C, N>& parameters) {
@@ -73,13 +73,13 @@ constexpr std::array<T, N> make_array(const std::array<C, N>& parameters) {
 }
 
 /**
- * @brief Create an array objects calling its constructors from a single parameter
+ * @brief Create an array objects calling its constructors from a single parameter.
  *
- * @tparam T Type of the array
- * @tparam N Size of the array
- * @tparam C Type of the parameter
- * @param value Parameter
- * @return std::array<T, N> Array with the objects created from the parameter
+ * @tparam T Type of the array.
+ * @tparam N Size of the array.
+ * @tparam C Type of the parameter.
+ * @param value Parameter.
+ * @return Array with the objects created from the parameter.
  */
 template <typename T, size_t N, typename C>
 constexpr std::array<T, N> make_array(C value) {
@@ -89,10 +89,10 @@ constexpr std::array<T, N> make_array(C value) {
 }
 
 /**
- * @brief Assert an angle to be in the range [-pi, pi]
+ * @brief Assert an angle to be in the range [-pi, pi].
  *
- * @param angle Angle to be asserted
- * @return float Asserted angle
+ * @param angle Angle to be asserted.
+ * @return Asserted angle.
  */
 constexpr float assert_angle(float angle) {
     angle = std::fmod(angle, 2 * std::numbers::pi_v<float>);
@@ -107,10 +107,10 @@ constexpr float assert_angle(float angle) {
 }
 
 /**
- * @brief Assert an angle to be in the range [-pi/2, pi/2]
+ * @brief Assert an angle to be in the range [-pi/2, pi/2].
  *
- * @param angle Angle to be asserted
- * @return float Asserted angle
+ * @param angle Angle to be asserted.
+ * @return Asserted angle.
  */
 constexpr float assert_half_angle(float angle) {
     angle = std::fmod(angle, std::numbers::pi_v<float>);
@@ -125,12 +125,12 @@ constexpr float assert_half_angle(float angle) {
 }
 
 /**
- * @brief Check if two floating point numbers are near each other
+ * @brief Check if two floating point numbers are near each other.
  *
- * @param x First number
- * @param y Second number
- * @param tolerance Tolerance
- * @return true If the numbers are near each other, false otherwise
+ * @param x First number.
+ * @param y Second number.
+ * @param tolerance Tolerance.
+ * @return True if the numbers are near each other, false otherwise.
  */
 constexpr bool is_near(float x, float y, float tolerance = 0.001) {
     return std::abs(x - y) <= tolerance;

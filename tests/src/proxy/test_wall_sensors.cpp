@@ -1,9 +1,5 @@
 /**
- * @file test_distance_sensors.cpp
- *
- * @brief Test for the WallSensors class
- *
- * @date 05/2024
+ * @file
  */
 
 #include "test_core.hpp"

@@ -8,8 +8,9 @@
 
 namespace micras::hal {
 /**
- * @brief Last address of the flash memory
- * needs to be here because it is not defined at compile time
+ * @brief Last address of the flash memory.
+ *
+ * @note Needs to be here because it is not defined at compile time.
  */
 static const uint32_t base_address = FLASH_BASE + FLASH_SIZE - 8;
 

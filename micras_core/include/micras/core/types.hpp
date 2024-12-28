@@ -9,7 +9,7 @@
 
 namespace micras::core {
 /**
- * @brief Possible values for the observation of a wall
+ * @brief Possible values for the observation of a wall.
  */
 enum Observation : uint8_t {
     UNKNOWN = 0,
@@ -18,7 +18,7 @@ enum Observation : uint8_t {
 };
 
 /**
- * @brief Type of wall following the robot is able to do
+ * @brief Types of wall following the robot is able to do.
  */
 enum FollowWallType : uint8_t {
     NONE = 0,
@@ -29,6 +29,9 @@ enum FollowWallType : uint8_t {
     BACK = 5,
 };
 
+/**
+ * @brief Possible objectives of the robot.
+ */
 enum Objective : uint8_t {
     EXPLORE = 0,
     RETURN = 1,

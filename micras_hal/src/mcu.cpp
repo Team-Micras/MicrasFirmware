@@ -10,8 +10,9 @@
 
 extern "C" {
 /**
- * @brief Initializes System Clock
- * @note  Defined by cube
+ * @brief Initializes System Clock.
+ *
+ * @note  Defined by cube.
  */
 void SystemClock_Config();
 }

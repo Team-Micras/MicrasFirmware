@@ -9,17 +9,17 @@
 
 namespace micras::hal {
 /**
- * @brief Microcontroller unit class
+ * @brief Microcontroller unit class.
  */
 class Mcu {
 public:
     /**
-     * @brief Deleted constructor for static class
+     * @brief Deleted constructor for static class.
      */
     Mcu() = delete;
 
     /**
-     * @brief Initializes MCU and some peripherals
+     * @brief Initializes MCU and some peripherals.
      */
     static void init();
 };

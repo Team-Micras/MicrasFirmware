@@ -12,12 +12,12 @@
 
 namespace micras::proxy {
 /**
- * @brief Class for acquiring a button data
+ * @brief Class for acquiring button data.
  */
 class Button {
 public:
     /**
-     * @brief Enum for button status
+     * @brief Enum for button status.
      */
     enum Status : uint8_t {
         NO_PRESS,
@@ -27,7 +27,7 @@ public:
     };
 
     /**
-     * @brief Enum for button pull resistor
+     * @brief Enum for button pull resistor.
      */
     enum PullResistor : uint8_t {
         PULL_UP,
@@ -35,7 +35,7 @@ public:
     };
 
     /**
-     * @brief Configuration structure for button
+     * @brief Configuration struct for the button.
      */
     struct Config {
         hal::Gpio::Config gpio{};
@@ -46,94 +46,96 @@ public:
     };
 
     /**
-     * @brief Constructor for Button class
+     * @brief Construct a new Button object.
      *
-     * @param config Button configuration
+     * @param config Button configuration.
      */
     explicit Button(const Config& config);
 
     /**
-     * @brief Check if button is pressed
+     * @brief Check if button is pressed.
      *
-     * @return bool True if button is pressed, false otherwise
+     * @return True if button is pressed, false otherwise.
      */
     bool is_pressed();
 
     /**
-     * @brief Get button status
+     * @brief Get button status.
      *
-     * @return Status Button status
+     * @return Current button status.
      */
     Status get_status();
 
 private:
     /**
-     * @brief Get raw button reading
+     * @brief Get raw button reading.
      *
-     * @return bool Button reading without debounce
+     * @return Button reading without debounce.
      */
     bool get_raw_reading() const;
 
     /**
-     * @brief Update button state
+     * @brief Update button state.
      *
-     * @return Current state of the button
+     * @return Current state of the button.
      */
     bool update_state();
 
     /**
-     * @brief Check if button was just pressed
+     * @brief Check if button was just pressed.
      *
-     * @return True if button was just pressed, false otherwise
+     * @return True if button was just pressed, false otherwise.
      */
     bool is_rising_edge() const;
 
     /**
-     * @brief Check if button was just released
+     * @brief Check if button was just released.
      *
-     * @return True if button was just released, false otherwise
+     * @return True if button was just released, false otherwise.
      */
     bool is_falling_edge() const;
 
     /**
-     * @brief Button pressing delays in ms
+     * @brief Button pressing delays in ms.
      */
+    ///@{
     uint16_t debounce_delay;
     uint16_t long_press_delay;
     uint16_t extra_long_press_delay;
+    ///@}
 
     /**
-     * @brief Gpio object for button
+     * @brief Gpio object for button.
      */
     hal::Gpio gpio;
 
     /**
-     * @brief Pull resistor configuration
+     * @brief Pull resistor configuration.
      */
     PullResistor pull_resistor;
 
     /**
-     * @brief Timer to check if button is debouncing
+     * @brief Timer to check if button is debouncing.
      */
     hal::Timer debounce_timer;
 
     /**
-     * @brief Timer to determine type of button press
+     * @brief Timer to determine type of button press.
      */
     hal::Timer status_timer;
 
     /**
-     * @brief Flag to know when button is debouncing
+     * @brief Flag to know when button is debouncing.
      */
     bool is_debouncing{false};
 
     /**
-     * @brief Flag to know if button was being pressed
+     * @brief Flag to know if button was being pressed.
      */
     bool previous_state{false};
 
     /**
-     * @brief Flag to know if button is being pressed
+     * @brief Flag to know if button is being pressed.
      */
     bool current_state{false};
 };
