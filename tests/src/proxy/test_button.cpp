@@ -19,11 +19,11 @@ int main(int argc, char* argv[]) {
         proxy::Button::Status status = button.get_status();
 
         if (status == proxy::Button::Status::SHORT_PRESS) {
-            color = proxy::Argb::red;
+            color = proxy::Argb::Colors::red;
         } else if (status == proxy::Button::Status::LONG_PRESS) {
-            color = proxy::Argb::green;
+            color = proxy::Argb::Colors::green;
         } else if (status == proxy::Button::Status::EXTRA_LONG_PRESS) {
-            color = proxy::Argb::blue;
+            color = proxy::Argb::Colors::blue;
         }
 
         argb.set_color(color);
