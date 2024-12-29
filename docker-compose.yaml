@@ -1,0 +1,19 @@
+services:
+  base:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: base
+    stdin_open: true
+    tty: true
+    environment:
+      CUBE_PATH: "/opt/stm32cubemx"
+
+  build:
+    extends: base
+
+  dev:
+    extends: base
+    command: bash
+    volumes:
+      - .:/MicrasFirmware
