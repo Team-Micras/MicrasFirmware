@@ -17,9 +17,8 @@ RUN apt install -y \
 
 WORKDIR /home/ubuntu
 
-RUN mkdir STM32Cube && cd STM32Cube && mkdir Repository && cd Repository
-
-RUN git clone -b v1.6.1 https://github.com/STMicroelectronics/STM32CubeG4.git && cd STM32CubeG4 && \
+RUN mkdir STM32Cube && cd STM32Cube && mkdir Repository && cd Repository && \
+    git clone -b v1.6.1 https://github.com/STMicroelectronics/STM32CubeG4.git && cd STM32CubeG4 && \
     git submodule update --init --recursive
 
 WORKDIR /

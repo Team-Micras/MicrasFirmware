@@ -20,11 +20,11 @@ add_custom_target(helpme
 add_custom_target(cube
     COMMAND echo "Generating cube files..."
 
-    COMMAND echo "config load ${CMAKE_CURRENT_SOURCE_DIR}/cube/${PROJECT_RELEASE}.ioc" > ${CMAKE_CURRENT_BINARY_DIR}/.cube
+    COMMAND echo "config load ../cube/${PROJECT_RELEASE}.ioc" > ${CMAKE_CURRENT_BINARY_DIR}/.cube
     COMMAND echo "project generate" >> ${CMAKE_CURRENT_BINARY_DIR}/.cube
     COMMAND echo "exit" >> ${CMAKE_CURRENT_BINARY_DIR}/.cube
 
-    COMMAND ${JAVA_EXE} -jar ${CUBE_JAR} -q ${CMAKE_CURRENT_BINARY_DIR}/.cube
+    COMMAND ${CUBE_CMD} -q ${CMAKE_CURRENT_BINARY_DIR}/.cube
 )
 
 add_custom_target(info
