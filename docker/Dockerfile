@@ -25,8 +25,8 @@ RUN git clone https://github.com/STMicroelectronics/STM32CubeG4 && cd STM32CubeG
 WORKDIR /
 
 RUN mkdir st && cd st && \
-    curl -O https://sw-center.st.com/packs/resource/library/stm32cube_mx_v6110-lin.zip && \
-    unzip stm32cube_mx_v6110-lin.zip && \
+    curl -O https://sw-center.st.com/packs/resource/library/stm32cube_mx_v6130-lin.zip && \
+    unzip stm32cube_mx_v6130-lin.zip && \
     unzip JavaJre.zip && \
     mv MX /opt/stm32cubemx && \
     mv jre /opt/stm32cubemx && \
