@@ -6,7 +6,6 @@ docs/
 build/
 -g
 .jlink-flash
-.cube
 
 # Created by https://www.gitignore.io/api/visualstudiocode,c
 
@@ -72,3 +71,5 @@ dkms.conf
 
 
 # End of https://www.gitignore.io/api/visualstudiocode,c
+
+.cache
