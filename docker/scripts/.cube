@@ -1,4 +1,3 @@
 config load /MicrasFirmware/cube/micras.ioc
-project setCustomFWPath /usr/share/STM32CubeG4
-project generate ./
+generate code /MicrasFirmware/cube/
 exit
