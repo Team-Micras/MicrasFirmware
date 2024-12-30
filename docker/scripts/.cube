@@ -1,3 +1,0 @@
-config load /MicrasFirmware/cube/micras.ioc
-project generate
-exit
