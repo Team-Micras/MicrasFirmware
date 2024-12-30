@@ -19,7 +19,7 @@ public:
     Mcu() = delete;
 
     /**
-     * @brief Initializes MCU and some peripherals.
+     * @brief Initialize MCU and some peripherals.
      */
     static void init();
 };

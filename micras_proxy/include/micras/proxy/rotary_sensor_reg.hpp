@@ -8,7 +8,7 @@
 #include <cstdint>
 
 /**
- * @brief Registers class for the rotary sensor configuration.
+ * @brief Registers struct for the rotary sensor configuration.
  */
 struct Registers {
     /**

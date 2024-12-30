@@ -41,7 +41,7 @@ public:
     );
 
     /**
-     * @brief Calculates the command to go to a point.
+     * @brief Calculate the command to go to a point.
      *
      * @param state The current state of the robot.
      * @param goal The goal point.
@@ -56,7 +56,7 @@ public:
     );
 
     /**
-     * @brief Checks if the robot has reached the goal.
+     * @brief Check if the robot has reached the goal.
      *
      * @param state The current state of the robot.
      * @param goal The goal point.

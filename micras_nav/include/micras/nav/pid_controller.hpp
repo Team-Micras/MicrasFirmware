@@ -9,7 +9,7 @@
 
 namespace micras::nav {
 /**
- * @brief Implementation of simple PID controller. Response = kp * (error + hi * integral(error) kd * d/dt(error))
+ * @brief Implementation of simple PID controller. Response = kp * (error + ki * integral(error) kd * d/dt(error))
  */
 class PidController {
 public:

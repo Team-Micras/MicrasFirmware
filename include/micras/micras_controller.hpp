@@ -29,38 +29,38 @@ private:
      * @brief Enum for the current status of the robot.
      */
     enum Status : uint8_t {
-        INIT = 0,
-        IDLE = 1,
-        WAIT = 2,
-        RUN = 3,
-        CALIBRATE = 4,
-        ERROR = 5
+        INIT = 0,       // Initialization of the robot.
+        IDLE = 1,       // Waiting for the user to start the robot.
+        WAIT = 2,       // Timer for the a predefined next state.
+        RUN = 3,        // Running the main algorithm.
+        CALIBRATE = 4,  // Calibrating the robot.
+        ERROR = 5       // Error state.
     };
 
     /**
      * @brief Enum for the type of calibration being performed.
      */
     enum CalibrationType : uint8_t {
-        SIDE_WALLS = 0,
-        FRONT_WALL = 1,
-        LEFT_FREE_SPACE = 2,
-        RIGHT_FREE_SPACE = 3,
+        SIDE_WALLS = 0,        // Calibrate side walls and front free space detection.
+        FRONT_WALL = 1,        // Calibrate front wall detection.
+        LEFT_FREE_SPACE = 2,   // Calibrate left free space detection.
+        RIGHT_FREE_SPACE = 3,  // Calibrate right free space detection.
     };
 
     /**
      * @brief Enum for the dip switch definitions.
      */
     enum Switch : uint8_t {
-        DIAGONAL = 0,
-        FAN = 1,
-        STOP = 2,
-        TURBO = 3,
+        DIAGONAL = 0,  // Whether the robot will be able to move in diagonal paths.
+        FAN = 1,       // Turn the fan on.
+        STOP = 2,      // Whether the robot will stop at each intersection when solving the maze.
+        TURBO = 3,     // Increase the robot speed.
     };
 
     /**
      * @brief Run the robot loop.
      *
-     * @param elapsed_time Time elapsed since the last run.
+     * @param elapsed_time Time elapsed since the last run in seconds.
      * @return True if the robot has ended the run, false otherwise.
      */
     bool run(float elapsed_time);

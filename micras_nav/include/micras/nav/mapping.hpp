@@ -66,11 +66,11 @@ public:
          * @brief Possible types of actions.
          */
         enum Type : uint8_t {
-            LOOK_AT,
-            GO_TO,
-            ALIGN_BACK,
-            FINISHED,
-            ERROR,
+            LOOK_AT,     // Rotate the robot to look at a specific point.
+            GO_TO,       // Move and turn the robot to go to a specific point.
+            ALIGN_BACK,  // Align the back of the robot with a wall.
+            FINISHED,    // The robot has reached the goal.
+            ERROR,       // An error occurred.
         };
 
         /**
@@ -133,7 +133,7 @@ public:
     void calibrate_side();
 
     /**
-     * @brief Check if the robot is at a distance from a wall at the front.
+     * @brief Check if the robot is at a predefined distance from the wall at the front.
      *
      * @return True if the robot is aligned, false otherwise.
      */
@@ -147,7 +147,7 @@ public:
     bool is_orientation_front_aligned() const;
 
     /**
-     * @brief Check if the robot is at a distance from a wall at the sides.
+     * @brief Check if the robot is at a predefined distance from the wallz at the sides.
      *
      * @return True if the robot is aligned, false otherwise.
      */
@@ -192,7 +192,7 @@ public:
     bool can_align_back(const Pose& pose) const;
 
     /**
-     * @brief Adds diagonal movements to the best route.
+     * @brief Add diagonal movements to the best route.
      */
     void diagonalize_best_route();
 

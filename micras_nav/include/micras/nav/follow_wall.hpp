@@ -43,27 +43,27 @@ public:
     float action(core::FollowWallType follow_wall_type, float elapsed_time);
 
     /**
-     * @brief Resets the PID controller.
+     * @brief Reset the PID controller.
      */
     void reset();
 
     /**
-     * @brief Resets the base readings of the wall sensors.
+     * @brief Reset the base readings of the wall sensors.
      */
     void reset_base_readings();
 
 private:
     /**
-     * @brief Get the reading of the left wall sensor.
+     * @brief Get the reading from the left wall sensor.
      *
-     * @return The reading of the left wall sensor.
+     * @return The reading from the left wall sensor.
      */
     float get_left_value() const;
 
     /**
-     * @brief Get the reading of the right wall sensor.
+     * @brief Get the reading from the right wall sensor.
      *
-     * @return The reading of the right wall sensor.
+     * @return The reading from the right wall sensor.
      */
     float get_right_value() const;
 

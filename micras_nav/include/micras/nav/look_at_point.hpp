@@ -32,7 +32,7 @@ public:
     explicit LookAtPoint(Config config);
 
     /**
-     * @brief Calculates the command to look at a point.
+     * @brief Calculate the command to look at a point.
      *
      * @param state The current state of the robot.
      * @param goal The goal point.
@@ -42,12 +42,12 @@ public:
     Twist action(const State& state, const Point& goal, float elapsed_time);
 
     /**
-     * @brief Resets the PID controllers.
+     * @brief Reset the PID controllers.
      */
     void reset();
 
     /**
-     * @brief Checks if the robot has reached the goal.
+     * @brief Check if the robot has reached the goal.
      *
      * @param state The current state of the robot.
      * @param goal The goal point.

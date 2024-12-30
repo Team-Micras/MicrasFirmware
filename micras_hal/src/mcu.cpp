@@ -10,7 +10,7 @@
 
 extern "C" {
 /**
- * @brief Initializes System Clock.
+ * @brief Initialize System Clock.
  *
  * @note  Defined by cube.
  */

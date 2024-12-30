@@ -22,7 +22,7 @@ enum Side : uint8_t {
 };
 
 /**
- * @brief Converts an angle in radians to a Grid side.
+ * @brief Convert an angle in radians to a Grid side.
  *
  * @param angle The angle in radians.
  * @return The corresponding Grid side.
@@ -48,7 +48,7 @@ struct Information {
  */
 struct GridPoint {
     /**
-     * @brief Returns the direction from this point to the next one.
+     * @brief Return the direction from this point to the next one.
      *
      * @param next The next point.
      * @return The direction from this point to the next one.
@@ -56,7 +56,7 @@ struct GridPoint {
     Side direction(const GridPoint& next) const;
 
     /**
-     * @brief Moves in the grid in the direction of the side.
+     * @brief Move in the grid in the direction of the side.
      *
      * @param side The side to move to.
      * @return The new point after moving.
@@ -64,7 +64,7 @@ struct GridPoint {
     GridPoint operator+(const Side& side) const;
 
     /**
-     * @brief Compares two points for equality.
+     * @brief Compare two points for equality.
      *
      * @param other The other point to compare.
      * @return True if the points are equal, false otherwise.
@@ -84,35 +84,35 @@ struct GridPoint {
 
 struct GridPose {
     /**
-     * @brief Returns the pose after moving forward.
+     * @brief Return the pose after moving forward.
      *
      * @return The pose after moving forward.
      */
     GridPose front() const;
 
     /**
-     * @brief Returns the pose after turning back.
+     * @brief Return the pose after turning back.
      *
      * @return The pose after turning back.
      */
     GridPose turned_back() const;
 
     /**
-     * @brief Returns the pose after turning left.
+     * @brief Return the pose after turning left.
      *
      * @return The pose after turning left.
      */
     GridPose turned_left() const;
 
     /**
-     * @brief Returns the pose after turning right.
+     * @brief Return the pose after turning right.
      *
      * @return The pose after turning right.
      */
     GridPose turned_right() const;
 
     /**
-     * @brief Compares two poses for equality.
+     * @brief Compare two poses for equality.
      *
      * @param other The other pose to compare.
      * @return True if the poses are equal, false otherwise.

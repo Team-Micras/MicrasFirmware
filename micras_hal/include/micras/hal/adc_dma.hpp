@@ -34,14 +34,14 @@ public:
     /**
      * @brief Enable ADC, start conversion of regular group and transfer result through DMA.
      *
-     * @param buffer Destination Buffer address.
+     * @param buffer 32 bit destination buffer address.
      */
     void start_dma(std::span<uint32_t> buffer);
 
     /**
      * @brief Enable ADC, start conversion of regular group and transfer result through DMA.
      *
-     * @param buffer Destination Buffer address.
+     * @param buffer 16 bit destination buffer address.
      */
     void start_dma(std::span<uint16_t> buffer);
 

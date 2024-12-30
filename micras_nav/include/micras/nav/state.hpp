@@ -27,7 +27,7 @@ enum Direction : uint8_t {
  */
 struct Point {
     /**
-     * @brief Calculates the distance to another point.
+     * @brief Calculate the distance to another point.
      *
      * @param other The other point.
      * @return The distance to the other point.
@@ -35,7 +35,7 @@ struct Point {
     float distance(const Point& other) const;
 
     /**
-     * @brief Calculates the angle between two points.
+     * @brief Calculate the angle between two points.
      *
      * @param other The other point.
      * @return The angle between the two points.
@@ -43,7 +43,7 @@ struct Point {
     float angle_between(const Point& other) const;
 
     /**
-     * @brief Converts the point to a grid point.
+     * @brief Convert the point to a grid point.
      *
      * @param cell_size The size of the grid cells.
      * @return The grid point corresponding to the point.
@@ -51,7 +51,7 @@ struct Point {
     GridPoint to_grid(float cell_size) const;
 
     /**
-     * @brief Rotates the point by a given angle.
+     * @brief Rotate the point by a given angle.
      *
      * @param angle The angle to rotate the point by.
      * @return The rotated point.
@@ -59,7 +59,7 @@ struct Point {
     Point rotate(Direction angle);
 
     /**
-     * @brief Moves the point towards another point by a given distance.
+     * @brief Move the point towards another point by a given distance.
      *
      * @param other The point to move towards.
      * @param distance The distance to move.
@@ -68,7 +68,7 @@ struct Point {
     Point move_towards(const Point& other, float distance) const;
 
     /**
-     * @brief Subtracts a point from another.
+     * @brief Subtract a point from another.
      *
      * @param other The point to subtract.
      * @return The result of the subtraction.
@@ -76,7 +76,7 @@ struct Point {
     Point operator-(const Point& other) const;
 
     /**
-     * @brief Compares two points for equality.
+     * @brief Compare two points for equality.
      *
      * @param other The other point to compare.
      * @return True if the points are equal, false otherwise.
@@ -84,7 +84,7 @@ struct Point {
     bool operator==(const Point& other) const;
 
     /**
-     * @brief Calculates the remainder of the division of the point by a value.
+     * @brief Calculate the remainder of the division of the point by a value.
      *
      * @param value The value to divide the point by.
      * @return The remainder of the division.
@@ -92,7 +92,7 @@ struct Point {
     Point operator%(float value) const;
 
     /**
-     * @brief Converts a grid point to a point.
+     * @brief Convert a grid point to a point.
      *
      * @param grid_point The grid point to convert.
      * @param cell_size The size of the grid cells.
@@ -116,7 +116,7 @@ struct Point {
  */
 struct Pose {
     /**
-     * @brief Converts the pose to a grid pose.
+     * @brief Convert the pose to a grid pose.
      *
      * @param cell_size The size of the grid cells.
      * @return The grid pose corresponding to the pose.
@@ -124,7 +124,7 @@ struct Pose {
     GridPose to_grid(float cell_size) const;
 
     /**
-     * @brief Converts the pose to a cell reference.
+     * @brief Convert the pose to a cell reference.
      *
      * @param cell_size The size of the grid cells.
      * @return The point inside the cell reference.

@@ -57,7 +57,7 @@ constexpr T transition(T value, T start, T end, T resistance) {
 }
 
 /**
- * @brief Create an array objects calling its constructors from an array of parameters.
+ * @brief Create an array of objects calling their constructors from an array of parameters.
  *
  * @tparam T Type of the array.
  * @tparam N Size of the array.
@@ -73,7 +73,7 @@ constexpr std::array<T, N> make_array(const std::array<C, N>& parameters) {
 }
 
 /**
- * @brief Create an array objects calling its constructors from a single parameter.
+ * @brief Create an array of objects calling their constructors from a single parameter.
  *
  * @tparam T Type of the array.
  * @tparam N Size of the array.

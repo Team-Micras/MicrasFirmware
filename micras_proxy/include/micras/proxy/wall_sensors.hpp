@@ -34,7 +34,7 @@ public:
     };
 
     /**
-     * @brief Construct a newWallSensors object.
+     * @brief Construct a new WallSensors object.
      *
      * @param config Configuration for the wall sensors.
      */

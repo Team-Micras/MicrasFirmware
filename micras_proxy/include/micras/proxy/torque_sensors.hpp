@@ -29,7 +29,7 @@ public:
     };
 
     /**
-     * @brief Construct a newTorqueSensors object.
+     * @brief Construct a new TorqueSensors object.
      *
      * @param config Configuration for the torque sensors.
      */
@@ -62,7 +62,7 @@ public:
     float get_torque_raw(uint8_t sensor_index) const;
 
     /**
-     * @brief Get the current from the sensor.
+     * @brief Get the electric current through the sensor.
      *
      * @param sensor_index Index of the sensor.
      * @return Current reading from the sensor in amps.
@@ -70,10 +70,10 @@ public:
     float get_current(uint8_t sensor_index) const;
 
     /**
-     * @brief Get the raw current from the sensor without filtering.
+     * @brief Get the raw electric current through the sensor without filtering.
      *
      * @param sensor_index Index of the sensor.
-     * @return Raw current reading from the sensor.
+     * @return Raw current reading from the sensor in amps.
      */
     float get_current_raw(uint8_t sensor_index) const;
 

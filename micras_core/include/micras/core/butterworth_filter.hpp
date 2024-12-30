@@ -41,7 +41,7 @@ public:
     explicit ButterworthFilter(float cutoff_frequency, float sampling_frequency = 100.0F);
 
     /**
-     * @brief Produces a new value from measured data.
+     * @brief Produce a new value from measured data.
      *
      * @param x0 Last measure.
      * @return Filtered value.

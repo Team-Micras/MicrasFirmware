@@ -22,7 +22,7 @@ public:
     // NOLINTBEGIN(*-avoid-c-arrays)
 
     /**
-     * @brief Read data from flash memory.
+     * @brief Read data from flash memory at an absolute address.
      *
      * @param address Address to read from (indexed by double words).
      * @param data Pointer to store the data read.
@@ -31,7 +31,7 @@ public:
     static void read(uint32_t address, uint64_t data[], uint32_t size = 1);
 
     /**
-     * @brief Read data from flash memory.
+     * @brief Read data from flash memory at an address relative to a page.
      *
      * @param page Page to read from (counting from the last to the first).
      * @param page_address Address inside the page to read from (indexed by double words).
@@ -41,7 +41,7 @@ public:
     static void read(uint16_t page, uint16_t page_address, uint64_t data[], uint32_t size = 1);
 
     /**
-     * @brief Write data to flash memory.
+     * @brief Write data to flash memory at an absolute address.
      *
      * @param address Address to write to (indexed by double words).
      * @param data Pointer to the data to write.
@@ -50,7 +50,7 @@ public:
     static void write(uint32_t address, const uint64_t data[], uint32_t size = 1);
 
     /**
-     * @brief Write data to flash memory.
+     * @brief Write data to flash memory at an address relative to a page.
      *
      * @param page Page to write to (counting from the last to the first).
      * @param page_address Address inside the page to write to (indexed by double words).
