@@ -15,20 +15,18 @@ RUN apt install -y \
     libgbm1 \
     && apt clean
 
-WORKDIR /home/ubuntu
+WORKDIR /root
 
 RUN mkdir STM32Cube && cd STM32Cube && mkdir Repository && cd Repository && \
     git clone -b v1.6.1 https://github.com/STMicroelectronics/STM32CubeG4.git && cd STM32CubeG4 && \
     git submodule update --init --recursive
 
-WORKDIR /
-
 RUN mkdir st && cd st && \
     curl -O https://sw-center.st.com/packs/resource/library/stm32cube_mx_v6130-lin.zip && \
     unzip stm32cube_mx_v6130-lin.zip && \
-    mv MX /opt/stm32cubemx && \
+    mv MX /root/STM32CubeMX && \
     cd .. && rm -rf st
 
-RUN mkdir MicrasFirmware
+RUN mkdir /MicrasFirmware
 
 WORKDIR /MicrasFirmware

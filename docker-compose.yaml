@@ -7,7 +7,7 @@ services:
     stdin_open: true
     tty: true
     environment:
-      CUBE_PATH: "/opt/stm32cubemx"
+      CUBE_PATH: "/root/STM32CubeMX"
 
   build:
     extends: base
