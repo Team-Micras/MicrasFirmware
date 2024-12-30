@@ -1,0 +1,18 @@
+# Ignorar pastas de build e cache
+build/
+cube/
+!**/*.ioc
+
+# Ignorar arquivos de configuração local
+*.log
+*.swp
+*.tmp
+
+# Ignorar repositórios e controle de versão
+.git/
+.gitignore
+
+# Ignorar artefatos de editor e IDEs
+.vscode/
+.idea/
+*.iml
