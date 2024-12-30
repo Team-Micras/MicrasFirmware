@@ -46,6 +46,7 @@ NTF Classic Micromouse project with a STM32 microcontroller
 
 - [micras_hal](./micras_hal/) - Wrapper to the STM32 HAL, implementing the needed functionalities in C++ classes.
 - [micras_proxy](./micras_proxy/) - Intermediate abstraction layer for the hardware components.
+- [micras_nav](./micras_nav/) - Mapping, planning and control algorithms to navigate inside a maze.
 
 ## 🔨 Building
 
@@ -53,6 +54,12 @@ To build the project, it is first necessary to install some dependencies:
 
 ```bash
 sudo apt install cmake build-essential gcc-arm-none-eabi
+```
+
+And initialize the libraries submodules:
+
+```bash
+git submodule update --init --recursive
 ```
 
 The [STM32CubeMX](https://www.st.com/en/development-tools/stm32cubemx.html) program is also needed. After the installation is completed, it is necessary to set the environment variable `CUBE_PATH` to the installation directory path of STM32CubeMX.
@@ -101,6 +108,12 @@ make [test_name] -j
 
 ```bash
 make flash_[test_name] -j
+```
+
+It also possible to build all tests at once, using the command:
+
+```bash
+make test_all -j
 ```
 
 ## 🐛 Debugging
@@ -190,7 +203,7 @@ cmake .. -DLINTER_MODE=FIX
 The project is documented using Doxygen. In Ubuntu, it is possible to install it with the following command:
 
 ```bash
-sudo apt install doxygen pdflatex
+sudo apt install doxygen texlive-latex-extra texlive-fonts-extra
 ```
 
 For other operating systems, you can see download options on the [official Doxygen page](https://www.doxygen.nl/download.html).
@@ -218,7 +231,7 @@ To learn how to contribute to the project, see the following contribution guidel
   - 🎨 `:art:` for formatting code
   - ✨ `:sparkles:` for new features
 
-  For more examples, see [this reference](https://gitmoji.carloscuesta.me/).
+  For more examples, see [this reference](https://gitmoji.dev/).
 
 ### 🔀 Git workflow
 
@@ -236,7 +249,8 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/GabrielCosme"><img src="https://avatars.githubusercontent.com/u/62270066?v=4?s=100" width="100px;" alt="Gabriel Cosme Barbosa"/><br/><sub><b>Gabriel Cosme Barbosa</b></sub></a><br/><a href="https://github.com/Team-Micras/MicrasFirmware/commits?author=GabrielCosme" title="Code">💻</a> <a href="https://github.com/Team-Micras/MicrasFirmware/commits?author=GabrielCosme" title="Documentation">📖</a> <a href="#research-GabrielCosme" title="Research">🔬</a> <a href="https://github.com/Team-Micras/MicrasFirmware/pulls?q=is%3Apr+reviewed-by%3AGabrielCosme" title="Reviewed Pull Requests">👀</a></td>
     <td align="center"><a href="https://github.com/PedroDeSanti"><img src="https://avatars.githubusercontent.com/u/62271285?v=4" width="100px;" alt="Pedro de Santi"/><br/><sub><b>Pedro de Santi</b></sub></a><br/><a href="https://github.com/Team-Micras/MicrasFirmware/commits?author=PedroDeSanti" title="Code">💻</a> <a href="https://github.com/Team-Micras/MicrasFirmware/commits?author=PedroDeSanti" title="Documentation">📖</a> <a href="#research-PedroDeSanti" title="Research">🔬</a> <a href="https://github.com/Team-Micras/MicrasFirmware/pulls?q=is%3Apr+reviewed-by%3APedroDeSanti" title="Reviewed Pull Requests">👀</a></td>
     <td align="center"><a href="https://github.com/Matheus3007"><img src="https://avatars.githubusercontent.com/u/53058455?v=4" width="100px;" alt="Matheus Rezende Pereira"/><br/><sub><b>Matheus Rezende Pereira</b></sub></a><br/><a href="https://github.com/Team-Micras/MicrasFirmware/commits?author=Matheus3007" title="Code">💻</a> <a href="https://github.com/Team-Micras/MicrasFirmware/commits?author=Matheus3007" title="Documentation">📖</a> <a href="#research-Matheus3007" title="Research">🔬</a> <a href="https://github.com/Team-Micras/MicrasFirmware/pulls?q=is%3Apr+reviewed-by%3AMatheus3007" title="Reviewed Pull Requests">👀</a></td>
-    <td align="center"><a href="https://github.com/Eduardo-Barreto"><img src="https://avatars.githubusercontent.com/u/34964398?v=4" width="100px;" alt="Eduardo Barreto"/><br/><sub><b>Eduardo Barreto</b></sub></a><br/><a href="https://github.com/Team-Micras/MicrasFirmware/commits?author=Eduardo-Barreto" title="Code">💻</a> <a href="#research-Eduardo-Barreto" title="Research">🔬</a> <a href="https://github.com/Team-Micras/MicrasFirmware/pulls?q=is%3Apr+reviewed-by%3AEduardo-Barreto" title="Reviewed Pull Requests">👀</a></td>
+    <td align="center"><a href="https://github.com/Eduardo-Barreto"><img src="https://avatars.githubusercontent.com/u/34964398?v=4" width="100px;" alt="Eduardo Barreto"/><br/><sub><b>Eduardo Barreto</b></sub></a><br/><a href="https://github.com/Team-Micras/MicrasFirmware/commits?author=Eduardo-Barreto" title="Code">💻</a> <a href="https://github.com/Team-Micras/MicrasFirmware/commits?author=Eduardo-Barreto" title="Documentation">📖</a> <a href="#research-Eduardo-Barreto" title="Research">🔬</a> <a href="https://github.com/Team-Micras/MicrasFirmware/pulls?q=is%3Apr+reviewed-by%3AEduardo-Barreto" title="Reviewed Pull Requests">👀</a></td>
+    <td align="center"><a href="https://github.com/dardengo"><img src="https://avatars.githubusercontent.com/u/102487809?v=4?s=100" width="100px;" alt="Claudio Dardengo"/><br/><sub><b>Claudio Dardengo</b></sub></a><br/><a href="https://github.com/Team-Micras/MicrasFirmware/commits?author=dardengo" title="Code">💻</a> <a href="https://github.com/Team-Micras/MicrasFirmware/commits?author=dardengo" title="Documentation">📖</a> <a href="#research-dardengo" title="Research">🔬</a> <a href="https://github.com/Team-Micras/MicrasFirmware/pulls?q=is%3Apr+reviewed-by%3Adardengo" title="Reviewed Pull Requests">👀</a></td>
   </tr>
 </table>
 

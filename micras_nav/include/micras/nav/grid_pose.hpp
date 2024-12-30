@@ -12,7 +12,7 @@
 
 namespace micras::nav {
 /**
- * @brief Possible sides in the grid
+ * @brief Possible sides in the grid.
  */
 enum Side : uint8_t {
     RIGHT = 0,
@@ -22,19 +22,19 @@ enum Side : uint8_t {
 };
 
 /**
- * @brief Converts an angle in radians to a Grid side
+ * @brief Convert an angle in radians to a Grid side.
  *
- * @param angle The angle in radians
- * @return The corresponding Grid side
+ * @param angle The angle in radians.
+ * @return The corresponding Grid side.
  */
 Side angle_to_grid(float angle);
 
 /**
- * @brief Type to store information originating from the wall sensors
+ * @brief Type to store information originating from the wall sensors.
  */
 struct Information {
     /**
-     * @brief Possible walls in the grid to be checked
+     * @brief Possible walls in the grid to be checked.
      */
     core::Observation left;
     core::Observation front_left;
@@ -44,88 +44,88 @@ struct Information {
 };
 
 /**
- * @brief Type to store a point in the grid
+ * @brief Type to store a point in the grid.
  */
 struct GridPoint {
     /**
-     * @brief Returns the direction from this point to the next one
+     * @brief Return the direction from this point to the next one.
      *
-     * @param next The next point
-     * @return The direction from this point to the next one
+     * @param next The next point.
+     * @return The direction from this point to the next one.
      */
     Side direction(const GridPoint& next) const;
 
     /**
-     * @brief Moves in the grid in the direction of the side
+     * @brief Move in the grid in the direction of the side.
      *
-     * @param side The side to move to
-     * @return The new point after moving
+     * @param side The side to move to.
+     * @return The new point after moving.
      */
     GridPoint operator+(const Side& side) const;
 
     /**
-     * @brief Compares two points for equality
+     * @brief Compare two points for equality.
      *
-     * @param other The other point to compare
-     * @return True if the points are equal, false otherwise
+     * @param other The other point to compare.
+     * @return True if the points are equal, false otherwise.
      */
     bool operator==(const GridPoint& other) const;
 
     /**
-     * @brief The x coordinate of the point on the grid
+     * @brief The x coordinate of the point on the grid.
      */
     uint8_t x;
 
     /**
-     * @brief The y coordinate of the point on the grid
+     * @brief The y coordinate of the point on the grid.
      */
     uint8_t y;
 };
 
 struct GridPose {
     /**
-     * @brief Returns the pose after moving forward
+     * @brief Return the pose after moving forward.
      *
-     * @return The pose after moving forward
+     * @return The pose after moving forward.
      */
     GridPose front() const;
 
     /**
-     * @brief Returns the pose after turning back
+     * @brief Return the pose after turning back.
      *
-     * @return The pose after turning back
+     * @return The pose after turning back.
      */
     GridPose turned_back() const;
 
     /**
-     * @brief Returns the pose after turning left
+     * @brief Return the pose after turning left.
      *
-     * @return The pose after turning left
+     * @return The pose after turning left.
      */
     GridPose turned_left() const;
 
     /**
-     * @brief Returns the pose after turning right
+     * @brief Return the pose after turning right.
      *
-     * @return The pose after turning right
+     * @return The pose after turning right.
      */
     GridPose turned_right() const;
 
     /**
-     * @brief Compares two poses for equality
+     * @brief Compare two poses for equality.
      *
-     * @param other The other pose to compare
-     * @return True if the poses are equal, false otherwise
+     * @param other The other pose to compare.
+     * @return True if the poses are equal, false otherwise.
      */
     bool operator==(const GridPose& other) const;
 
     /**
-     * @brief The position of the pose on the grid
+     * @brief The position of the pose on the grid.
      */
     GridPoint position;
 
     /**
-     * @brief The orientation of the pose on the grid
+     * @brief The orientation of the pose on the grid.
      */
     Side orientation;
 };
@@ -133,9 +133,9 @@ struct GridPose {
 
 namespace std {
 /**
- * @brief Hash specialization for the GridPoint type
+ * @brief Hash specialization for the GridPoint type.
  *
- * @tparam T GridPoint type
+ * @tparam T GridPoint type.
  */
 template <>
 struct hash<micras::nav::GridPoint> {
