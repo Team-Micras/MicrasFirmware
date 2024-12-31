@@ -43,19 +43,19 @@ FROM base AS build
 WORKDIR /MicrasFirmware
 COPY . /MicrasFirmware
 
-RUN source /MicrasFirmware/docker/scripts/build.sh
+RUN /MicrasFirmware/docker/scripts/build.sh
 
 FROM build AS format
 
 RUN apt install -y clang-format
 
-RUN source /MicrasFirmware/docker/scripts/format.sh
+RUN /MicrasFirmware/docker/scripts/format.sh
 
 FROM build AS lint
 
 RUN apt install -y clang-tidy
 
-RUN source /MicrasFirmware/docker/scripts/build.sh ON
+RUN /MicrasFirmware/docker/scripts/build.sh ON
 
 FROM base AS dev
 
