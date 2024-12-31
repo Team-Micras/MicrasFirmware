@@ -6,7 +6,6 @@ cube/
 *.swp
 *.tmp
 
-.git/
 .gitignore
 
 .vscode/
