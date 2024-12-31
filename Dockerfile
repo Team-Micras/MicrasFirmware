@@ -32,7 +32,8 @@ RUN echo "exit" > /root/cube-init && \
     export DISPLAY=:10 && \
     $CUBE_PATH/STM32CubeMX -q /root/cube-init && \
     rm /root/cube-init && \
-    pkill -f Xvfb
+    pkill -f Xvfb && \
+    rm /tmp/.X10-lock
 
 WORKDIR /root
 
@@ -50,15 +51,14 @@ RUN echo "trap 'chown -R ubuntu /MicrasFirmware' EXIT" >> "/root/.bashrc"
 ###################################
 FROM base AS build
 
-RUN git submodule update --init --recursive && \
-    mkdir /MicrasFirmware/build
-
-RUN rm /tmp/.X10-lock && \
-    Xvfb :10 -ac > /dev/null & \
+RUN Xvfb :10 -ac > /dev/null & \
     export DISPLAY=:10 && \
+    mkdir /MicrasFirmware/build && \
     cd /MicrasFirmware/build && \
     cmake .. -DBUILD_TYPE=Release && \
     pkill -f Xvfb
+
+RUN git submodule update --init --recursive
 
 ##################################
 # Lint image for Micras Firmware #
