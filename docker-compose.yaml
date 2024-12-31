@@ -1,18 +1,17 @@
 services:
   base:
-    image: micrasfirmware-base
+    build:
+      target: base
     stdin_open: true
     tty: true
 
   build:
     build:
-      context: .
       target: build
 
   dev:
     command: bash
     build:
-      context: .
       target: dev
     privileged: True
     environment:
