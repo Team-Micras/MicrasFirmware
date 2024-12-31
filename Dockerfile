@@ -45,12 +45,24 @@ WORKDIR /MicrasFirmware
 
 RUN echo "trap 'chown -R ubuntu /MicrasFirmware' EXIT" >> "/root/.bashrc"
 
-##################################
+###################################
 # Build image for Micras Firmware #
-##################################
+###################################
 FROM base AS build
 
-RUN /MicrasFirmware/docker/scripts/build.sh
+RUN git submodule update --init --recursive
+
+RUN mkdir -p /MicrasFirmware/build && \
+    cd /MicrasFirmware/build && \
+    cmake .. -DBUILD_TYPE=Release && \
+    pkill -f Xvfb
+
+##################################
+# Lint image for Micras Firmware #
+##################################
+FROM build AS lint
+
+RUN apt-get install -y clang-tidy
 
 ####################################
 # Format image for Micras Firmware #
@@ -58,21 +70,3 @@ RUN /MicrasFirmware/docker/scripts/build.sh
 FROM base AS format
 
 RUN apt-get install -y clang-format
-
-RUN /MicrasFirmware/docker/scripts/format.sh
-
-##################################
-# Lint image for Micras Firmware #
-##################################
-FROM base AS lint
-
-RUN apt-get install -y clang-tidy
-
-RUN /MicrasFirmware/docker/scripts/build.sh ON
-
-##################################
-# Dev image for Micras Firmware #
-##################################
-FROM base AS dev
-
-WORKDIR /MicrasFirmware

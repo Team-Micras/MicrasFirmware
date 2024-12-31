@@ -2,19 +2,9 @@
 
 LINT=$1
 
-pkill -f Xvfb
-rm /tmp/.X10-lock
-Xvfb :10 -ac > /dev/null & 
-XVFB_PID=$!
-export DISPLAY=:10
-
-trap "kill $XVFB_PID" EXIT
-
-cd /MicrasFirmware
-git submodule update --init --recursive || exit 1
-mkdir -p /MicrasFirmware/build || exit 1
 cd /MicrasFirmware/build || exit 1
-cmake .. -DLINTER_MODE=$LINT || exit 1
+rm -rf * || exit 1
+cmake .. -DBUILD_TYPE=Release -DLINTER_MODE=$LINT || exit 1
 
 echo "Compiling main..." | sed 's/.*/\x1b[34m&\x1b[0m/'
 
