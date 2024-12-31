@@ -35,11 +35,4 @@ FROM micras AS build
 
 COPY . /MicrasFirmware
 
-RUN Xvfb :10 -ac >/dev/null 2>&1 & \
-    export DISPLAY=:10 && \
-    mkdir /MicrasFirmware/build && \
-    cd /MicrasFirmware/build && \
-    cmake .. -DBUILD_TYPE=Release && \
-    pkill -f Xvfb
-
-RUN git submodule update --init --recursive
+WORKDIR /MicrasFirmware

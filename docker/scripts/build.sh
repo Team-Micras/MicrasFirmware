@@ -2,6 +2,8 @@
 
 BUILD_ARG=$1
 
+git submodule update --init --recursive || exit 1
+
 mkdir -p /MicrasFirmware/build || exit 1
 cd /MicrasFirmware/build || exit 1
 cmake .. -DBUILD_TYPE=Release $BUILD_ARG || exit 1

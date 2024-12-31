@@ -16,7 +16,7 @@ services:
   format:
     command: /MicrasFirmware/docker/scripts/format.sh
     build:
-      target: micras
+      target: build
 
   dev:
     command: bash

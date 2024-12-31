@@ -1,5 +1,3 @@
-cube/
-!**.ioc
 build/
 **/logs/
 

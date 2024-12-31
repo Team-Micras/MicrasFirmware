@@ -20,14 +20,20 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Generate cube code
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: micras
+          cache-from: type=gha
+          cache-to: type=gha
+
       - name: Build Docker image
         uses: docker/build-push-action@v6
         with:
           context: .
           target: build
           load: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
           tags: micras:build
 
       - name: Build project
