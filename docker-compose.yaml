@@ -16,6 +16,7 @@ services:
       context: .
       dockerfile: docker/Dockerfile
       target: dev
+    privileged: True
     environment:
       - DISPLAY=${DISPLAY}
       - QT_X11_NO_MITSHM=1
@@ -24,4 +25,3 @@ services:
       - .:/MicrasFirmware:rw
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
       - ${XAUTHORITY:-$HOME/.Xauthority}:/root/.Xauthority
-    network_mode: "host"
