@@ -10,6 +10,7 @@ export DISPLAY=:10
 
 trap "kill $XVFB_PID" EXIT
 
+git submodule update --init --recursive || exit 1
 mkdir -p /MicrasFirmware/build || exit 1
 cd /MicrasFirmware/build || exit 1
 cmake .. -DLINTER_MODE=$LINT || exit 1
