@@ -33,28 +33,8 @@ jobs:
       - name: Build project
         run: docker run --rm micras:build /bin/bash /MicrasFirmware/docker/scripts/build.sh
 
-  lint:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build Docker image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          target: lint
-          load: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          tags: micras:lint
-
-      - name: Build project
-        run: docker run --rm micras:lint /bin/bash /MicrasFirmware/docker/scripts/build.sh ON
+      - name: Lint project
+        run: docker run --rm micras:lint /bin/bash /MicrasFirmware/docker/scripts/build.sh -DLINTER_MODE=ON
 
   format:
     runs-on: ubuntu-latest

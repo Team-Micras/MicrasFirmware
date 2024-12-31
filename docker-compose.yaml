@@ -9,7 +9,7 @@ services:
       target: build
 
   lint:
-    command: /MicrasFirmware/docker/scripts/build.sh ON
+    command: /MicrasFirmware/docker/scripts/build.sh -DLINTER_MODE=ON
     build:
       target: lint
 
