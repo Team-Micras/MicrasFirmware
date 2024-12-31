@@ -4,8 +4,19 @@ services:
       target: base
 
   build:
+    command: /MicrasFirmware/docker/scripts/build.sh
     build:
       target: build
+
+  lint:
+    command: /MicrasFirmware/docker/scripts/build.sh ON
+    build:
+      target: lint
+
+  format:
+    command: /MicrasFirmware/docker/scripts/format.sh
+    build:
+      target: format
 
   dev:
     command: bash
