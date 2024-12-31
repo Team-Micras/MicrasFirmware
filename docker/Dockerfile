@@ -36,6 +36,8 @@ RUN echo "exit" > /root/cube-init && \
     $CUBE_PATH/STM32CubeMX -q /root/cube-init && \
     pkill -f Xvfb
 
+RUN echo "trap 'chown -R ubuntu /MicrasFirmware' EXIT" >> "/root/.bashrc"
+
 FROM base AS build
 
 WORKDIR /MicrasFirmware
