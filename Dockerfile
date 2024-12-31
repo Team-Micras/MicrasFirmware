@@ -31,9 +31,8 @@ RUN echo "exit" > /root/cube-init && \
     Xvfb :10 -ac > /dev/null & \
     export DISPLAY=:10 && \
     $CUBE_PATH/STM32CubeMX -q /root/cube-init && \
-    rm /root/cube-init
-
-RUN pkill -f Xvfb
+    rm /root/cube-init && \
+    pkill -f Xvfb
 
 WORKDIR /root
 
@@ -54,12 +53,12 @@ FROM base AS build
 RUN git submodule update --init --recursive && \
     mkdir /MicrasFirmware/build
 
-RUN Xvfb :10 -ac > /dev/null & \
+RUN rm /tmp/.X10-lock && \
+    Xvfb :10 -ac > /dev/null & \
     export DISPLAY=:10 && \
     cd /MicrasFirmware/build && \
-    cmake .. -DBUILD_TYPE=Release
-
-RUN pkill -f Xvfb
+    cmake .. -DBUILD_TYPE=Release && \
+    pkill -f Xvfb
 
 ##################################
 # Lint image for Micras Firmware #
