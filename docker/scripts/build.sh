@@ -2,16 +2,8 @@
 
 BUILD_ARG=$1
 
-if [ "$BUILD_ARG" == "-DLINTER_MODE=ON" ]; then
-  echo "Compiling with linter..." | sed 's/.*/\x1b[34m&\x1b[0m/'
-  mkdir -p /MicrasFirmware/build_linter || exit 1
-  cd /MicrasFirmware/build_linter || exit 1
-else
-  echo "Compiling main..." | sed 's/.*/\x1b[34m&\x1b[0m/'
-  mkdir -p /MicrasFirmware/build || exit 1
-  cd /MicrasFirmware/build || exit 1
-fi
-
+mkdir -p /MicrasFirmware/build || exit 1
+cd /MicrasFirmware/build || exit 1
 cmake .. -DBUILD_TYPE=Release $BUILD_ARG || exit 1
 
 echo "Compiling main..." | sed 's/.*/\x1b[34m&\x1b[0m/'
