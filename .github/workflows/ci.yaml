@@ -31,10 +31,10 @@ jobs:
           load: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          tags: ${{ env.TAG }}
+          tags: micras:build
 
       - name: Build project
-        run: docker run --rm ${{ env.TAG }} /bin/bash /MicrasFirmware/docker/scripts/build.sh
+        run: docker run --rm micras:build /bin/bash /MicrasFirmware/docker/scripts/build.sh
 
   lint:
     runs-on: ubuntu-latest
@@ -54,10 +54,10 @@ jobs:
           load: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          tags: ${{ env.TAG }}
+          tags: micras:lint
 
       - name: Build project
-        run: docker run --rm ${{ env.TAG }} /bin/bash /MicrasFirmware/docker/scripts/build.sh ON
+        run: docker run --rm micras:lint /bin/bash /MicrasFirmware/docker/scripts/build.sh ON
 
   format:
     runs-on: ubuntu-latest
@@ -76,7 +76,7 @@ jobs:
           load: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          tags: ${{ env.TAG }}
+          tags: micras:format
 
       - name: Build project
-        run: docker run --rm ${{ env.TAG }} /bin/bash /MicrasFirmware/docker/scripts/format.sh
+        run: docker run --rm micras:format /bin/bash /MicrasFirmware/docker/scripts/format.sh
