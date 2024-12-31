@@ -42,7 +42,7 @@ RUN echo "exit" > /root/cube-init && \
 RUN echo "trap 'chown -R ubuntu /MicrasFirmware' EXIT" >> "/root/.bashrc"
 
 WORKDIR /MicrasFirmware
-COPY ../ /MicrasFirmware
+COPY . /MicrasFirmware
 
 ##################################
 # Build image for Micras Firmware #
