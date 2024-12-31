@@ -1,3 +1,6 @@
+##################################
+# Base image for Micras Firmware #
+##################################
 FROM ubuntu:24.04 AS base
 
 RUN apt update -y && \
@@ -38,25 +41,37 @@ RUN echo "exit" > /root/cube-init && \
 
 RUN echo "trap 'chown -R ubuntu /MicrasFirmware' EXIT" >> "/root/.bashrc"
 
-FROM base AS build
-
 WORKDIR /MicrasFirmware
-COPY . /MicrasFirmware
+COPY ../ /MicrasFirmware
+
+##################################
+# Build image for Micras Firmware #
+##################################
+FROM base AS build
 
 RUN /MicrasFirmware/docker/scripts/build.sh
 
+####################################
+# Format image for Micras Firmware #
+####################################
 FROM base AS format
 
 RUN apt install -y clang-format
 
 RUN /MicrasFirmware/docker/scripts/format.sh
 
+##################################
+# Lint image for Micras Firmware #
+##################################
 FROM base AS lint
 
 RUN apt install -y clang-tidy
 
 RUN /MicrasFirmware/docker/scripts/build.sh ON
 
+##################################
+# Dev image for Micras Firmware #
+##################################
 FROM base AS dev
 
 WORKDIR /MicrasFirmware
