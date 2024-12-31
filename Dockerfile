@@ -1,7 +1,7 @@
 ##################################
 # Base image for Micras Firmware #
 ##################################
-FROM thunderatz/stm32cubemx:6.13.0-g4 AS micras
+FROM thunderatz/stm32cubemx:6.13.0-g4 AS base
 
 RUN apt-get update -y > /dev/null && \
     apt-get upgrade -y > /dev/null && \
@@ -31,7 +31,7 @@ RUN echo "trap 'chown -R ubuntu /MicrasFirmware' EXIT" >> "/root/.bashrc"
 ###################################
 # Build image for Micras Firmware #
 ###################################
-FROM micras AS build
+FROM base AS build
 
 COPY . /MicrasFirmware
 

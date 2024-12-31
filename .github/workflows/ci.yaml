@@ -24,7 +24,9 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          target: micras
+          target: base
+          load: true
+          tags: micras:base
           cache-from: type=gha
           cache-to: type=gha
 
