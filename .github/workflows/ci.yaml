@@ -28,6 +28,7 @@ jobs:
         with:
           context: .
           target: build
+          load: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
           tags: ${{ env.TAG }}
@@ -50,6 +51,7 @@ jobs:
         with:
           context: .
           target: lint
+          load: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
           tags: ${{ env.TAG }}
@@ -71,6 +73,7 @@ jobs:
         with:
           context: .
           target: format
+          load: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
           tags: ${{ env.TAG }}
