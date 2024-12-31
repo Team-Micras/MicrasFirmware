@@ -51,10 +51,10 @@ RUN echo "trap 'chown -R ubuntu /MicrasFirmware' EXIT" >> "/root/.bashrc"
 ###################################
 FROM base AS build
 
-RUN git submodule update --init --recursive
+RUN git submodule update --init --recursive && \
+    mkdir /MicrasFirmware/build
 
-RUN mkdir -p /MicrasFirmware/build && \
-    Xvfb :10 -ac > /dev/null & \
+RUN Xvfb :10 -ac > /dev/null & \
     export DISPLAY=:10 && \
     cd /MicrasFirmware/build && \
     cmake .. -DBUILD_TYPE=Release
