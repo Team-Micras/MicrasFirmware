@@ -2,6 +2,7 @@
 
 LINT=$1
 
+pkill -f Xvfb
 Xvfb :10 -ac > /dev/null & 
 XVFB_PID=$!
 export DISPLAY=:10
