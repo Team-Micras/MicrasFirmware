@@ -1,4 +1,7 @@
 #!/bin/bash
+
+LINT=$1
+
 Xvfb :10 -ac > /dev/null & 
 XVFB_PID=$!
 export DISPLAY=:10
@@ -7,7 +10,7 @@ trap "kill $XVFB_PID" EXIT
 
 mkdir -p /MicrasFirmware/build || exit 1
 cd /MicrasFirmware/build || exit 1
-cmake .. || exit 1
+cmake .. -DLINTER_MODE=$LINT || exit 1
 
 echo "Compiling main..." | sed 's/.*/\x1b[34m&\x1b[0m/'
 

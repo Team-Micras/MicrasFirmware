@@ -5,10 +5,13 @@ services:
     tty: true
 
   build:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
-      target: build
+    image: micrasfirmware-build
+
+  format:
+    image: micrasfirmware-format
+
+  lint:
+    image: micrasfirmware-lint
 
   dev:
     command: bash

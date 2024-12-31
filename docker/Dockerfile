@@ -12,7 +12,7 @@ RUN apt update -y && \
     curl \
     openjdk-21-jre \
     libgbm1 \
-    && apt clean && rm -rf /var/lib/apt/lists/*
+    && apt clean
 
 RUN mkdir st && cd st && \
     curl -O https://sw-center.st.com/packs/resource/library/stm32cube_mx_v6130-lin.zip && \
@@ -44,6 +44,18 @@ WORKDIR /MicrasFirmware
 COPY . /MicrasFirmware
 
 ENTRYPOINT ["/bin/bash", "/MicrasFirmware/docker/scripts/build.sh"]
+
+FROM build AS format
+
+RUN apt install -y clang-format
+
+ENTRYPOINT ["/bin/bash", "/MicrasFirmware/docker/scripts/format.sh"]
+
+FROM build AS lint
+
+RUN apt install -y clang-tidy
+
+ENTRYPOINT ["/bin/bash", "/MicrasFirmware/docker/scripts/build.sh", "ON"]
 
 FROM base AS dev
 
