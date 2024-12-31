@@ -25,3 +25,25 @@ jobs:
         with:
           context: ./docker/
           target: build
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ./docker/
+          target: lint
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ./docker/
+          target: format
