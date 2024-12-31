@@ -13,8 +13,18 @@ RUN apt-get update -y > /dev/null && \
     clang-format  > /dev/null\
     && apt-get clean > /dev/null
 
-COPY . /MicrasFirmware
+COPY ./cube/micras.ioc /MicrasFirmware/cube/micras.ioc
 WORKDIR /MicrasFirmware
+
+ENV DISPLAY=:10
+
+RUN Xvfb :10 -ac & \
+    echo "config load /MicrasFirmware/cube/micras.ioc\nproject generate\nexit\n" > .cube && \
+    $CUBE_PATH/STM32CubeMX -q /MicrasFirmware/.cube && \
+    rm .cube && \
+    pkill -f Xvfb
+
+RUN rm /tmp/.X10-lock
 
 RUN echo "trap 'chown -R ubuntu /MicrasFirmware' EXIT" >> "/root/.bashrc"
 
@@ -22,6 +32,8 @@ RUN echo "trap 'chown -R ubuntu /MicrasFirmware' EXIT" >> "/root/.bashrc"
 # Build image for Micras Firmware #
 ###################################
 FROM micras AS build
+
+COPY . /MicrasFirmware
 
 RUN Xvfb :10 -ac >/dev/null 2>&1 & \
     export DISPLAY=:10 && \
