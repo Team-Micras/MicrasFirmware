@@ -3,6 +3,7 @@
 LINT=$1
 
 pkill -f Xvfb
+rm /tmp/.X10-lock
 Xvfb :10 -ac > /dev/null & 
 XVFB_PID=$!
 export DISPLAY=:10
