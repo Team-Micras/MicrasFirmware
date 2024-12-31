@@ -52,7 +52,9 @@ FROM base AS build
 
 RUN git submodule update --init --recursive
 
-RUN mkdir -p /MicrasFirmware/build && \
+RUN Xvfb :10 -ac > /dev/null & \
+    export DISPLAY=:10 && \
+    mkdir -p /MicrasFirmware/build && \
     cd /MicrasFirmware/build && \
     cmake .. -DBUILD_TYPE=Release && \
     pkill -f Xvfb
