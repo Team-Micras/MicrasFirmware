@@ -45,13 +45,13 @@ COPY . /MicrasFirmware
 
 RUN /MicrasFirmware/docker/scripts/build.sh
 
-FROM build AS format
+FROM base AS format
 
 RUN apt install -y clang-format
 
 RUN /MicrasFirmware/docker/scripts/format.sh
 
-FROM build AS lint
+FROM base AS lint
 
 RUN apt install -y clang-tidy
 
