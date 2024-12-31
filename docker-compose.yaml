@@ -2,8 +2,6 @@ services:
   base:
     build:
       target: base
-    stdin_open: true
-    tty: true
 
   build:
     build:

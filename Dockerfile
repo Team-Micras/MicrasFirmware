@@ -25,24 +25,25 @@ RUN mkdir st && cd st && \
     mv jre /root/STM32CubeMX && \
     cd .. && rm -rf st
 
-WORKDIR /root
-
-RUN mkdir STM32Cube && cd STM32Cube && mkdir Repository && cd Repository && \
-    git clone -b v1.6.1 https://github.com/STMicroelectronics/STM32CubeG4.git && cd STM32CubeG4 && \
-    git submodule update --init --recursive
-
 ENV CUBE_PATH="/root/STM32CubeMX"
 
 RUN echo "exit" > /root/cube-init && \
     Xvfb :10 -ac > /dev/null & \
     export DISPLAY=:10 && \
     $CUBE_PATH/STM32CubeMX -q /root/cube-init && \
-    pkill -f Xvfb
+    pkill -f Xvfb && \
+    rm /root/cube-init
+
+WORKDIR /root
+
+RUN mkdir STM32Cube && cd STM32Cube && mkdir Repository && cd Repository && \
+    git clone -b v1.6.1 https://github.com/STMicroelectronics/STM32CubeG4.git && cd STM32CubeG4 && \
+    git submodule update --init --recursive
+
+COPY . /MicrasFirmware
+WORKDIR /MicrasFirmware
 
 RUN echo "trap 'chown -R ubuntu /MicrasFirmware' EXIT" >> "/root/.bashrc"
-
-WORKDIR /MicrasFirmware
-COPY . /MicrasFirmware
 
 ##################################
 # Build image for Micras Firmware #
