@@ -3,9 +3,9 @@
 ##################################
 FROM ubuntu:24.04 AS base
 
-RUN apt update -y && \
-    apt upgrade -y && \
-    apt install -y \
+RUN apt-get update -y && \
+    apt-get upgrade -y && \
+    apt-get install -y \
     gcc-arm-none-eabi \
     build-essential \
     cmake \
@@ -15,7 +15,7 @@ RUN apt update -y && \
     curl \
     openjdk-21-jre \
     libgbm1 \
-    && apt clean
+    && apt-get clean
 
 RUN mkdir st && cd st && \
     curl -O https://sw-center.st.com/packs/resource/library/stm32cube_mx_v6130-lin.zip && \
@@ -56,7 +56,7 @@ RUN /MicrasFirmware/docker/scripts/build.sh
 ####################################
 FROM base AS format
 
-RUN apt install -y clang-format
+RUN apt-get install -y clang-format
 
 RUN /MicrasFirmware/docker/scripts/format.sh
 
@@ -65,7 +65,7 @@ RUN /MicrasFirmware/docker/scripts/format.sh
 ##################################
 FROM base AS lint
 
-RUN apt install -y clang-tidy
+RUN apt-get install -y clang-tidy
 
 RUN /MicrasFirmware/docker/scripts/build.sh ON
 
