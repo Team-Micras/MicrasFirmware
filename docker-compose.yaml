@@ -1,7 +1,7 @@
 services:
   base:
     build:
-      target: base
+      target: micras
 
   build:
     command: /MicrasFirmware/docker/scripts/build.sh
@@ -11,17 +11,17 @@ services:
   lint:
     command: /MicrasFirmware/docker/scripts/build.sh -DLINTER_MODE=ON
     build:
-      target: lint
+      target: build
 
   format:
     command: /MicrasFirmware/docker/scripts/format.sh
     build:
-      target: format
+      target: micras
 
   dev:
     command: bash
     build:
-      target: dev
+      target: micras
     privileged: True
     environment:
       - DISPLAY=${DISPLAY}

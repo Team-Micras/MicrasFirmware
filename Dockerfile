@@ -1,7 +1,7 @@
 ##################################
 # Base image for Micras Firmware #
 ##################################
-FROM thunderatz/stm32cubemx:6.13.0-g4 AS base
+FROM thunderatz/stm32cubemx:6.13.0-g4 AS micras
 
 RUN apt-get update -y && \
     apt-get upgrade -y && \
@@ -9,6 +9,8 @@ RUN apt-get update -y && \
     gcc-arm-none-eabi \
     make \
     cmake \
+    clang-tidy \
+    clang-format \
     && apt-get clean
 
 COPY . /MicrasFirmware
@@ -19,7 +21,7 @@ RUN echo "trap 'chown -R ubuntu /MicrasFirmware' EXIT" >> "/root/.bashrc"
 ###################################
 # Build image for Micras Firmware #
 ###################################
-FROM base AS build
+FROM micras AS build
 
 RUN Xvfb :10 -ac > /dev/null & \
     export DISPLAY=:10 && \
@@ -29,17 +31,3 @@ RUN Xvfb :10 -ac > /dev/null & \
     pkill -f Xvfb
 
 RUN git submodule update --init --recursive
-
-##################################
-# Lint image for Micras Firmware #
-##################################
-FROM build AS lint
-
-RUN apt-get install -y clang-tidy
-
-####################################
-# Format image for Micras Firmware #
-####################################
-FROM base AS format
-
-RUN apt-get install -y clang-format
