@@ -33,6 +33,16 @@ jobs:
       - name: Build project
         run: docker run --rm micras:build /bin/bash /MicrasFirmware/docker/scripts/build.sh
 
+      - name: Build Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: lint
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: micras:lint
+
       - name: Lint project
         run: docker run --rm micras:lint /bin/bash /MicrasFirmware/docker/scripts/build.sh -DLINTER_MODE=ON
 
