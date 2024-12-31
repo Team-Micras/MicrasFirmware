@@ -2,8 +2,8 @@
 
 LINT=$1
 
+mkdir -p /MicrasFirmware/build || exit 1
 cd /MicrasFirmware/build || exit 1
-rm -rf * || exit 1
 cmake .. -DBUILD_TYPE=Release -DLINTER_MODE=$LINT || exit 1
 
 echo "Compiling main..." | sed 's/.*/\x1b[34m&\x1b[0m/'
