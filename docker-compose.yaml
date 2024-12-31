@@ -7,14 +7,12 @@ services:
   build:
     build:
       context: .
-      dockerfile: docker/Dockerfile
       target: build
 
   dev:
     command: bash
     build:
       context: .
-      dockerfile: docker/Dockerfile
       target: dev
     privileged: True
     environment:

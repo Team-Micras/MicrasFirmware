@@ -23,7 +23,6 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          file: ./docker/Dockerfile
           target: build
   lint:
     runs-on: ubuntu-latest
@@ -34,7 +33,6 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          file: ./docker/Dockerfile
           target: lint
   format:
     runs-on: ubuntu-latest
@@ -46,4 +44,3 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           target: format
-          file: ./docker/Dockerfile
