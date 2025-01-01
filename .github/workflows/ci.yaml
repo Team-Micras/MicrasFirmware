@@ -1,6 +1,5 @@
 name: Continuous Integration
-run_name: { { github.event.head_commit.message } }
-
+run_name: ${{ github.event.head_commit.message }}
 on:
   pull_request:
     branches:
