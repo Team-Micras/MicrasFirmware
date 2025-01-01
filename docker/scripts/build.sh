@@ -3,6 +3,7 @@
 BUILD_ARG=$1
 
 ls -la /MicrasFirmware
+cat /MicrasFirmware/.clang-tidy
 
 rm -rf /MicrasFirmware/build || exit 1
 mkdir -p /MicrasFirmware/build || exit 1
