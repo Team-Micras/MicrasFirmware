@@ -13,6 +13,7 @@ int main() {
     micras::hal::Mcu::init();
     micras::MicrasController micras_controller;
 
+    oii
     while (true) {
         micras_controller.update();
     }
