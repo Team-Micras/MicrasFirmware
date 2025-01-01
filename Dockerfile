@@ -34,5 +34,3 @@ RUN echo "trap 'chown -R ubuntu /MicrasFirmware' EXIT" >> "/root/.bashrc"
 FROM base AS build
 
 COPY . /MicrasFirmware
-
-WORKDIR /MicrasFirmware
