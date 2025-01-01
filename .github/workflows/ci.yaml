@@ -1,5 +1,5 @@
 name: Continuous Integration
-run_name: 
+run_name: { { github.event.head_commit.message } }
 
 on:
   pull_request:
