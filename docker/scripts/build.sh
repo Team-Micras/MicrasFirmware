@@ -2,6 +2,8 @@
 
 BUILD_ARG=$1
 
+ls -la /MicrasFirmware
+
 rm -rf /MicrasFirmware/build || exit 1
 mkdir -p /MicrasFirmware/build || exit 1
 cd /MicrasFirmware/build || exit 1
