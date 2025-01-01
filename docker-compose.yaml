@@ -1,7 +1,7 @@
 services:
   base:
     build:
-      target: micras
+      target: base
 
   build:
     command: /MicrasFirmware/docker/scripts/build.sh
