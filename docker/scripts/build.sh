@@ -2,6 +2,7 @@
 
 BUILD_ARG=$1
 
+cd /MicrasFirmware || exit 1
 git submodule update --init --recursive || exit 1
 
 mkdir -p /MicrasFirmware/build || exit 1

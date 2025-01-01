@@ -30,19 +30,11 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha
 
-      - name: Build Docker image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          target: build
-          load: true
-          tags: micras:build
-
       - name: Build project
-        run: docker run --rm micras:build /bin/bash /MicrasFirmware/docker/scripts/build.sh
+        run: docker run --rm --mount type=bind,source=.,target=/MicrasFirmware micras:base /bin/bash /MicrasFirmware/docker/scripts/build.sh
 
       - name: Lint project
-        run: docker run --rm micras:build /bin/bash /MicrasFirmware/docker/scripts/build.sh -DLINTER_MODE=ON
+        run: docker run --rm --mount type=bind,source=.,target=/MicrasFirmware micras:base /bin/bash /MicrasFirmware/docker/scripts/build.sh -DLINTER_MODE=ON
 
       - name: Check code formatting
-        run: docker run --rm micras:build /bin/bash /MicrasFirmware/docker/scripts/format.sh
+        run: docker run --rm --mount type=bind,source=.,target=/MicrasFirmware micras:base /bin/bash /MicrasFirmware/docker/scripts/format.sh

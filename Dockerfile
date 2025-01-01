@@ -27,12 +27,3 @@ RUN Xvfb :10 -ac & \
 RUN rm /tmp/.X10-lock
 
 RUN echo "trap 'chown -R ubuntu /MicrasFirmware' EXIT" >> "/root/.bashrc"
-
-###################################
-# Build image for Micras Firmware #
-###################################
-FROM base AS build
-
-COPY . /MicrasFirmware
-
-WORKDIR /MicrasFirmware
