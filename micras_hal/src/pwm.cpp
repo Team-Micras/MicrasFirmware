@@ -24,5 +24,6 @@ void Pwm::set_frequency(uint32_t frequency) {
 
     uint32_t autoreload = base_freq / ((prescaler + 1) * frequency) - 1;
     __HAL_TIM_SET_AUTORELOAD(this->handle, autoreload);
+    __HAL_TIM_SET_COUNTER(this->handle, 0);
 }
 }  // namespace micras::hal

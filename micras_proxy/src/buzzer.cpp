@@ -10,8 +10,8 @@ Buzzer::Buzzer(const Config& config) : pwm{config.pwm} {
 }
 
 void Buzzer::play(uint32_t frequency, uint32_t duration) {
-    this->pwm.set_duty_cycle(50.0F);
     this->pwm.set_frequency(frequency);
+    this->pwm.set_duty_cycle(50.0F);
     this->is_playing = true;
     this->duration = duration;
 

@@ -12,12 +12,12 @@
 
 namespace micras::proxy {
 /**
- * @brief Class for getting the battery voltage
+ * @brief Class for getting the battery voltage.
  */
 class Battery {
 public:
     /**
-     * @brief Configuration structure for the battery
+     * @brief Configuration struct for the battery.
      */
     struct Config {
         hal::AdcDma::Config adc;
@@ -26,56 +26,56 @@ public:
     };
 
     /**
-     * @brief Constructor for the Battery class
+     * @brief Construct a new Battery object.
      *
-     * @param config Configuration for the battery
+     * @param config Configuration for the battery.
      */
     explicit Battery(const Config& config);
 
     /**
-     * @brief Update the battery reading
+     * @brief Update the battery reading.
      */
     void update();
 
     /**
-     * @brief Get the battery voltage
+     * @brief Get the battery voltage.
      *
-     * @return float Battery voltage in volts
+     * @return Battery voltage in volts.
      */
     float get_voltage() const;
 
     /**
-     * @brief Get the battery voltage in volts without the filter applied
+     * @brief Get the battery voltage in volts without the filter applied.
      *
-     * @return float Battery voltage in volts
+     * @return Battery voltage in volts.
      */
     float get_voltage_raw() const;
 
     /**
-     * @brief Get the battery reading from the ADC
+     * @brief Get the battery reading from the ADC.
      *
-     * @return float Battery reading from 0 to 1
+     * @return Battery reading from 0 to 1.
      */
     float get_adc_reading() const;
 
 private:
     /**
-     * @brief Adc object
+     * @brief Adc object.
      */
     hal::AdcDma adc;
 
     /**
-     * @brief Raw reading from the battery
+     * @brief Raw reading from the battery.
      */
     uint16_t raw_reading{};
 
     /**
-     * @brief Maximum voltage that can be read
+     * @brief Maximum voltage that can be read.
      */
     float max_voltage;
 
     /**
-     * @brief Butterworth filter for the battery reading
+     * @brief Butterworth filter for the battery reading.
      */
     core::ButterworthFilter filter;
 };

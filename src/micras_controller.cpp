@@ -226,33 +226,33 @@ bool MicrasController::run(float elapsed_time) {
     }
 
     if (this->current_action.type == nav::Mapping::Action::Type::LOOK_AT) {
-        this->argb.set_color(proxy::Argb::blue);
+        this->argb.set_color(proxy::Argb::Colors::blue);
     } else if (this->current_action.type == nav::Mapping::Action::Type::GO_TO) {
         switch (follow_wall_type) {
             case core::FollowWallType::NONE:
-                this->argb.set_color(proxy::Argb::magenta);
+                this->argb.set_color(proxy::Argb::Colors::magenta);
                 break;
 
             case core::FollowWallType::FRONT:
-                this->argb.set_color(proxy::Argb::white);
+                this->argb.set_color(proxy::Argb::Colors::white);
                 break;
 
             case core::FollowWallType::LEFT:
-                this->argb.set_color(proxy::Argb::green);
+                this->argb.set_color(proxy::Argb::Colors::green);
                 break;
 
             case core::FollowWallType::RIGHT:
-                this->argb.set_color(proxy::Argb::red);
+                this->argb.set_color(proxy::Argb::Colors::red);
                 break;
 
             case core::FollowWallType::PARALLEL:
-                this->argb.set_color(proxy::Argb::yellow);
+                this->argb.set_color(proxy::Argb::Colors::yellow);
                 break;
             default:
                 break;
         }
     } else {
-        this->argb.set_color(proxy::Argb::cyan);
+        this->argb.set_color(proxy::Argb::Colors::cyan);
     }
 
     locomotion.set_command(command.linear, command.angular);

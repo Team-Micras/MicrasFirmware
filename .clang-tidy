@@ -50,6 +50,7 @@ CheckOptions:
   readability-identifier-length.IgnoredParameterNames: ^[nxyz]$
   misc-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic: true
   cppcoreguidelines-narrowing-conversions.WarnOnIntegerToFloatingPointNarrowingConversion: false
+  readability-function-cognitive-complexity.Threshold: 30
 SystemHeaders: false
 ExtraArgsBefore:
   - '--target=arm-none-eabi'

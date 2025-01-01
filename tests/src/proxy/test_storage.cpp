@@ -6,6 +6,8 @@
 
 using namespace micras;  // NOLINT(google-build-using-namespace)
 
+static constexpr uint32_t time_interval{500};
+
 class TestSerializable : public proxy::ISerializable {
 public:
     explicit TestSerializable(bool empty = false) {
@@ -95,42 +97,42 @@ int main(int argc, char* argv[]) {
         while (button.get_status() == proxy::Button::Status::NO_PRESS) { }
 
         if (test_bool_0 != test_bool_1) {
-            argb.set_color(proxy::Argb::red);
+            argb.set_color(proxy::Argb::Colors::red);
         } else {
-            argb.set_color(proxy::Argb::green);
+            argb.set_color(proxy::Argb::Colors::green);
         }
 
-        hal::Timer::sleep_ms(500);
+        hal::Timer::sleep_ms(time_interval);
         argb.turn_off();
-        hal::Timer::sleep_ms(500);
+        hal::Timer::sleep_ms(time_interval);
 
         if (test_int16_0 != test_int16_1) {
-            argb.set_color(proxy::Argb::red);
+            argb.set_color(proxy::Argb::Colors::red);
         } else {
-            argb.set_color(proxy::Argb::green);
+            argb.set_color(proxy::Argb::Colors::green);
         }
 
-        hal::Timer::sleep_ms(500);
+        hal::Timer::sleep_ms(time_interval);
         argb.turn_off();
-        hal::Timer::sleep_ms(500);
+        hal::Timer::sleep_ms(time_interval);
 
         if (test_float_0 != test_float_1) {
-            argb.set_color(proxy::Argb::red);
+            argb.set_color(proxy::Argb::Colors::red);
         } else {
-            argb.set_color(proxy::Argb::green);
+            argb.set_color(proxy::Argb::Colors::green);
         }
 
-        hal::Timer::sleep_ms(500);
+        hal::Timer::sleep_ms(time_interval);
         argb.turn_off();
-        hal::Timer::sleep_ms(500);
+        hal::Timer::sleep_ms(time_interval);
 
         if (test_serializable_0 != test_serializable_1) {
-            argb.set_color(proxy::Argb::red);
+            argb.set_color(proxy::Argb::Colors::red);
         } else {
-            argb.set_color(proxy::Argb::green);
+            argb.set_color(proxy::Argb::Colors::green);
         }
 
-        hal::Timer::sleep_ms(500);
+        hal::Timer::sleep_ms(time_interval);
         argb.turn_off();
     });
 
