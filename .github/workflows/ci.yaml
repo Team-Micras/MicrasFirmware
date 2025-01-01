@@ -1,5 +1,4 @@
-name: Continuous Integration
-run-name: ${{ github.event.head_commit.message }}
+name: Build lint and check formatting
 on:
   pull_request:
     branches:
@@ -33,11 +32,11 @@ jobs:
           no-cache-filters: build
           tags: micras:build
 
-      - name: Check code formatting
+      - name: 🎨 Check code formatting
         run: docker run --rm micras:build /bin/bash /MicrasFirmware/docker/scripts/format.sh
 
-      - name: Build project
+      - name: 🔨 Build project
         run: docker run --rm micras:build /bin/bash /MicrasFirmware/docker/scripts/build.sh
 
-      - name: Lint project
+      - name: 🚨 Lint project
         run: docker run --rm micras:build /bin/bash /MicrasFirmware/docker/scripts/build.sh -DLINTER_MODE=ON
