@@ -7,12 +7,13 @@
 #include "micras/hal/adc_dma.hpp"
 
 namespace micras::hal {
-AdcDma::AdcDma(const Config& config) : max_reading{config.max_reading}, handle{config.handle} {
+AdcDma::AdcDma(const Config& config) : max_reading{config.max_reading}, handle{config.handle}
+{
     config.init_function();
     HAL_ADCEx_Calibration_Start(this->handle, ADC_SINGLE_ENDED);
 }
 
-void AdcDma::start_dma(std::span<uint32_t> buffer) {
+void AdcDma::start_dma( std::span<uint32_t> buffer) {
     HAL_ADC_Start_DMA(this->handle, buffer.data(), buffer.size());
 }
 

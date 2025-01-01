@@ -4,7 +4,7 @@
 
 #include "test_core.hpp"
 
-using namespace micras;
+using namespace micras;  // NOLINT(google-build-using-namespace)
 
 int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);
