@@ -24,7 +24,7 @@ jobs:
         id: cache
         uses: actions/cache/restore@v4
         with:
-            path: ''
+            path: Dockerfile
             key: ${{ hashFiles('cmake/*', '**/*.cpp', '**/*.hpp', '**/*.ioc', '.clang*', 'CMakeLists.txt', 'Dockerfile') }}
             lookup-only: true
 
@@ -57,7 +57,8 @@ jobs:
         run: docker run --rm micras:build /bin/bash /MicrasFirmware/docker/scripts/build.sh -DLINTER_MODE=ON
 
       - name: 🗃️ Save cache
+        if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
-            path: ''
+            path: Dockerfile
             key: ${{ steps.cache.outputs.cache-primary-key }}
