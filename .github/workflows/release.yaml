@@ -1,0 +1,41 @@
+name: Add binaries to release
+
+on:
+  release:
+    type: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🔀 Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: 🔧 Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🐋 Build Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: build
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          no-cache-filters: build
+          tags: micras:build
+
+      - name: 🔨 Build project
+        run: docker run --name micras micras:build /bin/bash /MicrasFirmware/docker/scripts/build.sh
+        run: docker cp micras:/MicrasFirmware/build/micras.elf micras.elf
+        run: docker cp micras:/MicrasFirmware/build/micras.hex micras.hex
+
+      - name: ⬆️ Upload binaries
+        run: gh release upload ${{ github.event.release.tag_name }} micras.elf micras.hex
+        env:
+          GITHUB_TOKEN: ${{ github.TOKEN }}
