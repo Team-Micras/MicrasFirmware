@@ -34,13 +34,13 @@ NTF Classic Micromouse project with a STM32 microcontroller
 
 ## 📁 Folder structure
 
-- **.vscode** - Visual Studio Code configuration files
-- **cmake/** - Functions to include in the main CMake
-- **config/** - Target and constants configuration values
-- **cube/** - STM32CubeMX configuration and build files
-- **include/** - Header files for class definitions
-- **src/** - Source file for class implementations and executables
-- **tests/** - Executable test files
+- **.vscode** - Visual Studio Code configuration files.
+- **cmake/** - Functions to include in the main CMake.
+- **config/** - Target and constants configuration values.
+- **cube/** - STM32CubeMX configuration and build files.
+- **include/** - Header files for class definitions.
+- **src/** - Source file for class implementations and executables.
+- **tests/** - Executable test files.
 
 ## 📦️ Packages
 
