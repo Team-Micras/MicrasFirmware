@@ -1,14 +1,17 @@
+.git/
+.github/
+.vscode/
+.cache/
+.idea/
+build/
 cube/
 !**.ioc
-build/
-**/logs/
-
-*.log
-*.swp
-*.tmp
 
 .gitignore
+.gitmodules
+Doxyfile
+LICENSE
 
-.vscode/
-.idea/
+*.yaml
+*.md
 *.iml
