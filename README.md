@@ -26,6 +26,7 @@ NTF Classic Micromouse project with a STM32 microcontroller
 - [💄 Code style](#-code-style)
   - [🎨 Format](#-format)
   - [🚨 Linter](#-linter)
+- [🐋 Docker](#-docker)
 - [📝 Documentation](#-documentation)
 - [👥 Contributing](#-contributing)
   - [💬 Git commit messages](#-git-commit-messages)
@@ -34,10 +35,12 @@ NTF Classic Micromouse project with a STM32 microcontroller
 
 ## 📁 Folder structure
 
-- **.vscode** - Visual Studio Code configuration files.
+- **.github/** - GitHub Actions workflow files.
+- **.vscode/** - Visual Studio Code configuration files.
 - **cmake/** - Functions to include in the main CMake.
 - **config/** - Target and constants configuration values.
 - **cube/** - STM32CubeMX configuration and build files.
+- **docker/** - Docker build and format scripts for CI/CD.
 - **include/** - Header files for class definitions.
 - **src/** - Source file for class implementations and executables.
 - **tests/** - Executable test files.
@@ -53,7 +56,7 @@ NTF Classic Micromouse project with a STM32 microcontroller
 To build the project, it is first necessary to install some dependencies:
 
 ```bash
-sudo apt install cmake build-essential gcc-arm-none-eabi
+sudo apt install cmake make gcc-arm-none-eabi
 ```
 
 And initialize the libraries submodules:
@@ -198,6 +201,33 @@ It is also possible to lint the project and let the linter fix it using its sugg
 cmake .. -DLINTER_MODE=FIX
 ```
 
+## 🐋 Docker
+
+It also possible to build the project inside a Docker container, which makes it possible to implement CI/CD pipelines and develop in any environment, for this, it is necessary to have [Docker installed on your system](https://docs.docker.com/get-started/introduction/get-docker-desktop/).
+
+### 🐳 Building
+
+The project can be built without entering a container by running the following command:
+
+```bash
+docker compose run build
+```
+
+This also works for formatting (`docker compose run format`) and linting (`docker compose run lint`).
+
+### 🧑‍💻 Development
+
+To enter a container and mount the project folder, run the following command:
+
+
+```bash
+docker compose run dev
+```
+
+From inside the container, most of the previous sections can be executed, such as [building](#-building) and [code style](#-code-style).
+
+If Visual Studio Code is being used, it is possible to use the [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension to develop inside the container with the other recommended extensions.
+
 ## 📝 Documentation
 
 The project is documented using Doxygen. In Ubuntu, it is possible to install it with the following command:
@@ -222,14 +252,14 @@ To learn how to contribute to the project, see the following contribution guidel
 
 ### 💬 Git commit messages
 
-- Use the present tense ("Add feature" not "Added feature")
-- Use the imperative mood ("Move cursor to..." not "Moves cursor to...")
-- It is strongly recommended to start a commit message with a related emoji
-  - 📝 `:memo:` for documentation
-  - 🐛 `:bug:` for bug issues
-  - 🚑 `:ambulance:` for critical fixes
-  - 🎨 `:art:` for formatting code
-  - ✨ `:sparkles:` for new features
+- Use the present tense ("Add feature" not "Added feature").
+- Use the imperative mood ("Move cursor to..." not "Moves cursor to...").
+- It is strongly recommended to start a commit message with a related emoji:
+  - 📝 `:memo:` for documentation.
+  - 🐛 `:bug:` for bug issues.
+  - 🚑 `:ambulance:` for critical fixes.
+  - 🎨 `:art:` for formatting code.
+  - ✨ `:sparkles:` for new features.
 
   For more examples, see [this reference](https://gitmoji.dev/).
 
