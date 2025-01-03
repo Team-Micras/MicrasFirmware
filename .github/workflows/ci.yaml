@@ -24,7 +24,7 @@ jobs:
         id: cache
         uses: actions/cache/restore@v4
         with:
-            path: Dockerfile
+            path: docker/Dockerfile
             key: ${{ hashFiles('.github/*', 'cmake/*', '**/*.cpp', '**/*.hpp', '**/*.ioc', '.clang*', 'CMakeLists.txt', 'docker/*') }}
             lookup-only: true
 
@@ -61,5 +61,5 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
-            path: Dockerfile
+            path: docker/Dockerfile
             key: ${{ steps.cache.outputs.cache-primary-key }}
