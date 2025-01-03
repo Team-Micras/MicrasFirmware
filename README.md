@@ -133,6 +133,12 @@ To be able to debug the project, it is necessary run the `cmake` command with th
 cmake .. -DBUILD_TYPE=Debug
 ```
 
+And then generate the launch files for debugging with the command:
+
+```bash
+make debug
+```
+
 It is also possible to debug test executables, by first running the command:
 
 ```bash
