@@ -203,7 +203,7 @@ cmake .. -DLINTER_MODE=FIX
 
 ## 🐋 Docker
 
-It also possible to build the project inside a Docker container, which makes it possible to implement CI/CD pipelines and develop in any environment, for this, it is necessary to have [Docker installed on your system](https://docs.docker.com/get-started/introduction/get-docker-desktop/).
+Docker can be used to build the project inside a container, which makes it possible to implement CI/CD pipelines and develop in any environment, for this, it is necessary to have [Docker](https://docs.docker.com/get-started/introduction/get-docker-desktop/) installed on your system.
 
 ### 🐳 Building
 
