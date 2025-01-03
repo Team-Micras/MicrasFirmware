@@ -29,14 +29,13 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           no-cache-filters: build
-          tags: micras:build
+          tags: project:build
 
       - name: 🔨 Build project
-        run: docker run --name micras micras:build /bin/bash /MicrasFirmware/docker/scripts/build.sh
-        run: docker cp micras:/MicrasFirmware/build/micras.elf micras.elf
-        run: docker cp micras:/MicrasFirmware/build/micras.hex micras.hex
+        run: docker run --name release project:build /bin/bash /project/docker/scripts/build.sh
+        run: docker cp release:/project/build/ output/
 
       - name: ⬆️ Upload binaries
-        run: gh release upload ${{ github.event.release.tag_name }} micras.elf micras.hex
+        run: gh release upload ${{ github.event.release.tag_name }} output/*.hex output/*.elf
         env:
           GITHUB_TOKEN: ${{ github.TOKEN }}

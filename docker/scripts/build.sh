@@ -2,9 +2,9 @@
 
 BUILD_ARG=$1
 
-rm -rf /MicrasFirmware/build || exit 1
-mkdir -p /MicrasFirmware/build || exit 1
-cd /MicrasFirmware/build || exit 1
+rm -rf /project/build || exit 1
+mkdir -p /project/build || exit 1
+cd /project/build || exit 1
 cmake .. -DBUILD_TYPE=Release $BUILD_ARG || exit 1
 
 echo "Compiling main..." | sed 's/.*/\x1b[34m&\x1b[0m/'

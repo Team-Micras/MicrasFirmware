@@ -5,19 +5,19 @@ services:
       target: base
 
   build:
-    command: /MicrasFirmware/docker/scripts/build.sh
+    command: /project/docker/scripts/build.sh
     build:
       dockerfile: docker/Dockerfile
       target: build
 
   lint:
-    command: /MicrasFirmware/docker/scripts/build.sh -DLINTER_MODE=ON
+    command: /project/docker/scripts/build.sh -DLINTER_MODE=ON
     build:
       dockerfile: docker/Dockerfile
       target: build
 
   check-format:
-    command: /MicrasFirmware/docker/scripts/check_format.sh
+    command: /project/docker/scripts/check_format.sh
     build:
       dockerfile: docker/Dockerfile
       target: build
@@ -33,6 +33,6 @@ services:
       - QT_X11_NO_MITSHM=1
       - NVIDIA_DRIVER_CAPABILITIES=all
     volumes:
-      - .:/MicrasFirmware:rw
+      - .:/project:rw
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
       - ${XAUTHORITY:-$HOME/.Xauthority}:/root/.Xauthority

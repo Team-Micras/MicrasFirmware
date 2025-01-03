@@ -43,19 +43,19 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           no-cache-filters: build
-          tags: micras:build
+          tags: project:build
 
       - name: 🎨 Check code formatting
         if: steps.cache.outputs.cache-hit != 'true'
-        run: docker run --rm micras:build /bin/bash /MicrasFirmware/docker/scripts/check_format.sh
+        run: docker run --rm project:build /bin/bash /project/docker/scripts/check_format.sh
 
       - name: 🔨 Build project
         if: steps.cache.outputs.cache-hit != 'true'
-        run: docker run --rm micras:build /bin/bash /MicrasFirmware/docker/scripts/build.sh
+        run: docker run --rm project:build /bin/bash /project/docker/scripts/build.sh
 
       - name: 🚨 Lint project
         if: steps.cache.outputs.cache-hit != 'true'
-        run: docker run --rm micras:build /bin/bash /MicrasFirmware/docker/scripts/build.sh -DLINTER_MODE=ON
+        run: docker run --rm project:build /bin/bash /project/docker/scripts/build.sh -DLINTER_MODE=ON
 
       - name: 🗃️ Save cache
         if: steps.cache.outputs.cache-hit != 'true'
