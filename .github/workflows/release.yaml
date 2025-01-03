@@ -23,6 +23,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
+          dockerfile: docker/Dockerfile
           target: build
           load: true
           cache-from: type=gha
