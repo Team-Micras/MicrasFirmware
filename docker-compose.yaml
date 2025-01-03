@@ -16,8 +16,8 @@ services:
       dockerfile: docker/Dockerfile
       target: build
 
-  format:
-    command: /MicrasFirmware/docker/scripts/format.sh
+  check-format:
+    command: /MicrasFirmware/docker/scripts/check_format.sh
     build:
       dockerfile: docker/Dockerfile
       target: build
