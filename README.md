@@ -265,7 +265,7 @@ To learn how to contribute to the project, see the following contribution guidel
 
 ### 🔀 Git workflow
 
-The project workflow is based on [Git Flow](https://nvie.com/posts/a-successful-git-branching-model/).
+The project workflow is based on [GitHub Flow](https://docs.github.com/en/get-started/using-github/github-flow).
 
 ## ✨ Contributors
 
