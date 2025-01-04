@@ -1,9 +1,5 @@
 /**
- * @file uart_dma.cpp
- *
- * @brief HAL UART DMA class source
- *
- * @date 09/2024
+ * @file
  */
 
 #include "micras/hal/uart_dma.hpp"

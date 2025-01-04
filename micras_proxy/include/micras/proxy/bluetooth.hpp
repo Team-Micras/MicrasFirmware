@@ -1,9 +1,5 @@
 /**
- * @file bluetooth.hpp
- *
- * @brief Proxy Bluetooth class declaration
- *
- * @date 09/2024
+ * @file
  */
 
 #ifndef MICRAS_PROXY_BLUETOOTH_HPP
@@ -18,28 +14,30 @@
 
 namespace micras::proxy {
 /**
- * @brief Class for controlling the Bluetooth communication
+ * @brief Class for controlling the Bluetooth communication.
  *
- * @todo Add ACK to received messages
+ * @todo Add ACK to received messages.
  */
 class Bluetooth {
 public:
     /**
-     * @brief Construct a new Bluetooth object
+     * @brief Construct a new Bluetooth object.
      *
-     * @param config Configuration for the UART communication
+     * @param config Configuration for the UART communication.
      */
     explicit Bluetooth(const hal::UartDma::Config& config);
 
     /**
-     * @brief Process all received messages and send chosen variables
+     * @brief Process all received messages and send chosen variables.
      */
     void update();
 
 private:
     /**
-     * @brief Union for representing the received messages
-     * Follows the protocol:
+     * @brief Union for representing the received messages.
+     *
+     * @details
+     * Follow the protocol:
      *
      *     7      1       32       2     6         1        7
      * | BEGIN | READ | ADDRESS | SIZE | ID | START/STOP | END |
@@ -101,15 +99,17 @@ private:
     };
 
     /**
-     * @brief Union for representing the messages to be sent
-     * Follows the protocol:
+     * @brief Union for representing the messages to be sent.
+     *
+     * @details
+     * Follow the protocol:
      *
      *     5     6   8*sizeof(T)   5
      * | BEGIN | ID |   VALUE   | END |
      *
-     * The ACK message has ID 0 and the value is the ID of the message to be acknowledged
+     * The ACK message has ID 0 and the value is the ID of the message to be acknowledged.
      *
-     * @tparam T Type of the variable to send
+     * @tparam T Type of the variable to send.
      */
     template <typename T>
     struct __attribute__((__packed__)) TxMessage {
@@ -125,7 +125,7 @@ private:
     };
 
     /**
-     * @brief Enum for representing the status of the message processing
+     * @brief Enum for representing the status of the message processing.
      */
     enum Status : uint8_t {
         OK,
@@ -134,19 +134,18 @@ private:
     };
 
     /**
-     * @brief Process a single message from the rx_buffer
+     * @brief Process a single message from the rx_buffer.
      *
-     * @return Status Status of the message processed
+     * @return Status Status of the message processed.
      */
     Status process_message();
 
     /**
-     * @brief Validate the checksum of the message
+     * @brief Validate the checksum of the message.
      *
-     * @param data Data to check
-     * @param checksum Checksum to validate
-     *
-     * @return true if the checksum is valid, false otherwise
+     * @param data Data to check.
+     * @param checksum Checksum to validate.
+     * @return True if the checksum is valid, false otherwise.
      */
     static constexpr bool validate_checksum(uint64_t data, uint8_t checksum) {
         for (uint8_t i = 0; i < 8; i++) {
@@ -157,13 +156,12 @@ private:
     }
 
     /**
-     * @brief Receive a variable from the message and write the value to the address
+     * @brief Receive a variable from the message and write the value to the address.
      *
-     * @tparam T Type of the variable
-     * @param address Address of the variable
-     * @param message Message to receive the variable from
-     *
-     * @return Status Status of the variable received
+     * @tparam T Type of the variable.
+     * @param address Address of the variable.
+     * @param message Message to receive the variable from.
+     * @return Status Status of the variable received.
      */
     template <typename T>
     static constexpr Status receive_variable(uint32_t address, const RxMessage::Type::Write<T>& message) {
@@ -181,12 +179,12 @@ private:
     }
 
     /**
-     * @brief Write a variable to the tx_buffer
+     * @brief Write a variable to the tx_buffer.
      *
-     * @tparam T Type of the variable
-     * @param start_byte Start byte of the message on the buffer
-     * @param id ID of the variable
-     * @param variable_address Address of the variable on the memory
+     * @tparam T Type of the variable.
+     * @param start_byte Start byte of the message on the buffer.
+     * @param id ID of the variable.
+     * @param variable_address Address of the variable on the memory.
      */
     template <typename T>
     static constexpr void write_tx_frame(uint8_t& start_byte, uint8_t id, uint8_t* const variable_address) {
@@ -199,11 +197,11 @@ private:
     }
 
     /**
-     * @brief Write a variable to the tx_buffer
+     * @brief Write a variable to the tx_buffer.
      *
-     * @param start_byte Start byte of the message on the buffer
-     * @param id ID of the variable
-     * @param variable Variable to send
+     * @param start_byte Start byte of the message on the buffer.
+     * @param id ID of the variable.
+     * @param variable Variable to send.
      */
     static constexpr void send_variable(uint8_t& start_byte, uint8_t id, std::span<uint8_t> variable) {
         switch (variable.size()) {
@@ -229,29 +227,29 @@ private:
     }
 
     /**
-     * @brief Size of the UART buffers
+     * @brief Size of the UART buffers.
      */
     static constexpr uint16_t buffer_max_size{1000};
 
     /**
-     * @brief UART for the bluetooth connection
+     * @brief UART for the bluetooth connection.
      */
     hal::UartDma uart;
 
     /**
-     * @brief Buffers for the UART communication
+     * @brief Buffers for the UART communication.
      */
     std::array<uint8_t, buffer_max_size> rx_buffer{};
     std::array<uint8_t, buffer_max_size> tx_buffer{};
 
     /**
-     * @brief Cursor for navigating the buffers
+     * @brief Cursor for navigating the buffers.
      */
     uint16_t rx_cursor{};
     uint16_t tx_cursor{};
 
     /**
-     * @brief Map for storing the variables to send
+     * @brief Map for storing the variables to send.
      */
     std::unordered_map<uint8_t, std::span<uint8_t>> variable_dict;
 };

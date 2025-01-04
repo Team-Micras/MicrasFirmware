@@ -1,3 +1,7 @@
+/**
+ * @file
+ */
+
 #include <bit>
 
 #include "micras/proxy/bluetooth.hpp"
