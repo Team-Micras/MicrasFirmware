@@ -1,10 +1,5 @@
-
 /**
- * @file rotary_sensor_reg.hpp
- *
- * @brief AS5047U rotary sensor registers definition
- *
- * @date 03/2024
+ * @file
  */
 
 #ifndef MICRAS_PROXY_ROTARY_SENSOR_REG_HPP
@@ -13,14 +8,15 @@
 #include <cstdint>
 
 /**
- * @brief Registers class for the rotary sensor configuration
+ * @brief Registers struct for the rotary sensor configuration.
  */
 struct Registers {
     /**
-     * @brief Registers union types definition
+     * @brief Registers union types definition.
      */
+    ///@{
     union Disable {
-        struct Fields {
+        struct __attribute__((__packed__)) Fields {
             uint8_t UVW_off        : 1;
             uint8_t ABI_off        : 1;
             uint8_t na             : 4;
@@ -32,7 +28,7 @@ struct Registers {
     };
 
     union Zposm {
-        struct Fields {
+        struct __attribute__((__packed__)) Fields {
             uint8_t ZPOSM : 8;
         };
 
@@ -41,7 +37,7 @@ struct Registers {
     };
 
     union Zposl {
-        struct Fields {
+        struct __attribute__((__packed__)) Fields {
             uint8_t ZPOSL   : 6;
             uint8_t Dia1_en : 1;
             uint8_t Dia2_en : 1;
@@ -52,7 +48,7 @@ struct Registers {
     };
 
     union Settings1 {
-        struct Fields {
+        struct __attribute__((__packed__)) Fields {
             uint8_t K_max   : 3;
             uint8_t K_min   : 3;
             uint8_t Dia3_en : 1;
@@ -64,7 +60,7 @@ struct Registers {
     };
 
     union Settings2 {
-        struct Fields {
+        struct __attribute__((__packed__)) Fields {
             uint8_t IWIDTH      : 1;
             uint8_t NOISESET    : 1;
             uint8_t DIR         : 1;
@@ -80,7 +76,7 @@ struct Registers {
     };
 
     union Settings3 {
-        struct Fields {
+        struct __attribute__((__packed__)) Fields {
             uint8_t UVWPP  : 3;
             uint8_t HYS    : 2;
             uint8_t ABIRES : 3;
@@ -91,7 +87,7 @@ struct Registers {
     };
 
     union Ecc {
-        struct Fields {
+        struct __attribute__((__packed__)) Fields {
             uint8_t ECC_chsum : 7;
             uint8_t ECC_en    : 1;
         };
@@ -100,9 +96,12 @@ struct Registers {
         uint8_t raw;
     };
 
+    ///@}
+
     /**
-     * @brief Register addresses in the rotary sensor memory
+     * @brief Register addresses in the rotary sensor memory.
      */
+    ///@{
     static constexpr uint16_t disable_addr{0x0015};
     static constexpr uint16_t zposm_addr{0x0016};
     static constexpr uint16_t zposl_addr{0x0017};
@@ -110,10 +109,12 @@ struct Registers {
     static constexpr uint16_t settings2_addr{0x0019};
     static constexpr uint16_t settings3_addr{0x001A};
     static constexpr uint16_t ecc_addr{0x001B};
+    ///@}
 
     /**
-     * @brief Member variables to be configured in the rotary sensor
+     * @brief Member variables to be configured in the rotary sensor.
      */
+    ///@{
     Disable   disable;
     Zposm     zposm;
     Zposl     zposl;
@@ -121,6 +122,7 @@ struct Registers {
     Settings2 settings2;
     Settings3 settings3;
     Ecc       ecc;
+    ///@}
 };
 
 #endif  // MICRAS_PROXY_ROTARY_SENSOR_REG_HPP

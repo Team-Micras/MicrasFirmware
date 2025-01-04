@@ -1,9 +1,5 @@
 /**
- * @file imu.hpp
- *
- * @brief STM32 IMU HAL wrapper
- *
- * @date 03/2024
+ * @file
  */
 
 #ifndef MICRAS_PROXY_IMU_HPP
@@ -14,16 +10,17 @@
 #include <lsm6dsv_reg.h>
 #include <numbers>
 
+#include "micras/core/butterworth_filter.hpp"
 #include "micras/hal/spi.hpp"
 
 namespace micras::proxy {
 /**
- * @brief Class to handle IMU peripheral on STM32 microcontrollers
+ * @brief Class for acquiring IMU data.
  */
 class Imu {
 public:
     /**
-     * @brief IMU configuration struct
+     * @brief IMU configuration struct.
      */
     struct Config {
         hal::Spi::Config                spi;
@@ -37,12 +34,8 @@ public:
     };
 
     /**
-     * @brief Construct a new Imu object
-     *
-     * @param config Configuration for the IMU
+     * @brief Enum to select the axis of the IMU.
      */
-    explicit Imu(const Config& config);
-
     enum Axis : uint8_t {
         X,
         Y,
@@ -50,125 +43,113 @@ public:
     };
 
     /**
-     * @brief Check the IMU device
+     * @brief Construct a new Imu object.
      *
-     * @return bool true if the device is correct, false otherwise
+     * @param config Configuration for the IMU.
+     */
+    explicit Imu(const Config& config);
+
+    /**
+     * @brief Check the IMU device.
+     *
+     * @return True if the device is correct, false otherwise.
      */
     bool check_whoami();
 
     /**
-     * @brief Update the IMU data
+     * @brief Update the IMU data.
      */
-    void update_data();
+    void update();
 
     /**
-     * @brief Get the IMU orientation over an axis
+     * @brief Get the IMU angular velocity over an axis.
      *
-     * @param axis Axis to get the orientation from
-     *
-     * @return float Orientation over the desired axis using quaternions
-     */
-    float get_orientation(Axis axis) const;
-
-    /**
-     * @brief Get the IMU angular velocity over an axis
-     *
-     * @param axis Axis to get the angular velocity from
-     *
-     * @return float Angular velocity over the desired axis in rad/s
+     * @param axis Axis to get the angular velocity from.
+     * @return Angular velocity over the desired axis in rad/s.
      */
     float get_angular_velocity(Axis axis) const;
 
     /**
-     * @brief Get the IMU linear acceleration over an axis
+     * @brief Get the IMU linear acceleration over an axis.
      *
-     * @param axis Axis to get the linear acceleration from
-     *
-     * @return float Linear acceleration over the desired axis in m/s²
+     * @param axis Axis to get the linear acceleration from.
+     * @return Linear acceleration over the desired axis in m/s².
      */
     float get_linear_acceleration(Axis axis) const;
 
+    /**
+     * @brief Define the base reading to be removed from the IMU value.
+     */
+    void calibrate();
+
 private:
     /**
-     * @brief Read data from the IMU
+     * @brief Read data from the IMU.
      *
-     * @param handle Pointer to a SPI object
-     * @param reg Register to read from
-     * @param bufp Buffer to read
-     * @param len Length of the buffer
-     *
-     * @return int32_t 0 if the operation was successful, -1 otherwise
+     * @param handle Pointer to a SPI object.
+     * @param reg Register to read from.
+     * @param bufp Buffer to read.
+     * @param len Length of the buffer.
+     * @return 0 if the operation was successful, -1 otherwise.
      */
     static int32_t platform_read(void* handle, uint8_t reg, uint8_t* bufp, uint16_t len);
 
     /**
-     * @brief Write data to the IMU
+     * @brief Write data to the IMU.
      *
-     * @param handle Pointer to a SPI object
-     * @param reg Register to write to
-     * @param bufp Buffer to write
-     * @param len Length of the buffer
-     *
-     * @return int32_t 0 if the operation was successful, -1 otherwise
+     * @param handle Pointer to a SPI object.
+     * @param reg Register to write to.
+     * @param bufp Buffer to write.
+     * @param len Length of the buffer.
+     * @return 0 if the operation was successful, -1 otherwise.
      */
     static int32_t platform_write(void* handle, uint8_t reg, const uint8_t* bufp, uint16_t len);
 
     /**
-     * @brief Function to convert raw data to orientation
-     *
-     * @param sflp Raw data from the IMU
-     */
-    void update_orientation(const uint16_t sflp[3]);  // NOLINT(*-avoid-c-arrays)
-
-    /**
-     * @brief Function to convert half precision float to single precision float
-     *
-     * @param n Half precision float
-     *
-     * @return float Single precision float
-     */
-    static float half_to_float(uint16_t n);
-
-    /**
-     * @brief Conversion constants
+     * @brief Conversion constants.
      */
     static constexpr float mdps_to_radps{std::numbers::pi_v<float> / 180000.0F};
     static constexpr float mg_to_mps2{0.00980665F};
 
     /**
-     * @brief SPI for the IMU communication
+     * @brief SPI for the IMU communication.
      */
     hal::Spi spi;
 
     /**
-     * @brief Device context for the IMU library
+     * @brief Device context for the IMU library.
      */
     stmdev_ctx_t dev_ctx{};
 
     /**
-     * @brief Current angular velocity on each axis
+     * @brief Current angular velocity on each axis.
      */
     std::array<float, 3> angular_velocity{};
 
     /**
-     * @brief Current linear acceleration on each axis
+     * @brief Current linear acceleration on each axis.
      */
     std::array<float, 3> linear_acceleration{};
 
     /**
-     * @brief Current orientation
+     * @brief Gyroscope conversion factor.
      */
-    std::array<float, 4> orientation{};
+    float gy_factor;
 
     /**
-     * @brief Gyroscope conversion factor
+     * @brief Accelerometer conversion factor.
      */
-    const float gy_factor;
+    float xl_factor;
 
     /**
-     * @brief Accelerometer conversion factor
+     * @brief Gyroscope Butterworth filter for the calibration.
      */
-    const float xl_factor;
+    core::ButterworthFilter calibration_filter{5.0F};
+
+    /**
+     * @brief Flag to check if the IMU is calibrated.
+     */
+    bool calibrated{};
 };
 }  // namespace micras::proxy
 

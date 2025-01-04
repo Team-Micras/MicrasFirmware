@@ -1,9 +1,5 @@
 /**
- * @file spi.cpp
- *
- * @brief Proxy SPI Switch class source
- *
- * @date 03/2024
+ * @file
  */
 
 #include "micras/hal/spi.hpp"
@@ -26,13 +22,11 @@ void Spi::unselect_device() {
     this->cs_gpio.write(true);
 }
 
-// NOLINTNEXTLINE(*-avoid-c-arrays)
-void Spi::transmit(uint8_t data[], uint32_t size) {
-    HAL_SPI_Transmit(this->handle, data, size, this->timeout);
+void Spi::transmit(std::span<uint8_t> data) {
+    HAL_SPI_Transmit(this->handle, data.data(), data.size(), this->timeout);
 }
 
-// NOLINTNEXTLINE(*-avoid-c-arrays)
-void Spi::receive(uint8_t data[], uint32_t size) {
-    HAL_SPI_Receive(this->handle, data, size, this->timeout);
+void Spi::receive(std::span<uint8_t> data) {
+    HAL_SPI_Receive(this->handle, data.data(), data.size(), this->timeout);
 }
 }  // namespace micras::hal

@@ -26,6 +26,7 @@ NTF Classic Micromouse project with a STM32 microcontroller
 - [💄 Code style](#-code-style)
   - [🎨 Format](#-format)
   - [🚨 Linter](#-linter)
+- [🐋 Docker](#-docker)
 - [📝 Documentation](#-documentation)
 - [👥 Contributing](#-contributing)
   - [💬 Git commit messages](#-git-commit-messages)
@@ -34,25 +35,34 @@ NTF Classic Micromouse project with a STM32 microcontroller
 
 ## 📁 Folder structure
 
-- **.vscode** - Visual Studio Code configuration files
-- **cmake/** - Functions to include in the main CMake
-- **config/** - Target and constants configuration values
-- **cube/** - STM32CubeMX configuration and build files
-- **include/** - Header files for class definitions
-- **src/** - Source file for class implementations and executables
-- **tests/** - Executable test files
+- **.github/** - GitHub Actions workflow files.
+- **.vscode/** - Visual Studio Code configuration files.
+- **cmake/** - Functions to include in the main CMake.
+- **config/** - Target and constants configuration values.
+- **cube/** - STM32CubeMX configuration and build files.
+- **docker/** - Docker build and format scripts for CI/CD.
+- **include/** - Header files for class definitions.
+- **src/** - Source file for class implementations and executables.
+- **tests/** - Executable test files.
 
 ## 📦️ Packages
 
 - [micras_hal](./micras_hal/) - Wrapper to the STM32 HAL, implementing the needed functionalities in C++ classes.
 - [micras_proxy](./micras_proxy/) - Intermediate abstraction layer for the hardware components.
+- [micras_nav](./micras_nav/) - Mapping, planning and control algorithms to navigate inside a maze.
 
 ## 🔨 Building
 
 To build the project, it is first necessary to install some dependencies:
 
 ```bash
-sudo apt install cmake build-essential gcc-arm-none-eabi
+sudo apt install cmake make gcc-arm-none-eabi
+```
+
+And initialize the libraries submodules:
+
+```bash
+git submodule update --init --recursive
 ```
 
 The [STM32CubeMX](https://www.st.com/en/development-tools/stm32cubemx.html) program is also needed. After the installation is completed, it is necessary to set the environment variable `CUBE_PATH` to the installation directory path of STM32CubeMX.
@@ -103,6 +113,12 @@ make [test_name] -j
 make flash_[test_name] -j
 ```
 
+It also possible to build all tests at once, using the command:
+
+```bash
+make test_all -j
+```
+
 ## 🐛 Debugging
 
 It is possible to debug the project using [`gdb`](https://www.gnu.org/software/gdb/). To do that, first install `gdb-multiarch`, on Ubuntu, just run:
@@ -115,6 +131,12 @@ To be able to debug the project, it is necessary run the `cmake` command with th
 
 ```bash
 cmake .. -DBUILD_TYPE=Debug
+```
+
+And then generate the launch files for debugging with the command:
+
+```bash
+make debug
 ```
 
 It is also possible to debug test executables, by first running the command:
@@ -185,12 +207,39 @@ It is also possible to lint the project and let the linter fix it using its sugg
 cmake .. -DLINTER_MODE=FIX
 ```
 
+## 🐋 Docker
+
+Docker can be used to build the project inside a container, which makes it possible to implement CI/CD pipelines and develop in any environment, for this, it is necessary to have [Docker](https://docs.docker.com/get-started/introduction/get-docker-desktop/) installed on your system.
+
+### 🐳 Building
+
+The project can be built without entering a container by running the following command:
+
+```bash
+docker compose run build
+```
+
+This also works for formatting (`docker compose run format`) and linting (`docker compose run lint`).
+
+### 🧑‍💻 Development
+
+To enter a container and mount the project folder, run the following command:
+
+
+```bash
+docker compose run dev
+```
+
+From inside the container, most of the previous sections can be executed, such as [building](#-building) and [code style](#-code-style).
+
+If Visual Studio Code is being used, it is possible to use the [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension to develop inside the container with the other recommended extensions.
+
 ## 📝 Documentation
 
 The project is documented using Doxygen. In Ubuntu, it is possible to install it with the following command:
 
 ```bash
-sudo apt install doxygen pdflatex
+sudo apt install doxygen texlive-latex-extra texlive-fonts-extra
 ```
 
 For other operating systems, you can see download options on the [official Doxygen page](https://www.doxygen.nl/download.html).
@@ -209,20 +258,20 @@ To learn how to contribute to the project, see the following contribution guidel
 
 ### 💬 Git commit messages
 
-- Use the present tense ("Add feature" not "Added feature")
-- Use the imperative mood ("Move cursor to..." not "Moves cursor to...")
-- It is strongly recommended to start a commit message with a related emoji
-  - 📝 `:memo:` for documentation
-  - 🐛 `:bug:` for bug issues
-  - 🚑 `:ambulance:` for critical fixes
-  - 🎨 `:art:` for formatting code
-  - ✨ `:sparkles:` for new features
+- Use the present tense ("Add feature" not "Added feature").
+- Use the imperative mood ("Move cursor to..." not "Moves cursor to...").
+- It is strongly recommended to start a commit message with a related emoji:
+  - 📝 `:memo:` for documentation.
+  - 🐛 `:bug:` for bug issues.
+  - 🚑 `:ambulance:` for critical fixes.
+  - 🎨 `:art:` for formatting code.
+  - ✨ `:sparkles:` for new features.
 
-  For more examples, see [this reference](https://gitmoji.carloscuesta.me/).
+  For more examples, see [this reference](https://gitmoji.dev/).
 
 ### 🔀 Git workflow
 
-The project workflow is based on [Git Flow](https://nvie.com/posts/a-successful-git-branching-model/).
+The project workflow is based on [GitHub Flow](https://docs.github.com/en/get-started/using-github/github-flow).
 
 ## ✨ Contributors
 
@@ -236,7 +285,8 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/GabrielCosme"><img src="https://avatars.githubusercontent.com/u/62270066?v=4?s=100" width="100px;" alt="Gabriel Cosme Barbosa"/><br/><sub><b>Gabriel Cosme Barbosa</b></sub></a><br/><a href="https://github.com/Team-Micras/MicrasFirmware/commits?author=GabrielCosme" title="Code">💻</a> <a href="https://github.com/Team-Micras/MicrasFirmware/commits?author=GabrielCosme" title="Documentation">📖</a> <a href="#research-GabrielCosme" title="Research">🔬</a> <a href="https://github.com/Team-Micras/MicrasFirmware/pulls?q=is%3Apr+reviewed-by%3AGabrielCosme" title="Reviewed Pull Requests">👀</a></td>
     <td align="center"><a href="https://github.com/PedroDeSanti"><img src="https://avatars.githubusercontent.com/u/62271285?v=4" width="100px;" alt="Pedro de Santi"/><br/><sub><b>Pedro de Santi</b></sub></a><br/><a href="https://github.com/Team-Micras/MicrasFirmware/commits?author=PedroDeSanti" title="Code">💻</a> <a href="https://github.com/Team-Micras/MicrasFirmware/commits?author=PedroDeSanti" title="Documentation">📖</a> <a href="#research-PedroDeSanti" title="Research">🔬</a> <a href="https://github.com/Team-Micras/MicrasFirmware/pulls?q=is%3Apr+reviewed-by%3APedroDeSanti" title="Reviewed Pull Requests">👀</a></td>
     <td align="center"><a href="https://github.com/Matheus3007"><img src="https://avatars.githubusercontent.com/u/53058455?v=4" width="100px;" alt="Matheus Rezende Pereira"/><br/><sub><b>Matheus Rezende Pereira</b></sub></a><br/><a href="https://github.com/Team-Micras/MicrasFirmware/commits?author=Matheus3007" title="Code">💻</a> <a href="https://github.com/Team-Micras/MicrasFirmware/commits?author=Matheus3007" title="Documentation">📖</a> <a href="#research-Matheus3007" title="Research">🔬</a> <a href="https://github.com/Team-Micras/MicrasFirmware/pulls?q=is%3Apr+reviewed-by%3AMatheus3007" title="Reviewed Pull Requests">👀</a></td>
-    <td align="center"><a href="https://github.com/Eduardo-Barreto"><img src="https://avatars.githubusercontent.com/u/34964398?v=4" width="100px;" alt="Eduardo Barreto"/><br/><sub><b>Eduardo Barreto</b></sub></a><br/><a href="https://github.com/Team-Micras/MicrasFirmware/commits?author=Eduardo-Barreto" title="Code">💻</a> <a href="https://github.com/Team-Micras/MicrasFirmware/pulls?q=is%3Apr+reviewed-by%3AEduardo-Barreto" title="Reviewed Pull Requests">👀</a></td>
+    <td align="center"><a href="https://github.com/Eduardo-Barreto"><img src="https://avatars.githubusercontent.com/u/34964398?v=4" width="100px;" alt="Eduardo Barreto"/><br/><sub><b>Eduardo Barreto</b></sub></a><br/><a href="https://github.com/Team-Micras/MicrasFirmware/commits?author=Eduardo-Barreto" title="Code">💻</a> <a href="https://github.com/Team-Micras/MicrasFirmware/commits?author=Eduardo-Barreto" title="Documentation">📖</a> <a href="#research-Eduardo-Barreto" title="Research">🔬</a> <a href="https://github.com/Team-Micras/MicrasFirmware/pulls?q=is%3Apr+reviewed-by%3AEduardo-Barreto" title="Reviewed Pull Requests">👀</a></td>
+    <td align="center"><a href="https://github.com/dardengo"><img src="https://avatars.githubusercontent.com/u/102487809?v=4?s=100" width="100px;" alt="Claudio Dardengo"/><br/><sub><b>Claudio Dardengo</b></sub></a><br/><a href="https://github.com/Team-Micras/MicrasFirmware/commits?author=dardengo" title="Code">💻</a> <a href="https://github.com/Team-Micras/MicrasFirmware/commits?author=dardengo" title="Documentation">📖</a> <a href="#research-dardengo" title="Research">🔬</a> <a href="https://github.com/Team-Micras/MicrasFirmware/pulls?q=is%3Apr+reviewed-by%3Adardengo" title="Reviewed Pull Requests">👀</a></td>
   </tr>
 </table>
 

@@ -1,68 +1,46 @@
+docs/
+build/
 cube/*
 !**/*.ioc
 
-docs/
+.cache/
 
-build/
--g
-.jlink-flash
-.cube
+# Created by https://www.toptal.com/developers/gitignore/api/visualstudiocode,c++
+# Edit at https://www.toptal.com/developers/gitignore?templates=visualstudiocode,c++
 
-# Created by https://www.gitignore.io/api/visualstudiocode,c
-
-### C ###
+### C++ ###
 # Prerequisites
 *.d
 
-# Object files
+# Compiled Object files
+*.slo
+*.lo
 *.o
-*.ko
 *.obj
-*.elf
-
-# Linker output
-*.ilk
-*.map
-*.exp
 
 # Precompiled Headers
 *.gch
 *.pch
 
-# Libraries
-*.lib
-*.a
-*.la
-*.lo
-
-# Shared objects (inc. Windows DLLs)
-*.dll
+# Compiled Dynamic libraries
 *.so
-*.so.*
 *.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
 
 # Executables
 *.exe
 *.out
 *.app
-*.i*86
-*.x86_64
-*.hex
-
-# Debug files
-*.dSYM/
-*.su
-*.idb
-*.pdb
-
-# Kernel Module Compile Results
-*.mod*
-*.cmd
-.tmp_versions/
-modules.order
-Module.symvers
-Mkfile.old
-dkms.conf
 
 ### VisualStudioCode ###
 .vscode/*
@@ -70,5 +48,15 @@ dkms.conf
 !.vscode/tasks.json
 !.vscode/extensions.json
 
+# Local History for Visual Studio Code
+.history/
 
-# End of https://www.gitignore.io/api/visualstudiocode,c
+# Built Visual Studio Code Extensions
+*.vsix
+
+### VisualStudioCode Patch ###
+# Ignore all local history of files
+.history
+.ionide
+
+# End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,c++

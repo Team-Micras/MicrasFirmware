@@ -1,9 +1,5 @@
 /**
- * @file main.cpp
- *
- * @brief Main function
- *
- * @date 03/2024
+ * @file
  */
 
 #include "micras/micras_controller.hpp"
@@ -18,7 +14,7 @@ int main() {
     micras::MicrasController micras_controller;
 
     while (true) {
-        micras_controller.run();
+        micras_controller.update();
     }
 
     return 0;

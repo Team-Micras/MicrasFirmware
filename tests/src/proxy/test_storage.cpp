@@ -1,14 +1,12 @@
 /**
- * @file test_storage.cpp
- *
- * @brief Test for the Storage class
- *
- * @date 05/2024
+ * @file
  */
 
 #include "test_core.hpp"
 
 using namespace micras;  // NOLINT(google-build-using-namespace)
+
+static constexpr uint32_t time_interval{500};
 
 class TestSerializable : public proxy::ISerializable {
 public:
@@ -47,7 +45,7 @@ public:
                 (buffer[i * 4L] << 24) | (buffer[i * 4L + 1L] << 16) | (buffer[i * 4L + 2L] << 8) | buffer[i * 4L + 3L];
         }
 
-        this->test_string = std::string{reinterpret_cast<const char*>(buffer + 40), size - 40U};
+        this->test_string = std::string{std::bit_cast<const char*>(buffer + 40), size - 40U};
     }
 
     bool operator==(const TestSerializable& other) const {
@@ -55,8 +53,8 @@ public:
     }
 
 private:
-    std::array<int32_t, 10> test_array{};
-    std::string             test_string{};
+    std::array<uint32_t, 10> test_array{};
+    std::string              test_string;
 };
 
 int main(int argc, char* argv[]) {
@@ -65,17 +63,17 @@ int main(int argc, char* argv[]) {
     proxy::Storage::Config storage_test_config = {.start_page = 0, .number_of_pages = 1};
 
     proxy::Button  button{button_config};
-    proxy::Argb<2> argb{argb_config};
+    proxy::Argb    argb{argb_config};
     proxy::Storage storage_0{storage_test_config};
 
-    bool     test_bool_0 = true;
-    uint16_t test_uint16_0 = 42;
-    float    test_float_0 = 3.14F;
+    bool    test_bool_0 = true;
+    int16_t test_int16_0 = 42;
+    float   test_float_0 = 3.14F;
 
     TestSerializable test_serializable_0{};
 
     storage_0.create("test_bool", test_bool_0);
-    storage_0.create("test_uint16", test_uint16_0);
+    storage_0.create("test_int16", test_int16_0);
     storage_0.create("test_float", test_float_0);
     storage_0.create("test_serializable", test_serializable_0);
 
@@ -83,59 +81,59 @@ int main(int argc, char* argv[]) {
 
     proxy::Storage storage_1{storage_test_config};
 
-    bool     test_bool_1 = false;
-    uint16_t test_uint16_1 = 0;
-    float    test_float_1 = 0.0F;
+    bool    test_bool_1 = false;
+    int16_t test_int16_1 = 0;
+    float   test_float_1 = 0.0F;
 
     TestSerializable test_serializable_1{true};
 
     storage_1.sync("test_bool", test_bool_1);
-    storage_1.sync("test_uint16", test_uint16_1);
+    storage_1.sync("test_int16", test_int16_1);
     storage_1.sync("test_float", test_float_1);
     storage_1.sync("test_serializable", test_serializable_1);
 
-    TestCore::loop([&test_bool_0, &test_bool_1, &test_uint16_0, &test_uint16_1, &test_float_0, &test_float_1,
+    TestCore::loop([&test_bool_0, &test_bool_1, &test_int16_0, &test_int16_1, &test_float_0, &test_float_1,
                     &test_serializable_0, &test_serializable_1, &button, &argb]() {
         while (button.get_status() == proxy::Button::Status::NO_PRESS) { }
 
         if (test_bool_0 != test_bool_1) {
-            argb.set_color({255, 0, 0});
+            argb.set_color(proxy::Argb::Colors::red);
         } else {
-            argb.set_color({0, 255, 0});
+            argb.set_color(proxy::Argb::Colors::green);
         }
 
-        hal::Timer::sleep_ms(500);
-        argb.set_color({0, 0, 0});
-        hal::Timer::sleep_ms(500);
+        hal::Timer::sleep_ms(time_interval);
+        argb.turn_off();
+        hal::Timer::sleep_ms(time_interval);
 
-        if (test_uint16_0 != test_uint16_1) {
-            argb.set_color({255, 0, 0});
+        if (test_int16_0 != test_int16_1) {
+            argb.set_color(proxy::Argb::Colors::red);
         } else {
-            argb.set_color({0, 255, 0});
+            argb.set_color(proxy::Argb::Colors::green);
         }
 
-        hal::Timer::sleep_ms(500);
-        argb.set_color({0, 0, 0});
-        hal::Timer::sleep_ms(500);
+        hal::Timer::sleep_ms(time_interval);
+        argb.turn_off();
+        hal::Timer::sleep_ms(time_interval);
 
         if (test_float_0 != test_float_1) {
-            argb.set_color({255, 0, 0});
+            argb.set_color(proxy::Argb::Colors::red);
         } else {
-            argb.set_color({0, 255, 0});
+            argb.set_color(proxy::Argb::Colors::green);
         }
 
-        hal::Timer::sleep_ms(500);
-        argb.set_color({0, 0, 0});
-        hal::Timer::sleep_ms(500);
+        hal::Timer::sleep_ms(time_interval);
+        argb.turn_off();
+        hal::Timer::sleep_ms(time_interval);
 
         if (test_serializable_0 != test_serializable_1) {
-            argb.set_color({255, 0, 0});
+            argb.set_color(proxy::Argb::Colors::red);
         } else {
-            argb.set_color({0, 255, 0});
+            argb.set_color(proxy::Argb::Colors::green);
         }
 
-        hal::Timer::sleep_ms(500);
-        argb.set_color({0, 0, 0});
+        hal::Timer::sleep_ms(time_interval);
+        argb.turn_off();
     });
 
     return 0;

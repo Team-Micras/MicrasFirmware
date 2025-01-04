@@ -1,9 +1,5 @@
 /**
- * @file gpio.hpp
- *
- * @brief HAL GPIO class header
- *
- * @date 03/2024
+ * @file
  */
 
 #ifndef MICRAS_HAL_GPIO_HPP
@@ -14,12 +10,12 @@
 
 namespace micras::hal {
 /**
- * @brief Class for controlling GPIO pins on STM32 microcontrollers
+ * @brief Class to handle GPIO pins on STM32 microcontrollers.
  */
 class Gpio {
 public:
     /**
-     * @brief Configuration structure for GPIO pin
+     * @brief Configuration struct for GPIO pin.
      */
     struct Config {
         GPIO_TypeDef* port;
@@ -27,39 +23,39 @@ public:
     };
 
     /**
-     * @brief Constructor for the Gpio class
+     * @brief Construct a new Gpio object.
      *
-     * @param config Configuration for the GPIO pin
+     * @param config Configuration for the GPIO pin.
      */
     explicit Gpio(const Config& config);
 
     /**
-     * @brief Read the current state of the GPIO pin
+     * @brief Read the current state of the GPIO pin.
      *
-     * @return bool The current state of the GPIO pin (true for high, false for low)
+     * @return True if the current state of the GPIO pin is high, false otherwise.
      */
     bool read() const;
 
     /**
-     * @brief Write a new state to the GPIO pin
+     * @brief Write a new state to the GPIO pin.
      *
-     * @param pin_state The state to be written (true for high, false for low)
+     * @param pin_state The state to be written (true for high, false for low).
      */
     void write(bool state);
 
     /**
-     * @brief Toggle the state of the GPIO pin
+     * @brief Toggle the state of the GPIO pin.
      */
     void toggle();
 
 private:
     /**
-     * @brief The port of the GPIO
+     * @brief The port of the GPIO.
      */
     GPIO_TypeDef* port;
 
     /**
-     * @brief The pin number of the GPIO
+     * @brief The pin number of the GPIO.
      */
     uint16_t pin;
 };

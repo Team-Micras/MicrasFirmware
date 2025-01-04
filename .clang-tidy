@@ -4,18 +4,21 @@ Checks:
   bugprone-*,
   -bugprone-easily-swappable-parameters,
   -bugprone-narrowing-conversions,
+  -bugprone-dynamic-static-initializers,
   clang-*,
   -clang-diagnostic-unused-command-line-argument,
   cppcoreguidelines-*,
   -cppcoreguidelines-avoid-magic-numbers,
-  -cppcoreguidelines-narrowing-conversions,
   -cppcoreguidelines-pro-bounds-pointer-arithmetic,
-  -cppcoreguidelines-pro-type-reinterpret-cast,
+  -cppcoreguidelines-avoid-do-while,
   -cppcoreguidelines-pro-type-union-access,
   google-*,
   llvm-*,
   -llvm-header-guard,
   misc-*,
+  -misc-include-cleaner,
+  -misc-const-correctness,
+  -misc-use-anonymous-namespace,
   modernize-*,
   -modernize-use-nodiscard,
   -modernize-use-trailing-return-type,
@@ -23,10 +26,35 @@ Checks:
   readability-*,
   -readability-duplicate-include,
   -readability-magic-numbers,
-CheckOptions:
-  cppcoreguidelines-avoid-non-const-global-variables.AllowInternalLinkage: true
-WarningsAsErrors: ''
+WarningsAsErrors: '*'
+HeaderFileExtensions:
+  - ''
+  - h
+  - hh
+  - hpp
+  - hxx
+ImplementationFileExtensions:
+  - c
+  - cc
+  - cpp
+  - cxx
 HeaderFilterRegex: '(include|config)/.*.hpp'
-AnalyzeTemporaryDtors: false
 FormatStyle: none
+CheckOptions:
+  readability-magic-numbers.IgnorePowersOf2IntegerValues: true
+  readability-magic-numbers.IgnoreBitFieldsWidths: true
+  readability-magic-numbers.IgnoreUserDefinedLiterals: true
+  readability-identifier-length.MinimumVariableNameLength: 2
+  readability-identifier-length.IgnoredVariableNames: ^[nxyz]$
+  readability-identifier-length.MinimumParameterNameLength: 2
+  readability-identifier-length.IgnoredParameterNames: ^[nxyz]$
+  misc-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic: true
+  cppcoreguidelines-narrowing-conversions.WarnOnIntegerToFloatingPointNarrowingConversion: false
+  readability-function-cognitive-complexity.Threshold: 30
+SystemHeaders: false
+ExtraArgsBefore:
+  - '--target=arm-none-eabi'
+  - '--sysroot=/usr/lib/arm-none-eabi/'
+  - '-I/usr/lib/arm-none-eabi/include/c++/13.2.1/'
+  - '-I/usr/lib/arm-none-eabi/include/c++/13.2.1/arm-none-eabi/'
 ...

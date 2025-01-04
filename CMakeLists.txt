@@ -47,14 +47,15 @@ set(CMAKE_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 project(${CMAKE_PROJECT_NAME} C CXX ASM)
 
-include(cmake/workspace.cmake)
 include(cmake/targets.cmake)
 include(cmake/utilities.cmake)
 include(cmake/linter.cmake)
 
 add_subdirectory(cube/cmake/stm32cubemx)
+add_subdirectory(micras_core)
 add_subdirectory(micras_hal)
 add_subdirectory(micras_proxy)
+add_subdirectory(micras_nav)
 
 ###############################################################################
 ## Input files
@@ -82,7 +83,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 )
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
-    micras::proxy
+    micras::nav
 )
 
 stm32_print_size_of_target(${PROJECT_NAME})
@@ -110,7 +111,7 @@ foreach(TEST_FILE ${PROJECT_TESTS})
     )
 
     target_link_libraries(${TEST_NAME} PUBLIC
-        micras::proxy
+        micras::nav
     )
 
     stm32_generate_hex_file(${TEST_NAME})
@@ -119,3 +120,5 @@ foreach(TEST_FILE ${PROJECT_TESTS})
     targets_generate_flash_target(${TEST_NAME})
 
 endforeach()
+
+targets_generate_test_all_target(${PROJECT_TESTS})

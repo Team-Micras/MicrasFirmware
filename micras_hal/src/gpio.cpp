@@ -1,9 +1,5 @@
 /**
- * @file gpio.cpp
- *
- * @brief HAL GPIO class source
- *
- * @date 03/2024
+ * @file
  */
 
 #include "micras/hal/gpio.hpp"

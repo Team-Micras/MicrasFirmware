@@ -1,9 +1,5 @@
 /**
- * @file test_core.hpp
- *
- * @brief Core class to the test
- *
- * @date 04/2024
+ * @file
  */
 
 #ifndef MICRAS_TEST_CORE_HPP
@@ -15,27 +11,27 @@
 
 namespace micras {
 /**
- * @brief Core class to the tests
+ * @brief Core class to the tests.
  */
 class TestCore {
 public:
     /**
-     * @brief Delete the default constructor
+     * @brief Delete the default constructor.
      */
     TestCore() = delete;
 
     /**
-     * @brief Initialize the test core
+     * @brief Initialize the test core.
      *
-     * @param argc Number of main arguments
-     * @param argv Main arguments
+     * @param argc Number of main arguments.
+     * @param argv Main arguments.
      */
     static void init(int argc = 0, char** argv = nullptr);
 
     /**
-     * @brief Loop the test core with a custom function
+     * @brief Loop the test core with a custom function.
      *
-     * @param loop_func Custom loop function
+     * @param loop_func Custom loop function.
      */
     static void loop(const std::function<void()>& loop_func);
 };

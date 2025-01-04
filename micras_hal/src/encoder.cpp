@@ -1,9 +1,5 @@
 /**
- * @file encoder.cpp
- *
- * @brief STM32 encoder HAL wrapper
- *
- * @date 03/2024
+ * @file
  */
 
 #include "micras/hal/encoder.hpp"
@@ -19,6 +15,7 @@ Encoder::Encoder(const Config& config) : handle{config.handle} {
 }
 
 int32_t Encoder::get_counter() const {
+    // NOLINTNEXTLINE(cppcoreguidelines-narrowing-conversions)
     return static_cast<int32_t>(__HAL_TIM_GET_COUNTER(this->handle)) - this->start_count;
 }
 }  // namespace micras::hal

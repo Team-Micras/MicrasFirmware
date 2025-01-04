@@ -1,9 +1,5 @@
 /**
- * @file rotary_sensor.hpp
- *
- * @brief STM32 rotary sensor HAL wrapper
- *
- * @date 03/2024
+ * @file
  */
 
 #ifndef MICRAS_PROXY_ROTARY_SENSOR_HPP
@@ -17,14 +13,14 @@
 
 namespace micras::proxy {
 /**
- * @brief Class to handle rotary sensor peripheral on STM32 microcontrollers
+ * @brief Class for acquiring rotary sensor data.
  */
 class RotarySensor {
 public:
 #include "micras/proxy/rotary_sensor_reg.hpp"
 
     /**
-     * @brief Rotary sensor configuration struct
+     * @brief Rotary sensor configuration struct.
      */
     struct Config {
         hal::Spi::Config     spi;
@@ -35,11 +31,11 @@ public:
     };
 
     union CommandFrame {
-        struct Fields {
-            uint8_t  do_not_care : 1;
-            uint8_t  rw          : 1;
-            uint16_t address     : 14;
+        struct __attribute__((__packed__)) Fields {
             uint8_t  crc         : 8;
+            uint16_t address     : 14;
+            uint8_t  rw          : 1;
+            uint8_t  do_not_care : 1;
         };
 
         Fields   fields;
@@ -47,11 +43,11 @@ public:
     };
 
     union DataFrame {
-        struct Fields {
-            uint8_t  warning : 1;
-            uint8_t  error   : 1;
-            uint16_t data    : 14;
+        struct __attribute__((__packed__)) Fields {
             uint8_t  crc     : 8;
+            uint16_t data    : 14;
+            uint8_t  error   : 1;
+            uint8_t  warning : 1;
         };
 
         Fields   fields;
@@ -59,52 +55,52 @@ public:
     };
 
     /**
-     * @brief Construct a new RotarySensor object
+     * @brief Construct a new RotarySensor object.
      *
-     * @param config Configuration for the rotary sensor
+     * @param config Configuration for the rotary sensor.
      */
     explicit RotarySensor(const Config& config);
 
     /**
-     * @brief Get the rotary sensor position over an axis
+     * @brief Get the rotary sensor position over an axis.
      *
-     * @return float Current angular position of the sensor in radians
+     * @return Current angular position of the sensor in radians.
      */
     float get_position() const;
 
     /**
-     * @brief Read a register to the rotary sensor
+     * @brief Read a register to the rotary sensor.
      *
-     * @param command_frame Command frame to send trough SPI
+     * @param command_frame Command frame to send trough SPI.
      */
     uint16_t read_register(uint16_t address);
 
     /**
-     * @brief Write a register to the rotary sensor
+     * @brief Write a register to the rotary sensor.
      *
-     * @param command_frame Command frame to send trough SPI
-     * @param data_frame Data frame to send trough SPI
+     * @param command_frame Command frame to send trough SPI.
+     * @param data_frame Data frame to send trough SPI.
      */
     void write_register(CommandFrame& command_frame, DataFrame& data_frame);
 
 private:
     /**
-     * @brief SPI for the rotary sensor configuration
+     * @brief SPI for the rotary sensor configuration.
      */
     hal::Spi spi;
 
     /**
-     * @brief Encoder for getting the rotary sensor data
+     * @brief Encoder for getting the rotary sensor data.
      */
     hal::Encoder encoder;
 
     /**
-     * @brief CRC for the rotary sensor configuration
+     * @brief CRC for the rotary sensor configuration.
      */
     hal::Crc crc;
 
     /**
-     * @brief Resolution of the rotary sensor
+     * @brief Resolution of the rotary sensor.
      */
     uint32_t resolution;
 };

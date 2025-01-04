@@ -1,9 +1,5 @@
 /**
- * @file buzzer.cpp
- *
- * @brief Proxy Buzzer class implementation
- *
- * @date 03/2024
+ * @file
  */
 
 #include "micras/proxy/buzzer.hpp"
@@ -14,8 +10,8 @@ Buzzer::Buzzer(const Config& config) : pwm{config.pwm} {
 }
 
 void Buzzer::play(uint32_t frequency, uint32_t duration) {
-    this->pwm.set_duty_cycle(50.0F);
     this->pwm.set_frequency(frequency);
+    this->pwm.set_duty_cycle(50.0F);
     this->is_playing = true;
     this->duration = duration;
 
@@ -30,14 +26,14 @@ void Buzzer::update() {
     }
 }
 
-void Buzzer::wait(uint32_t duration) {
+void Buzzer::wait(uint32_t interval) {
     while (this->duration > 0 and this->is_playing) {
         this->update();
     }
 
     hal::Timer wait_timer;
 
-    while (wait_timer.elapsed_time_ms() < duration) {
+    while (wait_timer.elapsed_time_ms() < interval) {
         this->update();
     }
 }

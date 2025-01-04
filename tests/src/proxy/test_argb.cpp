@@ -1,9 +1,5 @@
 /**
- * @file test_argb.cpp
- *
- * @brief Test for the Addressable RGB class
- *
- * @date 05/2024
+ * @file
  */
 
 #include "test_core.hpp"
@@ -13,8 +9,8 @@ using namespace micras;  // NOLINT(google-build-using-namespace)
 int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);
 
-    proxy::Argb<2>        argb{argb_config};
-    proxy::Argb<2>::Color color{255, 0, 0};
+    proxy::Argb        argb{argb_config};
+    proxy::Argb::Color color{255, 0, 0};
 
     TestCore::loop([&argb, &color]() {
         for (uint8_t i = 1; i > 0; i++) {

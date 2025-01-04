@@ -1,27 +1,24 @@
 /**
- * @file spi.hpp
- *
- * @brief STM32 SPI HAL wrapper
- *
- * @date 03/2024
+ * @file
  */
 
 #ifndef MICRAS_HAL_SPI_HPP
 #define MICRAS_HAL_SPI_HPP
 
 #include <cstdint>
+#include <span>
 #include <spi.h>
 
 #include "micras/hal/gpio.hpp"
 
 namespace micras::hal {
 /**
- * @brief Class to handle SPI peripheral on STM32 microcontrollers
+ * @brief Class to handle SPI peripheral on STM32 microcontrollers.
  */
 class Spi {
 public:
     /**
-     * @brief SPI configuration struct
+     * @brief SPI configuration struct.
      */
     struct Config {
         void (*init_function)();
@@ -31,53 +28,51 @@ public:
     };
 
     /**
-     * @brief Construct a new Spi object
+     * @brief Construct a new Spi object.
      *
-     * @param config Configuration for the SPI
+     * @param config Configuration for the SPI.
      */
     explicit Spi(const Config& config);
 
     /**
-     * @brief Activate the chip select
+     * @brief Activate the chip select.
      *
-     * @return bool True if the device was successfully selected, false otherwise
+     * @return True if the device was successfully selected, false otherwise.
      */
     bool select_device();
 
     /**
-     * @brief Deactivate the chip select
+     * @brief Deactivate the chip select.
      */
     void unselect_device();
 
     /**
-     * @brief Transmit data over SPI
+     * @brief Transmit data over SPI.
      *
-     * @param data Data to transmit
-     * @param size Size of the buffer
+     * @param data Data to transmit.
      */
-    void transmit(uint8_t data[], uint32_t size);  // NOLINT(*-avoid-c-arrays)
+    void transmit(std::span<uint8_t> data);
 
     /**
-     * @brief Receive data over SPI
+     * @brief Receive data over SPI.
      *
-     * @param data Data to receive data
-     * @param size Size of the data
+     * @param data Data to receive data.
      */
-    void receive(uint8_t data[], uint32_t size);  // NOLINT(*-avoid-c-arrays)
+    void receive(std::span<uint8_t> data);
 
 private:
     /**
-     * @brief Handle for the SPI
+     * @brief Handle for the SPI.
      */
     SPI_HandleTypeDef* handle;
 
     /**
-     * @brief GPIO for the chip select pin
+     * @brief GPIO for the chip select pin.
      */
     hal::Gpio cs_gpio;
 
     /**
-     * @brief Timeout for the SPI operations in ms
+     * @brief Timeout for the SPI operations in ms.
      */
     uint32_t timeout;
 };

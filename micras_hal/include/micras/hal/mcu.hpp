@@ -1,9 +1,5 @@
 /**
- * @file mcu.hpp
- *
- * @brief MCU related
- *
- * @date 03/2024
+ * @file
  */
 
 #ifndef MICRAS_HAL_MCU_HPP
@@ -13,17 +9,17 @@
 
 namespace micras::hal {
 /**
- * @brief Microcontroller unit class
+ * @brief Microcontroller unit class.
  */
 class Mcu {
 public:
     /**
-     * @brief Deleted constructor for static class
+     * @brief Deleted constructor for static class.
      */
     Mcu() = delete;
 
     /**
-     * @brief Initializes MCU and some peripherals
+     * @brief Initialize MCU and some peripherals.
      */
     static void init();
 };

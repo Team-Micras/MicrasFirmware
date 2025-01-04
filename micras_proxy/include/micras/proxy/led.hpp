@@ -1,9 +1,5 @@
 /**
- * @file led.hpp
- *
- * @brief Proxy Led class header
- *
- * @date 03/2024
+ * @file
  */
 
 #ifndef MICRAS_PROXY_LED_HPP
@@ -13,42 +9,42 @@
 
 namespace micras::proxy {
 /**
- * @brief Class for controlling an LED
+ * @brief Class for controlling an LED.
  */
 class Led {
 public:
     /**
-     * @brief Configuration structure for LED
+     * @brief Configuration struct for LED.
      */
     struct Config {
         hal::Gpio::Config gpio;
     };
 
     /**
-     * @brief Constructor for the Led class
+     * @brief Construct a new Led object.
      *
-     * @param config Configuration for the LED
+     * @param config Configuration for the LED.
      */
     explicit Led(const Config& config);
 
     /**
-     * @brief Turn the LED on
+     * @brief Turn the LED on.
      */
     void turn_on();
 
     /**
-     * @brief Turn the LED off
+     * @brief Turn the LED off.
      */
     void turn_off();
 
     /**
-     * @brief Toggle the LED
+     * @brief Toggle the LED.
      */
     void toggle();
 
 private:
     /**
-     * @brief Gpio object for the LED
+     * @brief Gpio object for the LED.
      */
     hal::Gpio gpio;
 };

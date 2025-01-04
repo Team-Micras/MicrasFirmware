@@ -1,7 +1,5 @@
 /**
- * @file mcu.cpp
- *
- * @brief MCU related
+ * @file
  */
 
 #include <crc.h>
@@ -12,8 +10,9 @@
 
 extern "C" {
 /**
- * @brief Initializes System Clock
- * @note  Defined by cube
+ * @brief Initialize System Clock.
+ *
+ * @note  Defined by cube.
  */
 void SystemClock_Config();
 }

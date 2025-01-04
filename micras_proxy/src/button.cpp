@@ -1,9 +1,5 @@
 /**
- * @file button.cpp
- *
- * @brief Proxy Button class source
- *
- * @date 03/2024
+ * @file
  */
 
 #include "micras/proxy/button.hpp"

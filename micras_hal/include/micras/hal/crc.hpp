@@ -1,9 +1,5 @@
 /**
- * @file crc.hpp
- *
- * @brief STM32 CRC HAL wrapper
- *
- * @date 03/2024
+ * @file
  */
 
 #ifndef MICRAS_HAL_CRC_HPP
@@ -13,37 +9,36 @@
 
 namespace micras::hal {
 /**
- * @brief Class to handle the cyclic redundancy check peripheral on STM32 microcontrollers
+ * @brief Class to handle the cyclic redundancy check peripheral on STM32 microcontrollers.
  */
 class Crc {
 public:
     /**
-     * @brief CRC configuration struct
+     * @brief CRC configuration struct.
      */
     struct Config {
         CRC_HandleTypeDef* handle;
     };
 
     /**
-     * @brief Construct a new Crc object
+     * @brief Construct a new Crc object.
      *
-     * @param config Configuration for the CRC
+     * @param config Configuration for the CRC.
      */
     explicit Crc(const Config& config);
 
     /**
-     * @brief Calculate the CRC value
+     * @brief Calculate the CRC value.
      *
-     * @param data Data to calculate the CRC
-     * @param size Size of the buffer
-     *
-     * @return uint32_t CRC value
+     * @param data Data to calculate the CRC.
+     * @param size Size of the buffer.
+     * @return CRC value.
      */
     uint32_t calculate(uint32_t data[], uint32_t size);  // NOLINT(*-avoid-c-arrays)
 
 private:
     /**
-     * @brief CRC handle
+     * @brief CRC handle.
      */
     CRC_HandleTypeDef* handle;
 };

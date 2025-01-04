@@ -1,22 +1,18 @@
 /**
- * @file test_dip_switch.cpp
- *
- * @brief Test for the DipSwitch class
- *
- * @date 05/2024
+ * @file
  */
 
 #include "test_core.hpp"
 
 using namespace micras;  // NOLINT(google-build-using-namespace)
 
-static volatile uint8_t test_dip_switch_value{};
+static volatile uint8_t test_dip_switch_value{};  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);
-    proxy::DipSwitch<4>   dip_switch{dip_switch_config};
-    proxy::Argb<2>        argb{argb_config};
-    proxy::Argb<2>::Color color{};
+    proxy::DipSwitch   dip_switch{dip_switch_config};
+    proxy::Argb        argb{argb_config};
+    proxy::Argb::Color color{};
 
     TestCore::loop([&dip_switch, &argb, &color]() {
         color = {0, 0, 0};
