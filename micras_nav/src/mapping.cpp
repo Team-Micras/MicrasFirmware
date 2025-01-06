@@ -170,8 +170,8 @@ Pose Mapping<width, height>::correct_pose(const Pose& pose, core::FollowWallType
 template <uint8_t width, uint8_t height>
 void Mapping<width, height>::calibrate_front() {
     this->front_distance_reading[0] = this->wall_sensors.get_reading(0);
-    front_orientation_reading[0] = this->wall_sensors.get_reading(1);
-    front_orientation_reading[1] = this->wall_sensors.get_reading(2);
+    this->front_orientation_reading[0] = this->wall_sensors.get_reading(1);
+    this->front_orientation_reading[1] = this->wall_sensors.get_reading(2);
     this->front_distance_reading[1] = this->wall_sensors.get_reading(3);
 }
 

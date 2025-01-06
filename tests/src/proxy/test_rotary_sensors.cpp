@@ -12,6 +12,9 @@ static volatile float test_right_position{};
 static volatile uint16_t test_resolution_byte{};
 static volatile uint16_t test_decimal_byte{};
 
+static volatile uint16_t test_left_diag{};
+static volatile uint16_t test_right_diag{};
+
 int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);
     proxy::RotarySensor rotary_sensor_left{rotary_sensor_left_config};
@@ -25,12 +28,20 @@ int main(int argc, char* argv[]) {
     proxy::RotarySensor::CommandFrame command_frame{};
     proxy::RotarySensor::DataFrame    data_frame{};
 
-    command_frame.fields.address = proxy::RotarySensor::Registers::settings3_addr;
-    data_frame.fields.data = rotary_sensor_right_config.registers.settings3.raw;
-    rotary_sensor_right.write_register(command_frame, data_frame);
+    // command_frame.fields.address = proxy::RotarySensor::Registers::settings2_addr;
+    // data_frame.fields.data = rotary_sensor_right_config.registers.settings2.raw;
+    // rotary_sensor_right.write_register(command_frame, data_frame);
 
-    test_decimal_byte = rotary_sensor_right.read_register(proxy::RotarySensor::Registers::settings2_addr) & (1 << 5);
-    test_resolution_byte = rotary_sensor_right.read_register(proxy::RotarySensor::Registers::settings3_addr) >> 5;
+    // // command_frame.fields.address = proxy::RotarySensor::Registers::settings3_addr;
+    // // data_frame.fields.data = rotary_sensor_right_config.registers.settings3.raw;
+    // rotary_sensor_right.write_register(command_frame, data_frame);
+
+    // command_frame.fields.address = proxy::RotarySensor::Registers::disable_addr;
+    // data_frame.fields.data = rotary_sensor_right_config.registers.disable.raw;
+    // rotary_sensor_right.write_register(command_frame, data_frame);
+
+    // test_decimal_byte = rotary_sensor_right.read_register(proxy::RotarySensor::Registers::settings2_addr) & (1 << 5);
+    // test_resolution_byte = rotary_sensor_right.read_register(proxy::RotarySensor::Registers::settings3_addr);
 
     TestCore::loop([&rotary_sensor_left, &rotary_sensor_right, &button, &locomotion, &running]() {
         test_left_position = rotary_sensor_left.get_position();
@@ -42,6 +53,9 @@ int main(int argc, char* argv[]) {
             running = not running;
             locomotion.set_command(50.0F * running, 0.0F);
         }
+
+        // test_left_diag = rotary_sensor_left.read_register(0x3FFC);
+        // test_right_diag = rotary_sensor_right.read_register(0x3FFC);
     });
 
     return 0;

@@ -10,36 +10,36 @@
 namespace micras::proxy {
 RotarySensor::RotarySensor(const Config& config) :
     spi{config.spi}, encoder{config.encoder}, crc{config.crc}, resolution{config.resolution} {
-    CommandFrame command_frame{};
-    DataFrame    data_frame{};
+    // CommandFrame command_frame{};
+    // DataFrame    data_frame{};
 
-    command_frame.fields.address = Registers::disable_addr;
-    data_frame.fields.data = config.registers.disable.raw;
-    this->write_register(command_frame, data_frame);
+    // command_frame.fields.address = Registers::disable_addr;
+    // data_frame.fields.data = config.registers.disable.raw;
+    // this->write_register(command_frame, data_frame);
 
-    command_frame.fields.address = Registers::zposm_addr;
-    data_frame.fields.data = config.registers.zposm.raw;
-    this->write_register(command_frame, data_frame);
+    // command_frame.fields.address = Registers::zposm_addr;
+    // data_frame.fields.data = config.registers.zposm.raw;
+    // this->write_register(command_frame, data_frame);
 
-    command_frame.fields.address = Registers::zposl_addr;
-    data_frame.fields.data = config.registers.zposl.raw;
-    this->write_register(command_frame, data_frame);
+    // command_frame.fields.address = Registers::zposl_addr;
+    // data_frame.fields.data = config.registers.zposl.raw;
+    // this->write_register(command_frame, data_frame);
 
-    command_frame.fields.address = Registers::settings1_addr;
-    data_frame.fields.data = config.registers.settings1.raw;
-    this->write_register(command_frame, data_frame);
+    // command_frame.fields.address = Registers::settings1_addr;
+    // data_frame.fields.data = config.registers.settings1.raw;
+    // this->write_register(command_frame, data_frame);
 
-    command_frame.fields.address = Registers::settings2_addr;
-    data_frame.fields.data = config.registers.settings2.raw;
-    this->write_register(command_frame, data_frame);
+    // command_frame.fields.address = Registers::settings2_addr;
+    // data_frame.fields.data = config.registers.settings2.raw;
+    // this->write_register(command_frame, data_frame);
 
-    command_frame.fields.address = Registers::settings3_addr;
-    data_frame.fields.data = config.registers.settings3.raw;
-    this->write_register(command_frame, data_frame);
+    // command_frame.fields.address = Registers::settings3_addr;
+    // data_frame.fields.data = config.registers.settings3.raw;
+    // this->write_register(command_frame, data_frame);
 
-    command_frame.fields.address = Registers::ecc_addr;
-    data_frame.fields.data = config.registers.ecc.raw;
-    this->write_register(command_frame, data_frame);
+    // command_frame.fields.address = Registers::ecc_addr;
+    // data_frame.fields.data = config.registers.ecc.raw;
+    // this->write_register(command_frame, data_frame);
 }
 
 float RotarySensor::get_position() const {

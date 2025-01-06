@@ -6,54 +6,47 @@
 
 using namespace micras;  // NOLINT(google-build-using-namespace)
 
+static volatile float left_position;
+static volatile float right_position;
+
 int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);
-    proxy::Button     button{button_config};
-    proxy::Locomotion locomotion{locomotion_config};
+    hal::Timer          timer{timer_config};
+    hal::Timer          stop_timer;
+    proxy::Button       button{button_config};
+    proxy::Locomotion   locomotion{locomotion_config};
+    proxy::RotarySensor left_rotary_sensor{rotary_sensor_left_config};
+    proxy::RotarySensor right_rotary_sensor{rotary_sensor_right_config};
 
-    TestCore::loop([&button, &locomotion]() {
-        auto button_status = button.get_status();
+    left_position = left_rotary_sensor.get_position();
+    right_position = right_rotary_sensor.get_position();
 
-        switch (button_status) {
-            case proxy::Button::Status::SHORT_PRESS:
-                locomotion.set_command(50.0F, 0.0F);
-                hal::Timer::sleep_ms(1000);
-                locomotion.set_command(0.0F, 0.0F);
-                hal::Timer::sleep_ms(1000);
-                locomotion.set_command(-50.0F, 0.0F);
-                hal::Timer::sleep_ms(1000);
-                locomotion.set_command(0.0F, 0.0F);
-                hal::Timer::sleep_ms(1000);
+    bool running = false;
+    stop_timer.reset_ms();
 
-                locomotion.set_command(0.0F, 50.0F);
-                hal::Timer::sleep_ms(1000);
-                locomotion.set_command(0.0F, 0.0F);
-                hal::Timer::sleep_ms(1000);
-                locomotion.set_command(0.0F, -50.0F);
-                hal::Timer::sleep_ms(1000);
-                locomotion.set_command(0.0F, 0.0F);
-                break;
+    TestCore::loop([&button, &locomotion, &left_rotary_sensor, &right_rotary_sensor, &timer, &running, &stop_timer]() {
+        float elapsed_time = timer.elapsed_time_us() / 1000000.0F;
+        timer.reset_us();
 
-            case proxy::Button::Status::LONG_PRESS:
-                for (int8_t i = 1; i < 100; i++) {
-                    locomotion.set_wheel_command(i, i);
-                    hal::Timer::sleep_ms(20);
-                }
+        if (stop_timer.elapsed_time_ms() > 5000) {
+            locomotion.stop();
+            running = false;
+            stop_timer.reset_ms();
+        }
 
-                for (int8_t i = 100; i > -100; i--) {
-                    locomotion.set_wheel_command(i, i);
-                    hal::Timer::sleep_ms(20);
-                }
+        if (button.get_status() != proxy::Button::Status::NO_PRESS) {
+            running = not running;
+            hal::Timer::sleep_ms(3000);
+            stop_timer.reset_ms();
+            return;
+        }
 
-                for (int8_t i = -100; i <= 0; i++) {
-                    locomotion.set_wheel_command(i, i);
-                    hal::Timer::sleep_ms(20);
-                }
-
-                break;
-
-            default:
-                break;
+        if (running) {
+            locomotion.enable();
+            locomotion.set_command(50.0F, 0.0F);
+        } else {
+            locomotion.disable();
+            locomotion.stop();
         }
     });
 

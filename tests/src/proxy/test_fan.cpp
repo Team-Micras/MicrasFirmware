@@ -18,16 +18,16 @@ int main(int argc, char* argv[]) {
 
         fan.set_speed(50.0F);
 
-        while (fan.update_speed() < 50.0F) {
-            test_fan_speed = fan.update_speed();
+        while (fan.update() < 50.0F) {
+            test_fan_speed = fan.update();
         }
 
         hal::Timer::sleep_ms(3000);
 
         fan.set_speed(0.0F);
 
-        while (fan.update_speed() > 0.0F) {
-            test_fan_speed = fan.update_speed();
+        while (fan.update() > 0.0F) {
+            test_fan_speed = fan.update();
         }
     });
 
