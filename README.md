@@ -35,12 +35,12 @@ NTF Classic Micromouse project with a STM32 microcontroller
 
 ## 📁 Folder structure
 
+- **.docker/** - Docker build and format scripts for CI/CD.
 - **.github/** - GitHub Actions workflow files.
 - **.vscode/** - Visual Studio Code configuration files.
 - **cmake/** - Functions to include in the main CMake.
 - **config/** - Target and constants configuration values.
 - **cube/** - STM32CubeMX configuration and build files.
-- **docker/** - Docker build and format scripts for CI/CD.
 - **include/** - Header files for class definitions.
 - **src/** - Source file for class implementations and executables.
 - **tests/** - Executable test files.
