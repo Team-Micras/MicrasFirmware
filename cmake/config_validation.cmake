@@ -67,8 +67,8 @@ message(STATUS "Device is ${DEVICE}")
 # Check cube directory for files
 # If it's empty, generate the files
 file(GLOB_RECURSE CUBE_SOURCES_CHECK "${CMAKE_CURRENT_SOURCE_DIR}/cube/Src/*.c")
-list(LENGTH CUBE_SOURCES_CHECK CUBE_LENGHT)
-if(CUBE_LENGHT EQUAL 0)
+list(LENGTH CUBE_SOURCES_CHECK CUBE_LENGTH)
+if(CUBE_LENGTH EQUAL 0)
     message(STATUS "Cube directory is empty. Generating cube files...")
 
     file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/.cube
