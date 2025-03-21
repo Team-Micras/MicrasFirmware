@@ -27,6 +27,8 @@ NTF Classic Micromouse project with a STM32 microcontroller
   - [🎨 Format](#-format)
   - [🚨 Linter](#-linter)
 - [🐋 Docker](#-docker)
+  - [🐳 Building](#-building-1)
+  - [🧑‍💻 Development](#-development)
 - [📝 Documentation](#-documentation)
 - [👥 Contributing](#-contributing)
   - [💬 Git commit messages](#-git-commit-messages)
@@ -224,7 +226,6 @@ This also works for formatting (`docker compose run format`) and linting (`docke
 ### 🧑‍💻 Development
 
 To enter a container and mount the project folder, run the following command:
-
 
 ```bash
 docker compose run dev
