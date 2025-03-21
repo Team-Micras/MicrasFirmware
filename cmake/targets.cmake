@@ -32,7 +32,7 @@ add_custom_target(info
 )
 
 add_custom_target(reset
-    COMMAND echo "Reseting device"
+    COMMAND echo "Resetting device"
     COMMAND ${PROGRAMMER_CMD} -c port=SWD -rst
 )
 
@@ -133,13 +133,13 @@ function(targets_generate_vsfiles_target TARGET)
     set(DEBUG_FILE_NAME ${TARGET})
 
     set(input_file ${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/launch.json.in)
-    set(ouput_save_file ${CMAKE_CURRENT_BINARY_DIR}/vsfiles/.vsfiles${TARGET_SUFFIX})
+    set(output_save_file ${CMAKE_CURRENT_BINARY_DIR}/vsfiles/.vsfiles${TARGET_SUFFIX})
 
-    configure_file(${input_file} ${ouput_save_file})
+    configure_file(${input_file} ${output_save_file})
 
     add_custom_target(debug${TARGET_SUFFIX}
         COMMAND echo "Configuring VS Code files for ${TARGET}"
-        COMMAND cat ${ouput_save_file} > ${LAUNCH_JSON_PATH}
+        COMMAND cat ${output_save_file} > ${LAUNCH_JSON_PATH}
     )
 
     add_dependencies(debug${TARGET_SUFFIX} ${TARGET})
@@ -147,7 +147,7 @@ endfunction()
 
 function(targets_generate_helpme_target)
     set(input_file ${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/helpme.in)
-    set(ouput_save_file ${CMAKE_CURRENT_BINARY_DIR}/.helpme)
+    set(output_save_file ${CMAKE_CURRENT_BINARY_DIR}/.helpme)
 
-    configure_file(${input_file} ${ouput_save_file})
+    configure_file(${input_file} ${output_save_file})
 endfunction()
