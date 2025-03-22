@@ -65,7 +65,7 @@ And initialize the libraries submodules:
 git submodule update --init --recursive
 ```
 
-The [STM32CubeMX](https://www.st.com/en/development-tools/stm32cubemx.html) program is also needed. After the installation is completed, it is necessary to set the environment variable `CUBE_PATH` to the installation directory path of STM32CubeMX.
+The [STM32CubeMX](https://www.st.com/en/development-tools/stm32cubemx.html) program is also needed. After the installation is completed, it is necessary to add the directory of STM32CubeMX binaries to the `PATH` variable.
 
 The building process can be started by creating a build folder with:
 
@@ -93,7 +93,7 @@ make helpme
 
 ## 🚀 Running
 
-The binaries can be flashed into the microcontroller using the [STM32CubeProgrammer](https://www.st.com/en/development-tools/stm32cubeprog.html), which needs to be installed. For flashing the main program, run the following command:
+The binaries can be flashed into the microcontroller using the [STM32CubeProgrammer](https://www.st.com/en/development-tools/stm32cubeprog.html), which needs to be installed and added to the `PATH` variable. For flashing the main program, run the following command:
 
 ```bash
 make flash -j
