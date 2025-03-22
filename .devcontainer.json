@@ -1,6 +1,6 @@
 {
     "name": "Micras Dev Container",
-    "dockerComposeFile": "docker-compose.yaml",
+    "dockerComposeFile": "compose.yaml",
     "service": "dev",
     "shutdownAction": "stopCompose",
     "workspaceFolder": "/project",
