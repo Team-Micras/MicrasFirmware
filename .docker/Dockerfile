@@ -16,12 +16,14 @@ RUN apt-get update -y > /dev/null && \
 WORKDIR /project
 COPY ./cube/*.ioc /project/cube/
 
+ENV CUBE_CMD $CUBE_PATH/STM32CubeMX
+
 ENV DISPLAY=:10
 ARG PROJECT_NAME=micras
 
 RUN Xvfb :10 -ac & \
     echo "config load /project/cube/${PROJECT_NAME}.ioc\nproject generate\nexit\n" > .cube && \
-    $CUBE_PATH/STM32CubeMX -q /project/.cube && \
+    $CUBE_CMD -q /project/.cube && \
     rm .cube && \
     pkill -f Xvfb
 
