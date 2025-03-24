@@ -15,17 +15,42 @@ endif()
 set(CMAKE_BUILD_TYPE ${BUILD_TYPE})
 message(STATUS "Build type: " ${CMAKE_BUILD_TYPE})
 
-# Set CubeMX and JLink executables
-if(NOT "$ENV{WSL_DISTRO_NAME}" STREQUAL "")
-    set(CUBE_CMD "STM32CubeMX.exe")
-    set(JLINK_CMD "JLink.exe")
-    set(PROGRAMMER_CMD "STM32_Programmer_CLI.exe")
+# Detect if running inside WSL
+if(DEFINED ENV{WSL_DISTRO_NAME} AND NOT "$ENV{WSL_DISTRO_NAME}" STREQUAL "")
+    set(IS_WSL TRUE)
     message(STATUS "WSL detected")
 else()
-    set(CUBE_CMD "STM32CubeMX")
+    set(IS_WSL FALSE)
+    message(STATUS "Linux detected")
+endif()
+
+# Set STM32CubeMX command
+if(DEFINED ENV{CUBE_CMD})
+    set(CUBE_CMD $ENV{CUBE_CMD})
+    message(STATUS "Using STM32CubeMX from environment: ${CUBE_CMD}")
+else()
+    message(STATUS "CUBE_CMD not defined, trying default path")
+
+    if(IS_WSL)
+        set(CUBE_CMD "/mnt/c/Program Files/STMicroelectronics/STM32Cube/STM32CubeMX/STM32CubeMX.exe")
+    else()
+        set(CUBE_CMD "/usr/local/STMicroelectronics/STM32Cube/STM32CubeMX/STM32CubeMX")
+    endif()
+
+    if(EXISTS ${CUBE_CMD})
+        message(STATUS "STM32CubeMX found at: ${CUBE_CMD}")
+    else()
+        message(FATAL_ERROR "STM32CubeMX executable not found at expected path: ${CUBE_CMD}")
+    endif()
+endif()
+
+# Set J-Link and STM32 Programmer executables
+if(IS_WSL)
+    set(JLINK_CMD "JLink.exe")
+    set(PROGRAMMER_CMD "STM32_Programmer_CLI.exe")
+else()
     set(JLINK_CMD "JLinkExe")
     set(PROGRAMMER_CMD "STM32_Programmer_CLI")
-    message(STATUS "Linux detected")
 endif()
 
 # Check if OpenOCD variables are properly defined
