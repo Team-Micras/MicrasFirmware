@@ -15,8 +15,13 @@ endif()
 set(CMAKE_BUILD_TYPE ${BUILD_TYPE})
 message(STATUS "Build type: " ${CMAKE_BUILD_TYPE})
 
+# Check if host system is Linux
+if(NOT CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
+    message(FATAL_ERROR "${CMAKE_HOST_SYSTEM_NAME} is not supported")
+endif()
+
 # Detect if running inside WSL
-if(DEFINED ENV{WSL_DISTRO_NAME} AND NOT "$ENV{WSL_DISTRO_NAME}" STREQUAL "")
+if(DEFINED ENV{WSL_DISTRO_NAME})
     set(IS_WSL TRUE)
     message(STATUS "WSL detected")
 else()
@@ -55,8 +60,8 @@ endif()
 
 # Check if OpenOCD variables are properly defined
 if (DEFINED ENV{OPENOCD_SCRIPTS_PATH})
-    message(STATUS "OPENOCD_SCRIPTS_PATH defined as $ENV{OPENOCD_SCRIPTS_PATH}")
     set(OPENOCD_SCRIPTS_PATH $ENV{OPENOCD_SCRIPTS_PATH})
+    message(STATUS "OPENOCD_SCRIPTS_PATH defined as $ENV{OPENOCD_SCRIPTS_PATH}")
 else()
     set(OPENOCD_SCRIPTS_PATH "/usr/share/openocd/scripts")
     message(STATUS "OPENOCD_SCRIPTS_PATH not defined. Using default path ${OPENOCD_SCRIPTS_PATH}")
