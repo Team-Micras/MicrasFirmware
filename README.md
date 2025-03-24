@@ -65,7 +65,7 @@ And initialize the libraries submodules:
 git submodule update --init --recursive
 ```
 
-The [STM32CubeMX](https://www.st.com/en/development-tools/stm32cubemx.html) program is also needed. After the installation is completed, it is necessary to add the directory of STM32CubeMX binaries to the `PATH` variable.
+The [STM32CubeMX](https://www.st.com/en/development-tools/stm32cubemx.html) program is also required. After the installation is completed, it is necessary to set the `CUBE_CMD` environment variable to the path of the STM32CubeMX executable.
 
 The building process can be started by creating a build folder with:
 
