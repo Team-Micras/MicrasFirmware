@@ -136,7 +136,7 @@ To debug the project, you need to run the `cmake` command with `BUILD_TYPE` set 
 cmake .. -DBUILD_TYPE=Debug
 ```
 
-Then, generate the launch files for debugging with the command:
+If you are using Visual Studio Code, install the [Cortex Debug extension](https://marketplace.visualstudio.com/items?marus25.Cortex-Debug). Then, generate the launch files for debugging with the command:
 
 ```bash
 make debug
@@ -148,9 +148,7 @@ It is also possible to debug test executables, by first running the command:
 make debug_[test_name]
 ```
 
-
-
-Finally, to debug the project, the [Cortex Debug extension](https://marketplace.visualstudio.com/items?marus25.Cortex-Debug) for VSCode must be installed. There are three configurations for debugging present at the [`.vscode/launch.json`](./.vscode/launch.json) file that uses different programs:
+There are three configurations for debugging present at the [`.vscode/launch.json`](./.vscode/launch.json) file that uses different programs:
 
 - [J-Link](https://www.segger.com/downloads/jlink/)
 - [OpenOCD](https://openocd.org/) (`sudo apt install openocd`)
