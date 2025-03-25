@@ -21,12 +21,14 @@ if(DEFINED ENV{WSL_DISTRO_NAME})
     message(STATUS "WSL detected")
     set(CUBE_DEFAULT_PATH "/mnt/c/Program Files/STMicroelectronics/STM32Cube/STM32CubeMX")
     set(CUBE_PROGRAM "STM32CubeMX.exe")
+    set(CUBE_SOURCE_DIR "\\\\wsl.localhost/$ENV{WSL_DISTRO_NAME}${CMAKE_CURRENT_SOURCE_DIR}/cube")
     set(PROGRAMMER_CMD "STM32_Programmer_CLI.exe")
     set(JLINK_CMD "JLink.exe")
 else()
     message(STATUS "Linux detected")
     set(CUBE_DEFAULT_PATH "/usr/local/STMicroelectronics/STM32Cube/STM32CubeMX")
     set(CUBE_PROGRAM "STM32CubeMX")
+    set(CUBE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cube")
     set(PROGRAMMER_CMD "STM32_Programmer_CLI")
     set(JLINK_CMD "JLinkExe")
 endif()
@@ -45,7 +47,7 @@ else()
         message(STATUS "${CUBE_PROGRAM} not found on PATH, trying default path")
         set(CUBE_CMD "${CUBE_DEFAULT_PATH}/${CUBE_PROGRAM}")
 
-        if(NOT ${CUBE_CMD})
+        if(NOT EXISTS ${CUBE_CMD})
             message(FATAL_ERROR
                 "STM32CubeMX executable not found at expected path: ${CUBE_CMD}\n"
                 "Define the CUBE_CMD environment variable or add binary folder to the PATH"
@@ -102,10 +104,10 @@ list(LENGTH CUBE_SOURCES_CHECK CUBE_LENGHT)
 if(CUBE_LENGHT EQUAL 0)
     message(STATUS "Cube directory is empty. Generating cube files...")
     file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/.cube"
-        "config load ${CMAKE_CURRENT_SOURCE_DIR}/cube/${PROJECT_RELEASE}.ioc\n"
+        "config load ${CUBE_SOURCE_DIR}/${PROJECT_RELEASE}.ioc\n"
         "project generate\n"
         "exit\n"
     )
 
-    execute_process(COMMAND ${CUBE_CMD} "-q ${CMAKE_CURRENT_BINARY_DIR}/.cube")
+    execute_process(COMMAND ${CUBE_CMD} -q ${CMAKE_CURRENT_BINARY_DIR}/.cube)
 endif()
