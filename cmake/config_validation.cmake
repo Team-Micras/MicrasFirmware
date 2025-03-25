@@ -46,7 +46,7 @@ else()
     else()
         message(FATAL_ERROR
             "STM32CubeMX executable not found at expected path: ${CUBE_CMD}\n"
-            "Define the CUBE_CMD environment variable"
+            "Define the CUBE_CMD environment variable or add binary folder to the PATH"
         )
     endif()
 endif()
