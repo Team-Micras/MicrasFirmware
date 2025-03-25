@@ -28,6 +28,7 @@ NTF Classic Micromouse project with a STM32 microcontroller
   - [🚨 Linter](#-linter)
 - [🐋 Docker](#-docker)
 - [📝 Documentation](#-documentation)
+- [🛠️ Windows Development Environment](#️-windows-development-environment)
 - [👥 Contributing](#-contributing)
   - [💬 Git commit messages](#-git-commit-messages)
   - [🔀 Git workflow](#-git-workflow)
@@ -251,6 +252,20 @@ make docs
 ```
 
 The configuration is in the file [Doxyfile](./Doxyfile).
+
+## 🛠️ Windows Development Environment
+
+If you are developing on a Windows machine using **Windows Subsystem for Linux (WSL)**, we recommend installing the following tools **on Windows** and add them to the **WSL** `PATH`:
+
+- [STM32CubeMX](https://www.st.com/en/development-tools/stm32cubemx.html)
+- [STM32CubeProgrammer](https://www.st.com/en/development-tools/stm32cubeprog.html)
+- [J-Link](https://www.segger.com/downloads/jlink/)
+- [OpenOCD](https://openocd.org/)
+- [ST-Util](https://github.com/stlink-org/stlink)
+
+Our recommended workflow for Windows users is to use WSL for building the project while running STM32CubeMX, flashing tools, and GDB servers directly in the Windows environment. This setup provides a smoother development experience and avoids the need to passthrough the USB connections to WSL, allowing you to use the native Windows tools for flashing and debugging the project inside WSL.
+
+However, if you prefer to keep everything inside WSL, you can manually define the environment variables `JLINK_CMD` and `PROGRAMMER_CMD` to point to the respective executables. If you need to passthrough USB devices to WSL, refer to the official [WSL USB documentation](https://learn.microsoft.com/en-us/windows/wsl/connect-usb) for setup instructions.
 
 ## 👥 Contributing
 
