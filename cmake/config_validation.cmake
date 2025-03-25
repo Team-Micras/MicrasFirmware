@@ -49,19 +49,19 @@ else()
 
         if(NOT EXISTS ${CUBE_CMD})
             message(FATAL_ERROR
-                "STM32CubeMX executable not found at expected path: ${CUBE_CMD}\n"
-                "Define the CUBE_CMD environment variable or add binary folder to the PATH"
+                "STM32CubeMX program not found at expected path: ${CUBE_CMD}\n"
+                "Define the CUBE_CMD environment variable or add the binary folder to the PATH"
             )
         endif()
     endif()
 endif()
 
-# Set STM32 Programmer executable
+# Set STM32 Programmer command
 if(DEFINED ENV{PROGRAMMER_CMD})
     set(PROGRAMMER_CMD $ENV{PROGRAMMER_CMD})
 endif()
 
-# Set J-Link executable
+# Set J-Link command
 if(DEFINED ENV{JLINK_CMD})
     set(JLINK_CMD $ENV{JLINK_CMD})
 endif()
