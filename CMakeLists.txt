@@ -1,8 +1,3 @@
-# Name: CMakeLists.txt
-# Micras Team
-# Brief: CMake configuration file for the project
-# 04/2023
-
 cmake_minimum_required(VERSION 3.22)
 
 ###############################################################################

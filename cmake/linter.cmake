@@ -1,8 +1,3 @@
-# Name: linter.cmake
-# Micras Team
-# Brief: This file checks if linter was enabled and sets the proper flags
-# 04/2023
-
 ###############################################################################
 ## Linter Check
 ###############################################################################

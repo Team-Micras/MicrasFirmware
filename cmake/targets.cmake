@@ -1,8 +1,3 @@
-# Name: targets.cmake
-# ThundeRatz Robotics Team
-# Brief: This file contains auxiliary custom targets declarations
-# 04/2023
-
 ###############################################################################
 ## Auxiliary Targets
 ###############################################################################

@@ -1,8 +1,3 @@
-# Name: utilities.cmake
-# Micras Team
-# Brief: This file contains utilities functions for file generation and size check
-# 04/2024
-
 ###############################################################################
 ## Utilities Functions
 ###############################################################################
