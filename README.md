@@ -124,7 +124,7 @@ make test_all -j
 
 ## 🐛 Debugging
 
-It is possible to debug the project using [`gdb`](https://www.gnu.org/software/gdb/). To do that, first install `gdb-multiarch`, on Ubuntu, just run:
+It is possible to debug the project using [`GDB`](https://www.gnu.org/software/gdb/). To do that, first install `gdb-multiarch`, on Ubuntu, just run:
 
 ```bash
 sudo apt install gdb-multiarch
@@ -154,7 +154,7 @@ Finally, to debug the project, the [Cortex Debug extension](https://marketplace.
 - [OpenOCD](https://openocd.org/) (`sudo apt install openocd`)
 - [ST-Util](https://github.com/stlink-org/stlink) (`sudo apt install stlink-tools`)
 
-For each debug type, it is necessary to install the respective gdb server.
+For each debug type, it is necessary to install the respective GDB server.
 
 If using J-Link, the flashing process can be done by running the following command:
 
