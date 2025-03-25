@@ -28,6 +28,7 @@ NTF Classic Micromouse project with a STM32 microcontroller
   - [🚨 Linter](#-linter)
 - [🐋 Docker](#-docker)
 - [📝 Documentation](#-documentation)
+- [🛠️ Windows Development Environment](#️-windows-development-environment)
 - [👥 Contributing](#-contributing)
   - [💬 Git commit messages](#-git-commit-messages)
   - [🔀 Git workflow](#-git-workflow)
@@ -65,7 +66,7 @@ And initialize the libraries submodules:
 git submodule update --init --recursive
 ```
 
-The [STM32CubeMX](https://www.st.com/en/development-tools/stm32cubemx.html) program is also needed. After the installation is completed, it is necessary to set the environment variable `CUBE_PATH` to the installation directory path of STM32CubeMX.
+The [STM32CubeMX](https://www.st.com/en/development-tools/stm32cubemx.html) program is also required. After the installation is completed, it is necessary to set the `CUBE_CMD` environment variable to the path of the STM32CubeMX executable or add it to the `PATH`.
 
 The building process can be started by creating a build folder with:
 
@@ -93,7 +94,7 @@ make helpme
 
 ## 🚀 Running
 
-The binaries can be flashed into the microcontroller using the [STM32CubeProgrammer](https://www.st.com/en/development-tools/stm32cubeprog.html), which needs to be installed. For flashing the main program, run the following command:
+The binaries can be flashed into the microcontroller using the [STM32CubeProgrammer](https://www.st.com/en/development-tools/stm32cubeprog.html), which needs to be installed and added to the `PATH` variable. For flashing the main program, run the following command:
 
 ```bash
 make flash -j
@@ -251,6 +252,20 @@ make docs
 ```
 
 The configuration is in the file [Doxyfile](./Doxyfile).
+
+## 🛠️ Windows Development Environment
+
+If you are developing on a Windows machine using [**Windows Subsystem for Linux (WSL)**](https://learn.microsoft.com/en-us/windows/wsl/), we recommend installing the following tools **on Windows** and add them to the **WSL** `PATH`:
+
+- [STM32CubeMX](https://www.st.com/en/development-tools/stm32cubemx.html)
+- [STM32CubeProgrammer](https://www.st.com/en/development-tools/stm32cubeprog.html)
+- [J-Link](https://www.segger.com/downloads/jlink/)
+- [OpenOCD](https://openocd.org/)
+- [ST-Util](https://github.com/stlink-org/stlink)
+
+Our recommended workflow for Windows users is to use WSL for building the project while running STM32CubeMX, flashing tools, and GDB servers directly in the Windows environment. This setup provides a smoother development experience and avoids the need to passthrough the USB connections to WSL, allowing you to use the native Windows tools for flashing and debugging the project inside WSL.
+
+However, if you prefer to keep everything inside WSL, you can manually define the environment variables `JLINK_CMD` and `PROGRAMMER_CMD` to point to the respective executables. If you need to passthrough USB devices to WSL, refer to the official [WSL USB documentation](https://learn.microsoft.com/en-us/windows/wsl/connect-usb) for setup instructions.
 
 ## 👥 Contributing
 
