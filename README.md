@@ -255,7 +255,7 @@ The configuration is in the file [Doxyfile](./Doxyfile).
 
 ## 🛠️ Windows Development Environment
 
-If you are developing on a Windows machine using **Windows Subsystem for Linux (WSL)**, we recommend installing the following tools **on Windows** and add them to the **WSL** `PATH`:
+If you are developing on a Windows machine using [**Windows Subsystem for Linux (WSL)**](https://learn.microsoft.com/en-us/windows/wsl/), we recommend installing the following tools **on Windows** and add them to the **WSL** `PATH`:
 
 - [STM32CubeMX](https://www.st.com/en/development-tools/stm32cubemx.html)
 - [STM32CubeProgrammer](https://www.st.com/en/development-tools/stm32cubeprog.html)
