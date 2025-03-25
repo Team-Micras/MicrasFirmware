@@ -107,5 +107,5 @@ if(CUBE_LENGHT EQUAL 0)
         "exit\n"
     )
 
-    execute_process(COMMAND "${CUBE_CMD} -q ${CMAKE_CURRENT_BINARY_DIR}/.cube")
+    execute_process(COMMAND ${CUBE_CMD} "-q ${CMAKE_CURRENT_BINARY_DIR}/.cube")
 endif()
