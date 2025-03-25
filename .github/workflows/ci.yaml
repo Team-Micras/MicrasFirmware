@@ -3,11 +3,9 @@ name: Build lint and check formatting
 on:
   pull_request:
     branches:
-      - develop
       - main
   push:
     branches:
-      - develop
       - main
 
 jobs:
@@ -24,8 +22,8 @@ jobs:
         id: cache
         uses: actions/cache/restore@v4
         with:
-            path: docker/Dockerfile
-            key: ${{ hashFiles('.github/*', 'cmake/*', '**/*.cpp', '**/*.hpp', '**/*.ioc', '.clang*', 'CMakeLists.txt', 'docker/*') }}
+            path: .docker/Dockerfile
+            key: ${{ hashFiles('.github/*', 'cmake/*', '**/*.cpp', '**/*.hpp', '**/*.ioc', '.clang*', 'CMakeLists.txt', '.docker/*') }}
             lookup-only: true
 
       - name: 🔧 Set up Docker Buildx
@@ -37,7 +35,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: docker/Dockerfile
+          file: .docker/Dockerfile
           target: build
           load: true
           cache-from: type=gha
@@ -47,19 +45,19 @@ jobs:
 
       - name: 🎨 Check code formatting
         if: steps.cache.outputs.cache-hit != 'true'
-        run: docker run --rm project:build /bin/bash /project/docker/scripts/check_format.sh
+        run: docker run --rm project:build /bin/bash /project/.docker/scripts/check_format.sh
 
       - name: 🔨 Build project
         if: steps.cache.outputs.cache-hit != 'true'
-        run: docker run --rm project:build /bin/bash /project/docker/scripts/build.sh
+        run: docker run --rm project:build /bin/bash /project/.docker/scripts/build.sh
 
       - name: 🚨 Lint project
         if: steps.cache.outputs.cache-hit != 'true'
-        run: docker run --rm project:build /bin/bash /project/docker/scripts/build.sh -DLINTER_MODE=ON
+        run: docker run --rm project:build /bin/bash /project/.docker/scripts/build.sh -DLINTER_MODE=ON
 
       - name: 🗃️ Save cache
         if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
-            path: docker/Dockerfile
+            path: .docker/Dockerfile
             key: ${{ steps.cache.outputs.cache-primary-key }}

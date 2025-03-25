@@ -1,17 +1,6 @@
-# Name: targets.cmake
-# ThundeRatz Robotics Team
-# Brief: This file contains auxiliary custom targets declarations
-# 04/2023
-
 ###############################################################################
 ## Auxiliary Targets
 ###############################################################################
-
-if("$ENV{PROGRAMMER_CMD}" STREQUAL "")
-    set(PROGRAMMER_CMD "STM32_Programmer_CLI")
-else()
-    set(PROGRAMMER_CMD $ENV{PROGRAMMER_CMD})
-endif()
 
 add_custom_target(helpme
     COMMAND cat ${CMAKE_CURRENT_BINARY_DIR}/.helpme
@@ -20,7 +9,7 @@ add_custom_target(helpme
 add_custom_target(cube
     COMMAND echo "Generating cube files..."
 
-    COMMAND echo "config load ../cube/${PROJECT_RELEASE}.ioc" > ${CMAKE_CURRENT_BINARY_DIR}/.cube
+    COMMAND echo "config load ${CUBE_SOURCE_DIR}/${PROJECT_RELEASE}.ioc" > ${CMAKE_CURRENT_BINARY_DIR}/.cube
     COMMAND echo "project generate" >> ${CMAKE_CURRENT_BINARY_DIR}/.cube
     COMMAND echo "exit" >> ${CMAKE_CURRENT_BINARY_DIR}/.cube
 
@@ -102,7 +91,7 @@ function(targets_generate_flash_target TARGET)
     if("${TARGET}" STREQUAL "${PROJECT_NAME}")
         set(TARGET_SUFFIX "")
     else()
-        set(TARGET_SUFFIX _${TARGET})
+        set(TARGET_SUFFIX "_${TARGET}")
     endif()
 
     add_custom_target(flash${TARGET_SUFFIX}
@@ -112,12 +101,12 @@ function(targets_generate_flash_target TARGET)
 
     add_dependencies(flash${TARGET_SUFFIX} ${TARGET})
 
-    set(input_file ${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/jlink.in)
-    configure_file(${input_file} ${CMAKE_CURRENT_BINARY_DIR}/jlinkflash/.jlink-flash${TARGET_SUFFIX})
+    set(input_file "${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/jlink.in")
+    configure_file(${input_file} "${CMAKE_CURRENT_BINARY_DIR}/jlinkflash/.jlink-flash${TARGET_SUFFIX}")
 
     add_custom_target(jflash${TARGET_SUFFIX}
         COMMAND echo "Flashing ${PROJECT_NAME}.hex with J-Link"
-        COMMAND ${JLINK_EXE} ${CMAKE_CURRENT_BINARY_DIR}/jlinkflash/.jlink-flash${TARGET_SUFFIX}
+        COMMAND ${JLINK_CMD} ${CMAKE_CURRENT_BINARY_DIR}/jlinkflash/.jlink-flash${TARGET_SUFFIX}
     )
 
     add_dependencies(jflash${TARGET_SUFFIX} ${TARGET})
@@ -127,14 +116,13 @@ function(targets_generate_vsfiles_target TARGET)
     if("${TARGET}" STREQUAL "${PROJECT_NAME}")
         set(TARGET_SUFFIX "")
     else()
-        set(TARGET_SUFFIX _${TARGET})
+        set(TARGET_SUFFIX "_${TARGET}")
     endif()
 
     set(DEBUG_FILE_NAME ${TARGET})
 
-    set(input_file ${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/launch.json.in)
-    set(output_save_file ${CMAKE_CURRENT_BINARY_DIR}/vsfiles/.vsfiles${TARGET_SUFFIX})
-
+    set(input_file "${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/launch.json.in")
+    set(output_save_file "${CMAKE_CURRENT_BINARY_DIR}/vsfiles/.vsfiles${TARGET_SUFFIX}")
     configure_file(${input_file} ${output_save_file})
 
     add_custom_target(debug${TARGET_SUFFIX}
@@ -146,8 +134,7 @@ function(targets_generate_vsfiles_target TARGET)
 endfunction()
 
 function(targets_generate_helpme_target)
-    set(input_file ${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/helpme.in)
-    set(output_save_file ${CMAKE_CURRENT_BINARY_DIR}/.helpme)
-
+    set(input_file "${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/helpme.in")
+    set(output_save_file "${CMAKE_CURRENT_BINARY_DIR}/.helpme")
     configure_file(${input_file} ${output_save_file})
 endfunction()

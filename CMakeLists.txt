@@ -1,8 +1,3 @@
-# Name: CMakeLists.txt
-# Micras Team
-# Brief: CMake configuration file for the project
-# 04/2023
-
 cmake_minimum_required(VERSION 3.22)
 
 ###############################################################################
@@ -29,19 +24,19 @@ set(BOARD_VERSION "")
 if(BOARD_VERSION STREQUAL "")
     set(PROJECT_RELEASE ${CMAKE_PROJECT_NAME})
 else()
-    set(PROJECT_RELEASE ${CMAKE_PROJECT_NAME}_${BOARD_VERSION})
+    set(PROJECT_RELEASE "${CMAKE_PROJECT_NAME}_${BOARD_VERSION}")
 endif()
 
 ###############################################################################
 ## Toolchain Configuration
 ###############################################################################
 
-set(LAUNCH_JSON_PATH ${CMAKE_CURRENT_SOURCE_DIR}/.vscode/launch.json)
+set(LAUNCH_JSON_PATH "${CMAKE_CURRENT_SOURCE_DIR}/.vscode/launch.json")
 set(DEBUG_FILE_NAME ${CMAKE_PROJECT_NAME})
 
 include(cmake/config_validation.cmake)
 
-set(CMAKE_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cube)
+set(CMAKE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cube")
 include(cube/cmake/gcc-arm-none-eabi.cmake)
 set(CMAKE_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
