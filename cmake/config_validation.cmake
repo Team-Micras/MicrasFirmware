@@ -73,13 +73,12 @@ if (DEFINED ENV{OPENOCD_SCRIPTS_PATH})
 else()
     set(OPENOCD_SCRIPTS_PATH "/usr/share/openocd/scripts")
     message(STATUS "OPENOCD_SCRIPTS_PATH not defined. Using default path ${OPENOCD_SCRIPTS_PATH}")
-
-    if(NOT EXISTS ${OPENOCD_SCRIPTS_PATH})
-        message(WARNING
-            "OpenOCD scripts directory not found at ${OPENOCD_SCRIPTS_PATH}\n"
-            "Please set OPENOCD_SCRIPTS_PATH environment variable"
-        )
-    endif()
+endif()
+if(NOT EXISTS ${OPENOCD_SCRIPTS_PATH})
+    message(WARNING
+        "OpenOCD scripts directory not found at ${OPENOCD_SCRIPTS_PATH}\n"
+        "Please set OPENOCD_SCRIPTS_PATH environment variable to the OpenOCD scripts directory"
+    )
 endif()
 
 # Check if STM32CubeMX project is correctly configured
