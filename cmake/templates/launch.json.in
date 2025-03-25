@@ -5,6 +5,8 @@
             "type": "cortex-debug",
             "request": "launch",
             "servertype": "openocd",
+            "openOCDLaunchCommands": ["gdb port 3333", "tcl port 6666", "telnet port 4444"],
+            "overrideAttachCommands": ["target-select extended-remote localhost:3333"],
             "cwd": "${CMAKE_CURRENT_SOURCE_DIR}",
             "gdbPath": "gdb-multiarch",
             "executable": "build/${DEBUG_FILE_NAME}.elf",
