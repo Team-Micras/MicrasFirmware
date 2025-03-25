@@ -108,7 +108,7 @@ message(STATUS "Device is ${DEVICE}")
 file(GLOB_RECURSE CUBE_SOURCES_CHECK "${CMAKE_CURRENT_SOURCE_DIR}/cube/Src/*.c")
 list(LENGTH CUBE_SOURCES_CHECK CUBE_LENGTH)
 
-if(CUBE_LENGHT EQUAL 0)
+if(CUBE_LENGTH EQUAL 0)
     message(STATUS "Cube directory is empty. Generating cube files...")
     file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/.cube"
         "config load ${CUBE_SOURCE_DIR}/${PROJECT_RELEASE}.ioc\n"
