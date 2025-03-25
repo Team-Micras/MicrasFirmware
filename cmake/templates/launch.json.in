@@ -4,19 +4,13 @@
         {
             "type": "cortex-debug",
             "request": "launch",
-            "servertype": "openocd",
-            "openOCDLaunchCommands": ["gdb port 3333", "tcl port 6666", "telnet port 4444"],
-            "overrideAttachCommands": ["target-select extended-remote localhost:3333"],
-            "cwd": "${CMAKE_CURRENT_SOURCE_DIR}",
+            "servertype": "external",
+            "preLaunchTask": "WSL launch openocd",
+            "gdbTarget": "localhost:3333",
             "gdbPath": "gdb-multiarch",
             "executable": "build/${DEBUG_FILE_NAME}.elf",
             "name": "Cortex Debug (OpenOCD)",
             "runToEntryPoint": "main",
-            "configFiles":
-            [
-                "${OPENOCD_SCRIPTS_PATH}/interface/stlink.cfg",
-                "${OPENOCD_SCRIPTS_PATH}/target/${TARGET_CFG}x.cfg"
-            ]
         },
         {
             "type": "cortex-debug",
