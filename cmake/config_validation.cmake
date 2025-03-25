@@ -22,11 +22,15 @@ endif()
 
 # Detect if running inside WSL
 if(DEFINED ENV{WSL_DISTRO_NAME})
-    set(IS_WSL TRUE)
     message(STATUS "WSL detected")
+    set(CUBE_CMD "STM32CubeMX.exe")
+    set(PROGRAMMER_CMD "STM32_Programmer_CLI.exe")
+    set(JLINK_CMD "JLink.exe")
 else()
-    set(IS_WSL FALSE)
     message(STATUS "Linux detected")
+    set(CUBE_CMD "/usr/local/STMicroelectronics/STM32Cube/STM32CubeMX/STM32CubeMX")
+    set(PROGRAMMER_CMD "STM32_Programmer_CLI")
+    set(JLINK_CMD "JLinkExe")
 endif()
 
 # Set STM32CubeMX command
@@ -36,26 +40,24 @@ if(DEFINED ENV{CUBE_CMD})
 else()
     message(STATUS "CUBE_CMD not defined, trying default path")
 
-    if(IS_WSL)
-        set(CUBE_CMD "/mnt/c/Program Files/STMicroelectronics/STM32Cube/STM32CubeMX/STM32CubeMX.exe")
-    else()
-        set(CUBE_CMD "/usr/local/STMicroelectronics/STM32Cube/STM32CubeMX/STM32CubeMX")
-    endif()
-
     if(EXISTS ${CUBE_CMD})
         message(STATUS "STM32CubeMX found at: ${CUBE_CMD}")
     else()
-        message(FATAL_ERROR "STM32CubeMX executable not found at expected path: ${CUBE_CMD}")
+        message(FATAL_ERROR
+            "STM32CubeMX executable not found at expected path: ${CUBE_CMD}\n"
+            "Define the CUBE_CMD environment variable"
+        )
     endif()
 endif()
 
-# Set J-Link and STM32 Programmer executables
-if(IS_WSL)
-    set(JLINK_CMD "JLink.exe")
-    set(PROGRAMMER_CMD "STM32_Programmer_CLI.exe")
-else()
-    set(JLINK_CMD "JLinkExe")
-    set(PROGRAMMER_CMD "STM32_Programmer_CLI")
+# Set STM32 Programmer executable
+if(DEFINED ENV{PROGRAMMER_CMD})
+    set(PROGRAMMER_CMD $ENV{PROGRAMMER_CMD})
+endif()
+
+# Set SJ-Link executable
+if(DEFINED ENV{JLINK_CMD})
+    set(JLINK_CMD $ENV{JLINK_CMD})
 endif()
 
 # Check if OpenOCD variables are properly defined
