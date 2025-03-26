@@ -6,10 +6,11 @@
 # target builds a TARGET and then calls the program defined in CMAKE_SIZE to
 # display the size of the final ELF.
 function(print_size_of_target TARGET)
-    add_custom_target(${TARGET}_always_display_size
-        ALL COMMAND ${CMAKE_SIZE} "$<TARGET_FILE:${TARGET}>"
+    add_custom_command(
+        TARGET ${TARGET}
+        POST_BUILD
+        COMMAND ${CMAKE_SIZE} "$<TARGET_FILE:${TARGET}>"
         COMMENT "Target Sizes: "
-        DEPENDS ${TARGET}
     )
 endfunction()
 
@@ -21,29 +22,16 @@ endfunction()
 function(_generate_file TARGET OUTPUT_EXTENSION OBJCOPY_BFD_OUTPUT)
     # If linter is enabled, do not generate files
     if(LINTER_MODE STREQUAL "ON" OR LINTER_MODE STREQUAL "FIX")
-        message(STATUS "Linter is enabled, skipping generation of ${OBJCOPY_BFD_OUTPUT} file for target ${TARGET}")
         return()
     endif()
 
-    get_target_property(TARGET_OUTPUT_NAME ${TARGET} OUTPUT_NAME)
-    if(TARGET_OUTPUT_NAME)
-        set(OUTPUT_FILE_NAME "${TARGET_OUTPUT_NAME}.${OUTPUT_EXTENSION}")
-    else()
-        set(OUTPUT_FILE_NAME "${TARGET}.${OUTPUT_EXTENSION}")
-    endif()
-
-    get_target_property(RUNTIME_OUTPUT_DIRECTORY ${TARGET} RUNTIME_OUTPUT_DIRECTORY)
-    if(RUNTIME_OUTPUT_DIRECTORY)
-        set(OUTPUT_FILE_PATH "${RUNTIME_OUTPUT_DIRECTORY}/${OUTPUT_FILE_NAME}")
-    else()
-        set(OUTPUT_FILE_PATH "${OUTPUT_FILE_NAME}")
-    endif()
+    set(OUTPUT_FILE_NAME "${TARGET}.${OUTPUT_EXTENSION}")
 
     add_custom_command(
         TARGET ${TARGET}
         POST_BUILD
-        COMMAND ${CMAKE_OBJCOPY} -O ${OBJCOPY_BFD_OUTPUT} "$<TARGET_FILE:${TARGET}>" ${OUTPUT_FILE_PATH}
-        BYPRODUCTS ${OUTPUT_FILE_PATH}
+        COMMAND ${CMAKE_OBJCOPY} -O ${OBJCOPY_BFD_OUTPUT} "$<TARGET_FILE:${TARGET}>" ${OUTPUT_FILE_NAME}
+        BYPRODUCTS ${OUTPUT_FILE_NAME}
         COMMENT "Generating ${OBJCOPY_BFD_OUTPUT} file ${OUTPUT_FILE_NAME}"
     )
 endfunction()

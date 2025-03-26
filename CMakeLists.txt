@@ -80,8 +80,8 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     micras::nav
 )
 
-print_size_of_target(${PROJECT_NAME})
 generate_hex_file(${PROJECT_NAME})
+print_size_of_target(${PROJECT_NAME})
 
 generate_helpme_text()
 generate_vscode_tasks_json()
@@ -110,6 +110,7 @@ foreach(TEST_FILE ${PROJECT_TESTS})
     )
 
     generate_hex_file(${TEST_NAME})
+    print_size_of_target(${TEST_NAME})
 
     generate_debug_target(${TEST_NAME})
     generate_flash_target(${TEST_NAME})
