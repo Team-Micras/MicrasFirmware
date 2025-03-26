@@ -24,6 +24,7 @@ if(DEFINED ENV{WSL_DISTRO_NAME})
     set(CUBE_SOURCE_DIR "\\\\wsl.localhost/$ENV{WSL_DISTRO_NAME}${CMAKE_CURRENT_SOURCE_DIR}/cube")
     set(PROGRAMMER_CMD "STM32_Programmer_CLI.exe")
     set(JLINK_CMD "JLink.exe")
+    set(OPENOCD_CMD "openocd.exe")
 else()
     message(STATUS "Linux detected")
     set(CUBE_DEFAULT_PATH "/usr/local/STMicroelectronics/STM32Cube/STM32CubeMX")
@@ -31,6 +32,7 @@ else()
     set(CUBE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cube")
     set(PROGRAMMER_CMD "STM32_Programmer_CLI")
     set(JLINK_CMD "JLinkExe")
+    set(OPENOCD_CMD "openocd")
 endif()
 
 # Set STM32CubeMX command
@@ -66,6 +68,11 @@ if(DEFINED ENV{JLINK_CMD})
     set(JLINK_CMD $ENV{JLINK_CMD})
 endif()
 
+# Set OpenOCD command
+if(DEFINED ENV{OPENOCD_CMD})
+    set(OPENOCD_CMD $ENV{OPENOCD_CMD})
+endif()
+
 # Check if OpenOCD variables are properly defined
 if (DEFINED ENV{OPENOCD_SCRIPTS_PATH})
     set(OPENOCD_SCRIPTS_PATH $ENV{OPENOCD_SCRIPTS_PATH})
@@ -73,13 +80,6 @@ if (DEFINED ENV{OPENOCD_SCRIPTS_PATH})
 else()
     set(OPENOCD_SCRIPTS_PATH "/usr/share/openocd/scripts")
     message(STATUS "OPENOCD_SCRIPTS_PATH not defined. Using default path ${OPENOCD_SCRIPTS_PATH}")
-endif()
-
-if(NOT EXISTS ${OPENOCD_SCRIPTS_PATH})
-    message(WARNING
-        "OpenOCD scripts directory not found at ${OPENOCD_SCRIPTS_PATH}\n"
-        "Please set OPENOCD_SCRIPTS_PATH environment variable to the OpenOCD scripts directory"
-    )
 endif()
 
 # Check if STM32CubeMX project is correctly configured

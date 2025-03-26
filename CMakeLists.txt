@@ -84,6 +84,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 stm32_print_size_of_target(${PROJECT_NAME})
 stm32_generate_hex_file(${PROJECT_NAME})
 
+targets_generate_vscode_tasks_target()
 targets_generate_vsfiles_target(${PROJECT_NAME})
 targets_generate_flash_target(${PROJECT_NAME})
 targets_generate_helpme_target()

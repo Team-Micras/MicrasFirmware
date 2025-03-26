@@ -112,6 +112,12 @@ function(targets_generate_flash_target TARGET)
     add_dependencies(jflash${TARGET_SUFFIX} ${TARGET})
 endfunction()
 
+function(targets_generate_vscode_tasks_target)
+    set(input_file "${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/tasks.json.in")
+    set(output_save_file "${CMAKE_CURRENT_SOURCE_DIR}/.vscode/tasks.json")
+    configure_file(${input_file} ${output_save_file})
+endfunction()
+
 function(targets_generate_vsfiles_target TARGET)
     if("${TARGET}" STREQUAL "${PROJECT_NAME}")
         set(TARGET_SUFFIX "")
