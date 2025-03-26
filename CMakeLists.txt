@@ -109,7 +109,6 @@ foreach(TEST_FILE ${PROJECT_TESTS})
         micras::nav
     )
 
-    print_size_of_target(${TEST_NAME})
     generate_hex_file(${TEST_NAME})
 
     generate_debug_target(${TEST_NAME})
