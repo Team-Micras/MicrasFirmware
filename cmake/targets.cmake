@@ -33,13 +33,15 @@ add_custom_target(clear
 add_custom_target(clear_cube
     COMMAND echo "Cleaning cube files..."
     COMMAND mv ${CMAKE_CURRENT_SOURCE_DIR}/cube/*.ioc .
-    COMMAND rm -rf ${CMAKE_CURRENT_SOURCE_DIR}/cube/*
+    COMMAND rm -rf ${CMAKE_CURRENT_SOURCE_DIR}/cube
+    COMMAND mkdir ${CMAKE_CURRENT_SOURCE_DIR}/cube
     COMMAND mv *.ioc ${CMAKE_CURRENT_SOURCE_DIR}/cube/
 )
 
 add_custom_target(clear_all
     COMMAND echo "Cleaning all build files..."
-    COMMAND rm -rf ${CMAKE_CURRENT_BINARY_DIR}/*
+    COMMAND rm -rf ${CMAKE_CURRENT_BINARY_DIR}
+    COMMAND mkdir ${CMAKE_CURRENT_BINARY_DIR}
     COMMAND echo "Cleaning cube files..."
     COMMAND mv ${CMAKE_CURRENT_SOURCE_DIR}/cube/*.ioc .
     COMMAND rm -rf ${CMAKE_CURRENT_SOURCE_DIR}/cube/*
@@ -65,7 +67,7 @@ add_custom_target(docs
     COMMAND rm -rf ${CMAKE_CURRENT_SOURCE_DIR}/docs/latex
 )
 
-function(targets_generate_test_all_target)
+function(generate_test_all_target)
     foreach(FILE ${ARGV})
         get_filename_component(TEST_NAME ${FILE} NAME_WLE)
         list(APPEND TEST_TARGETS ${TEST_NAME})
@@ -76,18 +78,18 @@ function(targets_generate_test_all_target)
     )
 endfunction()
 
-function(targets_generate_format_target)
-    set(FILES_LIST "")
+function(generate_format_target)
     foreach(FILE ${ARGV})
         list(APPEND FILES_LIST ${${FILE}})
     endforeach()
+
     add_custom_target(format
         COMMAND clang-format -style=file -i ${FILES_LIST} --verbose
     )
 endfunction()
 
 # Flash via st-link or jlink
-function(targets_generate_flash_target TARGET)
+function(generate_flash_target TARGET)
     if("${TARGET}" STREQUAL "${PROJECT_NAME}")
         set(TARGET_SUFFIX "")
     else()
@@ -112,13 +114,7 @@ function(targets_generate_flash_target TARGET)
     add_dependencies(jflash${TARGET_SUFFIX} ${TARGET})
 endfunction()
 
-function(targets_generate_vscode_tasks_target)
-    set(input_file "${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/tasks.json.in")
-    set(output_save_file "${CMAKE_CURRENT_SOURCE_DIR}/.vscode/tasks.json")
-    configure_file(${input_file} ${output_save_file})
-endfunction()
-
-function(targets_generate_vsfiles_target TARGET)
+function(generate_debug_target TARGET)
     if("${TARGET}" STREQUAL "${PROJECT_NAME}")
         set(TARGET_SUFFIX "")
     else()
@@ -137,10 +133,4 @@ function(targets_generate_vsfiles_target TARGET)
     )
 
     add_dependencies(debug${TARGET_SUFFIX} ${TARGET})
-endfunction()
-
-function(targets_generate_helpme_target)
-    set(input_file "${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/helpme.in")
-    set(output_save_file "${CMAKE_CURRENT_BINARY_DIR}/.helpme")
-    configure_file(${input_file} ${output_save_file})
 endfunction()

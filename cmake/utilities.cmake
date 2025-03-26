@@ -5,7 +5,7 @@
 # This function adds a target with name '${TARGET}_always_display_size'. The new
 # target builds a TARGET and then calls the program defined in CMAKE_SIZE to
 # display the size of the final ELF.
-function(stm32_print_size_of_target TARGET)
+function(print_size_of_target TARGET)
     add_custom_target(${TARGET}_always_display_size
         ALL COMMAND ${CMAKE_SIZE} "$<TARGET_FILE:${TARGET}>"
         COMMENT "Target Sizes: "
@@ -18,7 +18,7 @@ endfunction()
 # The generated file has the name of the target output but with extension
 # corresponding to the OUTPUT_EXTENSION argument value.
 # The generated file will be placed in the same directory as the target output file.
-function(_stm32_generate_file TARGET OUTPUT_EXTENSION OBJCOPY_BFD_OUTPUT)
+function(_generate_file TARGET OUTPUT_EXTENSION OBJCOPY_BFD_OUTPUT)
     # If linter is enabled, do not generate files
     if(LINTER_MODE STREQUAL "ON" OR LINTER_MODE STREQUAL "FIX")
         message(STATUS "Linter is enabled, skipping generation of ${OBJCOPY_BFD_OUTPUT} file for target ${TARGET}")
@@ -50,18 +50,30 @@ endfunction()
 
 # This function adds post-build generation of the binary file from the target ELF.
 # The generated file will be placed in the same directory as the ELF file.
-function(stm32_generate_binary_file TARGET)
-    _stm32_generate_file(${TARGET} "bin" "binary")
+function(generate_binary_file TARGET)
+    _generate_file(${TARGET} "bin" "binary")
 endfunction()
 
 # This function adds post-build generation of the Motorola S-record file from the target ELF.
 # The generated file will be placed in the same directory as the ELF file.
-function(stm32_generate_srec_file TARGET)
-    _stm32_generate_file(${TARGET} "srec" "srec")
+function(generate_srec_file TARGET)
+    _generate_file(${TARGET} "srec" "srec")
 endfunction()
 
 # This function adds post-build generation of the Intel hex file from the target ELF.
 # The generated file will be placed in the same directory as the ELF file.
-function(stm32_generate_hex_file TARGET)
-    _stm32_generate_file(${TARGET} "hex" "ihex")
+function(generate_hex_file TARGET)
+    _generate_file(${TARGET} "hex" "ihex")
+endfunction()
+
+function(generate_helpme_text)
+    set(input_file "${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/helpme.in")
+    set(output_save_file "${CMAKE_CURRENT_BINARY_DIR}/.helpme")
+    configure_file(${input_file} ${output_save_file})
+endfunction()
+
+function(generate_vscode_tasks_json)
+    set(input_file "${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/tasks.json.in")
+    set(output_save_file "${CMAKE_CURRENT_SOURCE_DIR}/.vscode/tasks.json")
+    configure_file(${input_file} ${output_save_file})
 endfunction()
