@@ -5,6 +5,7 @@
             "type": "cortex-debug",
             "request": "launch",
             "servertype": "external",
+            "cwd": "${CMAKE_CURRENT_SOURCE_DIR}",
             "preLaunchTask": "WSL launch openocd",
             "gdbTarget": "localhost:3333",
             "gdbPath": "gdb-multiarch",
