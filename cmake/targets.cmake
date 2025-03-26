@@ -3,7 +3,7 @@
 ###############################################################################
 
 add_custom_target(helpme
-    COMMAND cat ${CMAKE_CURRENT_BINARY_DIR}/.helpme
+    COMMAND cat ${CMAKE_CURRENT_BINARY_DIR}/helpme
 )
 
 add_custom_target(cube
@@ -39,13 +39,9 @@ add_custom_target(clear_cube
 )
 
 add_custom_target(clear_all
+    COMMAND ${CMAKE_MAKE_PROGRAM} clear_cube
     COMMAND echo "Cleaning all build files..."
-    COMMAND rm -rf ${CMAKE_CURRENT_BINARY_DIR}
-    COMMAND mkdir ${CMAKE_CURRENT_BINARY_DIR}
-    COMMAND echo "Cleaning cube files..."
-    COMMAND mv ${CMAKE_CURRENT_SOURCE_DIR}/cube/*.ioc .
-    COMMAND rm -rf ${CMAKE_CURRENT_SOURCE_DIR}/cube/*
-    COMMAND mv *.ioc ${CMAKE_CURRENT_SOURCE_DIR}/cube/
+    COMMAND rm -rf ${CMAKE_CURRENT_BINARY_DIR}/*
 )
 
 add_custom_target(rebuild

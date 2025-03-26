@@ -56,7 +56,7 @@ endfunction()
 
 function(generate_helpme_text)
     set(input_file "${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/helpme.in")
-    set(output_save_file "${CMAKE_CURRENT_BINARY_DIR}/.helpme")
+    set(output_save_file "${CMAKE_CURRENT_BINARY_DIR}/helpme")
     configure_file(${input_file} ${output_save_file})
 endfunction()
 
