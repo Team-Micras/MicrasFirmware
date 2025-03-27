@@ -9,11 +9,11 @@ add_custom_target(helpme
 add_custom_target(cube
     COMMAND echo "Generating cube files..."
 
-    COMMAND echo "config load ${CUBE_SOURCE_DIR}/${PROJECT_RELEASE}.ioc" > ${CMAKE_CURRENT_BINARY_DIR}/.cube
-    COMMAND echo "project generate" >> ${CMAKE_CURRENT_BINARY_DIR}/.cube
-    COMMAND echo "exit" >> ${CMAKE_CURRENT_BINARY_DIR}/.cube
+    COMMAND echo "config load ${CUBE_SOURCE_DIR}/${PROJECT_RELEASE}.ioc" > ${CMAKE_CURRENT_BINARY_DIR}/cube_script.txt
+    COMMAND echo "project generate" >> ${CMAKE_CURRENT_BINARY_DIR}/cube_script.txt
+    COMMAND echo "exit" >> ${CMAKE_CURRENT_BINARY_DIR}/cube_script.txt
 
-    COMMAND ${CUBE_CMD} -q ${CMAKE_CURRENT_BINARY_DIR}/.cube
+    COMMAND ${CUBE_CMD} -q ${CMAKE_CURRENT_BINARY_DIR}/cube_script.txt
 )
 
 add_custom_target(info

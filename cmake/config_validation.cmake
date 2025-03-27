@@ -110,13 +110,13 @@ list(LENGTH CUBE_SOURCES_CHECK CUBE_LENGTH)
 
 if(CUBE_LENGTH EQUAL 0)
     message(STATUS "Cube directory is empty. Generating cube files...")
-    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/.cube"
+    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/cube_script.txt"
         "config load ${CUBE_SOURCE_DIR}/${PROJECT_RELEASE}.ioc\n"
         "project generate\n"
         "exit\n"
     )
 
-    execute_process(COMMAND ${CUBE_CMD} -q ${CMAKE_CURRENT_BINARY_DIR}/.cube)
+    execute_process(COMMAND ${CUBE_CMD} -q ${CMAKE_CURRENT_BINARY_DIR}/cube_script.txt)
 endif()
 
 # Check linter configuration
