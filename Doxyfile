@@ -15,7 +15,6 @@ EXCLUDE_PATTERNS       = "*/libs/*"
 INPUT_FILTER           = "sed -e 's/#include <.*>/ /'"
 VERBATIM_HEADERS       = NO
 GENERATE_HTML          = NO
-MATHJAX_RELPATH        = https://cdn.jsdelivr.net/npm/mathjax@2
 UML_LOOK               = YES
 UML_LIMIT_NUM_FIELDS   = 50
 DOT_WRAP_THRESHOLD     = 100
