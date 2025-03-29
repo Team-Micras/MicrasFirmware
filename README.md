@@ -241,7 +241,7 @@ If Visual Studio Code is being used, it is possible to use the [Dev Containers](
 The project is documented using Doxygen. In Ubuntu, it is possible to install it with the following command:
 
 ```bash
-sudo apt install doxygen texlive-latex-extra texlive-fonts-extra
+sudo apt install doxygen graphviz texlive-latex-extra texlive-fonts-extra
 ```
 
 For other operating systems, you can see download options on the [official Doxygen page](https://www.doxygen.nl/download.html).
