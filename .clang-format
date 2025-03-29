@@ -41,7 +41,6 @@ ShortNamespaceLines: 0
 SortIncludes:    Never
 SpaceInEmptyBlock: true
 SpacesBeforeTrailingComments: 2
-Standard:        c++20
 TabWidth:        4
 ...
 
