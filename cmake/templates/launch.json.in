@@ -10,7 +10,7 @@
             "executable": "${CMAKE_CURRENT_BINARY_DIR}/${DEBUG_FILE_NAME}.elf",
             "gdbPath": "gdb-multiarch",
             "runToEntryPoint": "main",
-            "preLaunchTask": "WSL launch openocd",
+            "preLaunchTask": "Launch OpenOCD",
             "gdbTarget": "localhost:3333",
         },
         {

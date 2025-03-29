@@ -2,7 +2,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-			"label": "WSL launch openocd",
+			"label": "Launch OpenOCD",
 			"command": "${OPENOCD_CMD} -f ${OPENOCD_SCRIPTS_PATH}/interface/stlink.cfg -f ${OPENOCD_SCRIPTS_PATH}/target/${TARGET_CFG}x.cfg",
 			"type": "shell",
             "problemMatcher": {
