@@ -268,6 +268,9 @@ Our recommended workflow for Windows users is to use WSL for building the projec
 
 However, if you prefer to keep everything inside WSL, you can manually define the environment variables `JLINK_CMD` and `PROGRAMMER_CMD` to point to the respective executables. If you need to passthrough USB devices to WSL, refer to the official [WSL USB documentation](https://learn.microsoft.com/en-us/windows/wsl/connect-usb) for setup instructions.
 
+> [!NOTE]
+> To debug while using WSL, it is recommended to enable [Mirrored mode networking](https://learn.microsoft.com/en-us/windows/wsl/networking#mirrored-mode-networking), so that you can directly access the ports created by the GDB server from inside the WSL.
+
 ## 👥 Contributing
 
 To learn how to contribute to the project, see the following contribution guidelines.
