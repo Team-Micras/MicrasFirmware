@@ -24,6 +24,7 @@ if(DEFINED ENV{WSL_DISTRO_NAME})
     set(CUBE_SOURCE_DIR "\\\\wsl.localhost/$ENV{WSL_DISTRO_NAME}${CMAKE_CURRENT_SOURCE_DIR}/cube")
     set(PROGRAMMER_CMD "STM32_Programmer_CLI.exe")
     set(JLINK_CMD "JLink.exe")
+    set(OPENOCD_CMD "openocd.exe")
 else()
     message(STATUS "Linux detected")
     set(CUBE_DEFAULT_PATH "/usr/local/STMicroelectronics/STM32Cube/STM32CubeMX")
@@ -31,6 +32,7 @@ else()
     set(CUBE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cube")
     set(PROGRAMMER_CMD "STM32_Programmer_CLI")
     set(JLINK_CMD "JLinkExe")
+    set(OPENOCD_CMD "openocd")
 endif()
 
 # Set STM32CubeMX command
@@ -66,6 +68,11 @@ if(DEFINED ENV{JLINK_CMD})
     set(JLINK_CMD $ENV{JLINK_CMD})
 endif()
 
+# Set OpenOCD command
+if(DEFINED ENV{OPENOCD_CMD})
+    set(OPENOCD_CMD $ENV{OPENOCD_CMD})
+endif()
+
 # Check if OpenOCD variables are properly defined
 if (DEFINED ENV{OPENOCD_SCRIPTS_PATH})
     set(OPENOCD_SCRIPTS_PATH $ENV{OPENOCD_SCRIPTS_PATH})
@@ -73,12 +80,6 @@ if (DEFINED ENV{OPENOCD_SCRIPTS_PATH})
 else()
     set(OPENOCD_SCRIPTS_PATH "/usr/share/openocd/scripts")
     message(STATUS "OPENOCD_SCRIPTS_PATH not defined. Using default path ${OPENOCD_SCRIPTS_PATH}")
-endif()
-if(NOT EXISTS ${OPENOCD_SCRIPTS_PATH})
-    message(WARNING
-        "OpenOCD scripts directory not found at ${OPENOCD_SCRIPTS_PATH}\n"
-        "Please set OPENOCD_SCRIPTS_PATH environment variable to the OpenOCD scripts directory"
-    )
 endif()
 
 # Check if STM32CubeMX project is correctly configured
@@ -105,15 +106,29 @@ message(STATUS "Device is ${DEVICE}")
 # Check cube directory for files
 # If it's empty, generate the files
 file(GLOB_RECURSE CUBE_SOURCES_CHECK "${CMAKE_CURRENT_SOURCE_DIR}/cube/Src/*.c")
-list(LENGTH CUBE_SOURCES_CHECK CUBE_LENGHT)
+list(LENGTH CUBE_SOURCES_CHECK CUBE_LENGTH)
 
-if(CUBE_LENGHT EQUAL 0)
+if(CUBE_LENGTH EQUAL 0)
     message(STATUS "Cube directory is empty. Generating cube files...")
-    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/.cube"
+    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/cube_script.txt"
         "config load ${CUBE_SOURCE_DIR}/${PROJECT_RELEASE}.ioc\n"
         "project generate\n"
         "exit\n"
     )
 
-    execute_process(COMMAND ${CUBE_CMD} -q ${CMAKE_CURRENT_BINARY_DIR}/.cube)
+    execute_process(COMMAND ${CUBE_CMD} -q ${CMAKE_CURRENT_BINARY_DIR}/cube_script.txt)
+endif()
+
+# Check linter configuration
+if(LINTER_MODE STREQUAL "ON")
+    set(CMAKE_CXX_CLANG_TIDY "clang-tidy")
+    add_compile_options(-fms-extensions)
+    message(STATUS "Enabling clang-tidy, hex files will not be generated")
+elseif(LINTER_MODE STREQUAL "FIX")
+    set(CMAKE_CXX_CLANG_TIDY "clang-tidy;--fix")
+    add_compile_options(-fms-extensions)
+    message(STATUS "Enabling clang-tidy with fix, hex files will not be generated")
+else()
+    set(LINTER_MODE "OFF")
+    message(STATUS "Linter is disabled")
 endif()
