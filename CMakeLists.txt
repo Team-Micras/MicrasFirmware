@@ -42,9 +42,8 @@ set(CMAKE_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 project(${CMAKE_PROJECT_NAME} C CXX ASM)
 
-include(cmake/targets.cmake)
 include(cmake/utilities.cmake)
-include(cmake/linter.cmake)
+include(cmake/targets.cmake)
 
 add_subdirectory(cube/cmake/stm32cubemx)
 add_subdirectory(micras_core)
@@ -59,7 +58,7 @@ add_subdirectory(micras_nav)
 file(GLOB_RECURSE FORMAT_SOURCES CONFIGURE_DEPENDS "src/*.c*" "tests/*.c*" "micras_*/src/*.c*")
 file(GLOB_RECURSE FORMAT_HEADERS CONFIGURE_DEPENDS "include/*.h*" "config/*.h*" "tests/*.h*" "micras_*/include/*.h*")
 
-targets_generate_format_target(FORMAT_SOURCES FORMAT_HEADERS)
+generate_format_target(FORMAT_SOURCES FORMAT_HEADERS)
 
 file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS "src/*.c*")
 file(GLOB_RECURSE PROJECT_TESTS CONFIGURE_DEPENDS "tests/src/*/*.c*")
@@ -81,12 +80,13 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     micras::nav
 )
 
-stm32_print_size_of_target(${PROJECT_NAME})
-stm32_generate_hex_file(${PROJECT_NAME})
+generate_hex_file(${PROJECT_NAME})
+print_size_of_target(${PROJECT_NAME})
 
-targets_generate_vsfiles_target(${PROJECT_NAME})
-targets_generate_flash_target(${PROJECT_NAME})
-targets_generate_helpme_target()
+generate_helpme_text()
+generate_vscode_tasks_json()
+generate_debug_target(${PROJECT_NAME})
+generate_flash_target(${PROJECT_NAME})
 
 ###############################################################################
 ## Generate test executables
@@ -109,11 +109,11 @@ foreach(TEST_FILE ${PROJECT_TESTS})
         micras::nav
     )
 
-    stm32_generate_hex_file(${TEST_NAME})
+    generate_hex_file(${TEST_NAME})
+    print_size_of_target(${TEST_NAME})
 
-    targets_generate_vsfiles_target(${TEST_NAME})
-    targets_generate_flash_target(${TEST_NAME})
-
+    generate_debug_target(${TEST_NAME})
+    generate_flash_target(${TEST_NAME})
 endforeach()
 
-targets_generate_test_all_target(${PROJECT_TESTS})
+generate_test_all_target(${PROJECT_TESTS})
