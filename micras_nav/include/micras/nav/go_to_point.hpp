@@ -5,8 +5,8 @@
 #ifndef MICRAS_NAV_GO_TO_POINT_HPP
 #define MICRAS_NAV_GO_TO_POINT_HPP
 
+#include "micras/core/pid_controller.hpp"
 #include "micras/nav/follow_wall.hpp"
-#include "micras/nav/pid_controller.hpp"
 #include "micras/nav/state.hpp"
 
 namespace micras::nav {
@@ -19,14 +19,14 @@ public:
      * @brief Configuration struct for the GoToPoint class.
      */
     struct Config {
-        PidController::Config stop_pid;
-        PidController::Config angular_pid;
-        float                 cell_size{};
-        float                 min_linear_command{};
-        float                 max_linear_command{};
-        float                 deceleration_factor{};
-        float                 distance_tolerance{};
-        float                 velocity_tolerance{};
+        core::PidController::Config stop_pid;
+        core::PidController::Config angular_pid;
+        float                       cell_size{};
+        float                       min_linear_command{};
+        float                       max_linear_command{};
+        float                       deceleration_factor{};
+        float                       distance_tolerance{};
+        float                       velocity_tolerance{};
     };
 
     /**
@@ -79,12 +79,12 @@ private:
     /**
      * @brief PID controller for stopping at the goal.
      */
-    PidController stop_pid;
+    core::PidController stop_pid;
 
     /**
      * @brief PID controller for the orientation.
      */
-    PidController angular_pid;
+    core::PidController angular_pid;
 
     /**
      * @brief FollowWall controller.
