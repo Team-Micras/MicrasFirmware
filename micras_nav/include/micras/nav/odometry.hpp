@@ -29,7 +29,7 @@ public:
     };
 
     /**
-     * @brief Construct a newOdometry object.
+     * @brief Construct a new Odometry object.
      *
      * @param left_rotary_sensor Left rotary sensor.
      * @param right_rotary_sensor Right rotary sensor.
@@ -107,8 +107,6 @@ private:
      * @brief Current state of the robot in space.
      */
     State state;
-
-    friend class Interface;
 };
 }  // namespace micras::nav
 
