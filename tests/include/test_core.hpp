@@ -5,11 +5,14 @@
 #ifndef MICRAS_TEST_CORE_HPP
 #define MICRAS_TEST_CORE_HPP
 
-#include <functional>
-
 #include "target.hpp"
 
 namespace micras {
+template <typename F>
+concept VoidFunction = requires(F f) {
+    { f() } -> std::same_as<void>;
+};
+
 /**
  * @brief Core class to the tests.
  */
@@ -33,7 +36,7 @@ public:
      *
      * @param loop_func Custom loop function.
      */
-    static void loop(const std::function<void()>& loop_func);
+    static void loop(VoidFunction auto loop_func);
 };
 }  // namespace micras
 

@@ -10,7 +10,7 @@ void TestCore::init(int /*argc*/, char** /*argv*/) {
     hal::Mcu::init();
 }
 
-void TestCore::loop(const std::function<void()>& loop_func) {
+void TestCore::loop(VoidFunction auto loop_func) {
     while (true) {
         loop_func();
     }

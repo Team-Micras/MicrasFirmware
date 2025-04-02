@@ -36,13 +36,13 @@ float ButterworthFilter::update(float x0) {
 
     float x_b_dot = 0;
 
-    for (int i = 0; i < filter_order + 1; i++) {
+    for (uint8_t i = 0; i < filter_order + 1; i++) {
         x_b_dot += this->x_array[i] * this->b_array[i];  // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
     }
 
     float y_a_dot = 0;
 
-    for (int i = 0; i < filter_order; i++) {
+    for (uint8_t i = 0; i < filter_order; i++) {
         y_a_dot += this->y_array[i] * this->a_array[i];  // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
     }
 

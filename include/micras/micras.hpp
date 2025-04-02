@@ -12,12 +12,12 @@ namespace micras {
 /**
  * @brief Class for controlling the Micras robot.
  */
-class MicrasController {
+class Micras {
 public:
     /**
      * @brief Construct a new Micras Controller object.
      */
-    MicrasController();
+    Micras();
 
     /**
      * @brief Update the controller loop of the robot.
