@@ -6,6 +6,7 @@
 #define MICRAS_CONTROLLER_HPP
 
 #include "constants.hpp"
+#include "micras/core/fsm.hpp"
 #include "target.hpp"
 
 namespace micras {
@@ -15,7 +16,7 @@ namespace micras {
 class Micras {
 public:
     /**
-     * @brief Construct a new Micras Controller object.
+     * @brief Construct a new Micras object.
      */
     Micras();
 
@@ -28,13 +29,14 @@ private:
     /**
      * @brief Enum for the current status of the robot.
      */
-    enum Status : uint8_t {
-        INIT = 0,       // Initialization of the robot.
-        IDLE = 1,       // Waiting for the user to start the robot.
-        WAIT = 2,       // Timer for the a predefined next state.
-        RUN = 3,        // Running the main algorithm.
-        CALIBRATE = 4,  // Calibrating the robot.
-        ERROR = 5       // Error state.
+    enum State : uint8_t {
+        INIT = 0,                // Initialization of the robot.
+        IDLE = 1,                // Waiting for the user to start the robot.
+        WAIT_FOR_RUN = 2,        // Timer for entering the RUN state.
+        RUN = 3,                 // Running the main algorithm.
+        WAIT_FOR_CALIBRATE = 4,  // Timer for entering the CALIBRATE state.
+        CALIBRATE = 4,           // Calibrating the robot.
+        ERROR = 5                // Error state.
     };
 
     /**
@@ -58,32 +60,14 @@ private:
     };
 
     /**
-     * @brief Run the robot loop.
-     *
-     * @param elapsed_time Time elapsed since the last run in seconds.
-     * @return True if the robot has ended the run, false otherwise.
+     * @brief Current status of the button.
      */
-    bool run(float elapsed_time);
+    proxy::Button::Status button_status{};
 
     /**
-     * @brief Calibrate the robot.
+     * @brief Time elapsed since the last loop in seconds.
      */
-    void calibrate();
-
-    /**
-     * @brief Stop the robot.
-     */
-    void stop();
-
-    /**
-     * @brief Current status of the robot.
-     */
-    Status status{Status::INIT};
-
-    /**
-     * @brief Next status of the robot after the end of the wait time.
-     */
-    Status next_status{Status::INIT};
+    float elapsed_time{};
 
     /**
      * @brief Timer for the wait status.
@@ -143,6 +127,23 @@ private:
     nav::Mapping     mapping;
     nav::LookAtPoint look_at_point;
     nav::GoToPoint   go_to_point;
+    ///@}
+
+    /**
+     * @brief Finite state machine for the robot.
+     */
+    core::FSM fsm{State::INIT};
+
+    /**
+     * @brief Declare states as friend classes.
+     */
+    ///@{
+    friend class CalibrateState;
+    friend class ErrorState;
+    friend class IdleState;
+    friend class InitState;
+    friend class RunState;
+    friend class WaitState;
     ///@}
 };
 }  // namespace micras
