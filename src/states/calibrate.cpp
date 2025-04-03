@@ -6,11 +6,12 @@
 
 namespace micras {
 uint8_t CalibrateState::run(uint8_t /*previous_state_id*/) {
-    if (this->micras.calibration_type == Micras::CalibrationType::RIGHT_FREE_SPACE) {
+    this->calibrate();
+
+    if (this->micras.calibration_type == Micras::CalibrationType::SIDE_WALLS) {
         return Micras::State::IDLE;
     }
 
-    this->calibrate();
     return Micras::State::WAIT_FOR_CALIBRATE;
 }
 

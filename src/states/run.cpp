@@ -25,12 +25,14 @@ uint8_t RunState::run(uint8_t /*previous_state_id*/) {
             this->micras.maze_storage.create("maze", this->micras.mapping);
             this->micras.maze_storage.save();
             this->stop();
-            return this->get_id();
+            return Micras::State::IDLE;
 
-        default:
+        case core::Objective::SOLVE:
             this->stop();
             return Micras::State::IDLE;
     }
+
+    return Micras::State::ERROR;
 }
 
 bool RunState::run(float elapsed_time) {
