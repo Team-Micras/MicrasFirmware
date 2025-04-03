@@ -77,7 +77,7 @@ private:
     /**
      * @brief Map of ids to states.
      */
-    std::unordered_map<int, std::unique_ptr<State>> states;
+    std::unordered_map<uint8_t, std::unique_ptr<State>> states;
 
     /**
      * @brief Id of the state currently running.
