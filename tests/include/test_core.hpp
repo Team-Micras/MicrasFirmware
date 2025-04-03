@@ -9,8 +9,8 @@
 
 namespace micras {
 template <typename F>
-concept VoidFunction = requires(F f) {
-    { f() } -> std::same_as<void>;
+concept VoidFunction = requires(F void_function) {
+    { void_function() } -> std::same_as<void>;
 };
 
 /**
