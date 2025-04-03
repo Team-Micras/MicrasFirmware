@@ -29,14 +29,18 @@ public:
      * @param argc Number of main arguments.
      * @param argv Main arguments.
      */
-    static void init(int argc = 0, char** argv = nullptr);
+    static void init(int /*argc*/ = 0, char** /*argv*/ = nullptr) { hal::Mcu::init(); }
 
     /**
      * @brief Loop the test core with a custom function.
      *
      * @param loop_func Custom loop function.
      */
-    static void loop(VoidFunction auto loop_func);
+    static void loop(VoidFunction auto loop_func) {
+        while (true) {
+            loop_func();
+        }
+    }
 };
 }  // namespace micras
 
