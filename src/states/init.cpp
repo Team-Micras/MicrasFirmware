@@ -5,9 +5,7 @@
 #include "micras/states/init.hpp"
 
 namespace micras {
-InitState::InitState(uint8_t id, Micras& micras) : State(id), micras{micras} { }
-
-uint8_t InitState::run() {
+uint8_t InitState::run(uint8_t /*previous_state_id*/) {
     if (not this->micras.imu.check_whoami()) {
         return Micras::State::ERROR;
     }

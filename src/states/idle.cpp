@@ -5,11 +5,8 @@
 #include "micras/states/idle.hpp"
 
 namespace micras {
-IdleState::IdleState(uint8_t id, Micras& micras) : State(id), micras{micras} { }
-
-uint8_t IdleState::run() {
+uint8_t IdleState::run(uint8_t /*previous_state_id*/) {
     if (this->micras.button_status != proxy::Button::Status::NO_PRESS) {
-        this->micras.wait_timer.reset_ms();
         this->micras.wall_sensors.turn_on();
     }
 

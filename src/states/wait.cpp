@@ -6,10 +6,14 @@
 
 namespace micras {
 WaitState::WaitState(uint8_t id, Micras& micras, uint8_t next_state_id, uint16_t wait_time_ms) :
-    State(id), micras{micras}, next_state_id{next_state_id}, wait_time_ms{wait_time_ms} { }
+    BaseState{id, micras}, next_state_id{next_state_id}, wait_time_ms{wait_time_ms} { }
 
-uint8_t WaitState::run() {
-    if (this->micras.wait_timer.elapsed_time_ms() > this->wait_time_ms) {
+uint8_t WaitState::run(uint8_t previous_state_id) {
+    if (previous_state_id != this->get_id()) {
+        this->wait_timer.reset_ms();
+    }
+
+    if (this->wait_timer.elapsed_time_ms() > this->wait_time_ms) {
         this->micras.odometry.reset();
         this->micras.look_at_point.reset();
         this->micras.go_to_point.reset();

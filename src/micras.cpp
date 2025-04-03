@@ -32,21 +32,13 @@ Micras::Micras() :
     mapping{wall_sensors, mapping_config},
     look_at_point{look_at_point_config},
     go_to_point{wall_sensors, go_to_point_config, follow_wall_config} {
-    CalibrateState calibrate_state{State::CALIBRATE, *this};
-    ErrorState     error_state{State::ERROR, *this};
-    IdleState      idle_state{State::IDLE, *this};
-    InitState      init_state{State::INIT, *this};
-    RunState       run_state{State::RUN, *this};
-    WaitState      wait_for_run_state{State::WAIT_FOR_RUN, *this, State::RUN};
-    WaitState      wait_for_calibrate_state{State::WAIT_FOR_CALIBRATE, *this, State::CALIBRATE};
-
-    this->fsm.add_state(calibrate_state);
-    this->fsm.add_state(error_state);
-    this->fsm.add_state(idle_state);
-    this->fsm.add_state(init_state);
-    this->fsm.add_state(run_state);
-    this->fsm.add_state(wait_for_run_state);
-    this->fsm.add_state(wait_for_calibrate_state);
+    this->fsm.add_state(std::make_unique<CalibrateState>(State::CALIBRATE, *this));
+    this->fsm.add_state(std::make_unique<ErrorState>(State::ERROR, *this));
+    this->fsm.add_state(std::make_unique<IdleState>(State::IDLE, *this));
+    this->fsm.add_state(std::make_unique<InitState>(State::INIT, *this));
+    this->fsm.add_state(std::make_unique<RunState>(State::RUN, *this));
+    this->fsm.add_state(std::make_unique<WaitState>(State::WAIT_FOR_RUN, *this, State::RUN));
+    this->fsm.add_state(std::make_unique<WaitState>(State::WAIT_FOR_CALIBRATE, *this, State::CALIBRATE));
 }
 
 void Micras::update() {

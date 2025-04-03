@@ -6,6 +6,7 @@
 #define MICRAS_CORE_FSM_HPP
 
 #include <cstdint>
+#include <memory>
 #include <unordered_map>
 
 namespace micras::core {
@@ -14,33 +15,18 @@ public:
     class State {
     public:
         /**
-         * @brief Construct a new State object.
-         *
-         * @param id The id of the state.
-         */
-        explicit State(uint8_t id);
-
-        /**
          * @brief Destroy the State object.
          */
         virtual ~State() = default;
 
         /**
-         * @brief Special member functions declared as default.
-         */
-        ///@{
-        State(const State&) = default;
-        State(State&&) = default;
-        State& operator=(const State&) = default;
-        State& operator=(State&&) = default;
-        ///@}
-
-        /**
          * @brief Execute this state.
+         *
+         * @param previous_state_id The id of the last executed state.
          *
          * @return The id of the next state.
          */
-        virtual uint8_t run();
+        virtual uint8_t run(uint8_t previous_state_id) = 0;
 
         /**
          * @brief Get the id object of the state.
@@ -48,6 +34,18 @@ public:
          * @return The id of the state.
          */
         uint8_t get_id() const;
+
+    protected:
+        /**
+         * @brief Special member functions declared as default.
+         */
+        ///@{
+        explicit State(uint8_t id);
+        State(const State&) = default;
+        State(State&&) = default;
+        State& operator=(const State&) = default;
+        State& operator=(State&&) = default;
+        ///@}
 
     private:
         /**
@@ -68,7 +66,7 @@ public:
      *
      * @param state The state to be added.
      */
-    void add_state(const State& state);
+    void add_state(std::unique_ptr<State> state);
 
     /**
      * @brief Run the FSM current state to calculate the next state.
@@ -79,12 +77,17 @@ private:
     /**
      * @brief Map of ids to states.
      */
-    std::unordered_map<int, State> states;
+    std::unordered_map<int, std::unique_ptr<State>> states;
 
     /**
      * @brief Id of the state currently running.
      */
     uint8_t current_state_id{0};
+
+    /**
+     * @brief Id of the last executed state.
+     */
+    uint8_t previous_state_id{0xFF};
 };
 }  // namespace micras::core
 

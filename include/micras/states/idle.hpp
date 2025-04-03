@@ -5,18 +5,21 @@
 #ifndef IDLE_STATE_HPP
 #define IDLE_STATE_HPP
 
-#include "micras/core/fsm.hpp"
-#include "micras/micras.hpp"
+#include "micras/states/base.hpp"
 
 namespace micras {
-class IdleState : public core::FSM::State {
+class IdleState : public BaseState {
 public:
-    IdleState(uint8_t id, Micras& micras);
+    using BaseState::BaseState;
 
-    uint8_t run() override;
-
-private:
-    Micras& micras;  // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
+    /**
+     * @brief Execute this state.
+     *
+     * @param previous_state_id The id of the last executed state.
+     *
+     * @return The id of the next state.
+     */
+    uint8_t run(uint8_t previous_state_id) override;
 };
 }  // namespace micras
 

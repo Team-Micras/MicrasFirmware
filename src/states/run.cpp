@@ -5,9 +5,7 @@
 #include "micras/states/run.hpp"
 
 namespace micras {
-RunState::RunState(uint8_t id, Micras& micras) : State(id), micras{micras} { }
-
-uint8_t RunState::run() {
+uint8_t RunState::run(uint8_t /*previous_state_id*/) {
     if (not this->run(this->micras.elapsed_time)) {
         return this->get_id();
     }
@@ -19,7 +17,6 @@ uint8_t RunState::run() {
 
     switch (this->micras.objective) {
         case core::Objective::EXPLORE:
-            this->micras.wait_timer.reset_ms();
             this->micras.objective = core::Objective::RETURN;
             return Micras::State::WAIT_FOR_RUN;
 
@@ -69,7 +66,7 @@ bool RunState::run(float elapsed_time) {
                     this->micras.mapping.can_align_back(state.pose) and
                     this->micras.objective != core::Objective::SOLVE) {
                     this->micras.current_action.type = nav::Mapping::Action::Type::ALIGN_BACK;
-                    this->micras.align_back_timer.reset_ms();
+                    this->align_back_timer.reset_ms();
                 }
 
                 this->micras.look_at_point.reset();
@@ -103,7 +100,7 @@ bool RunState::run(float elapsed_time) {
         case nav::Mapping::Action::Type::ALIGN_BACK:
             command = {-5.0F, 0.0F};
 
-            if (this->micras.align_back_timer.elapsed_time_ms() > 500) {
+            if (this->align_back_timer.elapsed_time_ms() > 500) {
                 state.pose = this->micras.mapping.correct_pose(state.pose, core::FollowWallType::BACK);
                 this->micras.odometry.set_state(state);
                 this->micras.current_action = this->micras.mapping.get_action(state.pose, this->micras.objective);

@@ -5,19 +5,13 @@
 #include "micras/states/calibrate.hpp"
 
 namespace micras {
-CalibrateState::CalibrateState(uint8_t id, Micras& micras) : State(id), micras{micras} { }
-
-uint8_t CalibrateState::run() {
+uint8_t CalibrateState::run(uint8_t /*previous_state_id*/) {
     if (this->micras.calibration_type == Micras::CalibrationType::RIGHT_FREE_SPACE) {
         return Micras::State::IDLE;
     }
 
-    this->micras.wait_timer.reset_ms();
-    return Micras::State::WAIT_FOR_CALIBRATE;
-
     this->calibrate();
-
-    return this->get_id();
+    return Micras::State::WAIT_FOR_CALIBRATE;
 }
 
 void CalibrateState::calibrate() {

@@ -2,8 +2,8 @@
  * @file
  */
 
-#ifndef MICRAS_CONTROLLER_HPP
-#define MICRAS_CONTROLLER_HPP
+#ifndef MICRAS_HPP
+#define MICRAS_HPP
 
 #include "constants.hpp"
 #include "micras/core/fsm.hpp"
@@ -35,8 +35,8 @@ private:
         WAIT_FOR_RUN = 2,        // Timer for entering the RUN state.
         RUN = 3,                 // Running the main algorithm.
         WAIT_FOR_CALIBRATE = 4,  // Timer for entering the CALIBRATE state.
-        CALIBRATE = 4,           // Calibrating the robot.
-        ERROR = 5                // Error state.
+        CALIBRATE = 5,           // Calibrating the robot.
+        ERROR = 6                // Error state.
     };
 
     /**
@@ -70,19 +70,9 @@ private:
     float elapsed_time{};
 
     /**
-     * @brief Timer for the wait status.
-     */
-    hal::Timer wait_timer;
-
-    /**
      * @brief Timer for the run status.
      */
     hal::Timer loop_timer;
-
-    /**
-     * @brief Timer for aligning the robot to the back wall.
-     */
-    hal::Timer align_back_timer;
 
     /**
      * @brief Current objective of the robot.
@@ -148,4 +138,4 @@ private:
 };
 }  // namespace micras
 
-#endif  // MICRAS_CONTROLLER_HPP
+#endif  // MICRAS_HPP

@@ -5,19 +5,23 @@
 #ifndef RUN_STATE_HPP
 #define RUN_STATE_HPP
 
-#include "micras/core/fsm.hpp"
-#include "micras/micras.hpp"
+#include "micras/states/base.hpp"
 
 namespace micras {
-class RunState : public core::FSM::State {
+class RunState : public BaseState {
 public:
-    RunState(uint8_t id, Micras& micras);
+    using BaseState::BaseState;
 
-    uint8_t run() override;
+    /**
+     * @brief Execute this state.
+     *
+     * @param previous_state_id The id of the last executed state.
+     *
+     * @return The id of the next state.
+     */
+    uint8_t run(uint8_t previous_state_id) override;
 
 private:
-    Micras& micras;  // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
-
     /**
      * @brief Run the main algorithm of the robot.
      *
@@ -30,6 +34,11 @@ private:
      * @brief Stop the robot.
      */
     void stop();
+
+    /**
+     * @brief Timer for aligning the robot to the back wall.
+     */
+    hal::Timer align_back_timer;
 };
 }  // namespace micras
 
