@@ -6,7 +6,7 @@
 #define MICRAS_NAV_FOLLOW_WALL
 
 #include "micras/core/butterworth_filter.hpp"
-#include "micras/nav/pid_controller.hpp"
+#include "micras/core/pid_controller.hpp"
 #include "micras/proxy/wall_sensors.hpp"
 
 namespace micras::nav {
@@ -19,10 +19,10 @@ public:
      * @brief Configuration struct for the FollowWall class.
      */
     struct Config {
-        PidController::Config pid;
-        float                 base_left_reading{};
-        float                 base_right_reading{};
-        float                 cutoff_frequency{};
+        core::PidController::Config pid;
+        float                       base_left_reading{};
+        float                       base_right_reading{};
+        float                       cutoff_frequency{};
     };
 
     /**
@@ -75,7 +75,7 @@ private:
     /**
      * @brief PID controller for the wall following.
      */
-    PidController pid;
+    core::PidController pid;
 
     /**
      * @brief Butterworth filter for the derivative of the error.

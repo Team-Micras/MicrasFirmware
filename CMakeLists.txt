@@ -97,7 +97,6 @@ foreach(TEST_FILE ${PROJECT_TESTS})
 
     add_executable(${TEST_NAME} EXCLUDE_FROM_ALL
         ${TEST_FILE}
-        tests/src/test_core.cpp
     )
 
     target_include_directories(${TEST_NAME} PUBLIC

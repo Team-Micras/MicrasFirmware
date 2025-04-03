@@ -2,11 +2,11 @@
  * @file
  */
 
-#include "micras/micras_controller.hpp"
+#include "micras/micras.hpp"
 #include "target.hpp"
 
 namespace micras {
-MicrasController::MicrasController() :
+Micras::Micras() :
     loop_timer{timer_config},
     argb{argb_config},
     battery{battery_config},
@@ -27,7 +27,7 @@ MicrasController::MicrasController() :
     look_at_point{look_at_point_config},
     go_to_point{wall_sensors, go_to_point_config, follow_wall_config} { }
 
-void MicrasController::update() {
+void Micras::update() {
     float elapsed_time = loop_timer.elapsed_time_us() / 1e6F;
     loop_timer.reset_us();
 
@@ -149,7 +149,7 @@ void MicrasController::update() {
     while (loop_timer.elapsed_time_us() < loop_time_us) { }
 }
 
-bool MicrasController::run(float elapsed_time) {
+bool Micras::run(float elapsed_time) {
     this->odometry.update(elapsed_time);
 
     micras::nav::State state = this->odometry.get_state();
@@ -259,7 +259,7 @@ bool MicrasController::run(float elapsed_time) {
     return false;
 }
 
-void MicrasController::calibrate() {
+void Micras::calibrate() {
     switch (this->calibration_type) {
         case CalibrationType::SIDE_WALLS:
             this->go_to_point.calibrate();
@@ -290,7 +290,7 @@ void MicrasController::calibrate() {
     }
 }
 
-void MicrasController::stop() {
+void Micras::stop() {
     this->wall_sensors.turn_off();
     this->locomotion.disable();
     this->fan.stop();

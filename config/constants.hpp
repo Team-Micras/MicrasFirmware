@@ -8,12 +8,12 @@
 #include <cstdint>
 #include <numbers>
 
+#include "micras/core/pid_controller.hpp"
 #include "micras/nav/go_to_point.hpp"
 #include "micras/nav/grid_pose.hpp"
 #include "micras/nav/look_at_point.hpp"
 #include "micras/nav/mapping.hpp"
 #include "micras/nav/odometry.hpp"
-#include "micras/nav/pid_controller.hpp"
 #include "micras/proxy/storage.hpp"
 
 namespace micras {

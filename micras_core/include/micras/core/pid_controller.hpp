@@ -2,12 +2,10 @@
  * @file
  */
 
-#ifndef MICRAS_NAV_PID_CONTROLLER_HPP
-#define MICRAS_NAV_PID_CONTROLLER_HPP
+#ifndef MICRAS_CORE_PID_CONTROLLER_HPP
+#define MICRAS_CORE_PID_CONTROLLER_HPP
 
-#include "micras/hal/timer.hpp"
-
-namespace micras::nav {
+namespace micras::core {
 /**
  * @brief Implementation of simple PID controller. Response = kp * (error + ki * integral(error) kd * d/dt(error))
  */
@@ -111,6 +109,6 @@ private:
      */
     float last_response = 0;
 };
-}  // namespace micras::nav
+}  // namespace micras::core
 
-#endif  // MICRAS_NAV_PID_CONTROLLER_HPP
+#endif  // MICRAS_CORE_PID_CONTROLLER_HPP
