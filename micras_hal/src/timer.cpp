@@ -14,8 +14,8 @@ Timer::Timer() {
 Timer::Timer(const Config& config) : handle{config.handle} {
     config.init_function();
 
-    uint32_t base_freq = HAL_RCC_GetPCLK1Freq();
-    uint32_t prescaler = this->handle->Instance->PSC;
+    const uint32_t base_freq = HAL_RCC_GetPCLK1Freq();
+    const uint32_t prescaler = this->handle->Instance->PSC;
 
     if (base_freq / (prescaler + 1) == 1000000) {
         this->enable_microseconds = true;
@@ -38,7 +38,7 @@ uint32_t Timer::elapsed_time_ms() const {
 }
 
 uint32_t Timer::elapsed_time_us() const {
-    uint32_t counter = this->get_counter_us();
+    const uint32_t counter = this->get_counter_us();
 
     if (counter < this->counter) {
         return std::numeric_limits<uint16_t>::max() - this->counter + counter;
@@ -48,13 +48,13 @@ uint32_t Timer::elapsed_time_us() const {
 }
 
 void Timer::sleep_ms(uint32_t time) {
-    uint32_t start = HAL_GetTick();
+    const uint32_t start = HAL_GetTick();
 
     while (HAL_GetTick() - start < time) { }
 }
 
 void Timer::sleep_us(uint32_t time) const {
-    uint32_t start = this->get_counter_us();
+    const uint32_t start = this->get_counter_us();
 
     while (this->get_counter_us() - start < time) { }
 }

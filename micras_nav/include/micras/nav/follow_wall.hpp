@@ -70,7 +70,7 @@ private:
     /**
      * @brief Wall sensors of the robot.
      */
-    const proxy::TWallSensors<4>& wall_sensors;  // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
+    const proxy::TWallSensors<4>& wall_sensors;
 
     /**
      * @brief PID controller for the wall following.

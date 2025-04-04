@@ -140,8 +140,8 @@ namespace std {
 template <>
 struct hash<micras::nav::GridPoint> {
     size_t operator()(const micras::nav::GridPoint& point) const noexcept {
-        size_t h1 = hash<uint8_t>{}(point.x);
-        size_t h2 = hash<uint8_t>{}(point.y);
+        const size_t h1 = hash<uint8_t>{}(point.x);
+        const size_t h2 = hash<uint8_t>{}(point.y);
         return h1 ^ (h2 << 1);
     }
 };

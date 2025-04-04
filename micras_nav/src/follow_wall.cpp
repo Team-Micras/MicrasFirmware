@@ -39,7 +39,7 @@ float FollowWall::action(core::FollowWallType follow_wall_type, float elapsed_ti
         this->last_diff = error;
     }
 
-    float response =
+    const float response =
         this->pid.update(error, elapsed_time, this->filter.update((error - this->last_diff) / elapsed_time), true);
 
     this->last_diff = error;

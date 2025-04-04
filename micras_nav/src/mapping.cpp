@@ -33,7 +33,7 @@ TMapping<width, height>::TMapping(const proxy::TWallSensors<4>& wall_sensors, TM
 
 template <uint8_t width, uint8_t height>
 void TMapping<width, height>::update(const Pose& pose) {
-    float reliability = 50.0F * (std::cos(4 * pose.orientation) + 1);
+    const float reliability = 50.0F * (std::cos(4 * pose.orientation) + 1);
 
     if (reliability < 30.0F) {
         return;
@@ -117,16 +117,16 @@ TMapping<width, height>::Action TMapping<width, height>::get_action(const Pose& 
 
 template <uint8_t width, uint8_t height>
 Pose TMapping<width, height>::correct_pose(const Pose& pose, core::FollowWallType follow_wall_type) const {
-    float reliability = 50.0F * (std::cos(4 * pose.orientation) + 1);
+    const float reliability = 50.0F * (std::cos(4 * pose.orientation) + 1);
 
     if (reliability < 20.0F) {
         return pose;
     }
 
-    Point cell_position = pose.to_cell(this->cell_size);
-    Point pose_correction{};
-    Pose  corrected_pose = pose;
-    Side  direction = angle_to_grid(pose.orientation);
+    Point      cell_position = pose.to_cell(this->cell_size);
+    Point      pose_correction{};
+    Pose       corrected_pose = pose;
+    Side const direction = angle_to_grid(pose.orientation);
 
     switch (follow_wall_type) {
         case core::FollowWallType::BACK:

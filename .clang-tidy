@@ -3,29 +3,24 @@ Checks:
   -*,
   bugprone-*,
   -bugprone-easily-swappable-parameters,
-  -bugprone-narrowing-conversions,
   -bugprone-dynamic-static-initializers,
   clang-*,
-  -clang-diagnostic-unused-command-line-argument,
   cppcoreguidelines-*,
   -cppcoreguidelines-avoid-magic-numbers,
-  -cppcoreguidelines-pro-bounds-pointer-arithmetic,
   -cppcoreguidelines-avoid-do-while,
+  -cppcoreguidelines-narrowing-conversions,
   -cppcoreguidelines-pro-type-union-access,
   google-*,
   llvm-*,
   -llvm-header-guard,
   misc-*,
   -misc-include-cleaner,
-  -misc-const-correctness,
-  -misc-use-anonymous-namespace,
   modernize-*,
   -modernize-use-nodiscard,
   -modernize-use-trailing-return-type,
   performance-*,
   readability-*,
   -readability-duplicate-include,
-  -readability-magic-numbers,
 WarningsAsErrors: '*'
 HeaderFileExtensions:
   - ''
@@ -41,16 +36,16 @@ ImplementationFileExtensions:
 HeaderFilterRegex: '(include|config)/.*.hpp'
 FormatStyle: none
 CheckOptions:
+  readability-magic-numbers.IgnoredIntegerValues: '1;2;3;4;5;10;100;255;1000;65535;1000000'
   readability-magic-numbers.IgnorePowersOf2IntegerValues: true
-  readability-magic-numbers.IgnoreBitFieldsWidths: true
   readability-magic-numbers.IgnoreUserDefinedLiterals: true
+  readability-magic-numbers.IgnoredFloatingPointValues: '1.0;2.0;5.0;10.0;50.0;100.0;1000.0;1000000.0'
   readability-identifier-length.MinimumVariableNameLength: 2
   readability-identifier-length.IgnoredVariableNames: ^[nxyz]$
   readability-identifier-length.MinimumParameterNameLength: 2
   readability-identifier-length.IgnoredParameterNames: ^[nxyz]$
   misc-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic: true
-  cppcoreguidelines-narrowing-conversions.WarnOnIntegerToFloatingPointNarrowingConversion: false
-  readability-function-cognitive-complexity.Threshold: 30
+  bugprone-narrowing-conversions.WarnOnIntegerToFloatingPointNarrowingConversion: false
 SystemHeaders: false
 ExtraArgsBefore:
   - '--target=arm-none-eabi'

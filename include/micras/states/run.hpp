@@ -67,7 +67,7 @@ private:
 
         nav::Twist command{};
 
-        nav::State relative_state = {
+        const nav::State relative_state = {
             {state.pose.position.rotate(this->micras.current_action.direction),
              core::assert_angle(
                  state.pose.orientation + std::numbers::pi_v<float> / 4.0F * (2 - this->micras.current_action.direction)
@@ -77,8 +77,8 @@ private:
 
         core::FollowWallType follow_wall_type = this->micras.mapping.get_follow_wall_type(state.pose);
 
-        bool stop = (this->micras.objective != core::Objective::SOLVE) or
-                    not this->micras.dip_switch.get_switch_state(Micras::Switch::STOP);
+        const bool stop = (this->micras.objective != core::Objective::SOLVE) or
+                          not this->micras.dip_switch.get_switch_state(Micras::Switch::STOP);
 
         switch (this->micras.current_action.type) {
             case nav::Mapping::Action::Type::LOOK_AT:

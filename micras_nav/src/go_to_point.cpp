@@ -24,14 +24,15 @@ GoToPoint::GoToPoint(
 Twist GoToPoint::action(
     const State& state, const Point& goal, core::FollowWallType follow_wall_type, float elapsed_time, bool stop
 ) {
-    float linear_command{};
-    float angular_command{};
-    Point goal_distance = goal - state.pose.position;
+    float       linear_command{};
+    float       angular_command{};
+    const Point goal_distance = goal - state.pose.position;
 
     if (follow_wall_type != core::FollowWallType::NONE) {
         angular_command = this->follow_wall.action(follow_wall_type, elapsed_time);
     } else {
-        float angular_error = core::assert_angle(state.pose.orientation - std::atan2(this->cell_size, goal_distance.x));
+        const float angular_error =
+            core::assert_angle(state.pose.orientation - std::atan2(this->cell_size, goal_distance.x));
         angular_command = this->angular_pid.update(angular_error, elapsed_time, state.velocity.angular);
     }
 

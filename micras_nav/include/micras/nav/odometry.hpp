@@ -71,17 +71,17 @@ private:
     /**
      * @brief Left rotary sensor.
      */
-    const proxy::RotarySensor& left_rotary_sensor;  // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
+    const proxy::RotarySensor& left_rotary_sensor;
 
     /**
      * @brief Right rotary sensor.
      */
-    const proxy::RotarySensor& right_rotary_sensor;  // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
+    const proxy::RotarySensor& right_rotary_sensor;
 
     /**
      * @brief IMU sensor.
      */
-    const proxy::Imu& imu;  // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
+    const proxy::Imu& imu;
 
     /**
      * @brief Wheel radius.

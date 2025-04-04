@@ -16,7 +16,7 @@ static const uint32_t base_address = FLASH_BASE + FLASH_SIZE - 8;
 
 // NOLINTNEXTLINE(*-avoid-c-arrays)
 void Flash::read(uint32_t address, uint64_t data[], uint32_t size) {
-    uint32_t end = base_address - 8 * address;
+    const uint32_t end = base_address - 8 * address;
 
     for (address = end - 8 * (size - 1); address <= end; address += 8, data++) {
         (*data) = *(std::bit_cast<uint64_t*>(address));
@@ -32,7 +32,7 @@ void Flash::read(uint16_t page, uint16_t page_address, uint64_t data[], uint32_t
 void Flash::write(uint32_t address, const uint64_t data[], uint32_t size) {
     HAL_FLASH_Unlock();
 
-    uint32_t end = base_address - 8 * address;
+    const uint32_t end = base_address - 8 * address;
     address = end - 8 * (size - 1);
 
     while (address <= end) {
