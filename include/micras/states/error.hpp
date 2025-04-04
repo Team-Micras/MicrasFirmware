@@ -19,7 +19,11 @@ public:
      *
      * @return The id of the next state.
      */
-    uint8_t run(uint8_t previous_state_id) override;
+    uint8_t run(uint8_t /*previous_state_id*/) override {
+        this->micras.led.turn_on();
+
+        return this->get_id();
+    }
 };
 }  // namespace micras
 
