@@ -7,6 +7,7 @@
 
 #include <array>
 #include <list>
+#include <memory>
 
 #include "micras/nav/maze.hpp"
 #include "micras/nav/state.hpp"
@@ -95,7 +96,7 @@ public:
      * @param wall_sensors The wall sensors.
      * @param config The configuration for the mapping.
      */
-    TMapping(const proxy::TWallSensors<4>& wall_sensors, Config config);
+    TMapping(const std::shared_ptr<proxy::TWallSensors<4>>& wall_sensors, Config config);
 
     /**
      * @brief Update the mapping of the maze using the current pose and wall sensors.
@@ -200,7 +201,7 @@ private:
     /**
      * @brief Wall sensors of the robot.
      */
-    const proxy::TWallSensors<4>& wall_sensors;
+    std::shared_ptr<proxy::TWallSensors<4>> wall_sensors;
 
     /**
      * @brief The maze information the robot has.

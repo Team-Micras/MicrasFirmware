@@ -11,7 +11,9 @@
 
 namespace micras::nav {
 template <uint8_t width, uint8_t height>
-TMapping<width, height>::TMapping(const proxy::TWallSensors<4>& wall_sensors, TMapping::Config config) :
+TMapping<width, height>::TMapping(
+    const std::shared_ptr<proxy::TWallSensors<4>>& wall_sensors, TMapping::Config config
+) :
     wall_sensors{wall_sensors},
     maze{config.start, config.goal},
     wall_thickness{config.wall_thickness},
@@ -43,19 +45,19 @@ void TMapping<width, height>::update(const Pose& pose) {
     nav::Point  cell_position = pose.to_cell(cell_size);
 
     if (cell_position.y < this->front_sensors_region_division) {
-        if (this->wall_sensors.get_observation(Sensor::FRONT_LEFT) == core::Observation::WALL and
-            this->wall_sensors.get_observation(Sensor::FRONT_RIGHT) == core::Observation::WALL) {
+        if (this->wall_sensors->get_observation(Sensor::FRONT_LEFT) == core::Observation::WALL and
+            this->wall_sensors->get_observation(Sensor::FRONT_RIGHT) == core::Observation::WALL) {
             information.front = core::Observation::WALL;
-        } else if (this->wall_sensors.get_observation(Sensor::FRONT_LEFT) == core::Observation::FREE_SPACE and
-                   this->wall_sensors.get_observation(Sensor::FRONT_RIGHT) == core::Observation::FREE_SPACE) {
+        } else if (this->wall_sensors->get_observation(Sensor::FRONT_LEFT) == core::Observation::FREE_SPACE and
+                   this->wall_sensors->get_observation(Sensor::FRONT_RIGHT) == core::Observation::FREE_SPACE) {
             information.front = core::Observation::FREE_SPACE;
         }
     }
 
     if (information.front != core::Observation::WALL and
         cell_position.y > this->side_sensors_region_division + 2 * this->wall_thickness) {
-        information.front_left = this->wall_sensors.get_observation(Sensor::LEFT);
-        information.front_right = this->wall_sensors.get_observation(Sensor::RIGHT);
+        information.front_left = this->wall_sensors->get_observation(Sensor::LEFT);
+        information.front_right = this->wall_sensors->get_observation(Sensor::RIGHT);
     }
 
     this->maze.update(pose.to_grid(this->cell_size), information);
@@ -169,26 +171,26 @@ Pose TMapping<width, height>::correct_pose(const Pose& pose, core::FollowWallTyp
 
 template <uint8_t width, uint8_t height>
 void TMapping<width, height>::calibrate_front() {
-    this->front_distance_reading[0] = this->wall_sensors.get_reading(0);
-    front_orientation_reading[0] = this->wall_sensors.get_reading(1);
-    front_orientation_reading[1] = this->wall_sensors.get_reading(2);
-    this->front_distance_reading[1] = this->wall_sensors.get_reading(3);
+    this->front_distance_reading[0] = this->wall_sensors->get_reading(0);
+    front_orientation_reading[0] = this->wall_sensors->get_reading(1);
+    front_orientation_reading[1] = this->wall_sensors->get_reading(2);
+    this->front_distance_reading[1] = this->wall_sensors->get_reading(3);
 }
 
 template <uint8_t width, uint8_t height>
 void TMapping<width, height>::calibrate_side() {
-    this->side_distance_reading[0] = this->wall_sensors.get_reading(1);
-    this->side_distance_reading[1] = this->wall_sensors.get_reading(2);
+    this->side_distance_reading[0] = this->wall_sensors->get_reading(1);
+    this->side_distance_reading[1] = this->wall_sensors->get_reading(2);
 }
 
 template <uint8_t width, uint8_t height>
 bool TMapping<width, height>::is_distance_front_aligned() const {
     return core::is_near(
-               this->wall_sensors.get_reading(0), this->front_distance_reading[0],
+               this->wall_sensors->get_reading(0), this->front_distance_reading[0],
                this->front_distance_alignment_tolerance
            ) and
            core::is_near(
-               this->wall_sensors.get_reading(3), this->front_distance_reading[1],
+               this->wall_sensors->get_reading(3), this->front_distance_reading[1],
                this->front_distance_alignment_tolerance
            );
 }
@@ -196,19 +198,19 @@ bool TMapping<width, height>::is_distance_front_aligned() const {
 template <uint8_t width, uint8_t height>
 bool TMapping<width, height>::is_orientation_front_aligned() const {
     return std::abs(
-               (this->wall_sensors.get_reading(1) - this->front_orientation_reading[0]) +
-               (this->wall_sensors.get_reading(2) - this->front_orientation_reading[1])
+               (this->wall_sensors->get_reading(1) - this->front_orientation_reading[0]) +
+               (this->wall_sensors->get_reading(2) - this->front_orientation_reading[1])
            ) <= this->front_orientation_alignment_tolerance;
 }
 
 template <uint8_t width, uint8_t height>
 bool TMapping<width, height>::is_distance_side_aligned() const {
     return core::is_near(
-               this->wall_sensors.get_reading(1), this->side_distance_reading[0],
+               this->wall_sensors->get_reading(1), this->side_distance_reading[0],
                this->side_distance_alignment_tolerance
            ) and
            core::is_near(
-               this->wall_sensors.get_reading(2), this->side_distance_reading[1],
+               this->wall_sensors->get_reading(2), this->side_distance_reading[1],
                this->side_distance_alignment_tolerance
            );
 }
@@ -216,8 +218,8 @@ bool TMapping<width, height>::is_distance_side_aligned() const {
 template <uint8_t width, uint8_t height>
 bool TMapping<width, height>::is_orientation_side_aligned() const {
     return std::abs(
-               (this->wall_sensors.get_reading(1) - this->side_distance_reading[0]) +
-               (this->wall_sensors.get_reading(2) - this->side_distance_reading[1])
+               (this->wall_sensors->get_reading(1) - this->side_distance_reading[0]) +
+               (this->wall_sensors->get_reading(2) - this->side_distance_reading[1])
            ) <= this->side_orientation_alignment_tolerance;
 }
 
@@ -235,8 +237,8 @@ core::FollowWallType TMapping<width, height>::get_follow_wall_type(const Pose& p
         return follow_wall_type;
     }
 
-    bool can_follow_left = this->wall_sensors.get_observation(Sensor::LEFT) == core::Observation::WALL;
-    bool can_follow_right = this->wall_sensors.get_observation(Sensor::RIGHT) == core::Observation::WALL;
+    bool can_follow_left = this->wall_sensors->get_observation(Sensor::LEFT) == core::Observation::WALL;
+    bool can_follow_right = this->wall_sensors->get_observation(Sensor::RIGHT) == core::Observation::WALL;
 
     if (can_follow_left and can_follow_right) {
         return core::FollowWallType::PARALLEL;

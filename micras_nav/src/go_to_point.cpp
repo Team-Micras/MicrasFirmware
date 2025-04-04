@@ -9,7 +9,8 @@
 
 namespace micras::nav {
 GoToPoint::GoToPoint(
-    const proxy::TWallSensors<4>& wall_sensors, const Config& config, const FollowWall::Config& follow_wall_config
+    const std::shared_ptr<proxy::TWallSensors<4>>& wall_sensors, const Config& config,
+    const FollowWall::Config& follow_wall_config
 ) :
     stop_pid(config.stop_pid),
     angular_pid(config.angular_pid),
