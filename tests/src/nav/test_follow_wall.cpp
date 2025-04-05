@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
         }
 
         if (button_status == proxy::Button::Status::LONG_PRESS) {
-            follow_wall_type = static_cast<core::FollowWallType>(follow_wall_type + 1 % 5);
+            follow_wall_type = static_cast<core::FollowWallType>((follow_wall_type + 1) % 5);
 
             switch (follow_wall_type) {
                 case core::FollowWallType::NONE:
