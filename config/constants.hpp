@@ -17,8 +17,12 @@
 #include "micras/proxy/storage.hpp"
 
 namespace micras {
-constexpr uint8_t  maze_width{4};
-constexpr uint8_t  maze_height{4};
+/*****************************************
+ * Constants
+ *****************************************/
+
+constexpr uint8_t  maze_width{16};
+constexpr uint8_t  maze_height{16};
 constexpr float    cell_size{0.18};
 constexpr uint32_t loop_time_us{1042};
 
@@ -121,7 +125,6 @@ const nav::Mapping::Config mapping_config{
         0.12F,
     }},
     .start = {{0, 0}, nav::Side::UP},
-    .goal = {{3, 0}}
 };
 
 const nav::Odometry::Config odometry_config{

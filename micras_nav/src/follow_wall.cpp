@@ -35,7 +35,6 @@ float FollowWall::action(core::FollowWallType follow_wall_type, float elapsed_ti
     }
 
     float response = this->pid.update(error, elapsed_time);
-
     return response;
 }
 
