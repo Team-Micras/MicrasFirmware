@@ -8,14 +8,14 @@
 
 using namespace micras;  // NOLINT(google-build-using-namespace)
 
+// NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
 static volatile float test_position_x{};
 static volatile float test_position_y{};
 static volatile float test_orientation{};
 static volatile float test_linear_velocity{};
 static volatile float test_angular_velocity{};
 
-static volatile uint32_t test_loop_time;
-static volatile uint32_t max_loop_time{0};
+// NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);
@@ -28,16 +28,13 @@ int main(int argc, char* argv[]) {
     nav::Odometry       odometry{rotary_sensor_left, rotary_sensor_right, imu, odometry_config};
 
     timer.reset_us();
+
+    hal::Timer::sleep_ms(1000);
     imu.calibrate();
 
     TestCore::loop([&odometry, &imu, &timer]() {
-        test_loop_time = timer.elapsed_time_us();
-        float elapsed_time = test_loop_time / 1000000.0F;
+        float elapsed_time = timer.elapsed_time_us() / 1000000.0F;
         timer.reset_us();
-
-        if (test_loop_time > max_loop_time) {
-            max_loop_time = test_loop_time;
-        }
 
         imu.update();
         odometry.update(elapsed_time);
