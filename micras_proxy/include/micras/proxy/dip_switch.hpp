@@ -12,43 +12,43 @@
 
 namespace micras::proxy {
 /**
- * @brief Class for acquiring a dip switch data
+ * @brief Class for acquiring dip switch data.
  */
 template <uint8_t num_of_switches>
-class DipSwitch {
+class TDipSwitch {
 public:
     /**
-     * @brief Configuration struct for DipSwitch
+     * @brief Configuration struct for the Dip Switch.
      */
     struct Config {
         std::array<hal::Gpio::Config, num_of_switches> gpio_array;
     };
 
     /**
-     * @brief Construct a new Dip Switch object
+     * @brief Construct a new Dip Switch object.
      *
-     * @param config Configuration struct for DipSwitch
+     * @param config Configuration struct for the DipSwitch.
      */
-    explicit DipSwitch(const Config& config);
+    explicit TDipSwitch(const Config& config);
 
     /**
-     * @brief Get the state of a switch
+     * @brief Get the state of a switch.
      *
-     * @param switch_index Index of the switch
-     * @return bool True if the switch is on, false otherwise
+     * @param switch_index Index of the switch.
+     * @return True if the switch is on, false otherwise.
      */
     bool get_switch_state(uint8_t switch_index) const;
 
     /**
-     * @brief Get the value of all switches
+     * @brief Get the value of all switches.
      *
-     * @return uint8_t Value of all switches
+     * @return Value of all switches.
      */
     uint8_t get_switches_value() const;
 
 private:
     /**
-     * @brief Array of GPIOs for the switches
+     * @brief Array of GPIOs for the switches.
      */
     std::array<hal::Gpio, num_of_switches> gpio_array;
 };

@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <cmath>
 
-#include "micras/nav/pid_controller.hpp"
+#include "micras/core/pid_controller.hpp"
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
 static volatile float test_error;
@@ -16,7 +16,7 @@ static volatile float test_response;
 
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
-namespace micras::nav {
+namespace micras::core {
 PidController::PidController(Config config) :
     kp{config.kp},
     ki{config.ki},
@@ -75,4 +75,4 @@ float PidController::update(float state, float elapsed_time, float state_change,
 
     return response;
 }
-}  // namespace micras::nav
+}  // namespace micras::core

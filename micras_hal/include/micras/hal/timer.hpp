@@ -10,12 +10,12 @@
 
 namespace micras::hal {
 /**
- * @brief Class to handle timer peripheral on STM32 microcontrollers
+ * @brief Class to handle timer peripheral on STM32 microcontrollers.
  */
 class Timer {
 public:
     /**
-     * @brief Timer configuration struct
+     * @brief Timer configuration struct.
      */
     struct Config {
         void (*init_function)();
@@ -23,82 +23,82 @@ public:
     };
 
     /**
-     * @brief Construct a new Timer object
+     * @brief Construct a new Timer object.
      */
     Timer();
 
     /**
-     * @brief Construct a new Timer object
+     * @brief Construct a new Timer object.
      *
-     * @param config Configuration for the timer
+     * @param config Configuration for the timer.
      */
     explicit Timer(const Config& config);
 
     /**
-     * @brief Reset the timer counter in milliseconds
+     * @brief Reset the milliseconds timer counter.
      */
     void reset_ms();
 
     /**
-     * @brief Reset the timer counter in microseconds
+     * @brief Reset the microseconds timer counter.
      */
     void reset_us();
 
     /**
-     * @brief Get the time elapsed since the last reset
+     * @brief Get the time elapsed since the last reset.
      *
-     * @return uint32_t Time elapsed in miliseconds
+     * @return Time elapsed in miliseconds.
      */
     uint32_t elapsed_time_ms() const;
 
     /**
-     * @brief Get the time elapsed since the last reset
+     * @brief Get the time elapsed since the last reset.
      *
-     * @return uint32_t Time elapsed in microseconds
+     * @return Time elapsed in microseconds.
      */
     uint32_t elapsed_time_us() const;
 
     /**
-     * @brief Sleep for a given amount of time
+     * @brief Sleep for a given amount of time.
      *
-     * @param time Time to sleep in milliseconds
+     * @param time Time to sleep in milliseconds.
      */
     static void sleep_ms(uint32_t time);
 
     /**
-     * @brief Sleep for a given amount of time
+     * @brief Sleep for a given amount of time.
      *
-     * @param time Time to sleep in microseconds
+     * @param time Time to sleep in microseconds.
      */
     void sleep_us(uint32_t time) const;
 
 private:
     /**
-     * @brief Get the current timer counter
+     * @brief Get the current timer counter.
      *
-     * @return uint32_t Current timer counter in milliseconds
+     * @return Current timer counter in milliseconds.
      */
     static uint32_t get_counter_ms();
 
     /**
-     * @brief Get the current timer counter
+     * @brief Get the current timer counter.
      *
-     * @return uint32_t Current timer counter in microseconds
+     * @return Current timer counter in microseconds.
      */
     uint32_t get_counter_us() const;
 
     /**
-     * @brief Timer handle
+     * @brief Timer handle.
      */
     TIM_HandleTypeDef* handle{};
 
     /**
-     * @brief Timer counter
+     * @brief Timer counter.
      */
     uint32_t counter{};
 
     /**
-     * @brief Flag to enable microseconds
+     * @brief Flag to enable microseconds.
      */
     bool enable_microseconds{false};
 };

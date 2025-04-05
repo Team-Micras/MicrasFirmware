@@ -12,67 +12,67 @@
 
 namespace micras::proxy {
 /**
- * @brief Class for controlling a buzzer
+ * @brief Class for controlling a buzzer.
  */
 class Buzzer {
 public:
     /**
-     * @brief Configuration structure for the buzzer
+     * @brief Configuration struct for the buzzer.
      */
     struct Config {
         hal::Pwm::Config pwm;
     };
 
     /**
-     * @brief Constructor for the Buzzer class
+     * @brief Construct a new Buzzer object.
      *
-     * @param config Configuration for the buzzer
+     * @param config Configuration for the buzzer.
      */
     explicit Buzzer(const Config& config);
 
     /**
-     * @brief Play a tone for a duration
+     * @brief Play a tone for a duration.
      *
-     * @param frequency Buzzer sound frequency in Hz
-     * @param duration Duration of the sound in ms
+     * @param frequency Buzzer sound frequency in Hz.
+     * @param duration Duration of the sound in ms.
      */
     void play(uint32_t frequency, uint32_t duration = 0);
 
     /**
-     * @brief Update the buzzer state
+     * @brief Update the buzzer state.
      */
     void update();
 
     /**
-     * @brief Stop the buzzer sound
+     * @brief Stop the buzzer sound.
      */
     void stop();
 
     /**
-     * @brief Wait for a duration updating the buzzer
+     * @brief Wait for a time interval updating the buzzer.
      *
-     * @param duration Duration to wait in ms
+     * @param interval Time to wait in ms.
      */
-    void wait(uint32_t duration);
+    void wait(uint32_t interval);
 
 private:
     /**
-     * @brief PWM object
+     * @brief PWM object.
      */
     hal::Pwm pwm;
 
     /**
-     * @brief Timer to play the sound
+     * @brief Timer to play the sound.
      */
     hal::Timer timer;
 
     /**
-     * @brief Flag to check if the buzzer is playing
+     * @brief Flag to check if the buzzer is playing.
      */
     bool is_playing{};
 
     /**
-     * @brief Duration of the sound
+     * @brief Duration of the sound.
      */
     uint32_t duration{};
 };

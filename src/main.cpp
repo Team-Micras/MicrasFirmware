@@ -2,7 +2,7 @@
  * @file
  */
 
-#include "micras/micras_controller.hpp"
+#include "micras/micras.hpp"
 #include "micras/hal/mcu.hpp"
 
 /*****************************************
@@ -11,7 +11,7 @@
 
 int main() {
     micras::hal::Mcu::init();
-    micras::MicrasController micras_controller;
+    micras::Micras micras_controller;
 
     while (true) {
         micras_controller.update();

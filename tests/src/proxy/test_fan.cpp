@@ -6,6 +6,8 @@
 
 using namespace micras;  // NOLINT(google-build-using-namespace)
 
+static constexpr float max_speed{50.0F};
+
 static volatile float test_fan_speed{};  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 int main(int argc, char* argv[]) {
@@ -16,9 +18,9 @@ int main(int argc, char* argv[]) {
     TestCore::loop([&button, &fan]() {
         while (button.get_status() == proxy::Button::Status::NO_PRESS) { }
 
-        fan.set_speed(50.0F);
+        fan.set_speed(max_speed);
 
-        while (fan.update() < 50.0F) {
+        while (fan.update() < max_speed) {
             test_fan_speed = fan.update();
         }
 

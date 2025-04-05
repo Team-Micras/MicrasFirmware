@@ -15,17 +15,16 @@ static volatile float test_linear_acceleration[3]{};
 int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);
 
-    proxy::Imu     imu{imu_config};
-    proxy::Argb<2> argb{argb_config};
-    hal::Timer     timer{timer_config};
+    proxy::Imu  imu{imu_config};
+    proxy::Argb argb{argb_config};
 
     hal::Timer::sleep_ms(2);
 
     if (imu.check_whoami()) {
-        argb.set_color({0, 255, 0});
+        argb.set_color(proxy::Argb::Colors::green);
 
     } else {
-        argb.set_color({255, 0, 0});
+        argb.set_color(proxy::Argb::Colors::red);
 
         while (true) { }
     }

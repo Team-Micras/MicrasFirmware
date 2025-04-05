@@ -11,7 +11,7 @@
 
 namespace micras::nav {
 template <uint8_t width, uint8_t height>
-Mapping<width, height>::Mapping(const proxy::WallSensors<4>& wall_sensors, Mapping::Config config) :
+TMapping<width, height>::TMapping(const proxy::TWallSensors<4>& wall_sensors, TMapping::Config config) :
     wall_sensors{wall_sensors},
     maze{config.start, config.goal},
     wall_thickness{config.wall_thickness},
@@ -32,7 +32,7 @@ Mapping<width, height>::Mapping(const proxy::WallSensors<4>& wall_sensors, Mappi
     side_distance_reading{config.side_distance_reading} { }
 
 template <uint8_t width, uint8_t height>
-void Mapping<width, height>::update(const Pose& pose) {
+void TMapping<width, height>::update(const Pose& pose) {
     float reliability = 50.0F * (std::cos(4 * pose.orientation) + 1);
 
     if (reliability < 30.0F) {
@@ -62,7 +62,7 @@ void Mapping<width, height>::update(const Pose& pose) {
 }
 
 template <uint8_t width, uint8_t height>
-Mapping<width, height>::Action Mapping<width, height>::get_action(const Pose& pose, core::Objective objective) {
+TMapping<width, height>::Action TMapping<width, height>::get_action(const Pose& pose, core::Objective objective) {
     GridPoint grid_position = pose.position.to_grid(this->cell_size);
     GridPose  current_grid_goal{};
 
@@ -116,7 +116,7 @@ Mapping<width, height>::Action Mapping<width, height>::get_action(const Pose& po
 }
 
 template <uint8_t width, uint8_t height>
-Pose Mapping<width, height>::correct_pose(const Pose& pose, core::FollowWallType follow_wall_type) const {
+Pose TMapping<width, height>::correct_pose(const Pose& pose, core::FollowWallType follow_wall_type) const {
     float reliability = 50.0F * (std::cos(4 * pose.orientation) + 1);
 
     if (reliability < 20.0F) {
@@ -168,7 +168,7 @@ Pose Mapping<width, height>::correct_pose(const Pose& pose, core::FollowWallType
 }
 
 template <uint8_t width, uint8_t height>
-void Mapping<width, height>::calibrate_front() {
+void TMapping<width, height>::calibrate_front() {
     this->front_distance_reading[0] = this->wall_sensors.get_reading(0);
     this->front_orientation_reading[0] = this->wall_sensors.get_reading(1);
     this->front_orientation_reading[1] = this->wall_sensors.get_reading(2);
@@ -176,13 +176,13 @@ void Mapping<width, height>::calibrate_front() {
 }
 
 template <uint8_t width, uint8_t height>
-void Mapping<width, height>::calibrate_side() {
+void TMapping<width, height>::calibrate_side() {
     this->side_distance_reading[0] = this->wall_sensors.get_reading(1);
     this->side_distance_reading[1] = this->wall_sensors.get_reading(2);
 }
 
 template <uint8_t width, uint8_t height>
-bool Mapping<width, height>::is_distance_front_aligned() const {
+bool TMapping<width, height>::is_distance_front_aligned() const {
     return core::is_near(
                this->wall_sensors.get_reading(0), this->front_distance_reading[0],
                this->front_distance_alignment_tolerance
@@ -194,7 +194,7 @@ bool Mapping<width, height>::is_distance_front_aligned() const {
 }
 
 template <uint8_t width, uint8_t height>
-bool Mapping<width, height>::is_orientation_front_aligned() const {
+bool TMapping<width, height>::is_orientation_front_aligned() const {
     return std::abs(
                (this->wall_sensors.get_reading(1) - this->front_orientation_reading[0]) +
                (this->wall_sensors.get_reading(2) - this->front_orientation_reading[1])
@@ -202,7 +202,7 @@ bool Mapping<width, height>::is_orientation_front_aligned() const {
 }
 
 template <uint8_t width, uint8_t height>
-bool Mapping<width, height>::is_distance_side_aligned() const {
+bool TMapping<width, height>::is_distance_side_aligned() const {
     return core::is_near(
                this->wall_sensors.get_reading(1), this->side_distance_reading[0],
                this->side_distance_alignment_tolerance
@@ -214,7 +214,7 @@ bool Mapping<width, height>::is_distance_side_aligned() const {
 }
 
 template <uint8_t width, uint8_t height>
-bool Mapping<width, height>::is_orientation_side_aligned() const {
+bool TMapping<width, height>::is_orientation_side_aligned() const {
     return std::abs(
                (this->wall_sensors.get_reading(1) - this->side_distance_reading[0]) +
                (this->wall_sensors.get_reading(2) - this->side_distance_reading[1])
@@ -222,7 +222,7 @@ bool Mapping<width, height>::is_orientation_side_aligned() const {
 }
 
 template <uint8_t width, uint8_t height>
-core::FollowWallType Mapping<width, height>::get_follow_wall_type(const Pose& pose) const {
+core::FollowWallType TMapping<width, height>::get_follow_wall_type(const Pose& pose) const {
     nav::Point cell_position = pose.to_cell(cell_size);
 
     core::FollowWallType follow_wall_type = this->maze.get_follow_wall_type(pose.to_grid(this->cell_size));
@@ -254,7 +254,7 @@ core::FollowWallType Mapping<width, height>::get_follow_wall_type(const Pose& po
 }
 
 template <uint8_t width, uint8_t height>
-std::vector<uint8_t> Mapping<width, height>::serialize() const {
+std::vector<uint8_t> TMapping<width, height>::serialize() const {
     std::vector<uint8_t> buffer;
     buffer.reserve(3 * this->maze.get_best_route().size());
 
@@ -268,7 +268,7 @@ std::vector<uint8_t> Mapping<width, height>::serialize() const {
 }
 
 template <uint8_t width, uint8_t height>
-void Mapping<width, height>::deserialize(const uint8_t* buffer, uint16_t size) {
+void TMapping<width, height>::deserialize(const uint8_t* buffer, uint16_t size) {
     this->best_route.clear();
 
     for (uint32_t i = 0; i < size; i += 3) {
@@ -279,12 +279,12 @@ void Mapping<width, height>::deserialize(const uint8_t* buffer, uint16_t size) {
 }
 
 template <uint8_t width, uint8_t height>
-bool Mapping<width, height>::can_align_back(const Pose& pose) const {
+bool TMapping<width, height>::can_align_back(const Pose& pose) const {
     return this->maze.has_wall(pose.to_grid(this->cell_size).turned_back());
 }
 
 template <uint8_t width, uint8_t height>
-void Mapping<width, height>::diagonalize_best_route() {
+void TMapping<width, height>::diagonalize_best_route() {
     for (auto it = std::next(this->best_route.begin()); it != this->best_route.end(); it++) {
         auto next_it = std::next(it);
 

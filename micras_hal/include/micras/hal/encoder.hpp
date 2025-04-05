@@ -9,12 +9,12 @@
 
 namespace micras::hal {
 /**
- * @brief Class to handle encoder peripheral on STM32 microcontrollers
+ * @brief Class to handle encoder peripheral on STM32 microcontrollers.
  */
 class Encoder {
 public:
     /**
-     * @brief Encoder configuration struct
+     * @brief Encoder configuration struct.
      */
     struct Config {
         void (*init_function)();
@@ -23,27 +23,27 @@ public:
     };
 
     /**
-     * @brief Construct a new Encoder object
+     * @brief Construct a new Encoder object.
      *
-     * @param config Configuration for the encoder
+     * @param config Configuration for the encoder.
      */
     explicit Encoder(const Config& config);
 
     /**
-     * @brief Get the counter value
+     * @brief Get the counter value.
      *
-     * @return int32_t Current value of the counter
+     * @return Current value of the counter.
      */
     int32_t get_counter() const;
 
 private:
     /**
-     * @brief Timer handle
+     * @brief Timer handle.
      */
     TIM_HandleTypeDef* handle;
 
     /**
-     * @brief Start value of the timer counter
+     * @brief Start value of the timer counter.
      */
     uint32_t start_count;
 };

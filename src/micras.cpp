@@ -2,11 +2,11 @@
  * @file
  */
 
-#include "micras/micras_controller.hpp"
+#include "micras/micras.hpp"
 #include "target.hpp"
 
 namespace micras {
-MicrasController::MicrasController() :
+Micras::Micras() :
     loop_timer{timer_config},
     argb{argb_config},
     battery{battery_config},
@@ -27,8 +27,8 @@ MicrasController::MicrasController() :
     look_at_point{look_at_point_config},
     go_to_point{wall_sensors, go_to_point_config, follow_wall_config} { }
 
-void MicrasController::update() {
-    float elapsed_time = loop_timer.elapsed_time_us() / 1000000.0F;
+void Micras::update() {
+    float elapsed_time = loop_timer.elapsed_time_us() / 1e6F;
     loop_timer.reset_us();
 
     auto button_status = button.get_status();
@@ -94,32 +94,34 @@ void MicrasController::update() {
             break;
 
         case Status::RUN:
-            if (this->run(elapsed_time)) {
-                if (this->current_action.type == nav::Mapping<maze_width, maze_height>::Action::Type::ERROR) {
-                    this->status = Status::ERROR;
+            if (not this->run(elapsed_time)) {
+                break;
+            }
+
+            if (this->current_action.type == nav::Mapping::Action::Type::ERROR) {
+                this->status = Status::ERROR;
+                this->stop();
+                break;
+            }
+
+            switch (this->objective) {
+                case core::Objective::EXPLORE:
+                    this->status = Status::WAIT;
+                    this->wait_timer.reset_ms();
+                    this->objective = core::Objective::RETURN;
+                    break;
+
+                case core::Objective::RETURN:
+                    this->objective = core::Objective::SOLVE;
+                    this->maze_storage.create("maze", this->mapping);
+                    this->maze_storage.save();
                     this->stop();
                     break;
-                }
 
-                switch (this->objective) {
-                    case core::Objective::EXPLORE:
-                        this->status = Status::WAIT;
-                        this->wait_timer.reset_ms();
-                        this->objective = core::Objective::RETURN;
-                        break;
-
-                    case core::Objective::RETURN:
-                        this->objective = core::Objective::SOLVE;
-                        this->maze_storage.create("maze", this->mapping);
-                        this->maze_storage.save();
-                        this->stop();
-                        break;
-
-                    default:
-                        this->status = Status::IDLE;
-                        this->stop();
-                        break;
-                }
+                default:
+                    this->status = Status::IDLE;
+                    this->stop();
+                    break;
             }
 
             break;
@@ -136,6 +138,7 @@ void MicrasController::update() {
             break;
 
         case Status::ERROR:
+            this->led.turn_on();
             break;
 
         default:
@@ -146,7 +149,7 @@ void MicrasController::update() {
     while (loop_timer.elapsed_time_us() < loop_time_us) { }
 }
 
-bool MicrasController::run(float elapsed_time) {
+bool Micras::run(float elapsed_time) {
     this->odometry.update(elapsed_time);
 
     micras::nav::State state = this->odometry.get_state();
@@ -170,13 +173,13 @@ bool MicrasController::run(float elapsed_time) {
     bool stop = (this->objective != core::Objective::SOLVE) or not this->dip_switch.get_switch_state(Switch::STOP);
 
     switch (this->current_action.type) {
-        case nav::Mapping<maze_width, maze_height>::Action::Type::LOOK_AT:
+        case nav::Mapping::Action::Type::LOOK_AT:
             if (this->look_at_point.finished(relative_state, this->current_action.point)) {
                 this->current_action = this->mapping.get_action(state.pose, this->objective);
 
-                if (this->current_action.type == nav::Mapping<maze_width, maze_height>::Action::Type::GO_TO and
+                if (this->current_action.type == nav::Mapping::Action::Type::GO_TO and
                     this->mapping.can_align_back(state.pose) and this->objective != core::Objective::SOLVE) {
-                    this->current_action.type = nav::Mapping<maze_width, maze_height>::Action::Type::ALIGN_BACK;
+                    this->current_action.type = nav::Mapping::Action::Type::ALIGN_BACK;
                     this->align_back_timer.reset_ms();
                 }
 
@@ -187,7 +190,7 @@ bool MicrasController::run(float elapsed_time) {
             command = this->look_at_point.action(relative_state, this->current_action.point, elapsed_time);
             break;
 
-        case nav::Mapping<maze_width, maze_height>::Action::Type::GO_TO:
+        case nav::Mapping::Action::Type::GO_TO:
             if (this->go_to_point.finished(relative_state, this->current_action.point, stop)) {
                 this->current_action = this->mapping.get_action(state.pose, this->objective);
                 this->go_to_point.reset();
@@ -207,7 +210,7 @@ bool MicrasController::run(float elapsed_time) {
             );
 
             break;
-        case nav::Mapping<maze_width, maze_height>::Action::Type::ALIGN_BACK:
+        case nav::Mapping::Action::Type::ALIGN_BACK:
             command = {-5.0F, 0.0F};
 
             if (this->align_back_timer.elapsed_time_ms() > 500) {
@@ -222,41 +225,41 @@ bool MicrasController::run(float elapsed_time) {
             return true;
     }
 
-    if (this->current_action.type == nav::Mapping<maze_width, maze_height>::Action::Type::LOOK_AT) {
-        this->argb.set_color({0, 0, 255});
-    } else if (this->current_action.type == nav::Mapping<maze_width, maze_height>::Action::Type::GO_TO) {
+    if (this->current_action.type == nav::Mapping::Action::Type::LOOK_AT) {
+        this->argb.set_color(proxy::Argb::Colors::blue);
+    } else if (this->current_action.type == nav::Mapping::Action::Type::GO_TO) {
         switch (follow_wall_type) {
             case core::FollowWallType::NONE:
-                this->argb.set_color({255, 0, 255});
+                this->argb.set_color(proxy::Argb::Colors::magenta);
                 break;
 
             case core::FollowWallType::FRONT:
-                this->argb.set_color({255, 255, 255});
+                this->argb.set_color(proxy::Argb::Colors::white);
                 break;
 
             case core::FollowWallType::LEFT:
-                this->argb.set_color({0, 255, 0});
+                this->argb.set_color(proxy::Argb::Colors::green);
                 break;
 
             case core::FollowWallType::RIGHT:
-                this->argb.set_color({255, 0, 0});
+                this->argb.set_color(proxy::Argb::Colors::red);
                 break;
 
             case core::FollowWallType::PARALLEL:
-                this->argb.set_color({255, 255, 0});
+                this->argb.set_color(proxy::Argb::Colors::yellow);
                 break;
             default:
                 break;
         }
     } else {
-        this->argb.set_color({0, 255, 255});
+        this->argb.set_color(proxy::Argb::Colors::cyan);
     }
 
     locomotion.set_command(command.linear, command.angular);
     return false;
 }
 
-void MicrasController::calibrate() {
+void Micras::calibrate() {
     switch (this->calibration_type) {
         case CalibrationType::SIDE_WALLS:
             this->go_to_point.calibrate();
@@ -287,7 +290,7 @@ void MicrasController::calibrate() {
     }
 }
 
-void MicrasController::stop() {
+void Micras::stop() {
     this->wall_sensors.turn_off();
     this->locomotion.disable();
     this->fan.stop();

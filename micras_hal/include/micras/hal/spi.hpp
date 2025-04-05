@@ -13,12 +13,12 @@
 
 namespace micras::hal {
 /**
- * @brief Class to handle SPI peripheral on STM32 microcontrollers
+ * @brief Class to handle SPI peripheral on STM32 microcontrollers.
  */
 class Spi {
 public:
     /**
-     * @brief SPI configuration struct
+     * @brief SPI configuration struct.
      */
     struct Config {
         void (*init_function)();
@@ -28,51 +28,51 @@ public:
     };
 
     /**
-     * @brief Construct a new Spi object
+     * @brief Construct a new Spi object.
      *
-     * @param config Configuration for the SPI
+     * @param config Configuration for the SPI.
      */
     explicit Spi(const Config& config);
 
     /**
-     * @brief Activate the chip select
+     * @brief Activate the chip select.
      *
-     * @return bool True if the device was successfully selected, false otherwise
+     * @return True if the device was successfully selected, false otherwise.
      */
     bool select_device();
 
     /**
-     * @brief Deactivate the chip select
+     * @brief Deactivate the chip select.
      */
     void unselect_device();
 
     /**
-     * @brief Transmit data over SPI
+     * @brief Transmit data over SPI.
      *
-     * @param data Data to transmit
+     * @param data Data to transmit.
      */
     void transmit(std::span<uint8_t> data);
 
     /**
-     * @brief Receive data over SPI
+     * @brief Receive data over SPI.
      *
-     * @param data Data to receive data
+     * @param data Data to receive data.
      */
     void receive(std::span<uint8_t> data);
 
 private:
     /**
-     * @brief Handle for the SPI
+     * @brief Handle for the SPI.
      */
     SPI_HandleTypeDef* handle;
 
     /**
-     * @brief GPIO for the chip select pin
+     * @brief GPIO for the chip select pin.
      */
     hal::Gpio cs_gpio;
 
     /**
-     * @brief Timeout for the SPI operations in ms
+     * @brief Timeout for the SPI operations in ms.
      */
     uint32_t timeout;
 };
