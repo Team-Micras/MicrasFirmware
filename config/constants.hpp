@@ -51,12 +51,12 @@ const nav::LookAtPoint::Config look_at_point_config{
         },
     .angular_pid =
         {
-            .kp = 300.0F,
+            .kp = 150.0F,
             .ki = 0.5F,
             .kd = 0.01F,
             .setpoint = 0.0F,
-            .saturation = 30.0F,
-            .max_integral = 30.0F,
+            .saturation = 20.0F,
+            .max_integral = 15.0F,
         },
     .distance_tolerance = 0.015F,
     .velocity_tolerance = 0.015F,
@@ -65,43 +65,42 @@ const nav::LookAtPoint::Config look_at_point_config{
 const nav::GoToPoint::Config go_to_point_config{
     .stop_pid =
         {
-            .kp = 150.0F,
+            .kp = 270.0F,
             .ki = 0.5F,
             .kd = 0.08F,
             .setpoint = 0.0F,
-            .saturation = 30.0F,
+            .saturation = 7.0F,
             .max_integral = 30.0F,
         },
     .angular_pid =
         {
-            .kp = 30.0F,
+            .kp = 150.0F,
             .ki = 0.0F,
             .kd = 0.02F,
             .setpoint = 0.0F,
-            .saturation = 20.0F,
+            .saturation = 60.0F,
             .max_integral = -1.0F,
         },
     .cell_size = cell_size,
     .min_linear_command = 5.0F,
-    .max_linear_command = 40.0F,
+    .max_linear_command = 15.0F,
     .deceleration_factor = 0.3F,
-    .distance_tolerance = 0.02F,
+    .distance_tolerance = 0.025F,
     .velocity_tolerance = 0.02F,
 };
 
 const nav::FollowWall::Config follow_wall_config = {
     .pid =
         {
-            .kp = 17.0F,
+            .kp = 100.0F,
             .ki = 0.0F,
             .kd = 0.04F,
             .setpoint = 0.0F,
-            .saturation = 15.0F,
+            .saturation = 200.0F,
             .max_integral = -1.0F,
         },
-    .base_left_reading = 0.18,
-    .base_right_reading = 0.20F,
-    .cutoff_frequency = 5.0F,
+    .base_left_reading = 0.168,
+    .base_right_reading = 0.163F,
 };
 
 const nav::Mapping::Config mapping_config{
@@ -114,16 +113,16 @@ const nav::Mapping::Config mapping_config{
     .front_orientation_alignment_tolerance = 0.02F,
     .side_orientation_alignment_tolerance = 0.02F,
     .front_distance_reading = {{
-        0.58F,
-        0.61F,
+        0.57F,
+        0.60F,
     }},
     .front_orientation_reading = {{
-        0.291F,
-        0.392F,
+        0.32F,
+        0.37F,
     }},
     .side_distance_reading = {{
-        0.18F,
-        0.20F,
+        0.17F,
+        0.12F,
     }},
     .start = {{0, 0}, nav::Side::UP},
 };

@@ -22,7 +22,6 @@ public:
         core::PidController::Config pid;
         float                       base_left_reading{};
         float                       base_right_reading{};
-        float                       cutoff_frequency{};
     };
 
     /**
@@ -76,16 +75,6 @@ private:
      * @brief PID controller for the wall following.
      */
     core::PidController pid;
-
-    /**
-     * @brief Butterworth filter for the derivative of the error.
-     */
-    core::ButterworthFilter filter;
-
-    /**
-     * @brief Last difference between the left and right wall sensors.
-     */
-    float last_diff{};
 
     /**
      * @brief Base reading of the left wall sensor when aligned with the wall.
