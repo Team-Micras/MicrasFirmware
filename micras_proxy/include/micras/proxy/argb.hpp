@@ -100,6 +100,13 @@ public:
      */
     void turn_off();
 
+    /**
+     * @brief Send the colors to the addressable RGB LED.
+     *
+     * This function is called automatically when the colors are set.
+     */
+    void update();
+
 private:
     /**
      * @brief Encode a color into the data buffer.
@@ -138,6 +145,11 @@ private:
      * @brief Maximum brightness of the addressable RGB LED.
      */
     float brightness;
+
+    /**
+     * @brief Array to store the color of each LED.
+     */
+    std::array<Color, num_of_leds> colors{};
 
     /**
      * @brief Data buffer to send to the addressable RGB LED.

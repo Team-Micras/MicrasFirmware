@@ -101,6 +101,7 @@ const nav::FollowWall::Config follow_wall_config = {
         },
     .base_left_reading = 0.18,
     .base_right_reading = 0.20F,
+    .cutoff_frequency = 5.0F,
 };
 
 const nav::Mapping::Config mapping_config{
