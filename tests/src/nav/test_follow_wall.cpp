@@ -44,10 +44,10 @@ int main(int argc, char* argv[]) {
                 follow_wall.reset();
                 hal::Timer::sleep_ms(3000);
                 return;
-            } else {
-                wall_sensors.turn_off();
-                locomotion.disable();
             }
+
+            wall_sensors.turn_off();
+            locomotion.disable();
         }
 
         if (button_status == proxy::Button::Status::LONG_PRESS) {
@@ -68,6 +68,8 @@ int main(int argc, char* argv[]) {
                     break;
                 case core::FollowWallType::PARALLEL:
                     argb.set_color(proxy::Argb::Colors::magenta);
+                default:
+                    break;
             }
         }
 

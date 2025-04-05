@@ -6,8 +6,8 @@
 
 using namespace micras;  // NOLINT(google-build-using-namespace)
 
-static volatile float test_left_position;
-static volatile float test_right_position;
+static volatile float test_left_position{};   // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+static volatile float test_right_position{};  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);
@@ -25,7 +25,6 @@ int main(int argc, char* argv[]) {
         test_right_position = right_rotary_sensor.get_position();
 
         if (running and stop_timer.elapsed_time_ms() > 5000) {
-            locomotion.stop();
             running = false;
             stop_timer.reset_ms();
         } else if (button.get_status() != proxy::Button::Status::NO_PRESS) {

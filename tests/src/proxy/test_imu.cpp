@@ -17,6 +17,7 @@ int main(int argc, char* argv[]) {
 
     proxy::Imu  imu{imu_config};
     proxy::Argb argb{argb_config};
+    hal::Timer  timer{timer_config};
 
     hal::Timer::sleep_ms(2);
 
@@ -29,6 +30,7 @@ int main(int argc, char* argv[]) {
         while (true) { }
     }
 
+    hal::Timer::sleep_ms(1000);
     imu.calibrate();
 
     TestCore::loop([&imu, &timer]() {
