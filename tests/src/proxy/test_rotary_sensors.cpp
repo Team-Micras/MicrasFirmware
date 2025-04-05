@@ -47,7 +47,14 @@ int main(int argc, char* argv[]) {
 
         if (button_status != proxy::Button::Status::NO_PRESS) {
             running = not running;
-            locomotion.set_command(running ? linear_speed : 0.0F, 0.0F);
+
+            if (running) {
+                locomotion.enable();
+                locomotion.set_command(linear_speed, 0.0F);
+            } else {
+                locomotion.disable();
+                locomotion.stop();
+            }
         }
     });
 

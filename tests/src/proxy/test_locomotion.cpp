@@ -6,38 +6,62 @@
 
 using namespace micras;  // NOLINT(google-build-using-namespace)
 
-static volatile float test_left_position{};   // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-static volatile float test_right_position{};  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+static constexpr float    test_speed{50.0F};
+static constexpr uint32_t time_interval{1000};
 
 int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);
-    hal::Timer          stop_timer;
-    proxy::Button       button{button_config};
-    proxy::Locomotion   locomotion{locomotion_config};
-    proxy::RotarySensor left_rotary_sensor{rotary_sensor_left_config};
-    proxy::RotarySensor right_rotary_sensor{rotary_sensor_right_config};
+    proxy::Button     button{button_config};
+    proxy::Locomotion locomotion{locomotion_config};
 
-    bool running = false;
-    stop_timer.reset_ms();
+    TestCore::loop([&button, &locomotion]() {
+        auto button_status = button.get_status();
 
-    TestCore::loop([&button, &locomotion, &left_rotary_sensor, &right_rotary_sensor, &running, &stop_timer]() {
-        test_left_position = left_rotary_sensor.get_position();
-        test_right_position = right_rotary_sensor.get_position();
+        switch (button_status) {
+            case proxy::Button::Status::SHORT_PRESS:
+                locomotion.enable();
+                locomotion.set_command(test_speed, 0.0F);
+                hal::Timer::sleep_ms(time_interval);
+                locomotion.stop();
+                hal::Timer::sleep_ms(time_interval);
+                locomotion.set_command(-test_speed, 0.0F);
+                hal::Timer::sleep_ms(time_interval);
+                locomotion.stop();
+                hal::Timer::sleep_ms(time_interval);
 
-        if (running and stop_timer.elapsed_time_ms() > 5000) {
-            running = false;
-            stop_timer.reset_ms();
-        } else if (button.get_status() != proxy::Button::Status::NO_PRESS) {
-            running = not running;
-            stop_timer.reset_ms();
-        }
+                locomotion.set_command(0.0F, test_speed);
+                hal::Timer::sleep_ms(time_interval);
+                locomotion.stop();
+                hal::Timer::sleep_ms(time_interval);
+                locomotion.set_command(0.0F, -test_speed);
+                hal::Timer::sleep_ms(time_interval);
+                locomotion.stop();
+                locomotion.disable();
+                break;
 
-        if (running) {
-            locomotion.enable();
-            locomotion.set_command(50.0F, 0.0F);
-        } else {
-            locomotion.disable();
-            locomotion.stop();
+            case proxy::Button::Status::LONG_PRESS:
+                locomotion.enable();
+
+                for (int8_t i = 1; i < 100; i++) {
+                    locomotion.set_wheel_command(i, i);
+                    hal::Timer::sleep_ms(20);
+                }
+
+                for (int8_t i = 100; i > -100; i--) {
+                    locomotion.set_wheel_command(i, i);
+                    hal::Timer::sleep_ms(20);
+                }
+
+                for (int8_t i = -100; i <= 0; i++) {
+                    locomotion.set_wheel_command(i, i);
+                    hal::Timer::sleep_ms(20);
+                }
+
+                locomotion.disable();
+                break;
+
+            default:
+                break;
         }
     });
 
