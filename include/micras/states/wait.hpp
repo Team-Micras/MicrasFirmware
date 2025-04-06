@@ -37,7 +37,7 @@ public:
             this->micras.odometry.reset();
             this->micras.look_at_point.reset();
             this->micras.go_to_point.reset();
-            this->micras.imu.calibrate();
+            this->micras.imu->calibrate();
             this->micras.current_action =
                 this->micras.mapping.get_action(this->micras.odometry.get_state().pose, this->micras.objective);
 

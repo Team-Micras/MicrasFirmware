@@ -173,7 +173,7 @@ private:
      * @brief Stop the robot.
      */
     void stop() {
-        this->micras.wall_sensors.turn_off();
+        this->micras.wall_sensors->turn_off();
         this->micras.locomotion.disable();
         this->micras.fan.stop();
     }

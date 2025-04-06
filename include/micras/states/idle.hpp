@@ -21,7 +21,7 @@ public:
      */
     uint8_t run(uint8_t /*previous_state_id*/) override {
         if (this->micras.button_status != proxy::Button::Status::NO_PRESS) {
-            this->micras.wall_sensors.turn_on();
+            this->micras.wall_sensors->turn_on();
         }
 
         if (this->micras.button_status == proxy::Button::Status::SHORT_PRESS) {

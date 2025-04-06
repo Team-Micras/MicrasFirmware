@@ -21,6 +21,7 @@ Checks:
   performance-*,
   readability-*,
   -readability-duplicate-include,
+  -readability-magic-numbers,
 WarningsAsErrors: '*'
 HeaderFileExtensions:
   - ''
@@ -36,10 +37,6 @@ ImplementationFileExtensions:
 HeaderFilterRegex: '(include|config)/.*.hpp'
 FormatStyle: none
 CheckOptions:
-  readability-magic-numbers.IgnoredIntegerValues: '1;2;3;4;5;10;100;255;1000;65535;1000000'
-  readability-magic-numbers.IgnorePowersOf2IntegerValues: true
-  readability-magic-numbers.IgnoreUserDefinedLiterals: true
-  readability-magic-numbers.IgnoredFloatingPointValues: '1.0;2.0;5.0;10.0;50.0;100.0;1000.0;1000000.0'
   readability-identifier-length.MinimumVariableNameLength: 2
   readability-identifier-length.IgnoredVariableNames: ^[nxyz]$
   readability-identifier-length.MinimumParameterNameLength: 2
