@@ -23,7 +23,7 @@ protected:
     /**
      * @brief A reference to the Micras object.
      */
-    Micras& micras;  // NOLINT(misc-non-private-member-variables-in-classes)
+    Micras& micras;  // NOLINT(*-non-private-member-variables-in-classes, *-avoid-const-or-ref-data-members)
 };
 }  // namespace micras
 

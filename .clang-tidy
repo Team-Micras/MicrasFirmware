@@ -15,6 +15,7 @@ Checks:
   -llvm-header-guard,
   misc-*,
   -misc-include-cleaner,
+  -misc-use-anonymous-namespace,
   modernize-*,
   -modernize-use-nodiscard,
   -modernize-use-trailing-return-type,

@@ -54,6 +54,8 @@ void Storage::save() {
 
         const auto* aux = std::bit_cast<const uint8_t*>(variable.ram_pointer);
         variable.buffer_address = buffer.size();
+
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
         this->buffer.insert(this->buffer.end(), aux, aux + variable.size);
         it++;
     }

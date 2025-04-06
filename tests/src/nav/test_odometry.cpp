@@ -19,24 +19,24 @@ static volatile float test_angular_velocity{};
 
 int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);
+    auto imu{std::make_shared<proxy::Imu>(imu_config)};
 
-    hal::Timer          timer{timer_config};
-    proxy::Locomotion   locomotion{locomotion_config};
-    proxy::RotarySensor rotary_sensor_left{rotary_sensor_left_config};
-    proxy::RotarySensor rotary_sensor_right{rotary_sensor_right_config};
-    proxy::Imu          imu{imu_config};
-    nav::Odometry       odometry{rotary_sensor_left, rotary_sensor_right, imu, odometry_config};
+    hal::Timer    timer{timer_config};
+    nav::Odometry odometry{
+        std::make_shared<proxy::RotarySensor>(rotary_sensor_left_config),
+        std::make_shared<proxy::RotarySensor>(rotary_sensor_right_config), imu, odometry_config
+    };
 
     timer.reset_us();
 
     hal::Timer::sleep_ms(1000);
-    imu.calibrate();
+    imu->calibrate();
 
     TestCore::loop([&odometry, &imu, &timer]() {
-        float elapsed_time = timer.elapsed_time_us() / 1000000.0F;
+        const float elapsed_time = timer.elapsed_time_us() / 1000000.0F;
         timer.reset_us();
 
-        imu.update();
+        imu->update();
         odometry.update(elapsed_time);
 
         const auto& state = odometry.get_state();

@@ -15,12 +15,13 @@ static constexpr float linear_command{20.0F};
 int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);
 
-    hal::Timer         timer{timer_config};
-    proxy::Button      button{button_config};
-    proxy::WallSensors wall_sensors{wall_sensors_config};
-    proxy::Locomotion  locomotion{locomotion_config};
-    proxy::Argb        argb{argb_config};
-    nav::FollowWall    follow_wall{wall_sensors, follow_wall_config};
+    auto wall_sensors{std::make_shared<proxy::WallSensors>(wall_sensors_config)};
+
+    hal::Timer        timer{timer_config};
+    proxy::Button     button{button_config};
+    proxy::Locomotion locomotion{locomotion_config};
+    proxy::Argb       argb{argb_config};
+    nav::FollowWall   follow_wall{wall_sensors, follow_wall_config};
 
     bool                 started = false;
     core::FollowWallType follow_wall_type = core::FollowWallType::NONE;
@@ -29,24 +30,24 @@ int main(int argc, char* argv[]) {
     TestCore::loop([&wall_sensors, &locomotion, &argb, &button, &timer, &follow_wall, &started, &follow_wall_type]() {
         while (timer.elapsed_time_us() < 1000) { }
 
-        float elapsed_time = timer.elapsed_time_us() / 1000000.0F;
+        const float elapsed_time = timer.elapsed_time_us() / 1000000.0F;
         timer.reset_us();
 
-        wall_sensors.update();
+        wall_sensors->update();
         auto button_status = button.get_status();
 
         if (button_status == proxy::Button::Status::SHORT_PRESS) {
             started = not started;
 
             if (started) {
-                wall_sensors.turn_on();
+                wall_sensors->turn_on();
                 locomotion.enable();
                 follow_wall.reset();
                 hal::Timer::sleep_ms(3000);
                 return;
             }
 
-            wall_sensors.turn_off();
+            wall_sensors->turn_off();
             locomotion.disable();
         }
 
@@ -77,7 +78,7 @@ int main(int argc, char* argv[]) {
             return;
         }
 
-        float angular_command = follow_wall.action(follow_wall_type, elapsed_time);
+        const float angular_command = follow_wall.action(follow_wall_type, elapsed_time);
         locomotion.set_command(linear_command, angular_command);
     });
 

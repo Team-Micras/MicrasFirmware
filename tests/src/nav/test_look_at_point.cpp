@@ -17,16 +17,18 @@ static volatile float test_velocity{};  // NOLINT(cppcoreguidelines-avoid-non-co
 int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);
 
-    hal::Timer          timer{timer_config};
-    hal::Timer          stop_timer;
-    proxy::Button       button{button_config};
-    proxy::RotarySensor rotary_sensor_left{rotary_sensor_left_config};
-    proxy::RotarySensor rotary_sensor_right{rotary_sensor_right_config};
-    proxy::Imu          imu{imu_config};
-    proxy::Locomotion   locomotion{locomotion_config};
-    proxy::Argb         argb{argb_config};
-    nav::Odometry       odometry{rotary_sensor_left, rotary_sensor_right, imu, odometry_config};
-    nav::LookAtPoint    look_at_point{look_at_point_config};
+    auto imu{std::make_shared<proxy::Imu>(imu_config)};
+
+    hal::Timer        timer{timer_config};
+    hal::Timer        stop_timer;
+    proxy::Button     button{button_config};
+    proxy::Locomotion locomotion{locomotion_config};
+    proxy::Argb       argb{argb_config};
+    nav::Odometry     odometry{
+        std::make_shared<proxy::RotarySensor>(rotary_sensor_left_config),
+        std::make_shared<proxy::RotarySensor>(rotary_sensor_right_config), imu, odometry_config
+    };
+    nav::LookAtPoint look_at_point{look_at_point_config};
 
     bool started = false;
     bool finished = false;
@@ -41,10 +43,10 @@ int main(int argc, char* argv[]) {
             return;
         }
 
-        float elapsed_time = timer.elapsed_time_us() / 1000000.0F;
+        const float elapsed_time = timer.elapsed_time_us() / 1000000.0F;
         timer.reset_us();
 
-        imu.update();
+        imu->update();
         odometry.update(elapsed_time);
 
         const nav::State& state = odometry.get_state();
@@ -55,7 +57,7 @@ int main(int argc, char* argv[]) {
             argb.set_color(proxy::Argb::Colors::cyan);
             locomotion.enable();
             hal::Timer::sleep_ms(3000);
-            imu.calibrate();
+            imu->calibrate();
             stop_timer.reset_ms();
             timer.reset_us();
             odometry.reset();

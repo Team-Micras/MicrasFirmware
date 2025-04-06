@@ -275,6 +275,7 @@ void TMapping<width, height>::deserialize(const uint8_t* buffer, uint16_t size) 
 
     for (uint32_t i = 0; i < size; i += 3) {
         this->best_route.emplace_back(
+            // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
             Point::from_grid({buffer[i], buffer[i + 1]}, this->cell_size), static_cast<Direction>(2 * buffer[i + 2])
         );
     }
