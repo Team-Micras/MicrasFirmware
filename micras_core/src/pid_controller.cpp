@@ -7,14 +7,14 @@
 
 #include "micras/core/pid_controller.hpp"
 
-// NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables, misc-use-anonymous-namespace)
+// NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
 static volatile float test_error;
 static volatile float test_proportional;
 static volatile float test_integrative;
 static volatile float test_derivative;
 static volatile float test_response;
 
-// NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables, misc-use-anonymous-namespace)
+// NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 namespace micras::core {
 PidController::PidController(Config config) :
