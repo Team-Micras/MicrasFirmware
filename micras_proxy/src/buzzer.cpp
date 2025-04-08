@@ -31,7 +31,7 @@ void Buzzer::wait(uint32_t interval) {
         this->update();
     }
 
-    hal::Timer wait_timer;
+    const hal::Timer wait_timer;
 
     while (wait_timer.elapsed_time_ms() < interval) {
         this->update();

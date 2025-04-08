@@ -42,7 +42,7 @@ bool Button::get_raw_reading() const {
 }
 
 bool Button::update_state() {
-    bool raw_reading = this->get_raw_reading();
+    const bool raw_reading = this->get_raw_reading();
 
     if ((raw_reading != this->current_state) and not this->is_debouncing) {
         this->is_debouncing = true;

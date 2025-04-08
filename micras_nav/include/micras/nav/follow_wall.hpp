@@ -5,6 +5,8 @@
 #ifndef MICRAS_NAV_FOLLOW_WALL
 #define MICRAS_NAV_FOLLOW_WALL
 
+#include <memory>
+
 #include "micras/core/butterworth_filter.hpp"
 #include "micras/core/pid_controller.hpp"
 #include "micras/proxy/wall_sensors.hpp"
@@ -30,7 +32,7 @@ public:
      * @param wall_sensors The wall sensors of the robot.
      * @param config The configuration for the FollowWall class.
      */
-    FollowWall(const proxy::TWallSensors<4>& wall_sensors, const Config& config);
+    FollowWall(const std::shared_ptr<proxy::TWallSensors<4>>& wall_sensors, const Config& config);
 
     /**
      * @brief Update the PID controller and return the response.
@@ -69,7 +71,7 @@ private:
     /**
      * @brief Wall sensors of the robot.
      */
-    const proxy::TWallSensors<4>& wall_sensors;  // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
+    std::shared_ptr<proxy::TWallSensors<4>> wall_sensors;
 
     /**
      * @brief PID controller for the wall following.

@@ -9,17 +9,17 @@
 
 namespace micras::core {
 ButterworthFilter::ButterworthFilter(float cutoff_frequency, float sampling_frequency) {
-    float relative_frequency = cutoff_frequency / sampling_frequency;
-    float relative_frequency_2 = relative_frequency * relative_frequency;
+    const float relative_frequency = cutoff_frequency / sampling_frequency;
+    const float relative_frequency_2 = relative_frequency * relative_frequency;
 
-    float b0 = 1;
-    float b1 = 2;
-    float b2 = 1;
+    const float b0 = 1;
+    const float b1 = 2;
+    const float b2 = 1;
 
     // Butterworth filter coefficients
-    float a0 = 1 + 2 * std::numbers::sqrt2_v<float> / relative_frequency + 4 / relative_frequency_2;
-    float a1 = 2 - 8 / relative_frequency_2;
-    float a2 = 1 - 2 * std::numbers::sqrt2_v<float> / relative_frequency + 4 / relative_frequency_2;
+    const float a0 = 1 + 2 * std::numbers::sqrt2_v<float> / relative_frequency + 4 / relative_frequency_2;
+    const float a1 = 2 - 8 / relative_frequency_2;
+    const float a2 = 1 - 2 * std::numbers::sqrt2_v<float> / relative_frequency + 4 / relative_frequency_2;
 
     this->a_array[0] = a2 / a0;
     this->a_array[1] = a1 / a0;
@@ -37,16 +37,16 @@ float ButterworthFilter::update(float x0) {
     float x_b_dot = 0;
 
     for (uint8_t i = 0; i < filter_order + 1; i++) {
-        x_b_dot += this->x_array[i] * this->b_array[i];  // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
+        x_b_dot += this->x_array.at(i) * this->b_array.at(i);
     }
 
     float y_a_dot = 0;
 
     for (uint8_t i = 0; i < filter_order; i++) {
-        y_a_dot += this->y_array[i] * this->a_array[i];  // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
+        y_a_dot += this->y_array.at(i) * this->a_array.at(i);
     }
 
-    float y0 = x_b_dot - y_a_dot;
+    const float y0 = x_b_dot - y_a_dot;
 
     this->y_array[0] = this->y_array[1];
     this->y_array[1] = y0;

@@ -17,7 +17,7 @@ Motor::Motor(const Config& config) :
 }
 
 void Motor::set_command(float command) {
-    bool is_positive = (command >= 0.0F);
+    const bool is_positive = (command >= 0.0F);
     command = std::abs(command);
 
     if (command <= max_stopped_command) {

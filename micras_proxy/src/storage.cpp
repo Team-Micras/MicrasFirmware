@@ -16,9 +16,9 @@ Storage::Storage(const Config& config) : start_page{config.start_page}, number_o
         return;
     }
 
-    uint16_t total_size = header >> 32;
-    uint16_t num_primitives = header >> 16;
-    uint16_t num_serializables = header;
+    const uint16_t total_size = header >> 32;
+    const uint16_t num_primitives = header >> 16;
+    const uint16_t num_serializables = header;
 
     this->buffer.resize(8L * total_size);
     hal::Flash::read(this->start_page, 1, std::bit_cast<uint64_t*>(this->buffer.data()), total_size);
@@ -54,6 +54,8 @@ void Storage::save() {
 
         const auto* aux = std::bit_cast<const uint8_t*>(variable.ram_pointer);
         variable.buffer_address = buffer.size();
+
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
         this->buffer.insert(this->buffer.end(), aux, aux + variable.size);
         it++;
     }
@@ -80,7 +82,7 @@ void Storage::save() {
     this->buffer.insert(this->buffer.begin(), serialized_primitives.begin(), serialized_primitives.end());
 
     this->buffer.insert(this->buffer.end(), (8 - (this->buffer.size() % 8)) % 8, 0);
-    uint16_t total_size = this->buffer.size() / 8;
+    const uint16_t total_size = this->buffer.size() / 8;
 
     this->buffer.emplace_back(this->serializables.size());
     this->buffer.emplace_back(this->serializables.size() >> 8);
@@ -120,9 +122,9 @@ std::unordered_map<std::string, T> Storage::deserialize_var_map(std::vector<uint
     uint16_t current_addr = 0;
 
     for (uint16_t decoded_vars = 0; decoded_vars < num_vars; decoded_vars++) {
-        uint8_t var_name_len = buffer.at(current_addr);
+        const uint8_t var_name_len = buffer.at(current_addr);
 
-        std::string var_name(buffer.begin() + current_addr + 1, buffer.begin() + current_addr + 1 + var_name_len);
+        const std::string var_name(buffer.begin() + current_addr + 1, buffer.begin() + current_addr + 1 + var_name_len);
         current_addr += var_name_len + 1;
 
         variables[var_name].buffer_address = buffer.at(current_addr) | buffer.at(current_addr + 1) << 8;

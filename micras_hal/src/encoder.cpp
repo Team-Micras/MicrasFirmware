@@ -2,6 +2,8 @@
  * @file
  */
 
+#include <bit>
+
 #include "micras/hal/encoder.hpp"
 
 namespace micras::hal {
@@ -15,7 +17,6 @@ Encoder::Encoder(const Config& config) : handle{config.handle} {
 }
 
 int32_t Encoder::get_counter() const {
-    // NOLINTNEXTLINE(cppcoreguidelines-narrowing-conversions)
-    return static_cast<int32_t>(__HAL_TIM_GET_COUNTER(this->handle)) - this->start_count;
+    return std::bit_cast<int32_t>(__HAL_TIM_GET_COUNTER(this->handle) - this->start_count);
 }
 }  // namespace micras::hal

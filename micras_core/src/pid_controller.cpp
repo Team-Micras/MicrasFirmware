@@ -36,12 +36,12 @@ void PidController::reset() {
 }
 
 float PidController::update(float state, float elapsed_time, bool save) {
-    float state_change = (state - this->prev_state) / elapsed_time;
+    const float state_change = (state - this->prev_state) / elapsed_time;
     return this->update(state, elapsed_time, state_change, save);
 }
 
 float PidController::update(float state, float elapsed_time, float state_change, bool save) {
-    float error = this->setpoint - state;
+    const float error = this->setpoint - state;
     this->prev_state = state;
 
     float response = this->kp * (error + this->ki * this->error_acc - this->kd * state_change);

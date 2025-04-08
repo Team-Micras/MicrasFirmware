@@ -37,7 +37,8 @@ public:
      * @param follow_wall_config The configuration for the FollowWall class.
      */
     GoToPoint(
-        const proxy::TWallSensors<4>& wall_sensors, const Config& config, const FollowWall::Config& follow_wall_config
+        const std::shared_ptr<proxy::TWallSensors<4>>& wall_sensors, const Config& config,
+        const FollowWall::Config& follow_wall_config
     );
 
     /**

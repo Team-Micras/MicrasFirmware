@@ -8,7 +8,7 @@
 
 namespace micras::nav {
 Side angle_to_grid(float angle) {
-    int32_t grid_angle = std::lround(2.0F * angle / std::numbers::pi_v<float>);
+    const int32_t grid_angle = std::lround(2.0F * angle / std::numbers::pi_v<float>);
     return static_cast<Side>(grid_angle < 0 ? 4 + (grid_angle % 4) : grid_angle % 4);
 }
 

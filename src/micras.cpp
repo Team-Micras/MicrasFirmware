@@ -19,15 +19,15 @@ Micras::Micras() :
     button{button_config},
     buzzer{buzzer_config},
     dip_switch{dip_switch_config},
-    wall_sensors{wall_sensors_config},
     fan{fan_config},
-    imu{imu_config},
     led{led_config},
     locomotion{locomotion_config},
-    rotary_sensor_left{rotary_sensor_left_config},
-    rotary_sensor_right{rotary_sensor_right_config},
-    // torque_sensors{torque_sensors_config},
     maze_storage{maze_storage_config},
+    // torque_sensors{torque_sensors_config},
+    imu{std::make_shared<proxy::Imu>(imu_config)},
+    rotary_sensor_left{std::make_shared<proxy::RotarySensor>(rotary_sensor_left_config)},
+    rotary_sensor_right{std::make_shared<proxy::RotarySensor>(rotary_sensor_right_config)},
+    wall_sensors{std::make_shared<proxy::WallSensors>(wall_sensors_config)},
     odometry{rotary_sensor_left, rotary_sensor_right, imu, odometry_config},
     mapping{wall_sensors, mapping_config},
     look_at_point{look_at_point_config},
@@ -47,10 +47,10 @@ void Micras::update() {
 
     this->button_status = button.get_status();
 
-    this->wall_sensors.update();
     this->buzzer.update();
-    this->imu.update();
     this->fan.update();
+    this->imu->update();
+    this->wall_sensors->update();
     this->fsm.run();
 
     while (loop_timer.elapsed_time_us() < loop_time_us) { }

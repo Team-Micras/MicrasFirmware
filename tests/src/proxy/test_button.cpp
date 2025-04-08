@@ -16,7 +16,7 @@ int main(int argc, char* argv[]) {
 
     TestCore::loop([&button, &led, &argb, &color]() {
         button.is_pressed() ? led.turn_on() : led.turn_off();
-        proxy::Button::Status status = button.get_status();
+        const proxy::Button::Status status = button.get_status();
 
         if (status == proxy::Button::Status::SHORT_PRESS) {
             color = proxy::Argb::Colors::red;

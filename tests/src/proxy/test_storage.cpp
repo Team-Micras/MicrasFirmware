@@ -40,12 +40,14 @@ public:
     }
 
     void deserialize(const uint8_t* buffer, uint16_t size) override {
+        // NOLINTBEGIN(cppcoreguidelines-pro-bounds-pointer-arithmetic)
         for (uint32_t i = 0; i < this->test_array.size(); i++) {
             this->test_array.at(i) =
                 (buffer[i * 4L] << 24) | (buffer[i * 4L + 1L] << 16) | (buffer[i * 4L + 2L] << 8) | buffer[i * 4L + 3L];
         }
 
         this->test_string = std::string{std::bit_cast<const char*>(buffer + 40), size - 40U};
+        // NOLINTEND(cppcoreguidelines-pro-bounds-pointer-arithmetic)
     }
 
     bool operator==(const TestSerializable& other) const {
@@ -60,7 +62,7 @@ private:
 int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);
 
-    proxy::Storage::Config storage_test_config = {.start_page = 0, .number_of_pages = 1};
+    const proxy::Storage::Config storage_test_config = {.start_page = 0, .number_of_pages = 1};
 
     proxy::Button  button{button_config};
     proxy::Argb    argb{argb_config};

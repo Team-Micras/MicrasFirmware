@@ -13,7 +13,7 @@ LookAtPoint::LookAtPoint(Config config) :
     velocity_tolerance{config.velocity_tolerance} { }
 
 Twist LookAtPoint::action(const State& state, const Point& goal, float elapsed_time) {
-    float angular_error = core::assert_angle(state.pose.orientation - state.pose.position.angle_between(goal));
+    const float angular_error = core::assert_angle(state.pose.orientation - state.pose.position.angle_between(goal));
 
     return {
         this->linear_pid.update(state.velocity.linear, elapsed_time),

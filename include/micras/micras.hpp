@@ -93,20 +93,26 @@ private:
      * @brief Sensors and actuators.
      */
     ///@{
-    proxy::Argb         argb;
-    proxy::Battery      battery;
-    proxy::Button       button;
-    proxy::Buzzer       buzzer;
-    proxy::DipSwitch    dip_switch;
-    proxy::WallSensors  wall_sensors;
-    proxy::Fan          fan;
-    proxy::Imu          imu;
-    proxy::Led          led;
-    proxy::Locomotion   locomotion;
-    proxy::RotarySensor rotary_sensor_left;
-    proxy::RotarySensor rotary_sensor_right;
-    proxy::Storage      maze_storage;
+    proxy::Argb       argb;
+    proxy::Battery    battery;
+    proxy::Button     button;
+    proxy::Buzzer     buzzer;
+    proxy::DipSwitch  dip_switch;
+    proxy::Fan        fan;
+    proxy::Led        led;
+    proxy::Locomotion locomotion;
+    proxy::Storage    maze_storage;
     // proxy::TorqueSensors torque_sensors;
+    ///@}
+
+    /**
+     * @brief Sensors shared with nav.
+     */
+    ///@{
+    std::shared_ptr<proxy::Imu>          imu;
+    std::shared_ptr<proxy::RotarySensor> rotary_sensor_left;
+    std::shared_ptr<proxy::RotarySensor> rotary_sensor_right;
+    std::shared_ptr<proxy::WallSensors>  wall_sensors;
     ///@}
 
     /**

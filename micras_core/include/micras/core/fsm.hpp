@@ -35,6 +35,11 @@ public:
          */
         uint8_t get_id() const;
 
+        /**
+         * @brief The id of the state that is not valid.
+         */
+        static constexpr uint8_t invalid_id{0xFF};
+
     protected:
         /**
          * @brief Special member functions declared as default.
@@ -87,7 +92,7 @@ private:
     /**
      * @brief Id of the last executed state.
      */
-    uint8_t previous_state_id{0xFF};
+    uint8_t previous_state_id{State::invalid_id};
 };
 }  // namespace micras::core
 
