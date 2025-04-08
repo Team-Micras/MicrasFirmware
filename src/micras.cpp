@@ -13,17 +13,6 @@
 
 namespace micras {
 Micras::Micras() :
-    loop_stopwatch{stopwatch_config},
-    argb{argb_config},
-    battery{battery_config},
-    button{button_config},
-    buzzer{buzzer_config},
-    dip_switch{dip_switch_config},
-    fan{fan_config},
-    led{led_config},
-    locomotion{locomotion_config},
-    maze_storage{maze_storage_config},
-    // torque_sensors{torque_sensors_config},
     imu{std::make_shared<proxy::Imu>(imu_config)},
     rotary_sensor_left{std::make_shared<proxy::RotarySensor>(rotary_sensor_left_config)},
     rotary_sensor_right{std::make_shared<proxy::RotarySensor>(rotary_sensor_right_config)},
