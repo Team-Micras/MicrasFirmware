@@ -37,7 +37,7 @@ int main(int argc, char* argv[]) {
         }
 
         argb.set_color(color);
-        hal::Timer::sleep_ms(2);
+        proxy::Stopwatch::sleep_ms(2);
     });
 
     return 0;

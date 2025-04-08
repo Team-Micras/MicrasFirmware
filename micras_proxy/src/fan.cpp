@@ -30,10 +30,10 @@ void Fan::set_speed(float speed) {
 
 float Fan::update() {
     this->current_speed = core::move_towards<float>(
-        this->current_speed, this->target_speed, this->acceleration_timer.elapsed_time_ms() * this->max_acceleration
+        this->current_speed, this->target_speed, this->acceleration_stopwatch.elapsed_time_ms() * this->max_acceleration
     );
 
-    this->acceleration_timer.reset_ms();
+    this->acceleration_stopwatch.reset_ms();
 
     if (this->current_speed > 0.0F) {
         this->set_direction(RotationDirection::FORWARD);

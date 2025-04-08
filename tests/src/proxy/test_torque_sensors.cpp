@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
             test_current_raw[i] = torque_sensors.get_current_raw(i);
         }
 
-        hal::Timer::sleep_ms(2);
+        proxy::Stopwatch::sleep_ms(2);
     });
 
     return 0;

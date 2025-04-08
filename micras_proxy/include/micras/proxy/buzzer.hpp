@@ -8,7 +8,7 @@
 #include <cstdint>
 
 #include "micras/hal/pwm.hpp"
-#include "micras/hal/timer.hpp"
+#include "micras/proxy/stopwatch.hpp"
 
 namespace micras::proxy {
 /**
@@ -62,9 +62,9 @@ private:
     hal::Pwm pwm;
 
     /**
-     * @brief Timer to play the sound.
+     * @brief Stopwatch to play the sound.
      */
-    hal::Timer timer;
+    proxy::Stopwatch stopwatch;
 
     /**
      * @brief Flag to check if the buzzer is playing.

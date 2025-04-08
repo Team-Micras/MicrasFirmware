@@ -24,7 +24,7 @@ int main(int argc, char* argv[]) {
             test_fan_speed = fan.update();
         }
 
-        hal::Timer::sleep_ms(3000);
+        proxy::Stopwatch::sleep_ms(3000);
 
         fan.set_speed(0.0F);
 

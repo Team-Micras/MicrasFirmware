@@ -19,8 +19,8 @@ int main(int argc, char* argv[]) {
 
     auto imu{std::make_shared<proxy::Imu>(imu_config)};
 
-    hal::Timer        timer{timer_config};
-    hal::Timer        stop_timer;
+    proxy::Stopwatch  loop_stopwatch{stopwatch_config};
+    proxy::Stopwatch  stop_stopwatch;
     proxy::Button     button{button_config};
     proxy::Locomotion locomotion{locomotion_config};
     proxy::Argb       argb{argb_config};
@@ -32,19 +32,19 @@ int main(int argc, char* argv[]) {
 
     bool started = false;
     bool finished = false;
-    timer.reset_us();
+    loop_stopwatch.reset_us();
 
-    TestCore::loop([&imu, &odometry, &look_at_point, &finished, &started, &locomotion, &argb, &button, &timer,
-                    &stop_timer]() {
-        while (timer.elapsed_time_us() < 1000) { }
+    TestCore::loop([&imu, &odometry, &look_at_point, &finished, &started, &locomotion, &argb, &button, &loop_stopwatch,
+                    &stop_stopwatch]() {
+        while (loop_stopwatch.elapsed_time_us() < 1000) { }
 
         if (finished) {
             locomotion.stop();
             return;
         }
 
-        const float elapsed_time = timer.elapsed_time_us() / 1000000.0F;
-        timer.reset_us();
+        const float elapsed_time = loop_stopwatch.elapsed_time_us() / 1000000.0F;
+        loop_stopwatch.reset_us();
 
         imu->update();
         odometry.update(elapsed_time);
@@ -56,10 +56,10 @@ int main(int argc, char* argv[]) {
             started = true;
             argb.set_color(proxy::Argb::Colors::cyan);
             locomotion.enable();
-            hal::Timer::sleep_ms(3000);
+            proxy::Stopwatch::sleep_ms(3000);
             imu->calibrate();
-            stop_timer.reset_ms();
-            timer.reset_us();
+            stop_stopwatch.reset_ms();
+            loop_stopwatch.reset_us();
             odometry.reset();
             look_at_point.reset();
             return;
@@ -69,7 +69,7 @@ int main(int argc, char* argv[]) {
             return;
         }
 
-        if (stop_timer.elapsed_time_ms() > 3000) {
+        if (stop_stopwatch.elapsed_time_ms() > 3000) {
             locomotion.disable();
 
             if (not finished) {

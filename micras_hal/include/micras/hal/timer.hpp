@@ -25,7 +25,7 @@ public:
     /**
      * @brief Construct a new Timer object.
      */
-    Timer();
+    Timer() = default;
 
     /**
      * @brief Construct a new Timer object.
@@ -34,45 +34,6 @@ public:
      */
     explicit Timer(const Config& config);
 
-    /**
-     * @brief Reset the milliseconds timer counter.
-     */
-    void reset_ms();
-
-    /**
-     * @brief Reset the microseconds timer counter.
-     */
-    void reset_us();
-
-    /**
-     * @brief Get the time elapsed since the last reset.
-     *
-     * @return Time elapsed in miliseconds.
-     */
-    uint32_t elapsed_time_ms() const;
-
-    /**
-     * @brief Get the time elapsed since the last reset.
-     *
-     * @return Time elapsed in microseconds.
-     */
-    uint32_t elapsed_time_us() const;
-
-    /**
-     * @brief Sleep for a given amount of time.
-     *
-     * @param time Time to sleep in milliseconds.
-     */
-    static void sleep_ms(uint32_t time);
-
-    /**
-     * @brief Sleep for a given amount of time.
-     *
-     * @param time Time to sleep in microseconds.
-     */
-    void sleep_us(uint32_t time) const;
-
-private:
     /**
      * @brief Get the current timer counter.
      *
@@ -87,15 +48,11 @@ private:
      */
     uint32_t get_counter_us() const;
 
+private:
     /**
      * @brief Timer handle.
      */
     TIM_HandleTypeDef* handle{};
-
-    /**
-     * @brief Timer counter.
-     */
-    uint32_t counter{};
 
     /**
      * @brief Flag to enable microseconds.

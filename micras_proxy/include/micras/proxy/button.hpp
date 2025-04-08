@@ -8,7 +8,7 @@
 #include <cstdint>
 
 #include "micras/hal/gpio.hpp"
-#include "micras/hal/timer.hpp"
+#include "micras/proxy/stopwatch.hpp"
 
 namespace micras::proxy {
 /**
@@ -115,14 +115,14 @@ private:
     PullResistor pull_resistor;
 
     /**
-     * @brief Timer to check if button is debouncing.
+     * @brief Stopwatch to check if button is debouncing.
      */
-    hal::Timer debounce_timer;
+    proxy::Stopwatch debounce_stopwatch;
 
     /**
-     * @brief Timer to determine type of button press.
+     * @brief Stopwatch to determine type of button press.
      */
-    hal::Timer status_timer;
+    proxy::Stopwatch status_stopwatch;
 
     /**
      * @brief Flag to know when button is debouncing.

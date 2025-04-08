@@ -15,7 +15,7 @@ int main(int argc, char* argv[]) {
 
     auto imu{std::make_shared<proxy::Imu>(imu_config)};
 
-    hal::Timer        timer{timer_config};
+    proxy::Stopwatch  stopwatch{stopwatch_config};
     proxy::Button     button{button_config};
     proxy::Locomotion locomotion{locomotion_config};
     proxy::Argb       argb{argb_config};
@@ -29,10 +29,10 @@ int main(int argc, char* argv[]) {
 
     bool started = false;
     bool finished = false;
-    timer.reset_us();
+    stopwatch.reset_us();
 
-    TestCore::loop([&imu, &odometry, &go_to_point, &finished, &started, &locomotion, &argb, &button, &timer]() {
-        while (timer.elapsed_time_us() < 1000) { }
+    TestCore::loop([&imu, &odometry, &go_to_point, &finished, &started, &locomotion, &argb, &button, &stopwatch]() {
+        while (stopwatch.elapsed_time_us() < 1000) { }
 
         if (finished) {
             locomotion.stop();
@@ -40,8 +40,8 @@ int main(int argc, char* argv[]) {
             return;
         }
 
-        const float elapsed_time = timer.elapsed_time_us() / 1000000.0F;
-        timer.reset_us();
+        const float elapsed_time = stopwatch.elapsed_time_us() / 1000000.0F;
+        stopwatch.reset_us();
 
         imu->update();
         odometry.update(elapsed_time);
@@ -50,10 +50,10 @@ int main(int argc, char* argv[]) {
             started = true;
             argb.set_color(proxy::Argb::Colors::red);
             locomotion.enable();
-            hal::Timer::sleep_ms(3000);
+            proxy::Stopwatch::sleep_ms(3000);
             imu->calibrate();
             argb.set_color(proxy::Argb::Colors::blue);
-            timer.reset_us();
+            stopwatch.reset_us();
             odometry.reset();
             go_to_point.reset();
             return;

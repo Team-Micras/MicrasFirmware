@@ -6,7 +6,6 @@
 #define MICRAS_PROXY_TORQUE_SENSORS_CPP
 
 #include "micras/core/utils.hpp"
-#include "micras/hal/timer.hpp"
 #include "micras/proxy/torque_sensors.hpp"
 
 namespace micras::proxy {

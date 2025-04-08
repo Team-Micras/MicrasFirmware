@@ -21,13 +21,13 @@ Button::Status Button::get_status() {
     this->current_state = this->update_state();
 
     if (this->is_rising_edge()) {
-        this->status_timer.reset_ms();
+        this->status_stopwatch.reset_ms();
     } else if (this->is_falling_edge()) {
-        if (this->status_timer.elapsed_time_ms() > extra_long_press_delay) {
+        if (this->status_stopwatch.elapsed_time_ms() > extra_long_press_delay) {
             return EXTRA_LONG_PRESS;
         }
 
-        if (this->status_timer.elapsed_time_ms() > long_press_delay) {
+        if (this->status_stopwatch.elapsed_time_ms() > long_press_delay) {
             return LONG_PRESS;
         }
 
@@ -46,8 +46,8 @@ bool Button::update_state() {
 
     if ((raw_reading != this->current_state) and not this->is_debouncing) {
         this->is_debouncing = true;
-        this->debounce_timer.reset_ms();
-    } else if ((this->debounce_timer.elapsed_time_ms() < debounce_delay) and this->is_debouncing) {
+        this->debounce_stopwatch.reset_ms();
+    } else if ((this->debounce_stopwatch.elapsed_time_ms() < debounce_delay) and this->is_debouncing) {
         if (this->current_state == raw_reading) {
             this->is_debouncing = false;
         }

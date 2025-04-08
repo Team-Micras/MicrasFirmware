@@ -17,7 +17,7 @@ int main(int argc, char* argv[]) {
         battery.update();
         test_battery_voltage_raw = battery.get_voltage_raw();
         test_battery_voltage = battery.get_voltage();
-        hal::Timer::sleep_ms(2);
+        proxy::Stopwatch::sleep_ms(2);
     });
 
     return 0;

@@ -17,7 +17,7 @@ int main(int argc, char* argv[]) {
 
     auto wall_sensors{std::make_shared<proxy::WallSensors>(wall_sensors_config)};
 
-    hal::Timer        timer{timer_config};
+    proxy::Stopwatch  stopwatch{stopwatch_config};
     proxy::Button     button{button_config};
     proxy::Locomotion locomotion{locomotion_config};
     proxy::Argb       argb{argb_config};
@@ -25,13 +25,14 @@ int main(int argc, char* argv[]) {
 
     bool                 started = false;
     core::FollowWallType follow_wall_type = core::FollowWallType::NONE;
-    timer.reset_us();
+    stopwatch.reset_us();
 
-    TestCore::loop([&wall_sensors, &locomotion, &argb, &button, &timer, &follow_wall, &started, &follow_wall_type]() {
-        while (timer.elapsed_time_us() < 1000) { }
+    TestCore::loop([&wall_sensors, &locomotion, &argb, &button, &stopwatch, &follow_wall, &started,
+                    &follow_wall_type]() {
+        while (stopwatch.elapsed_time_us() < 1000) { }
 
-        const float elapsed_time = timer.elapsed_time_us() / 1000000.0F;
-        timer.reset_us();
+        const float elapsed_time = stopwatch.elapsed_time_us() / 1000000.0F;
+        stopwatch.reset_us();
 
         wall_sensors->update();
         auto button_status = button.get_status();
@@ -43,7 +44,7 @@ int main(int argc, char* argv[]) {
                 wall_sensors->turn_on();
                 locomotion.enable();
                 follow_wall.reset();
-                hal::Timer::sleep_ms(3000);
+                proxy::Stopwatch::sleep_ms(3000);
                 return;
             }
 

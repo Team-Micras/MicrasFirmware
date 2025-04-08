@@ -30,10 +30,10 @@ public:
      */
     uint8_t run(uint8_t previous_state_id) override {
         if (previous_state_id != this->get_id()) {
-            this->wait_timer.reset_ms();
+            this->wait_stopwatch.reset_ms();
         }
 
-        if (this->wait_timer.elapsed_time_ms() > this->wait_time_ms) {
+        if (this->wait_stopwatch.elapsed_time_ms() > this->wait_time_ms) {
             this->micras.odometry.reset();
             this->micras.look_at_point.reset();
             this->micras.go_to_point.reset();
@@ -49,9 +49,9 @@ public:
 
 private:
     /**
-     * @brief Timer for the wait status.
+     * @brief Stopwatch for the wait status.
      */
-    hal::Timer wait_timer;
+    proxy::Stopwatch wait_stopwatch;
 
     /**
      * @brief Id of the state to go after ending the wait.

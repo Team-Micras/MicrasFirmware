@@ -5,8 +5,8 @@
 #include <cmath>
 #include <numbers>
 
-#include "micras/hal/timer.hpp"
 #include "micras/proxy/imu.hpp"
+#include "micras/proxy/stopwatch.hpp"
 
 namespace micras::proxy {
 Imu::Imu(const Config& config) :
@@ -20,7 +20,7 @@ Imu::Imu(const Config& config) :
     this->dev_ctx.write_reg = platform_write;
     this->dev_ctx.handle = &this->spi;
 
-    hal::Timer::sleep_ms(100);
+    proxy::Stopwatch::sleep_ms(100);
 
     if (not this->check_whoami()) {
         return;

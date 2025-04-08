@@ -9,7 +9,6 @@
 #include <memory>
 
 #include "micras/core/butterworth_filter.hpp"
-#include "micras/hal/timer.hpp"
 #include "micras/nav/state.hpp"
 #include "micras/proxy/imu.hpp"
 #include "micras/proxy/rotary_sensor.hpp"

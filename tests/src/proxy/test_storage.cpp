@@ -104,9 +104,9 @@ int main(int argc, char* argv[]) {
             argb.set_color(proxy::Argb::Colors::green);
         }
 
-        hal::Timer::sleep_ms(time_interval);
+        proxy::Stopwatch::sleep_ms(time_interval);
         argb.turn_off();
-        hal::Timer::sleep_ms(time_interval);
+        proxy::Stopwatch::sleep_ms(time_interval);
 
         if (test_int16_0 != test_int16_1) {
             argb.set_color(proxy::Argb::Colors::red);
@@ -114,9 +114,9 @@ int main(int argc, char* argv[]) {
             argb.set_color(proxy::Argb::Colors::green);
         }
 
-        hal::Timer::sleep_ms(time_interval);
+        proxy::Stopwatch::sleep_ms(time_interval);
         argb.turn_off();
-        hal::Timer::sleep_ms(time_interval);
+        proxy::Stopwatch::sleep_ms(time_interval);
 
         if (test_float_0 != test_float_1) {
             argb.set_color(proxy::Argb::Colors::red);
@@ -124,9 +124,9 @@ int main(int argc, char* argv[]) {
             argb.set_color(proxy::Argb::Colors::green);
         }
 
-        hal::Timer::sleep_ms(time_interval);
+        proxy::Stopwatch::sleep_ms(time_interval);
         argb.turn_off();
-        hal::Timer::sleep_ms(time_interval);
+        proxy::Stopwatch::sleep_ms(time_interval);
 
         if (test_serializable_0 != test_serializable_1) {
             argb.set_color(proxy::Argb::Colors::red);
@@ -134,7 +134,7 @@ int main(int argc, char* argv[]) {
             argb.set_color(proxy::Argb::Colors::green);
         }
 
-        hal::Timer::sleep_ms(time_interval);
+        proxy::Stopwatch::sleep_ms(time_interval);
         argb.turn_off();
     });
 

@@ -9,7 +9,7 @@
 
 #include "micras/hal/gpio.hpp"
 #include "micras/hal/pwm.hpp"
-#include "micras/hal/timer.hpp"
+#include "micras/proxy/stopwatch.hpp"
 
 namespace micras::proxy {
 /**
@@ -108,9 +108,9 @@ private:
     float max_acceleration;
 
     /**
-     * @brief Timer for limiting the acceleration of the fan.
+     * @brief Stopwatch for limiting the acceleration of the fan.
      */
-    hal::Timer acceleration_timer;
+    proxy::Stopwatch acceleration_stopwatch;
 };
 }  // namespace micras::proxy
 
