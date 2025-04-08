@@ -13,7 +13,7 @@
 
 namespace micras {
 Micras::Micras() :
-    loop_timer{timer_config},
+    loop_stopwatch{stopwatch_config},
     argb{argb_config},
     battery{battery_config},
     button{button_config},
@@ -42,8 +42,8 @@ Micras::Micras() :
 }
 
 void Micras::update() {
-    this->elapsed_time = loop_timer.elapsed_time_us() / 1e6F;
-    loop_timer.reset_us();
+    this->elapsed_time = loop_stopwatch.elapsed_time_us() / 1e6F;
+    loop_stopwatch.reset_us();
 
     this->button_status = button.get_status();
 
@@ -53,6 +53,6 @@ void Micras::update() {
     this->wall_sensors->update();
     this->fsm.run();
 
-    while (loop_timer.elapsed_time_us() < loop_time_us) { }
+    while (loop_stopwatch.elapsed_time_us() < loop_time_us) { }
 }
 }  // namespace micras

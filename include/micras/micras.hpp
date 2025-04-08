@@ -70,9 +70,9 @@ private:
     float elapsed_time{};
 
     /**
-     * @brief Timer for the run status.
+     * @brief Stopwatch for the run status.
      */
-    hal::Timer loop_timer;
+    proxy::Stopwatch loop_stopwatch;
 
     /**
      * @brief Current objective of the robot.

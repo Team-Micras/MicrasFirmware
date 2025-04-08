@@ -17,6 +17,7 @@
 #include "micras/proxy/led.hpp"
 #include "micras/proxy/locomotion.hpp"
 #include "micras/proxy/rotary_sensor.hpp"
+#include "micras/proxy/stopwatch.hpp"
 #include "micras/proxy/storage.hpp"
 #include "micras/proxy/torque_sensors.hpp"
 #include "micras/proxy/wall_sensors.hpp"
@@ -37,9 +38,12 @@ using WallSensors = TWallSensors<4>;
  * Internal
  *****************************************/
 
-const hal::Timer::Config timer_config = {
-    .init_function = MX_TIM6_Init,
-    .handle = &htim6,
+const proxy::Stopwatch::Config stopwatch_config = {
+    .timer =
+        {
+            .init_function = MX_TIM6_Init,
+            .handle = &htim6,
+        },
 };
 
 const proxy::Storage::Config maze_storage_config{

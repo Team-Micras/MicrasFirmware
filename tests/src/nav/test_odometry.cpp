@@ -21,20 +21,20 @@ int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);
     auto imu{std::make_shared<proxy::Imu>(imu_config)};
 
-    hal::Timer    timer{timer_config};
-    nav::Odometry odometry{
+    proxy::Stopwatch stopwatch{stopwatch_config};
+    nav::Odometry    odometry{
         std::make_shared<proxy::RotarySensor>(rotary_sensor_left_config),
         std::make_shared<proxy::RotarySensor>(rotary_sensor_right_config), imu, odometry_config
     };
 
-    timer.reset_us();
+    stopwatch.reset_us();
 
-    hal::Timer::sleep_ms(1000);
+    proxy::Stopwatch::sleep_ms(1000);
     imu->calibrate();
 
-    TestCore::loop([&odometry, &imu, &timer]() {
-        const float elapsed_time = timer.elapsed_time_us() / 1000000.0F;
-        timer.reset_us();
+    TestCore::loop([&odometry, &imu, &stopwatch]() {
+        const float elapsed_time = stopwatch.elapsed_time_us() / 1000000.0F;
+        stopwatch.reset_us();
 
         imu->update();
         odometry.update(elapsed_time);
@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
         test_linear_velocity = state.velocity.linear;
         test_angular_velocity = state.velocity.angular;
 
-        while (timer.elapsed_time_us() < 1000) { }
+        while (stopwatch.elapsed_time_us() < 1000) { }
     });
 
     return 0;
