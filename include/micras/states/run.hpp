@@ -89,7 +89,7 @@ private:
                         this->micras.mapping.can_align_back(state.pose) and
                         this->micras.objective != core::Objective::SOLVE) {
                         this->micras.current_action.type = nav::Mapping::Action::Type::ALIGN_BACK;
-                        this->align_back_timer.reset_ms();
+                        this->align_back_stopwatch.reset_ms();
                     }
 
                     this->micras.look_at_point.reset();
@@ -123,7 +123,7 @@ private:
             case nav::Mapping::Action::Type::ALIGN_BACK:
                 command = {-5.0F, 0.0F};
 
-                if (this->align_back_timer.elapsed_time_ms() > 500) {
+                if (this->align_back_stopwatch.elapsed_time_ms() > 500) {
                     state.pose = this->micras.mapping.correct_pose(state.pose, core::FollowWallType::BACK);
                     this->micras.odometry.set_state(state);
                     this->micras.current_action = this->micras.mapping.get_action(state.pose, this->micras.objective);
@@ -179,9 +179,9 @@ private:
     }
 
     /**
-     * @brief Timer for aligning the robot to the back wall.
+     * @brief Stopwatch for aligning the robot to the back wall.
      */
-    hal::Timer align_back_timer;
+    proxy::Stopwatch align_back_stopwatch;
 };
 }  // namespace micras
 

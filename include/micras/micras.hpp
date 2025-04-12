@@ -70,11 +70,6 @@ private:
     float elapsed_time{};
 
     /**
-     * @brief Timer for the run status.
-     */
-    hal::Timer loop_timer;
-
-    /**
      * @brief Current objective of the robot.
      */
     core::Objective objective{core::Objective::EXPLORE};
@@ -93,16 +88,17 @@ private:
      * @brief Sensors and actuators.
      */
     ///@{
-    proxy::Argb       argb;
-    proxy::Battery    battery;
-    proxy::Button     button;
-    proxy::Buzzer     buzzer;
-    proxy::DipSwitch  dip_switch;
-    proxy::Fan        fan;
-    proxy::Led        led;
-    proxy::Locomotion locomotion;
-    proxy::Storage    maze_storage;
-    // proxy::TorqueSensors torque_sensors;
+    proxy::Argb       argb{argb_config};
+    proxy::Battery    battery{battery_config};
+    proxy::Button     button{button_config};
+    proxy::Buzzer     buzzer{buzzer_config};
+    proxy::DipSwitch  dip_switch{dip_switch_config};
+    proxy::Fan        fan{fan_config};
+    proxy::Led        led{led_config};
+    proxy::Locomotion locomotion{locomotion_config};
+    proxy::Stopwatch  loop_stopwatch{stopwatch_config};
+    proxy::Storage    maze_storage{maze_storage_config};
+    // proxy::TorqueSensors torque_sensors{torque_sensors_config};
     ///@}
 
     /**

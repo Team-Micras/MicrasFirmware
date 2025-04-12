@@ -7,6 +7,7 @@
 
 #include <cmath>
 
+#include "micras/core/utils.hpp"
 #include "micras/nav/mapping.hpp"
 
 namespace micras::nav {
