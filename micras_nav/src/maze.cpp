@@ -65,16 +65,16 @@ void TMaze<width, height>::update_walls(const GridPose& pose, const core::Observ
 }
 
 template <uint8_t width, uint8_t height>
-GridPose TMaze<width, height>::get_next_goal(const GridPoint& position, bool returning) const {
+GridPoint TMaze<width, height>::get_next_goal(const GridPoint& position, bool returning) const {
     uint16_t current_cost = this->get_cell(position).cost;
 
     if (returning) {
         if (this->best_route.contains(current_cost) and this->best_route.at(current_cost).position == position) {
             auto current = this->best_route.find(current_cost);
-            return {std::prev(current)->second.position, current->second.turned_back().orientation};
+            return std::prev(current)->second.position;
         }
 
-        return get_current_exploration_goal(position);
+        return get_next_goal(position, false);
     }
 
     GridPoint next_position = position;
@@ -87,11 +87,10 @@ GridPose TMaze<width, height>::get_next_goal(const GridPoint& position, bool ret
         if (not this->has_wall({position, side}) and this->get_cell(front_position).cost < current_cost) {
             current_cost = this->get_cell(front_position).cost;
             next_position = front_position;
-            next_side = side;
         }
     }
 
-    return {next_position, next_side};
+    return next_position;
 }
 
 template <uint8_t width, uint8_t height>
@@ -123,8 +122,11 @@ void TMaze<width, height>::update_wall(const GridPose& pose, bool wall) {
 
 template <uint8_t width, uint8_t height>
 bool TMaze<width, height>::has_wall(const GridPose& pose) const {
-    return this->get_cell(pose.position).wall_count[pose.orientation] >
-           this->get_cell(pose.position).free_count[pose.orientation];
+    if (pose.position.x >= width or pose.position.y >= height) {
+        return false;
+    }
+
+    return this->get_cell(pose.position).walls[pose.orientation];
 }
 
 template <uint8_t width, uint8_t height>

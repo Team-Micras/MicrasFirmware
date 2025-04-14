@@ -45,7 +45,7 @@ public:
      * @param position The current position of the robot.
      * @return The next point the robot should go to when exploring.
      */
-    GridPose get_next_goal(const GridPoint& position, bool returning) const;
+    GridPoint get_next_goal(const GridPoint& position, bool returning) const;
 
     /**
      * @brief Check the type of wall following the robot can do.
@@ -62,14 +62,6 @@ public:
      * @return True if the robot has finished the maze, false otherwise.
      */
     bool finished(const GridPoint& position, bool returning) const;
-
-    /**
-     * @brief Check whether the robot has returned to the start.
-     *
-     * @param position The current position of the robot.
-     * @return True if the robot has returned to the start, false otherwise.
-     */
-    bool returned(const GridPoint& position) const;
 
     /**
      * @brief Calculate the best route to the goal using the current costmap.
