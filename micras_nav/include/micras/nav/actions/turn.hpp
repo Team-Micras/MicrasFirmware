@@ -13,7 +13,7 @@ namespace micras::nav {
 /**
  * @brief Class to follow the side walls using a PID controller.
  */
-class TurnAction : public BaseAction {
+class TurnAction : public Action {
 public:
     TurnAction(float angle, float curve_radius, float max_centrifugal_acceleration) :
         angle{angle},

@@ -13,7 +13,7 @@ namespace micras::nav {
 /**
  * @brief Class to follow the side walls using a PID controller.
  */
-class MoveAction : public BaseAction {
+class MoveAction : public Action {
 public:
     MoveAction(
         float distance, float start_speed, float end_speed, float max_speed, float max_acceleration,
@@ -26,8 +26,8 @@ public:
         max_acceleration_doubled{2.0F * max_acceleration},
         max_deceleration_doubled{2.0F * max_deceleration},
         decelerate_distance{
-            (start_speed_2 - end_speed_2 - max_deceleration_doubled * distance) /
-            (max_acceleration_doubled - max_deceleration_doubled)
+            (end_speed_2 - start_speed_2 + max_deceleration_doubled * distance) /
+            (max_acceleration_doubled + max_deceleration_doubled)
         } { }
 
     Twist get_twist(const State& state) const override {

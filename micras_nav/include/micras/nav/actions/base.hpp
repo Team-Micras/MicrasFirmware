@@ -11,12 +11,12 @@ namespace micras::nav {
 /**
  * @brief Class to follow the side walls using a PID controller.
  */
-class BaseAction {
+class Action {
 public:
     /**
-     * @brief Virtual destructor for the BaseAction class.
+     * @brief Virtual destructor for the Action class.
      */
-    virtual ~BaseAction() = default;
+    virtual ~Action() = default;
 
     virtual Twist get_twist(const State& state) const = 0;
 
@@ -27,11 +27,11 @@ protected:
      * @brief Special member functions declared as default.
      */
     ///@{
-    BaseAction() = default;
-    BaseAction(const BaseAction&) = default;
-    BaseAction(BaseAction&&) = default;
-    BaseAction& operator=(const BaseAction&) = default;
-    BaseAction& operator=(BaseAction&&) = default;
+    Action() = default;
+    Action(const Action&) = default;
+    Action(Action&&) = default;
+    Action& operator=(const Action&) = default;
+    Action& operator=(Action&&) = default;
     ///@}
 };
 }  // namespace micras::nav
