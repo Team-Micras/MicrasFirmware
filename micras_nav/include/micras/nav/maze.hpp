@@ -10,6 +10,7 @@
 #include <map>
 #include <unordered_set>
 
+#include "micras/core/serializable.hpp"
 #include "micras/nav/grid_pose.hpp"
 
 namespace micras::nav {
@@ -20,7 +21,7 @@ namespace micras::nav {
  * @tparam height The height of the maze.
  */
 template <uint8_t width, uint8_t height>
-class TMaze {
+class TMaze : public core::ISerializable {
 public:
     /**
      * @brief Construct a new Maze object.
@@ -36,7 +37,7 @@ public:
      * @param pose The pose of the robot.
      * @param observation The observation from the wall sensors.
      */
-    void update(const GridPose& pose, core::Observation observation);
+    void update_walls(const GridPose& pose, const core::Observation& observation);
 
     /**
      * @brief Return the next point the robot should go to when exploring.
@@ -44,15 +45,7 @@ public:
      * @param position The current position of the robot.
      * @return The next point the robot should go to when exploring.
      */
-    GridPose get_current_exploration_goal(const GridPoint& position) const;
-
-    /**
-     * @brief Return the next point the robot should go to when returning.
-     *
-     * @param position The current position of the robot.
-     * @return The next point the robot should go to when returning.
-     */
-    GridPose get_current_returning_goal(const GridPoint& position) const;
+    GridPose get_next_goal(const GridPoint& position, bool returning) const;
 
     /**
      * @brief Check the type of wall following the robot can do.
@@ -60,7 +53,7 @@ public:
      * @param pose The pose of the robot.
      * @return The type of wall following.
      */
-    core::FollowWallType get_follow_wall_type(const GridPose& pose) const;
+    core::Observation get_observation(const GridPose& pose) const;
 
     /**
      * @brief Check whether the robot has finished the maze.
@@ -68,7 +61,7 @@ public:
      * @param position The current position of the robot.
      * @return True if the robot has finished the maze, false otherwise.
      */
-    bool finished(const GridPoint& position) const;
+    bool finished(const GridPoint& position, bool returning) const;
 
     /**
      * @brief Check whether the robot has returned to the start.
@@ -84,11 +77,6 @@ public:
     void calculate_best_route();
 
     /**
-     * @brief Improve the route to the goal.
-     */
-    void optimize_route();
-
-    /**
      * @brief Return the best route to the goal.
      *
      * @return The best route to the goal.
@@ -96,12 +84,19 @@ public:
     const std::map<uint16_t, GridPose, std::greater<>>& get_best_route() const;
 
     /**
-     * @brief Check whether there is a wall at the front of a given pose.
+     * @brief Serialize the best route to the goal.
      *
-     * @param pose The pose to check.
-     * @return True if there is a wall, false otherwise.
+     * @return The serialized data.
      */
-    bool has_wall(const GridPose& pose) const;
+    std::vector<uint8_t> serialize() const override;
+
+    /**
+     * @brief Deserialize the best route to the goal.
+     *
+     * @param buffer The serialized data.
+     * @param size The size of the serialized data.
+     */
+    void deserialize(const uint8_t* buffer, uint16_t size) override;
 
 private:
     /**
@@ -140,6 +135,14 @@ private:
      * @param wall Whether there is a wall in front of the robot.
      */
     void update_wall(const GridPose& pose, bool wall);
+
+    /**
+     * @brief Check whether there is a wall at the front of a given pose.
+     *
+     * @param pose The pose to check.
+     * @return True if there is a wall, false otherwise.
+     */
+    bool has_wall(const GridPose& pose) const;
 
     /**
      * @brief Cells matrix representing the maze.

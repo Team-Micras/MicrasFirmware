@@ -56,7 +56,7 @@ TMaze<width, height>::TMaze(const GridPose& start, const std::unordered_set<Grid
 }
 
 template <uint8_t width, uint8_t height>
-void TMaze<width, height>::update(const GridPose& pose, core::Observation observation) {
+void TMaze<width, height>::update_walls(const GridPose& pose, const core::Observation& observation) {
     this->update_wall(pose.turned_left(), information.left);
     this->update_wall(pose, information.front);
     this->update_wall(pose.turned_right(), information.right);
@@ -65,8 +65,18 @@ void TMaze<width, height>::update(const GridPose& pose, core::Observation observ
 }
 
 template <uint8_t width, uint8_t height>
-GridPose TMaze<width, height>::get_current_exploration_goal(const GridPoint& position) const {
-    uint16_t  current_cost = this->get_cell(position).cost;
+GridPose TMaze<width, height>::get_next_goal(const GridPoint& position, bool returning) const {
+    uint16_t current_cost = this->get_cell(position).cost;
+
+    if (returning) {
+        if (this->best_route.contains(current_cost) and this->best_route.at(current_cost).position == position) {
+            auto current = this->best_route.find(current_cost);
+            return {std::prev(current)->second.position, current->second.turned_back().orientation};
+        }
+
+        return get_current_exploration_goal(position);
+    }
+
     GridPoint next_position = position;
     Side      next_side{};
 
@@ -82,18 +92,6 @@ GridPose TMaze<width, height>::get_current_exploration_goal(const GridPoint& pos
     }
 
     return {next_position, next_side};
-}
-
-template <uint8_t width, uint8_t height>
-GridPose TMaze<width, height>::get_current_returning_goal(const GridPoint& position) const {
-    uint16_t current_cost = this->get_cell(position).cost;
-
-    if (this->best_route.contains(current_cost) and this->best_route.at(current_cost).position == position) {
-        auto current = this->best_route.find(current_cost);
-        return {std::prev(current)->second.position, current->second.turned_back().orientation};
-    }
-
-    return get_current_exploration_goal(position);
 }
 
 template <uint8_t width, uint8_t height>
@@ -130,38 +128,13 @@ bool TMaze<width, height>::has_wall(const GridPose& pose) const {
 }
 
 template <uint8_t width, uint8_t height>
-core::FollowWallType TMaze<width, height>::get_follow_wall_type(const GridPose& pose) const {
-    if (pose.position.x >= width or pose.position.y >= height) {
-        return core::FollowWallType::NONE;
-    }
-
-    if (this->has_wall(pose)) {
-        return core::FollowWallType::FRONT;
-    }
-
-    if (this->has_wall(pose.turned_left()) and this->has_wall(pose.turned_right())) {
-        return core::FollowWallType::PARALLEL;
-    }
-
-    if (this->has_wall(pose.turned_left())) {
-        return core::FollowWallType::LEFT;
-    }
-
-    if (this->has_wall(pose.turned_right())) {
-        return core::FollowWallType::RIGHT;
-    }
-
-    return core::FollowWallType::NONE;
+core::Observation TMaze<width, height>::get_observation(const GridPose& pose) const {
+    return {this->has_wall(pose.turned_left()), this->has_wall(pose), this->has_wall(pose.turned_right())};
 }
 
 template <uint8_t width, uint8_t height>
-bool TMaze<width, height>::finished(const GridPoint& position) const {
-    return this->goal.contains(position);
-}
-
-template <uint8_t width, uint8_t height>
-bool TMaze<width, height>::returned(const GridPoint& position) const {
-    return this->start.position == position;
+bool TMaze<width, height>::finished(const GridPoint& position, bool returning) const {
+    return returning ? this->start.position == position : this->goal.contains(position);
 }
 
 template <uint8_t width, uint8_t height>
@@ -173,22 +146,6 @@ void TMaze<width, height>::calculate_best_route() {
     while (not this->goal.contains(current_pose.position)) {
         current_pose = this->get_current_exploration_goal(current_pose.position);
         this->best_route.try_emplace(this->get_cell(current_pose.position).cost, current_pose);
-    }
-}
-
-template <uint8_t width, uint8_t height>
-void TMaze<width, height>::optimize_route() {
-    for (auto it = std::next(this->best_route.begin()); it != this->best_route.end();) {
-        auto next = std::next(it);
-
-        if (next != this->best_route.end()) {
-            if (it->second.orientation == next->second.orientation) {
-                it = this->best_route.erase(it);
-                continue;
-            }
-        }
-
-        it++;
     }
 }
 
@@ -231,6 +188,32 @@ void TMaze<width, height>::calculate_costmap() {
                 queue.push(front_position);
             }
         }
+    }
+}
+
+template <uint8_t width, uint8_t height>
+std::vector<uint8_t> TMaze<width, height>::serialize() const {
+    std::vector<uint8_t> buffer;
+    buffer.reserve(3 * this->best_route.size());
+
+    for (const auto& [cost, grid_pose] : this->best_route) {
+        buffer.emplace_back(grid_pose.position.x);
+        buffer.emplace_back(grid_pose.position.y);
+        buffer.emplace_back(grid_pose.orientation);
+    }
+
+    return buffer;
+}
+
+template <uint8_t width, uint8_t height>
+void TMaze<width, height>::deserialize(const uint8_t* buffer, uint16_t size) {
+    this->best_route.clear();
+
+    for (uint32_t i = 0; i < size; i += 3) {
+        this->best_route.emplace_back(
+            // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+            Point::from_grid({buffer[i], buffer[i + 1]}, this->cell_size), static_cast<Direction>(2 * buffer[i + 2])
+        );
     }
 }
 }  // namespace micras::nav
