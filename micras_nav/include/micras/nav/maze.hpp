@@ -34,9 +34,9 @@ public:
      * @brief Update the maze walls with the current pose and new information.
      *
      * @param pose The pose of the robot.
-     * @param information The information from the wall sensors.
+     * @param observation The observation from the wall sensors.
      */
-    void update(const GridPose& pose, Information information);
+    void update(const GridPose& pose, core::Observation observation);
 
     /**
      * @brief Return the next point the robot should go to when exploring.
@@ -108,9 +108,8 @@ private:
      * @brief Type to store the information of a cell in the maze.
      */
     struct Cell {
-        std::array<uint32_t, 4> wall_count{};
-        std::array<uint32_t, 4> free_count{};
-        uint16_t                cost{0xFFFF};
+        std::array<bool, 4> walls{};
+        uint16_t            cost{0xFFFF};
     };
 
     /**
@@ -139,9 +138,8 @@ private:
      *
      * @param pose The pose of the robot.
      * @param wall Whether there is a wall in front of the robot.
-     * @return True if the information is new, false otherwise.
      */
-    bool update_wall(const GridPose& pose, bool wall);
+    void update_wall(const GridPose& pose, bool wall);
 
     /**
      * @brief Cells matrix representing the maze.

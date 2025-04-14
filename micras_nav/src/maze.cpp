@@ -56,34 +56,12 @@ TMaze<width, height>::TMaze(const GridPose& start, const std::unordered_set<Grid
 }
 
 template <uint8_t width, uint8_t height>
-void TMaze<width, height>::update(const GridPose& pose, Information information) {
-    bool new_information{};
+void TMaze<width, height>::update(const GridPose& pose, core::Observation observation) {
+    this->update_wall(pose.turned_left(), information.left);
+    this->update_wall(pose, information.front);
+    this->update_wall(pose.turned_right(), information.right);
 
-    if (information.left != core::Observation::UNKNOWN) {
-        new_information |= this->update_wall(pose.turned_left(), information.left == core::Observation::WALL);
-    }
-
-    if (information.front_left != core::Observation::UNKNOWN) {
-        new_information |=
-            this->update_wall(pose.front().turned_left(), information.front_left == core::Observation::WALL);
-    }
-
-    if (information.front != core::Observation::UNKNOWN) {
-        new_information |= this->update_wall(pose, information.front == core::Observation::WALL);
-    }
-
-    if (information.front_right != core::Observation::UNKNOWN) {
-        new_information |=
-            this->update_wall(pose.front().turned_right(), information.front_right == core::Observation::WALL);
-    }
-
-    if (information.right != core::Observation::UNKNOWN) {
-        new_information |= this->update_wall(pose.turned_right(), information.right == core::Observation::WALL);
-    }
-
-    if (new_information) {
-        this->calculate_costmap();
-    }
+    this->calculate_costmap();
 }
 
 template <uint8_t width, uint8_t height>
@@ -129,38 +107,20 @@ TMaze<width, height>::Cell& TMaze<width, height>::get_cell(const GridPoint& posi
 }
 
 template <uint8_t width, uint8_t height>
-bool TMaze<width, height>::update_wall(const GridPose& pose, bool wall) {
+void TMaze<width, height>::update_wall(const GridPose& pose, bool wall) {
     if (pose.position.x >= width or pose.position.y >= height) {
-        return false;
+        return;
     }
 
-    bool new_information = this->has_wall(pose);
-
-    if (wall) {
-        this->get_cell(pose.position).wall_count[pose.orientation]++;
-    } else {
-        this->get_cell(pose.position).free_count[pose.orientation]++;
-    }
-
-    new_information ^= this->has_wall(pose);
+    this->get_cell(pose.position).walls[pose.orientation] = wall;
 
     GridPose front_pose = pose.front();
 
     if (front_pose.position.x >= width or front_pose.position.y >= height) {
-        return new_information;
+        return;
     }
 
-    bool new_front_information = this->has_wall(front_pose);
-
-    if (wall) {
-        this->get_cell(front_pose.position).wall_count[pose.turned_back().orientation]++;
-    } else {
-        this->get_cell(front_pose.position).free_count[pose.turned_back().orientation]++;
-    }
-
-    new_front_information ^= this->has_wall(front_pose);
-
-    return new_information or new_front_information;
+    this->get_cell(front_pose.position).wall_count[pose.turned_back().orientation] = wall;
 }
 
 template <uint8_t width, uint8_t height>
