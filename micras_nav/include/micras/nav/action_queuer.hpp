@@ -39,6 +39,8 @@ public:
 
     const std::shared_ptr<Action>& pop();
 
+    bool empty() const;
+
     void recalculate(const std::map<uint16_t, GridPose, std::greater<>>& best_route);
 
 private:

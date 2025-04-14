@@ -31,7 +31,28 @@ ActionQueuer::ActionQueuer(Config config) :
     )},
     action_queue{{start}} { }
 
-void ActionQueuer::push(const GridPose& current_pose, const GridPose& target_pose) { }
+void ActionQueuer::push(const GridPose& current_pose, const GridPose& target_pose) {
+    if (current_pose.front() == target_pose) {
+        this->action_queue.emplace(move_forward);
+        return;
+    }
+
+    if (current_pose.turned_left().front() == target_pose) {
+        this->action_queue.emplace(turn_left);
+        return;
+    }
+
+    if (current_pose.turned_right().front() == target_pose) {
+        this->action_queue.emplace(turn_right);
+        return;
+    }
+
+    if (current_pose.turned_back().front() == target_pose) {
+        this->action_queue.emplace(turn_back);
+        this->action_queue.emplace(move_forward);
+        return;
+    }
+}
 
 const std::shared_ptr<Action>& ActionQueuer::pop() {
     auto action = this->action_queue.front();
@@ -39,5 +60,11 @@ const std::shared_ptr<Action>& ActionQueuer::pop() {
     return action;
 }
 
-void ActionQueuer::recalculate(const std::map<uint16_t, GridPose, std::greater<>>& best_route) { }
+bool ActionQueuer::empty() const {
+    return this->action_queue.empty();
+}
+
+void ActionQueuer::recalculate(const std::map<uint16_t, GridPose, std::greater<>>& best_route) {
+    return;
+}
 }  // namespace micras::nav
