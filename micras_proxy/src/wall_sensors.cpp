@@ -62,6 +62,11 @@ float TWallSensors<num_of_sensors>::get_adc_reading(uint8_t sensor_index) const 
 }
 
 template <uint8_t num_of_sensors>
+float TWallSensors<num_of_sensors>::get_sensor_error(uint8_t sensor_index) const {
+    return this->get_reading(sensor_index) - this->base_readings.at(sensor_index);
+}
+
+template <uint8_t num_of_sensors>
 void TWallSensors<num_of_sensors>::calibrate_front_wall() {
     this->base_readings[0] = this->get_reading(0);
     this->base_readings[3] = this->get_reading(3);

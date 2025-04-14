@@ -86,6 +86,14 @@ public:
     float get_adc_reading(uint8_t sensor_index) const;
 
     /**
+     * @brief Get the error of a sensor.
+     *
+     * @param sensor_index Index of the sensor.
+     * @return Error of the sensor.
+     */
+    float get_sensor_error(uint8_t sensor_index) const;
+
+    /**
      * @brief Calibrate the wall sensors for a wall at the front.
      */
     void calibrate_front_wall();
