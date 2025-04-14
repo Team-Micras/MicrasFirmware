@@ -15,9 +15,7 @@ TWallSensors<num_of_sensors>::TWallSensors(const Config& config) :
     led_0_pwm{config.led_0_pwm},
     led_1_pwm{config.led_1_pwm},
     filters{core::make_array<core::ButterworthFilter, num_of_sensors>(config.filter_cutoff)},
-    uncertainty{config.uncertainty},
-    wall_threshold{config.wall_threshold},
-    free_space_threshold{config.free_threshold} {
+    uncertainty{config.base_readings} {
     this->adc.start_dma(this->buffer);
     this->turn_off();
 }
@@ -42,18 +40,13 @@ void TWallSensors<num_of_sensors>::update() {
 }
 
 template <uint8_t num_of_sensors>
-core::Observation TWallSensors<num_of_sensors>::get_observation(uint8_t sensor_index) const {
-    float reading = this->filters.at(sensor_index).get_last();
+bool TWallSensors<num_of_sensors>::get_wall(uint8_t sensor_index) const {
+    return this->filters.at(sensor_index).get_last() > this->base_readings.at(sensor_index) * this->uncertainty;
+}
 
-    if (reading > this->wall_threshold.at(sensor_index)) {
-        return core::Observation::WALL;
-    }
-
-    if (reading < this->free_space_threshold.at(sensor_index)) {
-        return core::Observation::FREE_SPACE;
-    }
-
-    return core::Observation::UNKNOWN;
+template <uint8_t num_of_sensors>
+core::Observation TWallSensors<num_of_sensors>::get_observation() const {
+    return {this->get_wall(1), this->get_wall(0) && this->get_wall(3), this->get_wall(2)};
 }
 
 template <uint8_t num_of_sensors>
@@ -70,48 +63,18 @@ float TWallSensors<num_of_sensors>::get_adc_reading(uint8_t sensor_index) const 
 
 template <uint8_t num_of_sensors>
 void TWallSensors<num_of_sensors>::calibrate_front_wall() {
-    this->wall_calibration_measure[0] = this->get_reading(0);
-    this->wall_calibration_measure[3] = this->get_reading(3);
+    this->base_readings[0] = this->get_reading(0);
+    this->base_readings[3] = this->get_reading(3);
 }
 
 template <uint8_t num_of_sensors>
 void TWallSensors<num_of_sensors>::calibrate_left_wall() {
-    this->wall_calibration_measure[1] = this->get_reading(1);
+    this->base_readings[1] = this->get_reading(1);
 }
 
 template <uint8_t num_of_sensors>
 void TWallSensors<num_of_sensors>::calibrate_right_wall() {
-    this->wall_calibration_measure[2] = this->get_reading(2);
-}
-
-template <uint8_t num_of_sensors>
-void TWallSensors<num_of_sensors>::calibrate_front_free_space() {
-    this->free_space_calibration_measure[0] = this->get_reading(0);
-    this->free_space_calibration_measure[3] = this->get_reading(3);
-}
-
-template <uint8_t num_of_sensors>
-void TWallSensors<num_of_sensors>::calibrate_left_free_space() {
-    this->free_space_calibration_measure[1] = this->get_reading(1);
-}
-
-template <uint8_t num_of_sensors>
-void TWallSensors<num_of_sensors>::calibrate_right_free_space() {
-    this->free_space_calibration_measure[2] = this->get_reading(2);
-}
-
-template <uint8_t num_of_sensors>
-void TWallSensors<num_of_sensors>::update_thresholds() {
-    for (uint8_t i = 0; i < num_of_sensors; i++) {
-        float mean_value = (this->wall_calibration_measure.at(i) + this->free_space_calibration_measure.at(i)) / 2.0F;
-
-        float unknown_delta = this->uncertainty *
-                              (this->wall_calibration_measure.at(i) - this->free_space_calibration_measure.at(i)) /
-                              2.0F;
-
-        this->wall_threshold.at(i) = mean_value + unknown_delta;
-        this->free_space_threshold.at(i) = mean_value - unknown_delta;
-    }
+    this->base_readings[2] = this->get_reading(2);
 }
 }  // namespace micras::proxy
 

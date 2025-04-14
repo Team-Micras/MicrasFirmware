@@ -9,12 +9,12 @@
 
 namespace micras::core {
 /**
- * @brief Possible values for the observation of a wall.
+ * @brief Possible values for the observation from the sensors.
  */
-enum Observation : uint8_t {
-    UNKNOWN = 0,
-    FREE_SPACE = 1,
-    WALL = 2
+struct Observation {
+    bool left{};
+    bool front{};
+    bool right{};
 };
 
 /**

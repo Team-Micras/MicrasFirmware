@@ -244,21 +244,14 @@ const proxy::WallSensors::Config wall_sensors_config = {
             .timer_channel = TIM_CHANNEL_2,
         },
     .filter_cutoff = 5.0F,
-    .uncertainty = 0.2F,
-    .wall_threshold =
+    .base_readings =
         {
             0.42F,
             0.1F,
             0.1F,
             0.32F,
         },
-    .free_threshold =
-        {
-            0.39F,
-            0.09F,
-            0.09F,
-            0.29F,
-        },
+    .uncertainty = 0.2F,
 };
 
 const proxy::Imu::Config imu_config = {

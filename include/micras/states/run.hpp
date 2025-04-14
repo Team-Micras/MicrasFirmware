@@ -54,7 +54,7 @@ private:
      * @brief Run the main algorithm of the robot.
      *
      * @param elapsed_time The elapsed time since the last update.
-     * @return true if the robot is still running, false otherwise.
+     * @return True if the robot is still running, false otherwise.
      */
     bool run(float elapsed_time) {
         this->micras.odometry.update(elapsed_time);
