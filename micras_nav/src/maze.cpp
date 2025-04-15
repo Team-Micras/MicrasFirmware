@@ -102,7 +102,7 @@ void TMaze<width, height>::update_wall(const GridPose& pose, bool wall) {
         return;
     }
 
-    this->get_cell(pose.position).walls[pose.orientation] = wall;
+    this->get_cell(pose.position).walls[pose.orientation] |= wall;
 
     GridPose front_pose = pose.front();
 
@@ -110,15 +110,11 @@ void TMaze<width, height>::update_wall(const GridPose& pose, bool wall) {
         return;
     }
 
-    this->get_cell(front_pose.position).walls[pose.turned_back().orientation] = wall;
+    this->get_cell(front_pose.position).walls[pose.turned_back().orientation] |= wall;
 }
 
 template <uint8_t width, uint8_t height>
 bool TMaze<width, height>::has_wall(const GridPose& pose) const {
-    if (pose.position.x >= width or pose.position.y >= height) {
-        return false;
-    }
-
     return this->get_cell(pose.position).walls[pose.orientation];
 }
 
