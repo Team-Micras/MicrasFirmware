@@ -22,7 +22,9 @@ public:
 
     Twist get_twist(const State& /*state*/) const override { return {linear_speed, angular_speed}; }
 
-    bool finished(const State& state) const override { return state.pose.orientation >= this->angle; }
+    bool finished(const State& state) const override {
+        return std::abs(state.pose.orientation) >= std::abs(this->angle);
+    }
 
 private:
     float angle;
