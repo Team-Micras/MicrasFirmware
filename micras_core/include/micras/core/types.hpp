@@ -9,24 +9,12 @@
 
 namespace micras::core {
 /**
- * @brief Possible values for the observation of a wall.
+ * @brief Possible values for the observation from the sensors.
  */
-enum Observation : uint8_t {
-    UNKNOWN = 0,
-    FREE_SPACE = 1,
-    WALL = 2
-};
-
-/**
- * @brief Types of wall following the robot is able to do.
- */
-enum FollowWallType : uint8_t {
-    NONE = 0,
-    FRONT = 1,
-    LEFT = 2,
-    RIGHT = 3,
-    PARALLEL = 4,
-    BACK = 5,
+struct Observation {
+    bool left{};
+    bool front{};
+    bool right{};
 };
 
 /**

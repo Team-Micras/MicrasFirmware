@@ -19,8 +19,6 @@ public:
     struct Config {
         hal::Pwm::Config backwards_pwm;
         hal::Pwm::Config forward_pwm;
-        float            max_stopped_command;
-        float            deadzone;
     };
 
     /**
@@ -47,16 +45,6 @@ private:
      * @brief PWM object for controlling the motor in the forward direction.
      */
     hal::Pwm forward_pwm;
-
-    /**
-     * @brief Maximum command value for the motor to be considered stopped.
-     */
-    float max_stopped_command;
-
-    /**
-     * @brief Deadzone for the motor.
-     */
-    float deadzone;
 };
 }  // namespace micras::proxy
 

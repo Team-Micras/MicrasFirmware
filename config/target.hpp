@@ -244,21 +244,14 @@ const proxy::WallSensors::Config wall_sensors_config = {
             .timer_channel = TIM_CHANNEL_2,
         },
     .filter_cutoff = 5.0F,
-    .uncertainty = 0.2F,
-    .wall_threshold =
+    .base_readings =
         {
             0.42F,
             0.1F,
             0.1F,
             0.32F,
         },
-    .free_threshold =
-        {
-            0.39F,
-            0.09F,
-            0.09F,
-            0.29F,
-        },
+    .uncertainty = 0.2F,
 };
 
 const proxy::Imu::Config imu_config = {
@@ -332,8 +325,6 @@ const proxy::Locomotion::Config locomotion_config = {
                     .handle = &htim3,
                     .timer_channel = TIM_CHANNEL_3,
                 },
-            .max_stopped_command = 1.0F,
-            .deadzone = 18.0F,
         },
     .right_motor =
         {
@@ -349,8 +340,6 @@ const proxy::Locomotion::Config locomotion_config = {
                     .handle = &htim1,
                     .timer_channel = TIM_CHANNEL_1,
                 },
-            .max_stopped_command = 1.0F,
-            .deadzone = 15.0F,
         },
     .enable_gpio =
         {

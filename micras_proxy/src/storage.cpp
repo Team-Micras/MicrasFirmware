@@ -27,11 +27,11 @@ Storage::Storage(const Config& config) : start_page{config.start_page}, number_o
     this->serializables = deserialize_var_map<SerializableVariable>(this->buffer, num_serializables);
 }
 
-void Storage::create(const std::string& name, const ISerializable& data) {
+void Storage::create(const std::string& name, const core::ISerializable& data) {
     this->serializables[name].ram_pointer = &data;
 }
 
-void Storage::sync(const std::string& name, ISerializable& data) {
+void Storage::sync(const std::string& name, core::ISerializable& data) {
     if (this->serializables.contains(name) and this->serializables.at(name).ram_pointer == nullptr) {
         const auto& serializable = this->serializables.at(name);
         data.deserialize(&this->buffer.at(serializable.buffer_address), serializable.size);

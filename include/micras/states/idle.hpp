@@ -27,6 +27,8 @@ public:
         if (this->micras.button_status == proxy::Button::Status::SHORT_PRESS) {
             this->micras.locomotion.enable();
             this->micras.objective = core::Objective::EXPLORE;
+            this->micras.grid_pose = this->micras.maze.get_next_goal(this->micras.grid_pose.position, false);
+            this->micras.current_action = this->micras.action_queuer.pop();
             return Micras::State::WAIT_FOR_RUN;
         }
 
@@ -34,11 +36,7 @@ public:
             this->micras.locomotion.enable();
             this->micras.objective = core::Objective::SOLVE;
 
-            this->micras.maze_storage.sync("maze", this->micras.mapping);
-
-            if (this->micras.dip_switch.get_switch_state(Micras::Switch::DIAGONAL)) {
-                this->micras.mapping.diagonalize_best_route();
-            }
+            this->micras.maze_storage.sync("maze", this->micras.maze);
 
             if (this->micras.dip_switch.get_switch_state(Micras::Switch::FAN)) {
                 this->micras.fan.set_speed(50.0F);

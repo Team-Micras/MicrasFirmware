@@ -8,7 +8,7 @@ using namespace micras;  // NOLINT(google-build-using-namespace)
 
 static constexpr uint32_t time_interval{500};
 
-class TestSerializable : public proxy::ISerializable {
+class TestSerializable : public core::ISerializable {
 public:
     explicit TestSerializable(bool empty = false) {
         if (empty) {

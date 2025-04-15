@@ -2,13 +2,13 @@
  * @file
  */
 
-#ifndef MICRAS_PROXY_SERIALIZABLE_HPP
-#define MICRAS_PROXY_SERIALIZABLE_HPP
+#ifndef MICRAS_CORE_SERIALIZABLE_HPP
+#define MICRAS_CORE_SERIALIZABLE_HPP
 
 #include <cstdint>
 #include <vector>
 
-namespace micras::proxy {
+namespace micras::core {
 /**
  * @brief Interface class for serializable classes.
  */
@@ -46,6 +46,6 @@ protected:
     ISerializable& operator=(ISerializable&&) = default;
     ///@}
 };
-}  // namespace micras::proxy
+}  // namespace micras::core
 
-#endif  // MICRAS_PROXY_SERIALIZABLE_HPP
+#endif  // MICRAS_CORE_SERIALIZABLE_HPP
