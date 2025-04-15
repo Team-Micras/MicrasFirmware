@@ -27,6 +27,8 @@ public:
         if (this->micras.button_status == proxy::Button::Status::SHORT_PRESS) {
             this->micras.locomotion.enable();
             this->micras.objective = core::Objective::EXPLORE;
+            this->micras.grid_pose = this->micras.maze.get_next_goal(this->micras.grid_pose.position, false);
+            this->micras.current_action = this->micras.action_queuer.pop();
             return Micras::State::WAIT_FOR_RUN;
         }
 

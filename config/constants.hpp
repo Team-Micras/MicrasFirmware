@@ -25,7 +25,7 @@ constexpr float    cell_size{0.18};
 constexpr uint32_t loop_time_us{1042};
 constexpr float    wall_thickness{0.0126F};
 constexpr float    start_offset{0.04F + wall_thickness / 2.0F};
-constexpr float    exploration_speed{0.1F};
+constexpr float    exploration_speed{0.5F};
 
 /*****************************************
  * Template Instantiations
@@ -48,7 +48,7 @@ const nav::ActionQueuer::Config action_queuer_config{
             .max_acceleration = 1.0F,
             .max_deceleration = 1.0F,
             .curve_radius = cell_size / 2.0F,
-            .max_centrifugal_acceleration = 1.0F,
+            .max_centrifugal_acceleration = 2.78F,
         },
     .solving =
         {
@@ -86,39 +86,39 @@ const nav::Maze::Config maze_config{
 const nav::Odometry::Config odometry_config{
     .linear_cutoff_frequency = 5.0F,
     .wheel_radius = 0.0112F,
-    .initial_pose = {},
+    .initial_pose = {{0.0F, 0.0F}, 0.0F},
 };
 
 const nav::SpeedController::Config speed_controller_config{
     .linear_pid =
         {
-            .kp = 0.5F,
+            .kp = 50.0F,
             .ki = 0.0F,
             .kd = 0.0F,
             .setpoint = 0.0F,
-            .saturation = 1.0F,
+            .saturation = 40.0F,
             .max_integral = -1.0F,
         },
     .angular_pid =
         {
-            .kp = 0.5F,
+            .kp = 5.0F,
             .ki = 0.0F,
             .kd = 0.0F,
             .setpoint = 0.0F,
-            .saturation = 1.0F,
+            .saturation = 40.0F,
             .max_integral = -1.0F,
         },
     .left_feed_forward =
         {
             .bias = 0.0F,
-            .speed = 1.0F,
-            .acceleration = 1.0F,
+            .speed = 0.0F,
+            .acceleration = 0.0F,
         },
     .right_feed_forward =
         {
             .bias = 0.0F,
-            .speed = 1.0F,
-            .acceleration = 1.0F,
+            .speed = 0.0F,
+            .acceleration = 0.0F,
         },
 };
 }  // namespace micras

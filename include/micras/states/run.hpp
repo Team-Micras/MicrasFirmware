@@ -54,8 +54,8 @@ private:
     bool run(float elapsed_time) {
         this->micras.odometry.update(elapsed_time);
 
-        const micras::nav::State state = this->micras.odometry.get_state();
-        core::Observation        observation{};
+        const micras::nav::State& state = this->micras.odometry.get_state();
+        core::Observation         observation{};
 
         if (this->micras.current_action->finished(state)) {
             this->micras.odometry.reset();

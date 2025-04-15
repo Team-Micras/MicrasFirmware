@@ -53,6 +53,7 @@ void Odometry::update(float elapsed_time) {
 void Odometry::reset() {
     this->left_last_position = this->left_rotary_sensor->get_position();
     this->right_last_position = this->right_rotary_sensor->get_position();
+    this->state = {{{0.0F, 0.0F}, 0.0F}, {0.0F, 0.0F}};
 }
 
 const nav::State& Odometry::get_state() const {
