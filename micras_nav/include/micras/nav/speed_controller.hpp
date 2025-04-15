@@ -5,6 +5,8 @@
 #ifndef MICRAS_NAV_SPEED_CONTROLLER_HPP
 #define MICRAS_NAV_SPEED_CONTROLLER_HPP
 
+#include <utility>
+
 #include "micras/core/pid_controller.hpp"
 #include "micras/nav/state.hpp"
 
@@ -45,7 +47,7 @@ public:
      * @param elapsed_time The time elapsed since the last update.
      * @return The command to go to the point.
      */
-    Twist action(const Twist& current_twist, const Twist& desired_twist, float elapsed_time);
+    std::pair<float, float> action(const Twist& current_twist, const Twist& desired_twist, float elapsed_time);
 
     /**
      * @brief Reset the PID controllers.

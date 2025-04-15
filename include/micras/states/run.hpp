@@ -86,8 +86,8 @@ private:
 
         // desired_twist.angular = this->micras.follow_wall.action(observation, elapsed_time, state.velocity.linear);
 
-        const nav::Twist command = this->micras.speed_controller.action(state.velocity, desired_twist, elapsed_time);
-        this->micras.locomotion.set_command(command.linear, command.angular);
+        const auto command = this->micras.speed_controller.action(state.velocity, desired_twist, elapsed_time);
+        this->micras.locomotion.set_wheel_command(command.first, command.second);
 
         return false;
     }

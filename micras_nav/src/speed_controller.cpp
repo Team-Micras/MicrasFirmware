@@ -14,7 +14,8 @@ SpeedController::SpeedController(const Config& config) :
     left_feed_forward{config.left_feed_forward},
     right_feed_forward{config.right_feed_forward} { }
 
-Twist SpeedController::action(const Twist& current_twist, const Twist& desired_twist, float elapsed_time) {
+std::pair<float, float>
+    SpeedController::action(const Twist& current_twist, const Twist& desired_twist, float elapsed_time) {
     this->linear_pid.set_setpoint(desired_twist.linear);
     this->angular_pid.set_setpoint(desired_twist.angular);
 
