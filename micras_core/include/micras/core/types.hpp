@@ -18,18 +18,6 @@ struct Observation {
 };
 
 /**
- * @brief Types of wall following the robot is able to do.
- */
-enum FollowWallType : uint8_t {
-    NONE = 0,
-    FRONT = 1,
-    LEFT = 2,
-    RIGHT = 3,
-    PARALLEL = 4,
-    BACK = 5,
-};
-
-/**
  * @brief Possible objectives of the robot.
  */
 enum Objective : uint8_t {

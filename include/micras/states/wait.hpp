@@ -35,11 +35,7 @@ public:
 
         if (this->wait_stopwatch.elapsed_time_ms() > this->wait_time_ms) {
             this->micras.odometry.reset();
-            this->micras.look_at_point.reset();
-            this->micras.go_to_point.reset();
             this->micras.imu->calibrate();
-            this->micras.current_action =
-                this->micras.mapping.get_action(this->micras.odometry.get_state().pose, this->micras.objective);
 
             return this->next_state_id;
         }

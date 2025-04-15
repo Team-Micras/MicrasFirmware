@@ -325,8 +325,6 @@ const proxy::Locomotion::Config locomotion_config = {
                     .handle = &htim3,
                     .timer_channel = TIM_CHANNEL_3,
                 },
-            .max_stopped_command = 1.0F,
-            .deadzone = 18.0F,
         },
     .right_motor =
         {
@@ -342,8 +340,6 @@ const proxy::Locomotion::Config locomotion_config = {
                     .handle = &htim1,
                     .timer_channel = TIM_CHANNEL_1,
                 },
-            .max_stopped_command = 1.0F,
-            .deadzone = 15.0F,
         },
     .enable_gpio =
         {

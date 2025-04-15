@@ -43,10 +43,8 @@ private:
      * @brief Enum for the type of calibration being performed.
      */
     enum CalibrationType : uint8_t {
-        SIDE_WALLS = 0,        // Calibrate side walls and front free space detection.
-        FRONT_WALL = 1,        // Calibrate front wall detection.
-        LEFT_FREE_SPACE = 2,   // Calibrate left free space detection.
-        RIGHT_FREE_SPACE = 3,  // Calibrate right free space detection.
+        SIDE_WALLS = 0,  // Calibrate side walls and front free space detection.
+        FRONT_WALL = 1,  // Calibrate front wall detection.
     };
 
     /**
@@ -82,7 +80,9 @@ private:
     /**
      * @brief Current action of the robot.
      */
-    nav::Mapping::Action current_action{};
+    std::shared_ptr<nav::Action> current_action;
+
+    nav::GridPose grid_pose{};
 
     /**
      * @brief Sensors and actuators.
@@ -115,10 +115,11 @@ private:
      * @brief High level objects.
      */
     ///@{
-    nav::Odometry    odometry;
-    nav::Mapping     mapping;
-    nav::LookAtPoint look_at_point;
-    nav::GoToPoint   go_to_point;
+    nav::ActionQueuer    action_queuer;
+    nav::FollowWall      follow_wall;
+    nav::Maze            maze;
+    nav::Odometry        odometry;
+    nav::SpeedController speed_controller;
     ///@}
 
     /**

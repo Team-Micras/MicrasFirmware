@@ -17,10 +17,10 @@ class TurnAction : public Action {
 public:
     TurnAction(float angle, float curve_radius, float max_centrifugal_acceleration) :
         angle{angle},
-        linear_speed{std::sqrtf(max_centrifugal_acceleration * curve_radius)},
+        linear_speed{std::sqrt(max_centrifugal_acceleration * curve_radius)},
         angular_speed{std::copysignf(linear_speed / curve_radius, angle)} { }
 
-    Twist get_twist(const State& state) const override { return {linear_speed, angular_speed}; }
+    Twist get_twist(const State& /*state*/) const override { return {linear_speed, angular_speed}; }
 
     bool finished(const State& state) const override { return state.pose.orientation >= this->angle; }
 

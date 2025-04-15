@@ -12,40 +12,37 @@
 
 namespace micras::nav {
 template <uint8_t width, uint8_t height>
-TMaze<width, height>::TMaze(const GridPose& start, const std::unordered_set<GridPoint>& goal) :
-    start{start}, goal{goal} {
+TMaze<width, height>::TMaze(Config config) : start{config.start}, goal{config.goal} {
     for (uint8_t row = 0; row < height; row++) {
-        this->cells[row][0].wall_count[Side::LEFT] = 0xFFFF;
-        this->cells[row][width - 1].wall_count[Side::RIGHT] = 0xFFFF;
+        this->cells[row][0].walls[Side::LEFT] = true;
+        this->cells[row][width - 1].walls[Side::RIGHT] = true;
     }
 
     for (uint8_t col = 0; col < width; col++) {
-        this->cells[0][col].wall_count[Side::DOWN] = 0xFFFF;
-        this->cells[height - 1][col].wall_count[Side::UP] = 0xFFFF;
+        this->cells[0][col].walls[Side::DOWN] = true;
+        this->cells[height - 1][col].walls[Side::UP] = true;
     }
 
-    this->cells[start.position.y][start.position.x].wall_count[start.turned_right().orientation] = 0xFFFF;
+    this->cells[start.position.y][start.position.x].walls[start.turned_right().orientation] = true;
     GridPose right_pose = start.turned_right().front();
-    this->get_cell(right_pose.position).wall_count[right_pose.turned_back().orientation] = 0xFFFF;
+    this->get_cell(right_pose.position).walls[right_pose.turned_back().orientation] = true;
 
     // Hardcoded walls at the end region
     if (width == 16 and height == 16) {
-        this->cells.at(7).at(7).wall_count[Side::DOWN] = 0xFFFF;
-        this->cells.at(7).at(7).wall_count[Side::LEFT] = 0xFFFF;
-        this->cells.at(6).at(7).wall_count[Side::UP] = 0xFFFF;
-        this->cells.at(7).at(6).wall_count[Side::RIGHT] = 0xFFFF;
-        this->cells.at(7).at(8).wall_count[Side::DOWN] = 0xFFFF;
-        this->cells.at(6).at(8).wall_count[Side::UP] = 0xFFFF;
-        this->cells.at(7).at(8).free_count[Side::RIGHT] = 0xFFFF;
-        this->cells.at(7).at(9).free_count[Side::LEFT] = 0xFFFF;
-        this->cells.at(8).at(7).wall_count[Side::LEFT] = 0xFFFF;
-        this->cells.at(8).at(7).wall_count[Side::UP] = 0xFFFF;
-        this->cells.at(8).at(6).wall_count[Side::RIGHT] = 0xFFFF;
-        this->cells.at(9).at(7).wall_count[Side::DOWN] = 0xFFFF;
-        this->cells.at(8).at(8).wall_count[Side::UP] = 0xFFFF;
-        this->cells.at(8).at(8).wall_count[Side::RIGHT] = 0xFFFF;
-        this->cells.at(9).at(8).wall_count[Side::DOWN] = 0xFFFF;
-        this->cells.at(8).at(9).wall_count[Side::LEFT] = 0xFFFF;
+        this->cells.at(7).at(7).walls[Side::DOWN] = true;
+        this->cells.at(7).at(7).walls[Side::LEFT] = true;
+        this->cells.at(6).at(7).walls[Side::UP] = true;
+        this->cells.at(7).at(6).walls[Side::RIGHT] = true;
+        this->cells.at(7).at(8).walls[Side::DOWN] = true;
+        this->cells.at(6).at(8).walls[Side::UP] = true;
+        this->cells.at(8).at(7).walls[Side::LEFT] = true;
+        this->cells.at(8).at(7).walls[Side::UP] = true;
+        this->cells.at(8).at(6).walls[Side::RIGHT] = true;
+        this->cells.at(9).at(7).walls[Side::DOWN] = true;
+        this->cells.at(8).at(8).walls[Side::UP] = true;
+        this->cells.at(8).at(8).walls[Side::RIGHT] = true;
+        this->cells.at(9).at(8).walls[Side::DOWN] = true;
+        this->cells.at(8).at(9).walls[Side::LEFT] = true;
     }
 
     for (const auto& position : this->goal) {
@@ -57,23 +54,18 @@ TMaze<width, height>::TMaze(const GridPose& start, const std::unordered_set<Grid
 
 template <uint8_t width, uint8_t height>
 void TMaze<width, height>::update_walls(const GridPose& pose, const core::Observation& observation) {
-    this->update_wall(pose.turned_left(), information.left);
-    this->update_wall(pose, information.front);
-    this->update_wall(pose.turned_right(), information.right);
+    this->update_wall(pose.turned_left(), observation.left);
+    this->update_wall(pose, observation.front);
+    this->update_wall(pose.turned_right(), observation.right);
 
     this->calculate_costmap();
 }
 
 template <uint8_t width, uint8_t height>
-GridPoint TMaze<width, height>::get_next_goal(const GridPoint& position, bool returning) const {
+GridPose TMaze<width, height>::get_next_goal(const GridPoint& position, bool returning) const {
     uint16_t current_cost = this->get_cell(position).cost;
 
     if (returning) {
-        if (this->best_route.contains(current_cost) and this->best_route.at(current_cost).position == position) {
-            auto current = this->best_route.find(current_cost);
-            return std::prev(current)->second.position;
-        }
-
         return get_next_goal(position, false);
     }
 
@@ -87,10 +79,11 @@ GridPoint TMaze<width, height>::get_next_goal(const GridPoint& position, bool re
         if (not this->has_wall({position, side}) and this->get_cell(front_position).cost < current_cost) {
             current_cost = this->get_cell(front_position).cost;
             next_position = front_position;
+            next_side = side;
         }
     }
 
-    return next_position;
+    return {next_position, next_side};
 }
 
 template <uint8_t width, uint8_t height>
@@ -117,7 +110,7 @@ void TMaze<width, height>::update_wall(const GridPose& pose, bool wall) {
         return;
     }
 
-    this->get_cell(front_pose.position).wall_count[pose.turned_back().orientation] = wall;
+    this->get_cell(front_pose.position).walls[pose.turned_back().orientation] = wall;
 }
 
 template <uint8_t width, uint8_t height>
@@ -143,16 +136,16 @@ template <uint8_t width, uint8_t height>
 void TMaze<width, height>::calculate_best_route() {
     GridPose current_pose = this->start;
     this->best_route.clear();
-    this->best_route.try_emplace(this->get_cell(this->start.position).cost, this->start);
+    this->best_route.emplace_back(this->start);
 
     while (not this->goal.contains(current_pose.position)) {
         current_pose = this->get_current_exploration_goal(current_pose.position);
-        this->best_route.try_emplace(this->get_cell(current_pose.position).cost, current_pose);
+        this->best_route.emplace_back(current_pose);
     }
 }
 
 template <uint8_t width, uint8_t height>
-const std::map<uint16_t, GridPose, std::greater<>>& TMaze<width, height>::get_best_route() const {
+const std::list<GridPose>& TMaze<width, height>::get_best_route() const {
     return this->best_route;
 }
 
@@ -198,7 +191,7 @@ std::vector<uint8_t> TMaze<width, height>::serialize() const {
     std::vector<uint8_t> buffer;
     buffer.reserve(3 * this->best_route.size());
 
-    for (const auto& [cost, grid_pose] : this->best_route) {
+    for (const auto& grid_pose : this->best_route) {
         buffer.emplace_back(grid_pose.position.x);
         buffer.emplace_back(grid_pose.position.y);
         buffer.emplace_back(grid_pose.orientation);
@@ -214,7 +207,7 @@ void TMaze<width, height>::deserialize(const uint8_t* buffer, uint16_t size) {
     for (uint32_t i = 0; i < size; i += 3) {
         this->best_route.emplace_back(
             // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-            Point::from_grid({buffer[i], buffer[i + 1]}, this->cell_size), static_cast<Direction>(2 * buffer[i + 2])
+            GridPoint{buffer[i], buffer[i + 1]}, static_cast<Side>(buffer[i + 2])
         );
     }
 }

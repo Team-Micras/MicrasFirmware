@@ -7,7 +7,7 @@
 
 #include <array>
 #include <cstdint>
-#include <map>
+#include <list>
 #include <unordered_set>
 
 #include "micras/core/serializable.hpp"
@@ -23,13 +23,15 @@ namespace micras::nav {
 template <uint8_t width, uint8_t height>
 class TMaze : public core::ISerializable {
 public:
+    struct Config {
+        GridPose                      start{};
+        std::unordered_set<GridPoint> goal;
+    };
+
     /**
      * @brief Construct a new Maze object.
-     *
-     * @param start The start pose of the robot.
-     * @param goal The goal points in the maze.
      */
-    TMaze(const GridPose& start, const std::unordered_set<GridPoint>& goal);
+    explicit TMaze(Config config);
 
     /**
      * @brief Update the maze walls with the current pose and new information.
@@ -45,7 +47,7 @@ public:
      * @param position The current position of the robot.
      * @return The next point the robot should go to when exploring.
      */
-    GridPoint get_next_goal(const GridPoint& position, bool returning) const;
+    GridPose get_next_goal(const GridPoint& position, bool returning) const;
 
     /**
      * @brief Check the type of wall following the robot can do.
@@ -73,7 +75,7 @@ public:
      *
      * @return The best route to the goal.
      */
-    const std::map<uint16_t, GridPose, std::greater<>>& get_best_route() const;
+    const std::list<GridPose>& get_best_route() const;
 
     /**
      * @brief Serialize the best route to the goal.
@@ -154,7 +156,7 @@ private:
     /**
      * @brief Current best found route to the goal.
      */
-    std::map<uint16_t, GridPose, std::greater<>> best_route;
+    std::list<GridPose> best_route;
 };
 }  // namespace micras::nav
 

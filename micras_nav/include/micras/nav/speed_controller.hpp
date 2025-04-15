@@ -26,8 +26,8 @@ public:
 
         core::PidController::Config linear_pid;
         core::PidController::Config angular_pid;
-        FeedForward                 left_feed_forward;
-        FeedForward                 right_feed_forward;
+        FeedForward                 left_feed_forward{};
+        FeedForward                 right_feed_forward{};
     };
 
     /**
@@ -35,7 +35,7 @@ public:
      *
      * @param config The configuration for the SpeedController class.
      */
-    SpeedController(const Config& config);
+    explicit SpeedController(const Config& config);
 
     /**
      * @brief Calculate the command to go to a point.

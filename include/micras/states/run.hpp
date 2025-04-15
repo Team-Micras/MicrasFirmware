@@ -24,11 +24,6 @@ public:
             return this->get_id();
         }
 
-        if (this->micras.current_action.type == nav::Mapping::Action::Type::ERROR) {
-            this->stop();
-            return Micras::State::ERROR;
-        }
-
         switch (this->micras.objective) {
             case core::Objective::EXPLORE:
                 this->micras.objective = core::Objective::RETURN;
@@ -36,7 +31,7 @@ public:
 
             case core::Objective::RETURN:
                 this->micras.objective = core::Objective::SOLVE;
-                this->micras.maze_storage.create("maze", this->micras.mapping);
+                this->micras.maze_storage.create("maze", this->micras.maze);
                 this->micras.maze_storage.save();
                 this->stop();
                 return Micras::State::IDLE;
@@ -59,113 +54,41 @@ private:
     bool run(float elapsed_time) {
         this->micras.odometry.update(elapsed_time);
 
-        micras::nav::State state = this->micras.odometry.get_state();
+        const micras::nav::State state = this->micras.odometry.get_state();
+        core::Observation        observation{};
 
-        if (this->micras.objective != core::Objective::SOLVE) {
-            this->micras.mapping.update(state.pose);
-        }
+        if (this->micras.current_action->finished(state)) {
+            this->micras.odometry.reset();
 
-        nav::Twist command{};
+            if (not this->micras.action_queuer.empty()) {
+                this->micras.current_action = this->micras.action_queuer.pop();
+            } else {
+                const bool returning = (this->micras.objective == core::Objective::RETURN);
 
-        const nav::State relative_state = {
-            {state.pose.position.rotate(this->micras.current_action.direction),
-             core::assert_angle(
-                 state.pose.orientation + std::numbers::pi_v<float> / 4.0F * (2 - this->micras.current_action.direction)
-             )},
-            state.velocity
-        };
-
-        core::FollowWallType follow_wall_type = this->micras.mapping.get_follow_wall_type(state.pose);
-
-        const bool stop = (this->micras.objective != core::Objective::SOLVE) or
-                          not this->micras.dip_switch.get_switch_state(Micras::Switch::STOP);
-
-        switch (this->micras.current_action.type) {
-            case nav::Mapping::Action::Type::LOOK_AT:
-                if (this->micras.look_at_point.finished(relative_state, this->micras.current_action.point)) {
-                    this->micras.current_action = this->micras.mapping.get_action(state.pose, this->micras.objective);
-
-                    if (this->micras.current_action.type == nav::Mapping::Action::Type::GO_TO and
-                        this->micras.mapping.can_align_back(state.pose) and
-                        this->micras.objective != core::Objective::SOLVE) {
-                        this->micras.current_action.type = nav::Mapping::Action::Type::ALIGN_BACK;
-                        this->align_back_stopwatch.reset_ms();
-                    }
-
-                    this->micras.look_at_point.reset();
-                    return false;
+                if (this->micras.objective != core::Objective::SOLVE) {
+                    observation = this->micras.wall_sensors->get_observation();
+                    this->micras.maze.update_walls(this->micras.grid_pose, observation);
                 }
 
-                command =
-                    this->micras.look_at_point.action(relative_state, this->micras.current_action.point, elapsed_time);
-                break;
-
-            case nav::Mapping::Action::Type::GO_TO:
-                if (this->micras.go_to_point.finished(relative_state, this->micras.current_action.point, stop)) {
-                    this->micras.current_action = this->micras.mapping.get_action(state.pose, this->micras.objective);
-                    this->micras.go_to_point.reset();
-
-                    return false;
+                if (this->micras.maze.finished(this->micras.grid_pose.position, returning)) {
+                    return true;
                 }
 
-                if (this->micras.current_action.direction % 2 == 1) {
-                    follow_wall_type = core::FollowWallType::NONE;
-                } else {
-                    state.pose = this->micras.mapping.correct_pose(state.pose, follow_wall_type);
-                    this->micras.odometry.set_state(state);
-                }
+                auto next_goal = this->micras.maze.get_next_goal(this->micras.grid_pose.position, returning);
 
-                command = this->micras.go_to_point.action(
-                    relative_state, this->micras.current_action.point, follow_wall_type, elapsed_time, stop
-                );
-
-                break;
-            case nav::Mapping::Action::Type::ALIGN_BACK:
-                command = {-5.0F, 0.0F};
-
-                if (this->align_back_stopwatch.elapsed_time_ms() > 500) {
-                    state.pose = this->micras.mapping.correct_pose(state.pose, core::FollowWallType::BACK);
-                    this->micras.odometry.set_state(state);
-                    this->micras.current_action = this->micras.mapping.get_action(state.pose, this->micras.objective);
-                    return false;
-                }
-                break;
-            default:
-                this->micras.locomotion.stop();
-                return true;
-        }
-
-        if (this->micras.current_action.type == nav::Mapping::Action::Type::LOOK_AT) {
-            this->micras.argb.set_color(proxy::Argb::Colors::blue);
-        } else if (this->micras.current_action.type == nav::Mapping::Action::Type::GO_TO) {
-            switch (follow_wall_type) {
-                case core::FollowWallType::NONE:
-                    this->micras.argb.set_color(proxy::Argb::Colors::magenta);
-                    break;
-
-                case core::FollowWallType::FRONT:
-                    this->micras.argb.set_color(proxy::Argb::Colors::white);
-                    break;
-
-                case core::FollowWallType::LEFT:
-                    this->micras.argb.set_color(proxy::Argb::Colors::green);
-                    break;
-
-                case core::FollowWallType::RIGHT:
-                    this->micras.argb.set_color(proxy::Argb::Colors::red);
-                    break;
-
-                case core::FollowWallType::PARALLEL:
-                    this->micras.argb.set_color(proxy::Argb::Colors::yellow);
-                    break;
-                default:
-                    break;
+                this->micras.action_queuer.push(this->micras.grid_pose, next_goal.position);
+                this->micras.current_action = this->micras.action_queuer.pop();
+                this->micras.grid_pose = next_goal;
             }
-        } else {
-            this->micras.argb.set_color(proxy::Argb::Colors::cyan);
         }
 
+        auto desired_twist = this->micras.current_action->get_twist(state);
+
+        // desired_twist.angular = this->micras.follow_wall.action(observation, elapsed_time, state.velocity.linear);
+
+        const nav::Twist command = this->micras.speed_controller.action(state.velocity, desired_twist, elapsed_time);
         this->micras.locomotion.set_command(command.linear, command.angular);
+
         return false;
     }
 

@@ -21,7 +21,7 @@ public:
      */
     struct Config {
         core::PidController::Config pid;
-        float                       max_linear_speed;
+        float                       max_linear_speed{};
     };
 
     /**

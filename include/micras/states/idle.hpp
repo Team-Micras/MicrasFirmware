@@ -34,11 +34,7 @@ public:
             this->micras.locomotion.enable();
             this->micras.objective = core::Objective::SOLVE;
 
-            this->micras.maze_storage.sync("maze", this->micras.mapping);
-
-            if (this->micras.dip_switch.get_switch_state(Micras::Switch::DIAGONAL)) {
-                this->micras.mapping.diagonalize_best_route();
-            }
+            this->micras.maze_storage.sync("maze", this->micras.maze);
 
             if (this->micras.dip_switch.get_switch_state(Micras::Switch::FAN)) {
                 this->micras.fan.set_speed(50.0F);

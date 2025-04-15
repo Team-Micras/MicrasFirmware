@@ -5,7 +5,7 @@
 #ifndef MICRAS_NAV_ACTION_QUEUER_HPP
 #define MICRAS_NAV_ACTION_QUEUER_HPP
 
-#include <map>
+#include <list>
 #include <memory>
 #include <queue>
 
@@ -33,21 +33,21 @@ public:
         Dynamic solving;
     };
 
-    ActionQueuer(Config config);
+    explicit ActionQueuer(Config config);
 
-    void push(const GridPose& current_pose, const GridPose& target_pose);
+    void push(const GridPose& current_pose, const GridPoint& target_position);
 
-    const std::shared_ptr<Action>& pop();
+    std::shared_ptr<Action> pop();
 
     bool empty() const;
 
-    void recalculate(const std::map<uint16_t, GridPose, std::greater<>>& best_route);
+    void recalculate(const std::list<GridPose>& best_route);
 
 private:
     float           cell_size;
     float           start_offset;
     Config::Dynamic exploring_params;
-    Config::Dynamic solving_params;
+    // Config::Dynamic solving_params;
 
     std::shared_ptr<MoveAction> start;
     std::shared_ptr<MoveAction> move_forward;

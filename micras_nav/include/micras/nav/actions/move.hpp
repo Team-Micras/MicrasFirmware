@@ -35,14 +35,16 @@ public:
         Twist       twist{};
 
         if (state.pose.position.distance({0.0F, 0.0F}) < this->decelerate_distance) {
-            twist = {std::sqrtf(this->start_speed_2 + this->max_acceleration_doubled * current_distance), 0.0F};
+            twist = {std::sqrt(this->start_speed_2 + this->max_acceleration_doubled * current_distance), 0.0F};
         }
 
         twist = {
-            std::sqrtf(this->end_speed_2 + this->max_deceleration_doubled * (this->distance - current_distance)), 0.0F
+            std::sqrt(this->end_speed_2 + this->max_deceleration_doubled * (this->distance - current_distance)), 0.0F
         };
 
         twist.linear = std::fminf(twist.linear, this->max_speed);
+
+        return twist;
     }
 
     bool finished(const State& state) const override {
