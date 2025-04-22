@@ -41,13 +41,18 @@ void TWallSensors<num_of_sensors>::update() {
 }
 
 template <uint8_t num_of_sensors>
-bool TWallSensors<num_of_sensors>::get_wall(uint8_t sensor_index) const {
-    return this->filters.at(sensor_index).get_last() > this->base_readings.at(sensor_index) * this->uncertainty;
+bool TWallSensors<num_of_sensors>::get_wall(uint8_t sensor_index, bool disturbed) const {
+    return this->filters.at(sensor_index).get_last() >
+           this->base_readings.at(sensor_index) * this->uncertainty * (disturbed ? 1.2F : 1.0F);
 }
 
 template <uint8_t num_of_sensors>
 core::Observation TWallSensors<num_of_sensors>::get_observation() const {
-    return {this->get_wall(1), this->get_wall(0) && this->get_wall(3), this->get_wall(2)};
+    if (this->get_wall(0) && this->get_wall(3)) {
+        return {this->get_wall(1, true), true, this->get_wall(2, true)};
+    }
+
+    return {this->get_wall(1), false, this->get_wall(2)};
 }
 
 template <uint8_t num_of_sensors>

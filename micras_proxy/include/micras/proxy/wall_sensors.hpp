@@ -60,7 +60,7 @@ public:
      * @param sensor_index Index of the sensor.
      * @return True if the sensor detects a wall, false otherwise.
      */
-    bool get_wall(uint8_t sensor_index) const;
+    bool get_wall(uint8_t sensor_index, bool disturbed = false) const;
 
     /**
      * @brief Get the observations from all sensors.
