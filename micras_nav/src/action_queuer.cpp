@@ -13,21 +13,26 @@ ActionQueuer::ActionQueuer(Config config) :
     exploring_params{config.exploring},
     // solving_params{config.solving},
     start{std::make_shared<MoveAction>(
-        cell_size - start_offset, 0.0F, exploring_params.max_speed, exploring_params.max_speed,
-        exploring_params.max_acceleration, exploring_params.max_deceleration
+        cell_size - start_offset, 0.001F * exploring_params.max_linear_acceleration, exploring_params.max_linear_speed,
+        exploring_params.max_linear_speed, exploring_params.max_linear_acceleration,
+        exploring_params.max_linear_deceleration
     )},
     move_forward{std::make_shared<MoveAction>(
-        cell_size, exploring_params.max_speed, exploring_params.max_speed, exploring_params.max_speed,
-        exploring_params.max_acceleration, exploring_params.max_deceleration
+        cell_size, exploring_params.max_linear_speed, exploring_params.max_linear_speed,
+        exploring_params.max_linear_speed, exploring_params.max_linear_acceleration,
+        exploring_params.max_linear_deceleration
     )},
     turn_left{std::make_shared<TurnAction>(
-        std::numbers::pi_v<float> / 2.0F, cell_size / 2.0F, exploring_params.max_centrifugal_acceleration
+        std::numbers::pi_v<float> / 2.0F, cell_size / 2.0F, exploring_params.max_centrifugal_acceleration,
+        exploring_params.max_angular_acceleration
     )},
     turn_right{std::make_shared<TurnAction>(
-        -std::numbers::pi_v<float> / 2.0F, cell_size / 2.0F, exploring_params.max_centrifugal_acceleration
+        -std::numbers::pi_v<float> / 2.0F, cell_size / 2.0F, exploring_params.max_centrifugal_acceleration,
+        exploring_params.max_angular_acceleration
     )},
     turn_back{std::make_shared<TurnAction>(
-        std::numbers::pi_v<float>, cell_size / 2.0F, exploring_params.max_centrifugal_acceleration
+        std::numbers::pi_v<float>, cell_size / 2.0F, exploring_params.max_centrifugal_acceleration,
+        exploring_params.max_angular_acceleration
     )},
     action_queue{{start}} { }
 
