@@ -20,11 +20,12 @@ class ActionQueuer {
 public:
     struct Config {
         struct Dynamic {
-            float max_speed;
-            float max_acceleration;
-            float max_deceleration;
+            float max_linear_speed;
+            float max_linear_acceleration;
+            float max_linear_deceleration;
             float curve_radius;
             float max_centrifugal_acceleration;
+            float max_angular_acceleration;
         };
 
         float   cell_size;

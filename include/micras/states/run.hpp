@@ -59,6 +59,7 @@ private:
 
         if (this->micras.current_action->finished(state)) {
             this->micras.odometry.reset();
+            this->micras.speed_controller.reset();
 
             if (not this->micras.action_queuer.empty()) {
                 this->micras.current_action = this->micras.action_queuer.pop();
@@ -86,8 +87,9 @@ private:
 
         // desired_twist.angular = this->micras.follow_wall.action(observation, elapsed_time, state.velocity.linear);
 
-        const auto command = this->micras.speed_controller.action(state.velocity, desired_twist, elapsed_time);
-        this->micras.locomotion.set_wheel_command(command.first, command.second);
+        const auto [left_command, right_command] =
+            this->micras.speed_controller.action(state.velocity, desired_twist, elapsed_time);
+        this->micras.locomotion.set_wheel_command(left_command, right_command);
 
         return false;
     }

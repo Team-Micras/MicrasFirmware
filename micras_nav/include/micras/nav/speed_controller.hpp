@@ -21,11 +21,14 @@ public:
      */
     struct Config {
         struct FeedForward {
-            float bias;
-            float speed;
-            float acceleration;
+            float linear_speed;
+            float linear_acceleration;
+            float angular_speed;
+            float angular_acceleration;
         };
 
+        float                       max_linear_acceleration{};
+        float                       max_angular_acceleration{};
         core::PidController::Config linear_pid;
         core::PidController::Config angular_pid;
         FeedForward                 left_feed_forward{};
@@ -55,6 +58,14 @@ public:
     void reset();
 
 private:
+    static float feed_forward(const Twist& speed, const Twist& acceleration, const Config::FeedForward& config);
+
+    float max_linear_acceleration;
+    float max_angular_acceleration;
+
+    float last_linear_speed{};
+    float last_angular_speed{};
+
     /**
      * @brief PID controller for stopping at the goal.
      */
