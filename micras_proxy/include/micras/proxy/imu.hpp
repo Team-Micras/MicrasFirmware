@@ -50,13 +50,6 @@ public:
     explicit Imu(const Config& config);
 
     /**
-     * @brief Check the IMU device.
-     *
-     * @return True if the device is correct, false otherwise.
-     */
-    bool check_whoami();
-
-    /**
      * @brief Update the IMU data.
      */
     void update();
@@ -82,7 +75,16 @@ public:
      */
     void calibrate();
 
+    bool was_initialized() const;
+
 private:
+    /**
+     * @brief Check the IMU device.
+     *
+     * @return True if the device is correct, false otherwise.
+     */
+    bool check_whoami();
+
     /**
      * @brief Read data from the IMU.
      *
@@ -150,6 +152,8 @@ private:
      * @brief Flag to check if the IMU is calibrated.
      */
     bool calibrated{};
+
+    bool initialized{};
 };
 }  // namespace micras::proxy
 
