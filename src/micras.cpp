@@ -35,8 +35,7 @@ void Micras::update() {
     this->elapsed_time = loop_stopwatch.elapsed_time_us() / 1e6F;
     loop_stopwatch.reset_us();
 
-    this->button_status = button.get_status();
-
+    this->button.update();
     this->buzzer.update();
     this->fan.update();
     this->imu->update();

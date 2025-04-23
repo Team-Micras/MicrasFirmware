@@ -45,6 +45,7 @@ int main(int argc, char* argv[]) {
 
         imu->update();
         odometry.update(elapsed_time);
+        button.update();
 
         if (button.get_status() != proxy::Button::Status::NO_PRESS) {
             started = true;

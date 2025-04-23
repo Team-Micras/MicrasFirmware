@@ -57,14 +57,19 @@ public:
      *
      * @return True if button is pressed, false otherwise.
      */
-    bool is_pressed();
+    bool is_pressed() const;
 
     /**
      * @brief Get button status.
      *
      * @return Current button status.
      */
-    Status get_status();
+    Status get_status() const;
+
+    /**
+     * @brief Update the status of the button.
+     */
+    void update();
 
 private:
     /**
@@ -76,10 +81,8 @@ private:
 
     /**
      * @brief Update button state.
-     *
-     * @return Current state of the button.
      */
-    bool update_state();
+    void update_state();
 
     /**
      * @brief Check if button was just pressed.
@@ -138,6 +141,11 @@ private:
      * @brief Flag to know if button is being pressed.
      */
     bool current_state{false};
+
+    /**
+     * @brief Current status of the button.
+     */
+    Status current_status{NO_PRESS};
 };
 }  // namespace micras::proxy
 

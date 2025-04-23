@@ -15,14 +15,14 @@ int main(int argc, char* argv[]) {
     proxy::Argb::Color color{};
 
     TestCore::loop([&button, &led, &argb, &color]() {
+        button.update();
         button.is_pressed() ? led.turn_on() : led.turn_off();
-        const proxy::Button::Status status = button.get_status();
 
-        if (status == proxy::Button::Status::SHORT_PRESS) {
+        if (button.get_status() == proxy::Button::Status::SHORT_PRESS) {
             color = proxy::Argb::Colors::red;
-        } else if (status == proxy::Button::Status::LONG_PRESS) {
+        } else if (button.get_status() == proxy::Button::Status::LONG_PRESS) {
             color = proxy::Argb::Colors::green;
-        } else if (status == proxy::Button::Status::EXTRA_LONG_PRESS) {
+        } else if (button.get_status() == proxy::Button::Status::EXTRA_LONG_PRESS) {
             color = proxy::Argb::Colors::blue;
         }
 

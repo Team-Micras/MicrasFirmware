@@ -43,9 +43,9 @@ int main(int argc, char* argv[]) {
         test_left_position = rotary_sensor_left.get_position();
         test_right_position = rotary_sensor_right.get_position();
 
-        auto button_status = button.get_status();
+        button.update();
 
-        if (button_status != proxy::Button::Status::NO_PRESS) {
+        if (button.get_status() != proxy::Button::Status::NO_PRESS) {
             running = not running;
 
             if (running) {

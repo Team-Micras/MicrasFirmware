@@ -35,9 +35,9 @@ int main(int argc, char* argv[]) {
         stopwatch.reset_us();
 
         wall_sensors->update();
-        auto button_status = button.get_status();
+        button.update();
 
-        if (button_status == proxy::Button::Status::SHORT_PRESS) {
+        if (button.get_status() == proxy::Button::Status::SHORT_PRESS) {
             started = not started;
 
             if (started) {
@@ -52,7 +52,7 @@ int main(int argc, char* argv[]) {
             locomotion.disable();
         }
 
-        if (button_status == proxy::Button::Status::LONG_PRESS) {
+        if (button.get_status() == proxy::Button::Status::LONG_PRESS) {
             follow_wall_type = static_cast<core::FollowWallType>((follow_wall_type + 1) % 5);
 
             switch (follow_wall_type) {

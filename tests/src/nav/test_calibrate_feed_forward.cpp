@@ -68,15 +68,15 @@ int main(int argc, char* argv[]) {
 
         imu->update();
         odometry.update(elapsed_time);
+        button.update();
         const auto& state = odometry.get_state();
-        auto        button_status = button.get_status();
 
-        if (button_status == proxy::Button::Status::SHORT_PRESS) {
+        if (button.get_status() == proxy::Button::Status::SHORT_PRESS) {
             waiting = true;
             running_stopwatch.reset_ms();
             argb.set_color(proxy::Argb::Colors::blue);
             return;
-        } else if (button_status == proxy::Button::Status::LONG_PRESS and iterator == 0) {
+        } else if (button.get_status() == proxy::Button::Status::LONG_PRESS and iterator == 0) {
             test_type = (test_type + 1) % 4;
             argb.set_color(colors[test_type]);
         }

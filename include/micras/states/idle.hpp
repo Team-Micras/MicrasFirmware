@@ -20,11 +20,11 @@ public:
      * @return The id of the next state.
      */
     uint8_t run(uint8_t /*previous_state_id*/) override {
-        if (this->micras.button_status != proxy::Button::Status::NO_PRESS) {
+        if (this->micras.button.get_status() != proxy::Button::Status::NO_PRESS) {
             this->micras.wall_sensors->turn_on();
         }
 
-        if (this->micras.button_status == proxy::Button::Status::SHORT_PRESS) {
+        if (this->micras.button.get_status() == proxy::Button::Status::SHORT_PRESS) {
             this->micras.locomotion.enable();
             this->micras.objective = core::Objective::EXPLORE;
             this->micras.grid_pose = this->micras.maze.get_next_goal(this->micras.grid_pose.position, false);
@@ -32,7 +32,7 @@ public:
             return Micras::State::WAIT_FOR_RUN;
         }
 
-        if (this->micras.button_status == proxy::Button::Status::LONG_PRESS) {
+        if (this->micras.button.get_status() == proxy::Button::Status::LONG_PRESS) {
             this->micras.locomotion.enable();
             this->micras.objective = core::Objective::SOLVE;
 
@@ -45,7 +45,7 @@ public:
             return Micras::State::WAIT_FOR_RUN;
         }
 
-        if (this->micras.button_status == proxy::Button::Status::EXTRA_LONG_PRESS) {
+        if (this->micras.button.get_status() == proxy::Button::Status::EXTRA_LONG_PRESS) {
             return Micras::State::WAIT_FOR_CALIBRATE;
         }
 
