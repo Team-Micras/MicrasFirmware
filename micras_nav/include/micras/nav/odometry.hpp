@@ -6,9 +6,9 @@
 #define MICRAS_NAV_ODOMETRY_HPP
 
 #include <cstdint>
+#include <memory>
 
 #include "micras/core/butterworth_filter.hpp"
-#include "micras/hal/timer.hpp"
 #include "micras/nav/state.hpp"
 #include "micras/proxy/imu.hpp"
 #include "micras/proxy/rotary_sensor.hpp"
@@ -29,7 +29,7 @@ public:
     };
 
     /**
-     * @brief Construct a newOdometry object.
+     * @brief Construct a new Odometry object.
      *
      * @param left_rotary_sensor Left rotary sensor.
      * @param right_rotary_sensor Right rotary sensor.
@@ -37,8 +37,9 @@ public:
      * @param config Configuration for the odometry.
      */
     Odometry(
-        const proxy::RotarySensor& left_rotary_sensor, const proxy::RotarySensor& right_rotary_sensor,
-        const proxy::Imu& imu, Config config
+        const std::shared_ptr<proxy::RotarySensor>& left_rotary_sensor,
+        const std::shared_ptr<proxy::RotarySensor>& right_rotary_sensor, const std::shared_ptr<proxy::Imu>& imu,
+        Config config
     );
 
     /**
@@ -71,17 +72,17 @@ private:
     /**
      * @brief Left rotary sensor.
      */
-    const proxy::RotarySensor& left_rotary_sensor;  // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
+    std::shared_ptr<proxy::RotarySensor> left_rotary_sensor;
 
     /**
      * @brief Right rotary sensor.
      */
-    const proxy::RotarySensor& right_rotary_sensor;  // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
+    std::shared_ptr<proxy::RotarySensor> right_rotary_sensor;
 
     /**
      * @brief IMU sensor.
      */
-    const proxy::Imu& imu;  // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
+    std::shared_ptr<proxy::Imu> imu;
 
     /**
      * @brief Wheel radius.
@@ -107,8 +108,6 @@ private:
      * @brief Current state of the robot in space.
      */
     State state;
-
-    friend class Interface;
 };
 }  // namespace micras::nav
 

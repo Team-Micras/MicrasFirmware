@@ -46,7 +46,7 @@ Point Point::rotate(Direction angle) {
 }
 
 Point Point::move_towards(const Point& other, float distance) const {
-    float angle = this->angle_between(other);
+    const float angle = this->angle_between(other);
     return {this->x + distance * std::cos(angle), this->y + distance * std::sin(angle)};
 }
 
@@ -71,7 +71,7 @@ GridPose Pose::to_grid(float cell_size) const {
 };
 
 Point Pose::to_cell(float cell_size) const {
-    Point cell_position = this->position % cell_size;
+    const Point cell_position = this->position % cell_size;
 
     float cell_advance = 0.0F;
     float cell_alignment = 0.0F;

@@ -19,40 +19,45 @@ int main(int argc, char* argv[]) {
 
         switch (button_status) {
             case proxy::Button::Status::SHORT_PRESS:
+                locomotion.enable();
                 locomotion.set_command(test_speed, 0.0F);
-                hal::Timer::sleep_ms(time_interval);
+                proxy::Stopwatch::sleep_ms(time_interval);
                 locomotion.stop();
-                hal::Timer::sleep_ms(time_interval);
+                proxy::Stopwatch::sleep_ms(time_interval);
                 locomotion.set_command(-test_speed, 0.0F);
-                hal::Timer::sleep_ms(time_interval);
+                proxy::Stopwatch::sleep_ms(time_interval);
                 locomotion.stop();
-                hal::Timer::sleep_ms(time_interval);
+                proxy::Stopwatch::sleep_ms(time_interval);
 
                 locomotion.set_command(0.0F, test_speed);
-                hal::Timer::sleep_ms(time_interval);
+                proxy::Stopwatch::sleep_ms(time_interval);
                 locomotion.stop();
-                hal::Timer::sleep_ms(time_interval);
+                proxy::Stopwatch::sleep_ms(time_interval);
                 locomotion.set_command(0.0F, -test_speed);
-                hal::Timer::sleep_ms(time_interval);
+                proxy::Stopwatch::sleep_ms(time_interval);
                 locomotion.stop();
+                locomotion.disable();
                 break;
 
             case proxy::Button::Status::LONG_PRESS:
+                locomotion.enable();
+
                 for (int8_t i = 1; i < 100; i++) {
                     locomotion.set_wheel_command(i, i);
-                    hal::Timer::sleep_ms(20);
+                    proxy::Stopwatch::sleep_ms(20);
                 }
 
                 for (int8_t i = 100; i > -100; i--) {
                     locomotion.set_wheel_command(i, i);
-                    hal::Timer::sleep_ms(20);
+                    proxy::Stopwatch::sleep_ms(20);
                 }
 
                 for (int8_t i = -100; i <= 0; i++) {
                     locomotion.set_wheel_command(i, i);
-                    hal::Timer::sleep_ms(20);
+                    proxy::Stopwatch::sleep_ms(20);
                 }
 
+                locomotion.disable();
                 break;
 
             default:

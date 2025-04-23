@@ -13,7 +13,7 @@ int main(int argc, char* argv[]) {
     TestCore::loop([&led]() {
         led.toggle();
 
-        hal::Timer::sleep_ms(500);
+        proxy::Stopwatch::sleep_ms(500);
     });
 
     return 0;

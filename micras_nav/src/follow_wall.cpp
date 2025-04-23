@@ -5,10 +5,9 @@
 #include "micras/nav/follow_wall.hpp"
 
 namespace micras::nav {
-FollowWall::FollowWall(const proxy::TWallSensors<4>& wall_sensors, const Config& config) :
+FollowWall::FollowWall(const std::shared_ptr<proxy::TWallSensors<4>>& wall_sensors, const Config& config) :
     wall_sensors{wall_sensors},
     pid{config.pid},
-    filter{config.cutoff_frequency},
     base_left_reading{config.base_left_reading},
     base_right_reading{config.base_right_reading} { }
 
@@ -35,23 +34,16 @@ float FollowWall::action(core::FollowWallType follow_wall_type, float elapsed_ti
             return 0.0F;
     }
 
-    if (this->last_diff == 0.0F) {
-        this->last_diff = error;
-    }
-
-    float response =
-        this->pid.update(error, elapsed_time, this->filter.update((error - this->last_diff) / elapsed_time), true);
-
-    this->last_diff = error;
+    const float response = this->pid.update(error, elapsed_time);
     return response;
 }
 
 float FollowWall::get_left_value() const {
-    return this->wall_sensors.get_reading(1) - this->base_left_reading;
+    return this->wall_sensors->get_reading(1) - this->base_left_reading;
 }
 
 float FollowWall::get_right_value() const {
-    return this->wall_sensors.get_reading(2) - this->base_right_reading;
+    return this->wall_sensors->get_reading(2) - this->base_right_reading;
 }
 
 void FollowWall::reset() {
@@ -59,7 +51,7 @@ void FollowWall::reset() {
 }
 
 void FollowWall::reset_base_readings() {
-    this->base_left_reading = this->wall_sensors.get_reading(1);
-    this->base_right_reading = this->wall_sensors.get_reading(2);
+    this->base_left_reading = this->wall_sensors->get_reading(1);
+    this->base_right_reading = this->wall_sensors->get_reading(2);
 }
 }  // namespace micras::nav

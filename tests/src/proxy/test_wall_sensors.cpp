@@ -17,6 +17,8 @@ int main(int argc, char* argv[]) {
     proxy::WallSensors wall_sensors{wall_sensors_config};
     proxy::Argb        argb{argb_config};
 
+    wall_sensors.turn_on();
+
     TestCore::loop([&wall_sensors, &argb]() {
         wall_sensors.update();
 
@@ -27,13 +29,13 @@ int main(int argc, char* argv[]) {
 
         for (uint8_t i = 0; i < 2; i++) {
             proxy::Argb::Color color{};
-            color.red = 127 * wall_sensors.get_observation(4 * i);
-            color.blue = 127 * wall_sensors.get_observation(i + 1);
+            color.red = wall_sensors.get_observation(3 - 3 * i) == core::Observation::WALL ? 255 : 0;
+            color.blue = wall_sensors.get_observation(2 - i) == core::Observation::WALL ? 255 : 0;
 
             argb.set_color(color, i);
         }
 
-        hal::Timer::sleep_ms(2);
+        proxy::Stopwatch::sleep_ms(2);
     });
 
     return 0;

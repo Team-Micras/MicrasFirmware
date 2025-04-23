@@ -164,8 +164,6 @@ private:
      * @brief Maximum reading value to identify a free space.
      */
     std::array<float, num_of_sensors> free_space_threshold;
-
-    friend class Interface;
 };
 }  // namespace micras::proxy
 

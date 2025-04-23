@@ -23,7 +23,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: docker/Dockerfile
+          file: .docker/Dockerfile
           target: build
           load: true
           cache-from: type=gha
@@ -33,10 +33,10 @@ jobs:
 
       - name: 🔨 Build project
         run: |
-          docker run --name release project:build /bin/bash /project/docker/scripts/build.sh
+          docker run --name release project:build /bin/bash /project/.docker/scripts/build.sh
           docker cp release:/project/build/ output/
 
       - name: ⬆️ Upload binaries
         run: gh release upload ${{ github.event.release.tag_name }} output/*.hex output/*.elf
         env:
-          GITHUB_TOKEN: ${{ github.TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}

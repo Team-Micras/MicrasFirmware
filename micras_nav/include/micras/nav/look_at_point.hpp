@@ -5,7 +5,7 @@
 #ifndef MICRAS_NAV_LOOK_AT_POINT_HPP
 #define MICRAS_NAV_LOOK_AT_POINT_HPP
 
-#include "micras/nav/pid_controller.hpp"
+#include "micras/core/pid_controller.hpp"
 #include "micras/nav/state.hpp"
 
 namespace micras::nav {
@@ -18,10 +18,10 @@ public:
      * @brief Configuration struct for the LookAtPoint class.
      */
     struct Config {
-        PidController::Config linear_pid;
-        PidController::Config angular_pid;
-        float                 distance_tolerance{};
-        float                 velocity_tolerance{};
+        core::PidController::Config linear_pid;
+        core::PidController::Config angular_pid;
+        float                       distance_tolerance{};
+        float                       velocity_tolerance{};
     };
 
     /**
@@ -60,12 +60,12 @@ private:
     /**
      * @brief PID controller for the linear velocity.
      */
-    PidController linear_pid;
+    core::PidController linear_pid;
 
     /**
      * @brief PID controller for the angular velocity.
      */
-    PidController angular_pid;
+    core::PidController angular_pid;
 
     /**
      * @brief Angular tolerance for the goal.

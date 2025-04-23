@@ -16,12 +16,12 @@ void Buzzer::play(uint32_t frequency, uint32_t duration) {
     this->duration = duration;
 
     if (duration > 0) {
-        this->timer.reset_ms();
+        this->stopwatch.reset_ms();
     }
 }
 
 void Buzzer::update() {
-    if (this->is_playing and this->duration > 0 and this->timer.elapsed_time_ms() > this->duration) {
+    if (this->is_playing and this->duration > 0 and this->stopwatch.elapsed_time_ms() > this->duration) {
         this->stop();
     }
 }
@@ -31,11 +31,9 @@ void Buzzer::wait(uint32_t interval) {
         this->update();
     }
 
-    hal::Timer wait_timer;
+    this->stopwatch.reset_ms();
 
-    while (wait_timer.elapsed_time_ms() < interval) {
-        this->update();
-    }
+    while (this->stopwatch.elapsed_time_ms() < interval) { }
 }
 
 void Buzzer::stop() {

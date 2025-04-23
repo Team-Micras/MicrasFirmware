@@ -5,8 +5,10 @@
 #ifndef MICRAS_NAV_FOLLOW_WALL
 #define MICRAS_NAV_FOLLOW_WALL
 
+#include <memory>
+
 #include "micras/core/butterworth_filter.hpp"
-#include "micras/nav/pid_controller.hpp"
+#include "micras/core/pid_controller.hpp"
 #include "micras/proxy/wall_sensors.hpp"
 
 namespace micras::nav {
@@ -19,10 +21,9 @@ public:
      * @brief Configuration struct for the FollowWall class.
      */
     struct Config {
-        PidController::Config pid;
-        float                 base_left_reading{};
-        float                 base_right_reading{};
-        float                 cutoff_frequency{};
+        core::PidController::Config pid;
+        float                       base_left_reading{};
+        float                       base_right_reading{};
     };
 
     /**
@@ -31,7 +32,7 @@ public:
      * @param wall_sensors The wall sensors of the robot.
      * @param config The configuration for the FollowWall class.
      */
-    FollowWall(const proxy::TWallSensors<4>& wall_sensors, const Config& config);
+    FollowWall(const std::shared_ptr<proxy::TWallSensors<4>>& wall_sensors, const Config& config);
 
     /**
      * @brief Update the PID controller and return the response.
@@ -70,22 +71,12 @@ private:
     /**
      * @brief Wall sensors of the robot.
      */
-    const proxy::TWallSensors<4>& wall_sensors;  // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
+    std::shared_ptr<proxy::TWallSensors<4>> wall_sensors;
 
     /**
      * @brief PID controller for the wall following.
      */
-    PidController pid;
-
-    /**
-     * @brief Butterworth filter for the derivative of the error.
-     */
-    core::ButterworthFilter filter;
-
-    /**
-     * @brief Last difference between the left and right wall sensors.
-     */
-    float last_diff{};
+    core::PidController pid;
 
     /**
      * @brief Base reading of the left wall sensor when aligned with the wall.
