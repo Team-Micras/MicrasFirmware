@@ -21,6 +21,7 @@ Button::Status Button::get_status() const {
 }
 
 void Button::update() {
+    this->previous_state = this->current_state;
     this->update_state();
 
     if (this->is_rising_edge()) {
@@ -48,7 +49,6 @@ bool Button::get_raw_reading() const {
 }
 
 void Button::update_state() {
-    this->previous_state = this->current_state;
     const bool raw_reading = this->get_raw_reading();
 
     if ((raw_reading != this->current_state) and not this->is_debouncing) {
