@@ -30,9 +30,9 @@ public:
              ))
         } { }
 
-    Twist get_twist(const State& state) const override {
+    Twist get_twist(const Pose& pose) const override {
         Twist       twist{};
-        const float current_orientation = std::abs(state.pose.orientation);
+        const float current_orientation = std::abs(pose.orientation);
 
         if (current_orientation < std::abs(this->angle)) {
             twist = {
@@ -49,9 +49,7 @@ public:
         return twist;
     }
 
-    bool finished(const State& state) const override {
-        return std::abs(state.pose.orientation) >= std::abs(this->angle);
-    }
+    bool finished(const Pose& pose) const override { return std::abs(pose.orientation) >= std::abs(this->angle); }
 
 private:
     float angle;

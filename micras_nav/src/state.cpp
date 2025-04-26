@@ -5,6 +5,7 @@
 #include <cmath>
 #include <numbers>
 
+#include "micras/core/utils.hpp"
 #include "micras/nav/state.hpp"
 
 namespace micras::nav {
@@ -96,5 +97,18 @@ Point Pose::to_cell(float cell_size) const {
     }
 
     return {cell_alignment, cell_advance};
+}
+
+RelativePose::RelativePose(const Pose& absolute_pose) : absolute_pose{absolute_pose} { }
+
+Pose RelativePose::get() const {
+    return {
+        this->absolute_pose.position - this->reference_pose.position,
+        core::assert_angle(this->absolute_pose.orientation - this->reference_pose.orientation)
+    };
+}
+
+void RelativePose::reset_reference() {
+    this->reference_pose = this->absolute_pose;
 }
 }  // namespace micras::nav

@@ -30,8 +30,8 @@ public:
             (max_acceleration_doubled + max_deceleration_doubled)
         } { }
 
-    Twist get_twist(const State& state) const override {
-        const float current_distance = state.pose.position.distance({0.0F, 0.0F});
+    Twist get_twist(const Pose& pose) const override {
+        const float current_distance = pose.position.distance({0.0F, 0.0F});
         Twist       twist{};
 
         if (current_distance < this->decelerate_distance) {
@@ -48,9 +48,9 @@ public:
         return twist;
     }
 
-    bool finished(const State& state) const override {
-        return state.pose.position.distance({0.0F, 0.0F}) >= this->distance;
-    }
+    bool finished(const Pose& pose) const override { return pose.position.distance({0.0F, 0.0F}) >= this->distance; }
+
+    static constexpr bool allow_follow_wall{true};
 
 private:
     float distance;

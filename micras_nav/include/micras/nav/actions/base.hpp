@@ -18,9 +18,11 @@ public:
      */
     virtual ~Action() = default;
 
-    virtual Twist get_twist(const State& state) const = 0;
+    virtual Twist get_twist(const Pose& pose) const = 0;
 
-    virtual bool finished(const State& state) const = 0;
+    virtual bool finished(const Pose& pose) const = 0;
+
+    static constexpr bool allow_follow_wall{};
 
 protected:
     /**

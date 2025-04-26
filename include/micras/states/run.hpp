@@ -57,9 +57,9 @@ private:
         const micras::nav::State& state = this->micras.odometry.get_state();
         core::Observation         observation{};
 
-        if (this->micras.current_action->finished(state)) {
-            this->micras.odometry.reset();
+        if (this->micras.current_action->finished(this->micras.action_pose.get())) {
             this->micras.speed_controller.reset();
+            this->micras.action_pose.reset_reference();
 
             if (not this->micras.action_queuer.empty()) {
                 this->micras.current_action = this->micras.action_queuer.pop();
@@ -83,9 +83,12 @@ private:
             }
         }
 
-        auto desired_twist = this->micras.current_action->get_twist(state);
+        auto desired_twist = this->micras.current_action->get_twist(this->micras.action_pose.get());
 
-        // desired_twist.angular = this->micras.follow_wall.action(observation, elapsed_time, state.velocity.linear);
+        // if (this->micras.current_action->allow_follow_wall) {
+        //     desired_twist.angular = this->micras.follow_wall.action(observation, elapsed_time,
+        //     state.velocity.linear);
+        // }
 
         const auto [left_command, right_command] =
             this->micras.speed_controller.action(state.velocity, desired_twist, elapsed_time);

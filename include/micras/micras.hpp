@@ -122,6 +122,9 @@ private:
     nav::SpeedController speed_controller;
     ///@}
 
+    nav::RelativePose action_pose;
+    nav::RelativePose follow_wall_pose;
+
     /**
      * @brief Finite state machine for the robot.
      */
