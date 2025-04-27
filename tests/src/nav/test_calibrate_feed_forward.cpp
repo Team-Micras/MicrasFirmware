@@ -26,6 +26,7 @@ static volatile float test_angular_accelerations[commands.size()] = {};
 
 // NOLINTEND(*-avoid-c-arrays, cppcoreguidelines-avoid-non-const-global-variables)
 
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
 int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);
 
@@ -55,7 +56,7 @@ int main(int argc, char* argv[]) {
     float last_linear_speed = 0.0F;
     float last_angular_speed = 0.0F;
 
-    argb.set_color(colors[test_type]);
+    argb.set_color(colors.at(test_type));
     locomotion.enable();
     loop_stopwatch.reset_us();
 
@@ -76,15 +77,18 @@ int main(int argc, char* argv[]) {
             running_stopwatch.reset_ms();
             argb.set_color(proxy::Argb::Colors::blue);
             return;
-        } else if (button.get_status() == proxy::Button::Status::LONG_PRESS and iterator == 0) {
+        }
+
+        if (button.get_status() == proxy::Button::Status::LONG_PRESS and iterator == 0) {
             test_type = (test_type + 1) % 4;
-            argb.set_color(colors[test_type]);
+            argb.set_color(colors.at(test_type));
         }
 
         if (waiting and running_stopwatch.elapsed_time_ms() > 2000) {
             imu->calibrate();
             locomotion.set_wheel_command(
-                commands[iterator] * left_multiplier[test_type], commands[iterator] * right_multiplier[test_type]
+                commands.at(iterator) * left_multiplier.at(test_type),
+                commands.at(iterator) * right_multiplier.at(test_type)
             );
 
             running_stopwatch.reset_ms();
@@ -100,8 +104,8 @@ int main(int argc, char* argv[]) {
 
         if (running) {
             if (running_stopwatch.elapsed_time_ms() < 250) {
-                float current_linear_acceleration = (state.velocity.linear - last_linear_speed) / elapsed_time;
-                float current_angular_acceleration = (state.velocity.angular - last_angular_speed) / elapsed_time;
+                const float current_linear_acceleration = (state.velocity.linear - last_linear_speed) / elapsed_time;
+                const float current_angular_acceleration = (state.velocity.angular - last_angular_speed) / elapsed_time;
 
                 last_linear_speed = state.velocity.linear;
                 last_angular_speed = state.velocity.angular;
@@ -121,7 +125,7 @@ int main(int argc, char* argv[]) {
                 test_angular_speeds[iterator] = state.velocity.angular;
 
                 iterator++;
-                argb.set_color(colors[test_type]);
+                argb.set_color(colors.at(test_type));
                 return;
             }
         }
