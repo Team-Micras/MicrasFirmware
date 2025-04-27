@@ -171,6 +171,39 @@ struct State {
      */
     Twist velocity;
 };
+
+class RelativePose {
+public:
+    /**
+     * @brief Construct a new Relative Pose object.
+     *
+     * @param absolute_pose The absolute pose to be used as a reference.
+     */
+    explicit RelativePose(const Pose& absolute_pose);
+
+    /**
+     * @brief Get the relative pose.
+     *
+     * @return The pose relative to the reference.
+     */
+    Pose get() const;
+
+    /**
+     * @brief Reset the reference to the current absolute pose.
+     */
+    void reset_reference();
+
+private:
+    /**
+     * @brief A reference to the absolute pose.
+     */
+    const Pose* absolute_pose;
+
+    /**
+     * @brief The reference pose to be used for calculations.
+     */
+    Pose reference_pose{};
+};
 }  // namespace micras::nav
 
 #endif  // MICRAS_NAV_POSE_HPP

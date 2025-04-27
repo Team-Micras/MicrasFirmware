@@ -15,9 +15,9 @@ int main(int argc, char* argv[]) {
     proxy::Locomotion locomotion{locomotion_config};
 
     TestCore::loop([&button, &locomotion]() {
-        auto button_status = button.get_status();
+        button.update();
 
-        switch (button_status) {
+        switch (button.get_status()) {
             case proxy::Button::Status::SHORT_PRESS:
                 locomotion.enable();
                 locomotion.set_command(test_speed, 0.0F);

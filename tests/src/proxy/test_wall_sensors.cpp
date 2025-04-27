@@ -29,8 +29,8 @@ int main(int argc, char* argv[]) {
 
         for (uint8_t i = 0; i < 2; i++) {
             proxy::Argb::Color color{};
-            color.red = wall_sensors.get_observation(3 - 3 * i) == core::Observation::WALL ? 255 : 0;
-            color.blue = wall_sensors.get_observation(2 - i) == core::Observation::WALL ? 255 : 0;
+            color.red = wall_sensors.get_wall(3 - 3 * i) ? 255 : 0;
+            color.blue = wall_sensors.get_wall(2 - i) ? 255 : 0;
 
             argb.set_color(color, i);
         }

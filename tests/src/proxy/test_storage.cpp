@@ -8,7 +8,7 @@ using namespace micras;  // NOLINT(google-build-using-namespace)
 
 static constexpr uint32_t time_interval{500};
 
-class TestSerializable : public proxy::ISerializable {
+class TestSerializable : public core::ISerializable {
 public:
     explicit TestSerializable(bool empty = false) {
         if (empty) {
@@ -96,7 +96,9 @@ int main(int argc, char* argv[]) {
 
     TestCore::loop([&test_bool_0, &test_bool_1, &test_int16_0, &test_int16_1, &test_float_0, &test_float_1,
                     &test_serializable_0, &test_serializable_1, &button, &argb]() {
-        while (button.get_status() == proxy::Button::Status::NO_PRESS) { }
+        while (button.get_status() == proxy::Button::Status::NO_PRESS) {
+            button.update();
+        }
 
         if (test_bool_0 != test_bool_1) {
             argb.set_color(proxy::Argb::Colors::red);

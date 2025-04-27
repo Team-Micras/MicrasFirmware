@@ -24,7 +24,9 @@ int main(int argc, char* argv[]) {
     proxy::Buzzer buzzer{buzzer_config};
 
     TestCore::loop([&button, &buzzer]() {
-        while (button.get_status() == proxy::Button::Status::NO_PRESS) { }
+        while (button.get_status() == proxy::Button::Status::NO_PRESS) {
+            button.update();
+        }
 
         for (uint32_t i = 0; i < frequencies.size(); i++) {
             buzzer.play(frequencies.at(i), duration);

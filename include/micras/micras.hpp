@@ -25,6 +25,13 @@ public:
      */
     void update();
 
+    /**
+     * @brief Calibrate the robot.
+     *
+     * @return True if the calibration is finished, false otherwise.
+     */
+    bool calibrate();
+
 private:
     /**
      * @brief Enum for the current status of the robot.
@@ -43,10 +50,8 @@ private:
      * @brief Enum for the type of calibration being performed.
      */
     enum CalibrationType : uint8_t {
-        SIDE_WALLS = 0,        // Calibrate side walls and front free space detection.
-        FRONT_WALL = 1,        // Calibrate front wall detection.
-        LEFT_FREE_SPACE = 2,   // Calibrate left free space detection.
-        RIGHT_FREE_SPACE = 3,  // Calibrate right free space detection.
+        SIDE_WALLS = 0,  // Calibrate side walls and front free space detection.
+        FRONT_WALL = 1,  // Calibrate front wall detection.
     };
 
     /**
@@ -58,31 +63,6 @@ private:
         STOP = 2,      // Whether the robot will stop at each intersection when solving the maze.
         TURBO = 3,     // Increase the robot speed.
     };
-
-    /**
-     * @brief Current status of the button.
-     */
-    proxy::Button::Status button_status{};
-
-    /**
-     * @brief Time elapsed since the last loop in seconds.
-     */
-    float elapsed_time{};
-
-    /**
-     * @brief Current objective of the robot.
-     */
-    core::Objective objective{core::Objective::EXPLORE};
-
-    /**
-     * @brief Current type of calibration being performed.
-     */
-    CalibrationType calibration_type{CalibrationType::SIDE_WALLS};
-
-    /**
-     * @brief Current action of the robot.
-     */
-    nav::Mapping::Action current_action{};
 
     /**
      * @brief Sensors and actuators.
@@ -115,16 +95,47 @@ private:
      * @brief High level objects.
      */
     ///@{
-    nav::Odometry    odometry;
-    nav::Mapping     mapping;
-    nav::LookAtPoint look_at_point;
-    nav::GoToPoint   go_to_point;
+    nav::ActionQueuer    action_queuer;
+    nav::Maze            maze;
+    nav::Odometry        odometry;
+    nav::SpeedController speed_controller;
+    nav::FollowWall      follow_wall;
     ///@}
 
     /**
      * @brief Finite state machine for the robot.
      */
     core::FSM fsm{State::INIT};
+
+    /**
+     * @brief Time elapsed since the last loop in seconds.
+     */
+    float elapsed_time{};
+
+    /**
+     * @brief Current objective of the robot.
+     */
+    core::Objective objective{core::Objective::EXPLORE};
+
+    /**
+     * @brief Current type of calibration being performed.
+     */
+    CalibrationType calibration_type{CalibrationType::SIDE_WALLS};
+
+    /**
+     * @brief Current action of the robot.
+     */
+    std::shared_ptr<nav::Action> current_action;
+
+    /**
+     * @brief Current pose of the robot in the maze.
+     */
+    nav::GridPose grid_pose{};
+
+    /**
+     * @brief Current pose of the robot relative to the current action.
+     */
+    nav::RelativePose action_pose;
 
     /**
      * @brief Declare states as friend classes.
