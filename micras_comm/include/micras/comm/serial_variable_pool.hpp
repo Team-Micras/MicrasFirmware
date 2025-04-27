@@ -11,9 +11,9 @@
 #include "micras/core/serializable.hpp"
 #include "micras/core/utils.hpp"
 
-#include "micras/comm/serial_variable.hpp"
-#include "micras/comm/primitive_serial_variable.hpp"
-#include "micras/comm/custom_serial_variable.hpp"
+#include "micras/comm/vars/serial_variable.hpp"
+#include "micras/comm/vars/primitive_serial_variable.hpp"
+#include "micras/comm/vars/custom_serial_variable.hpp"
 
 namespace micras::comm {
 class SerialVariablePool {
@@ -50,8 +50,6 @@ private:
     static uint16_t current_id;
 
     std::unordered_map<uint16_t, std::unique_ptr<ISerialVariable>> variables;
-
-    static std::vector<uint8_t> serialize_var_map();
 };
 }  // namespace micras::comm
 
