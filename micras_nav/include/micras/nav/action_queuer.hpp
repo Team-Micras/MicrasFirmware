@@ -5,7 +5,7 @@
 #ifndef MICRAS_NAV_ACTION_QUEUER_HPP
 #define MICRAS_NAV_ACTION_QUEUER_HPP
 
-#include <list>
+#include <map>
 #include <memory>
 #include <queue>
 
@@ -42,7 +42,7 @@ public:
 
     bool empty() const;
 
-    void recalculate(const std::list<GridPose>& best_route);
+    void recalculate(const std::map<uint16_t, GridPose, std::greater<>>& best_route);
 
 private:
     float           cell_size;

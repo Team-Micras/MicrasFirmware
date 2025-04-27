@@ -78,5 +78,15 @@ bool ActionQueuer::empty() const {
     return this->action_queue.empty();
 }
 
-void ActionQueuer::recalculate(const std::list<GridPose>& /*best_route*/) { }
+void ActionQueuer::recalculate(const std::map<uint16_t, GridPose, std::greater<>>& best_route) {
+    this->action_queue = {};
+
+    for (const auto& [cost, pose] : best_route) {
+        this->push(pose, pose.front().position);
+    }
+
+    if (not this->action_queue.empty()) {
+        this->action_queue.pop();
+    }
+}
 }  // namespace micras::nav
