@@ -50,7 +50,7 @@ public:
 
     bool finished(const Pose& pose) const override { return pose.position.distance({0.0F, 0.0F}) >= this->distance; }
 
-    static constexpr bool allow_follow_wall{true};
+    constexpr bool allow_follow_wall() const override { return true; }
 
 private:
     float distance;

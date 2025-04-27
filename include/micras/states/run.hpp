@@ -82,14 +82,14 @@ private:
                 this->micras.grid_pose = next_goal;
             }
 
-            if (this->micras.current_action->allow_follow_wall) {
+            if (this->micras.current_action->allow_follow_wall()) {
                 this->micras.follow_wall.reset();
             }
         }
 
         auto desired_twist = this->micras.current_action->get_twist(this->micras.action_pose.get());
 
-        if (this->micras.current_action->allow_follow_wall) {
+        if (this->micras.current_action->allow_follow_wall()) {
             desired_twist.angular = this->micras.follow_wall.action(elapsed_time, state.velocity.linear);
         }
 

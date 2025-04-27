@@ -22,7 +22,7 @@ public:
 
     virtual bool finished(const Pose& pose) const = 0;
 
-    static constexpr bool allow_follow_wall{};
+    virtual constexpr bool allow_follow_wall() const = 0;
 
 protected:
     /**
