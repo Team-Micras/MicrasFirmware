@@ -29,20 +29,14 @@ TMaze<width, height>::TMaze(Config config) : start{config.start}, goal{config.go
 
     // Hardcoded walls at the end region
     if (width == 16 and height == 16) {
-        this->cells.at(7).at(7).walls[Side::DOWN] = true;
-        this->cells.at(7).at(7).walls[Side::LEFT] = true;
-        this->cells.at(6).at(7).walls[Side::UP] = true;
-        this->cells.at(7).at(6).walls[Side::RIGHT] = true;
-        this->cells.at(7).at(8).walls[Side::DOWN] = true;
-        this->cells.at(6).at(8).walls[Side::UP] = true;
-        this->cells.at(8).at(7).walls[Side::LEFT] = true;
-        this->cells.at(8).at(7).walls[Side::UP] = true;
-        this->cells.at(8).at(6).walls[Side::RIGHT] = true;
-        this->cells.at(9).at(7).walls[Side::DOWN] = true;
-        this->cells.at(8).at(8).walls[Side::UP] = true;
-        this->cells.at(8).at(8).walls[Side::RIGHT] = true;
-        this->cells.at(9).at(8).walls[Side::DOWN] = true;
-        this->cells.at(8).at(9).walls[Side::LEFT] = true;
+        this->update_wall({{7, 7}, Side::DOWN}, true);
+        this->update_wall({{8, 7}, Side::DOWN}, true);
+        // this->update_wall({{8, 7}, Side::RIGHT}, true);
+        this->update_wall({{8, 8}, Side::RIGHT}, true);
+        this->update_wall({{8, 8}, Side::UP}, true);
+        this->update_wall({{7, 8}, Side::UP}, true);
+        this->update_wall({{7, 8}, Side::LEFT}, true);
+        this->update_wall({{7, 7}, Side::LEFT}, true);
     }
 
     for (const auto& position : this->goal) {

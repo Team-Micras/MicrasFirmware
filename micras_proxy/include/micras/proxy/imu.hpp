@@ -149,10 +149,13 @@ private:
     core::ButterworthFilter calibration_filter{5.0F};
 
     /**
-     * @brief Flag to check if the IMU is calibrated.
+     * @brief Flag to check if the IMU was calibrated.
      */
     bool calibrated{};
 
+    /**
+     * @brief Flag to check if the IMU was initialized.
+     */
     bool initialized{};
 };
 }  // namespace micras::proxy

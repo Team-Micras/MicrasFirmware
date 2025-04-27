@@ -11,10 +11,21 @@
 
 namespace micras::nav {
 /**
- * @brief Class to follow the side walls using a PID controller.
+ * @brief Action to move the robot a certain distance forward.
  */
 class MoveAction : public Action {
 public:
+    /**
+     * @brief Construct a new Move Action object.
+     *
+     * @param distance Distance to move in meters.
+     * @param start_speed Initial speed in m/s.
+     * @param end_speed Final speed in m/s.
+     * @param max_speed Maximum speed in m/s.
+     * @param max_acceleration Maximum acceleration in m/s^2.
+     * @param max_deceleration Maximum deceleration in m/s^2.
+     * @param follow_wall Whether the robot can follow wall while executing this action.
+     */
     MoveAction(
         float distance, float start_speed, float end_speed, float max_speed, float max_acceleration,
         float max_deceleration, bool follow_wall = true
@@ -31,6 +42,14 @@ public:
             (max_acceleration_doubled + max_deceleration_doubled)
         } { }
 
+    /**
+     * @brief Get the desired speeds for the robot to compete the action.
+     *
+     * @param pose The current pose of the robot.
+     * @return The desired speeds for the robot to complete the action.
+     *
+     * @details The desired velocity is calculated from the linear displacement based on the Torricelli equation.
+     */
     Twist get_twist(const Pose& pose) const override {
         const float current_distance = pose.position.distance({0.0F, 0.0F});
         Twist       twist{};
@@ -49,19 +68,60 @@ public:
         return twist;
     }
 
+    /**
+     * @brief Check if the action is finished.
+     *
+     * @param pose The current pose of the robot.
+     * @return True if the action is finished, false otherwise.
+     */
     bool finished(const Pose& pose) const override { return pose.position.distance({0.0F, 0.0F}) >= this->distance; }
 
+    /**
+     * @brief Check if the action allows the robot to follow walls.
+     *
+     * @return True if the action allows the robot to follow walls, false otherwise.
+     */
     bool allow_follow_wall() const override { return this->follow_wall; }
 
 private:
+    /**
+     * @brief Distance to move in meters.
+     */
     float distance;
-    float start_speed_2;
-    float end_speed_2;
-    float max_speed;
-    float max_acceleration_doubled;
-    float max_deceleration_doubled;
-    bool  follow_wall;
 
+    /**
+     * @brief Initial speed squared.
+     */
+    float start_speed_2;
+
+    /**
+     * @brief Final speed squared.
+     */
+    float end_speed_2;
+
+    /**
+     * @brief Maximum linear speed in m/s.
+     */
+    float max_speed;
+
+    /**
+     * @brief Maximum linear acceleration multiplied by 2.
+     */
+    float max_acceleration_doubled;
+
+    /**
+     * @brief Maximum linear deceleration multiplied by 2.
+     */
+    float max_deceleration_doubled;
+
+    /**
+     * @brief Whether the robot can follow walls while executing this action.
+     */
+    bool follow_wall;
+
+    /**
+     * @brief Distance from the start where the robot should start to decelerate in meters.
+     */
     float decelerate_distance;
 };
 }  // namespace micras::nav

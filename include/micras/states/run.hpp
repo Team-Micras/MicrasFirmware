@@ -127,6 +127,9 @@ private:
      */
     proxy::Stopwatch align_back_stopwatch;
 
+    /**
+     * @brief Flag for when the robot has finished an objective.
+     */
     bool finished{false};
 };
 }  // namespace micras

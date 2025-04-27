@@ -45,6 +45,7 @@ public:
      * @brief Return the next point the robot should go to when exploring.
      *
      * @param position The current position of the robot.
+     * @param returning Whether the robot is returning to the start position.
      * @return The next point the robot should go to when exploring.
      */
     GridPose get_next_goal(const GridPoint& position, bool returning) const;
@@ -61,6 +62,7 @@ public:
      * @brief Check whether the robot has finished the maze.
      *
      * @param position The current position of the robot.
+     * @param returning Whether the robot is returning to the start position.
      * @return True if the robot has finished the maze, false otherwise.
      */
     bool finished(const GridPoint& position, bool returning) const;

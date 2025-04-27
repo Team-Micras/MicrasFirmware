@@ -57,7 +57,7 @@ const nav::ActionQueuer::Config action_queuer_config{
         {
             .max_linear_speed = exploration_speed,
             .max_linear_acceleration = max_linear_acceleration,
-            .max_linear_deceleration = 1.0F,
+            .max_linear_deceleration = max_linear_acceleration,
             .curve_radius = cell_size / 2.0F,
             .max_centrifugal_acceleration = 1.0F,
             .max_angular_acceleration = max_angular_acceleration,

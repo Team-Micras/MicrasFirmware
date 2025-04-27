@@ -12,7 +12,7 @@
 
 namespace micras::nav {
 /**
- * @brief Class to calculate a command to go to a point.
+ * @brief Class to calculate a command to follow a pair of linear and angular speeds.
  */
 class SpeedController {
 public:
@@ -43,12 +43,12 @@ public:
     explicit SpeedController(const Config& config);
 
     /**
-     * @brief Calculate the command to go to a point.
+     * @brief Calculate the command to achieve the desired speeds.
      *
-     * @param state The current state of the robot.
-     * @param goal The goal point.
-     * @param elapsed_time The time elapsed since the last update.
-     * @return The command to go to the point.
+     * @param current_twist The current speeds of the robot.
+     * @param desired_twist The desired speeds of the robot.
+     * @param elapsed_time The time since the last update.
+     * @return A pair of floats representing the left and right wheel speeds.
      */
     std::pair<float, float> action(const Twist& current_twist, const Twist& desired_twist, float elapsed_time);
 
@@ -58,12 +58,34 @@ public:
     void reset();
 
 private:
+    /**
+     * @brief Calculate the feed-forward term for a motor.
+     *
+     * @param speed The current speeds of the robot.
+     * @param acceleration The current accelerations of the robot.
+     * @param config The configuration for the feed-forward term.
+     * @return The feed-forward parameters for a motor.
+     */
     static float feed_forward(const Twist& speed, const Twist& acceleration, const Config::FeedForward& config);
 
+    /**
+     * @brief The maximum linear acceleration of the robot.
+     */
     float max_linear_acceleration;
+
+    /**
+     * @brief The maximum angular acceleration of the robot.
+     */
     float max_angular_acceleration;
 
+    /**
+     * @brief The last linear speed of the robot.
+     */
     float last_linear_speed{};
+
+    /**
+     * @brief The last angular speed of the robot.
+     */
     float last_angular_speed{};
 
     /**
@@ -76,8 +98,14 @@ private:
      */
     core::PidController angular_pid;
 
+    /**
+     * @brief Feed-forward parameters for the left motor.
+     */
     Config::FeedForward left_feed_forward;
 
+    /**
+     * @brief Feed-forward parameters for the right motor.
+     */
     Config::FeedForward right_feed_forward;
 };
 }  // namespace micras::nav

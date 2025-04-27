@@ -65,28 +65,6 @@ private:
     };
 
     /**
-     * @brief Time elapsed since the last loop in seconds.
-     */
-    float elapsed_time{};
-
-    /**
-     * @brief Current objective of the robot.
-     */
-    core::Objective objective{core::Objective::EXPLORE};
-
-    /**
-     * @brief Current type of calibration being performed.
-     */
-    CalibrationType calibration_type{CalibrationType::SIDE_WALLS};
-
-    /**
-     * @brief Current action of the robot.
-     */
-    std::shared_ptr<nav::Action> current_action;
-
-    nav::GridPose grid_pose{};
-
-    /**
      * @brief Sensors and actuators.
      */
     ///@{
@@ -124,12 +102,40 @@ private:
     nav::FollowWall      follow_wall;
     ///@}
 
-    nav::RelativePose action_pose;
-
     /**
      * @brief Finite state machine for the robot.
      */
     core::FSM fsm{State::INIT};
+
+    /**
+     * @brief Time elapsed since the last loop in seconds.
+     */
+    float elapsed_time{};
+
+    /**
+     * @brief Current objective of the robot.
+     */
+    core::Objective objective{core::Objective::EXPLORE};
+
+    /**
+     * @brief Current type of calibration being performed.
+     */
+    CalibrationType calibration_type{CalibrationType::SIDE_WALLS};
+
+    /**
+     * @brief Current action of the robot.
+     */
+    std::shared_ptr<nav::Action> current_action;
+
+    /**
+     * @brief Current pose of the robot in the maze.
+     */
+    nav::GridPose grid_pose{};
+
+    /**
+     * @brief Current pose of the robot relative to the current action.
+     */
+    nav::RelativePose action_pose;
 
     /**
      * @brief Declare states as friend classes.

@@ -9,12 +9,11 @@
 namespace micras::nav {
 ActionQueuer::ActionQueuer(Config config) :
     cell_size{config.cell_size},
-    start_offset{config.start_offset},
     exploring_params{config.exploring},
     // solving_params{config.solving},
     start{std::make_shared<MoveAction>(
-        cell_size - start_offset, 0.001F * exploring_params.max_linear_acceleration, exploring_params.max_linear_speed,
-        exploring_params.max_linear_speed, exploring_params.max_linear_acceleration,
+        cell_size - config.start_offset, 0.001F * exploring_params.max_linear_acceleration,
+        exploring_params.max_linear_speed, exploring_params.max_linear_speed, exploring_params.max_linear_acceleration,
         exploring_params.max_linear_deceleration
     )},
     move_forward{std::make_shared<MoveAction>(
