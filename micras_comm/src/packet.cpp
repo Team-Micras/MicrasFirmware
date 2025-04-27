@@ -5,7 +5,8 @@ Packet::Packet(PayloadType type, const std::vector<uint8_t>& payload) : type{typ
 
 Packet::Packet(PayloadType type) : Packet(type, {0}) { }
 
-Packet::Packet(const uint8_t* serialized_packet, uint16_t size) : Packet(std::vector<uint8_t>(serialized_packet, serialized_packet + size)) { }
+Packet::Packet(const uint8_t* serialized_packet, uint16_t size) :
+    Packet(std::vector<uint8_t>(serialized_packet, serialized_packet + size)) { }
 
 Packet::Packet(const std::vector<uint8_t>& serialized_packet) {
     if (not this->is_valid(serialized_packet)) {

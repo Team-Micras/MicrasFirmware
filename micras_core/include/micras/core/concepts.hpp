@@ -12,6 +12,6 @@ concept Fundamental = std::is_fundamental_v<T>;
 template <typename T>
 concept Serializable = std::is_base_of<ISerializable, T>::value;
 
-}
+}  // namespace micras::core
 
 #endif  // MICRAS_CORE_CONCEPTS_HPP

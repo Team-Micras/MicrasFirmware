@@ -140,7 +140,8 @@ constexpr bool is_near(float x, float y, float tolerance = 0.001) {
 /**
  * @brief Get the type name of a variable as a string.
  *
- * @cite https://stackoverflow.com/questions/81870/is-it-possible-to-print-a-variables-type-in-standard-c/64490578#64490578
+ * @cite
+ * https://stackoverflow.com/questions/81870/is-it-possible-to-print-a-variables-type-in-standard-c/64490578#64490578
  *
  * @tparam T Type of the variable.
  * @return constexpr auto Type name as a string.
