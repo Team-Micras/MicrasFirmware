@@ -24,12 +24,12 @@ ActionQueuer::ActionQueuer(Config config) :
     )},
     stop{std::make_shared<MoveAction>(
         cell_size / 2.0F, exploring_params.max_linear_speed, 0.0F, exploring_params.max_linear_speed,
-        exploring_params.max_linear_acceleration, exploring_params.max_linear_deceleration
+        exploring_params.max_linear_acceleration, exploring_params.max_linear_deceleration, false
     )},
     move_half{std::make_shared<MoveAction>(
         cell_size / 2.0F, 0.001F * exploring_params.max_linear_acceleration, exploring_params.max_linear_speed,
         exploring_params.max_linear_speed, exploring_params.max_linear_acceleration,
-        exploring_params.max_linear_deceleration
+        exploring_params.max_linear_deceleration, false
     )},
     turn_left{std::make_shared<TurnAction>(
         std::numbers::pi_v<float> / 2.0F, cell_size / 2.0F, exploring_params.max_linear_speed,

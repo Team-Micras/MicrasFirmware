@@ -17,7 +17,7 @@ class MoveAction : public Action {
 public:
     MoveAction(
         float distance, float start_speed, float end_speed, float max_speed, float max_acceleration,
-        float max_deceleration
+        float max_deceleration, bool follow_wall = true
     ) :
         distance(distance),
         start_speed_2(start_speed * start_speed),
@@ -25,6 +25,7 @@ public:
         max_speed{max_speed},
         max_acceleration_doubled{2.0F * max_acceleration},
         max_deceleration_doubled{2.0F * max_deceleration},
+        follow_wall(follow_wall),
         decelerate_distance{
             (end_speed_2 - start_speed_2 + max_deceleration_doubled * distance) /
             (max_acceleration_doubled + max_deceleration_doubled)
@@ -50,7 +51,7 @@ public:
 
     bool finished(const Pose& pose) const override { return pose.position.distance({0.0F, 0.0F}) >= this->distance; }
 
-    constexpr bool allow_follow_wall() const override { return true; }
+    bool allow_follow_wall() const override { return this->follow_wall; }
 
 private:
     float distance;
@@ -59,6 +60,7 @@ private:
     float max_speed;
     float max_acceleration_doubled;
     float max_deceleration_doubled;
+    bool  follow_wall;
 
     float decelerate_distance;
 };

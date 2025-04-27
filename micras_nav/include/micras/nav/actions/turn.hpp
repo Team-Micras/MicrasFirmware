@@ -53,7 +53,7 @@ public:
 
     bool finished(const Pose& pose) const override { return std::abs(pose.orientation) >= std::abs(this->angle); }
 
-    constexpr bool allow_follow_wall() const override { return false; }
+    bool allow_follow_wall() const override { return false; }
 
 private:
     float angle;
