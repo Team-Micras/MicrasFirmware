@@ -35,7 +35,7 @@ float FollowWall::action(float elapsed_time, float linear_speed) {
     } else if (this->left_wall) {
         error = 2.0F * this->wall_sensors->get_sensor_error(1);
     } else if (this->right_wall) {
-        error = 2.0F * this->wall_sensors->get_sensor_error(2);
+        error = -2.0F * this->wall_sensors->get_sensor_error(2);
     } else {
         return 0.0F;
     }
