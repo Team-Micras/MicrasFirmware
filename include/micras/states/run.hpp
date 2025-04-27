@@ -72,6 +72,7 @@ private:
                 }
 
                 if (this->micras.maze.finished(this->micras.grid_pose.position, returning)) {
+                    this->micras.locomotion.stop();
                     return true;
                 }
 

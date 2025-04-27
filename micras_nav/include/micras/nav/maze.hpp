@@ -7,7 +7,7 @@
 
 #include <array>
 #include <cstdint>
-#include <list>
+#include <map>
 #include <unordered_set>
 
 #include "micras/core/serializable.hpp"
@@ -75,7 +75,7 @@ public:
      *
      * @return The best route to the goal.
      */
-    const std::list<GridPose>& get_best_route() const;
+    const std::map<uint16_t, GridPose, std::greater<>>& get_best_route() const;
 
     /**
      * @brief Serialize the best route to the goal.
@@ -156,7 +156,7 @@ private:
     /**
      * @brief Current best found route to the goal.
      */
-    std::list<GridPose> best_route;
+    std::map<uint16_t, GridPose, std::greater<>> best_route;
 };
 }  // namespace micras::nav
 
