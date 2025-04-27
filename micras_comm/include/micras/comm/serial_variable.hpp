@@ -5,11 +5,11 @@
 
 #include <string>
 
-#include "micras/proxy/serializable.hpp"
+#include "micras/core/serializable.hpp"
 
 namespace micras::comm {
 
-class ISerialVariable : public proxy::ISerializable {
+class ISerialVariable : public core::ISerializable {
 public:
     virtual ~ISerialVariable() = default;
 
