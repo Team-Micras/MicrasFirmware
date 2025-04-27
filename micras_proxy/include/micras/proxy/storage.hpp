@@ -12,11 +12,9 @@
 #include <vector>
 
 #include "micras/core/serializable.hpp"
+#include "micras/core/concepts.hpp"
 
 namespace micras::proxy {
-template <typename T>
-concept Fundamental = std::is_fundamental_v<T>;
-
 /**
  * @brief Class for storing variable and classes in the flash memory.
  */
@@ -44,7 +42,7 @@ public:
      * @param name Name of the variable.
      * @param data Reference to the variable.
      */
-    template <Fundamental T>
+    template <core::Fundamental T>
     void create(const std::string& name, const T& data) {
         this->primitives[name].ram_pointer = &data;
         this->primitives.at(name).size = sizeof(T);
@@ -65,7 +63,7 @@ public:
      * @param name Name of the variable.
      * @param data Reference to the variable.
      */
-    template <Fundamental T>
+    template <core::Fundamental T>
     void sync(const std::string& name, T& data) {
         if (this->primitives.contains(name) and this->primitives.at(name).ram_pointer == nullptr) {
             // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
