@@ -24,7 +24,7 @@ public:
         acceleration{max_angular_acceleration},
         max_speed{
             (linear_speed == 0.0F) ?
-                (max_angular_acceleration * 0.1F) :
+                (max_angular_acceleration * 0.01F) :
                 (correction_factor * max_angular_acceleration *
                  (curve_radius / linear_speed - std::sqrt(
                                                     std::pow(curve_radius / linear_speed, 2.0F) -
