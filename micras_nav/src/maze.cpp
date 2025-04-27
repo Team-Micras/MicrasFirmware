@@ -66,14 +66,12 @@ GridPose TMaze<width, height>::get_next_goal(const GridPoint& position, bool ret
     uint16_t current_cost = this->get_cell(position).cost;
 
     if (returning) {
-        this->calculate_best_route();
-
         if (this->best_route.contains(current_cost) and this->best_route.at(current_cost).position == position) {
             auto current = this->best_route.find(current_cost);
             return {std::prev(current)->second.position, current->second.turned_back().orientation};
         }
 
-        return get_next_goal(position, true);
+        return get_next_goal(position, false);
     }
 
     GridPoint next_position = position;
@@ -142,7 +140,7 @@ void TMaze<width, height>::calculate_best_route() {
     this->best_route.try_emplace(this->get_cell(this->start.position).cost, this->start);
 
     while (not this->goal.contains(current_pose.position)) {
-        current_pose = this->get_current_exploration_goal(current_pose.position);
+        current_pose = this->get_next_goal(current_pose.position, false);
         this->best_route.try_emplace(this->get_cell(current_pose.position).cost, current_pose);
     }
 }
