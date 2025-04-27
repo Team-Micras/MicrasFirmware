@@ -27,7 +27,7 @@ ActionQueuer::ActionQueuer(Config config) :
         exploring_params.max_linear_acceleration, exploring_params.max_linear_deceleration
     )},
     move_half{std::make_shared<MoveAction>(
-        cell_size / 2.0F, exploring_params.max_linear_speed, exploring_params.max_linear_speed,
+        cell_size / 2.0F, 0.001F * exploring_params.max_linear_acceleration, exploring_params.max_linear_speed,
         exploring_params.max_linear_speed, exploring_params.max_linear_acceleration,
         exploring_params.max_linear_deceleration
     )},
