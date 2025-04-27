@@ -1,3 +1,6 @@
+#ifndef MICRAS_CORE_CONCEPTS_HPP
+#define MICRAS_CORE_CONCEPTS_HPP
+
 #include <type_traits>
 #include "serializable.hpp"
 
@@ -10,3 +13,5 @@ template <typename T>
 concept Serializable = std::is_base_of<ISerializable, T>::value;
 
 }
+
+#endif  // MICRAS_CORE_CONCEPTS_HPP
