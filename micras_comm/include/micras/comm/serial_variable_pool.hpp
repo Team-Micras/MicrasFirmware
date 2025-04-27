@@ -5,16 +5,24 @@
 #include <string>
 #include <type_traits>
 #include <vector>
+#include <memory>
+
 #include <unordered_map>
 #include <map>
 
+#include "serial_variable.hpp"
 #include "serializable.hpp"
+#include "primitive_serial_variable.hpp"
+#include "custom_serial_variable.hpp"
 
 #include <string_view>
 
 namespace micras::comm {
 template <typename T>
 concept Fundamental = std::is_fundamental_v<T>;
+
+template <typename T>
+concept Serializable = std::is_base_of<ISerialVariable, T>::value;
 
 /**
  * @brief
@@ -50,18 +58,28 @@ class SerialVariablePool {
 public:
     explicit SerialVariablePool();
 
-    void add_read_only(const std::string& name, const proxy::ISerializable& data);
-
     template <Fundamental T>
-    void add_read_only(const std::string& name, const T& data) {
-        this->add_variable<T>(name, true, data);
+    void add_read_only(const std::string& name, T& data) {
+        uint16_t var_id = current_id++;
+        this->variables[var_id] = std::make_unique<PrimitiveSerialVariable<T>>(name, &data, true);
     }
 
-    void add_write_only(const std::string& name, const proxy::ISerializable& data);
-
     template <Fundamental T>
-    void add_write_only(const std::string& name, const T& data) {
-        this->add_variable<T>(name, false, data);
+    void add_write_only(const std::string& name, T& data) {
+        uint16_t var_id = current_id++;
+        this->variables[var_id] = std::make_unique<PrimitiveSerialVariable<T>>(name, &data, false);
+    }
+
+    template <Serializable T>
+    void add_read_only(const std::string& name, T& data) {
+        uint16_t var_id = current_id++;
+        this->variables[var_id] = std::make_unique<CustomSerialVariable<T>>(name, &data, true);
+    }
+
+    template <Serializable T>
+    void add_write_only(const std::string& name, T& data) {
+        uint16_t var_id = current_id++;
+        this->variables[var_id] = std::make_unique<CustomSerialVariable<T>>(name, &data, false);
     }
 
     std::vector<uint8_t> serialize_var_map();
@@ -69,46 +87,9 @@ public:
 private:
     static uint16_t current_id;
 
-    struct PrimitiveVariable {
-        const void* ram_pointer{nullptr};
-        std::string name{};
-        std::string type{};
-        uint16_t    size{};
-        bool        is_read_only{};
-    };
+    std::unordered_map<uint16_t, std::unique_ptr<ISerialVariable>> variables;
 
-    struct SerializableVariable {
-        const proxy::ISerializable* ram_pointer{nullptr};
-        std::string                 name{};
-        std::string                 type{};
-        uint16_t                    size{};
-        bool                        is_read_only{};
-    };
-
-    /**
-     * @brief Map of primitive variables.
-     */
-    std::unordered_map<uint16_t, PrimitiveVariable> primitives;
-
-    /**
-     * @brief Map of serializable variables.
-     */
-    std::unordered_map<uint16_t, SerializableVariable> serializables;
-
-    template <Fundamental T>
-    void add_variable(const std::string& name, bool is_read_only, const T& data) {
-        uint16_t var_id = current_id++;
-        this->primitives[var_id].ram_pointer = &data;
-        this->primitives[var_id].name       = name;
-        this->primitives[var_id].type       = type_name<T>();
-        this->primitives[var_id].size       = sizeof(T);
-        this->primitives[var_id].is_read_only = is_read_only;
-    }
-
-    void add_variable(const std::string& name, bool is_read_only, const proxy::ISerializable& data);
-
-    template <typename T>
-    static std::vector<uint8_t> serialize_var_map(const std::unordered_map<uint16_t, T>& variables);
+    static std::vector<uint8_t> serialize_var_map();
 };
 }  // namespace micras::comm
 
