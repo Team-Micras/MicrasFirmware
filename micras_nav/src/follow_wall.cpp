@@ -57,7 +57,7 @@ bool FollowWall::check_posts() {
     bool found_posts = false;
 
     if (this->left_wall and
-        (this->wall_sensors->get_sensor_error(1) - this->last_left_error) / delta_distance >= this->post_threshold) {
+        (this->wall_sensors->get_sensor_error(1) - this->last_left_error) / delta_distance <= this->post_threshold) {
         this->left_wall = false;
 
         if (this->right_wall) {
@@ -68,7 +68,7 @@ bool FollowWall::check_posts() {
     }
 
     if (this->right_wall and
-        (this->wall_sensors->get_sensor_error(2) - this->last_right_error) / delta_distance >= this->post_threshold) {
+        (this->wall_sensors->get_sensor_error(2) - this->last_right_error) / delta_distance <= this->post_threshold) {
         this->right_wall = false;
 
         if (this->left_wall) {
