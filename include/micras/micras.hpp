@@ -65,11 +65,6 @@ private:
     };
 
     /**
-     * @brief Current status of the button.
-     */
-    proxy::Button::Status button_status{};
-
-    /**
      * @brief Time elapsed since the last loop in seconds.
      */
     float elapsed_time{};

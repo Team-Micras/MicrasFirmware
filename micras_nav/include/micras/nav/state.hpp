@@ -179,7 +179,7 @@ public:
      *
      * @param absolute_pose The absolute pose to be used as a reference.
      */
-    RelativePose(const Pose& absolute_pose);
+    explicit RelativePose(const Pose& absolute_pose);
 
     /**
      * @brief Get the relative pose.
@@ -197,7 +197,7 @@ private:
     /**
      * @brief A reference to the absolute pose.
      */
-    const Pose& absolute_pose;
+    const Pose* absolute_pose;
 
     /**
      * @brief The reference pose to be used for calculations.

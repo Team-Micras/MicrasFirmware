@@ -86,7 +86,7 @@ private:
                         this->micras.maze.calculate_best_route();
                     }
 
-                    auto next_goal = this->micras.maze.get_next_goal(this->micras.grid_pose.position, returning);
+                    next_goal = this->micras.maze.get_next_goal(this->micras.grid_pose.position, returning);
                 }
 
                 this->micras.action_queuer.push(this->micras.grid_pose, next_goal.position);

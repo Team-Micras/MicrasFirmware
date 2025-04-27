@@ -72,7 +72,7 @@ private:
     float post_threshold;
 
     RelativePose blind_pose;
-    float        last_blind_distance;
+    float        last_blind_distance{};
 
     float cell_size;
     float post_margin;

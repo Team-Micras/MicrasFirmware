@@ -98,16 +98,16 @@ Point Pose::to_cell(float cell_size) const {
     return {cell_alignment, cell_advance};
 }
 
-RelativePose::RelativePose(const Pose& absolute_pose) : absolute_pose{absolute_pose} { }
+RelativePose::RelativePose(const Pose& absolute_pose) : absolute_pose{&absolute_pose} { }
 
 Pose RelativePose::get() const {
     return {
-        this->absolute_pose.position - this->reference_pose.position,
-        this->absolute_pose.orientation - this->reference_pose.orientation
+        this->absolute_pose->position - this->reference_pose.position,
+        this->absolute_pose->orientation - this->reference_pose.orientation
     };
 }
 
 void RelativePose::reset_reference() {
-    this->reference_pose = this->absolute_pose;
+    this->reference_pose = *(this->absolute_pose);
 }
 }  // namespace micras::nav
