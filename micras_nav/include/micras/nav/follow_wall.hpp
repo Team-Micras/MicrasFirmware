@@ -57,9 +57,9 @@ private:
     /**
      * @brief Reset the displacement of the robot.
      *
-     * @param reseted_by_post Whether the reset was triggered by a post.
+     * @param reset_by_post Whether the reset was triggered by a post.
      */
-    void reset_displacement(bool reseted_by_post = false);
+    void reset_displacement(bool reset_by_post = false);
 
     /**
      * @brief Check if the robot is seeing a post.
@@ -134,7 +134,7 @@ private:
     /**
      * @brief Flag to indicate if relative pose was reset by a post.
      */
-    bool reseted_by_post{};
+    bool reset_by_post{};
 };
 }  // namespace micras::nav
 

@@ -22,7 +22,7 @@ float FollowWall::action(float elapsed_time, float linear_speed) {
     }
 
     if ((not this->left_wall or not this->right_wall) and
-        (this->last_blind_distance >= (this->cell_size + (this->reseted_by_post ? this->post_margin : 0.0F)))) {
+        (this->last_blind_distance >= (this->cell_size + (this->reset_by_post ? this->post_margin : 0.0F)))) {
         this->left_wall = this->wall_sensors->get_wall(0);
         this->right_wall = this->wall_sensors->get_wall(3);
         this->reset_displacement();
@@ -84,10 +84,10 @@ bool FollowWall::check_posts() {
     return found_posts;
 }
 
-void FollowWall::reset_displacement(bool reseted_by_post) {
+void FollowWall::reset_displacement(bool reset_by_post) {
     this->blind_pose.reset_reference();
     this->last_blind_distance = 0.0F;
-    this->reseted_by_post = reseted_by_post;
+    this->reset_by_post = reset_by_post;
 }
 
 void FollowWall::reset() {
