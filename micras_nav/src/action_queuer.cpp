@@ -22,6 +22,15 @@ ActionQueuer::ActionQueuer(Config config) :
         exploring_params.max_linear_speed, exploring_params.max_linear_acceleration,
         exploring_params.max_linear_deceleration
     )},
+    stop{std::make_shared<MoveAction>(
+        cell_size / 2.0F, exploring_params.max_linear_speed, 0.0F, exploring_params.max_linear_speed,
+        exploring_params.max_linear_acceleration, exploring_params.max_linear_deceleration
+    )},
+    move_half{std::make_shared<MoveAction>(
+        cell_size / 2.0F, exploring_params.max_linear_speed, exploring_params.max_linear_speed,
+        exploring_params.max_linear_speed, exploring_params.max_linear_acceleration,
+        exploring_params.max_linear_deceleration
+    )},
     turn_left{std::make_shared<TurnAction>(
         std::numbers::pi_v<float> / 2.0F, cell_size / 2.0F, exploring_params.max_linear_speed,
         exploring_params.max_angular_acceleration
@@ -52,8 +61,9 @@ void ActionQueuer::push(const GridPose& current_pose, const GridPoint& target_po
     }
 
     if (current_pose.turned_back().front().position == target_position) {
+        this->action_queue.emplace(stop);
         this->action_queue.emplace(turn_back);
-        this->action_queue.emplace(move_forward);
+        this->action_queue.emplace(move_half);
         return;
     }
 }
