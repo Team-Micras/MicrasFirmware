@@ -2,6 +2,8 @@
 #define MICRAS_COMM_CUSTOM_SERIAL_VARIABLE_HPP
 
 #include <type_traits>
+
+#include "micras/core/utils.hpp"
 #include "serial_variable.hpp"
 
 namespace micras::comm {
@@ -21,7 +23,7 @@ public:
         : serializable_ptr(serializable), name(name), read_only(read_only) {}
 
     std::string get_name() const override { return name; }
-    std::string get_type() const override { return type_name<T>(); }
+    std::string get_type() const override { return core::type_name<T>(); }
     uint16_t get_size() const override { return 0; }
     bool is_read_only() const override { return read_only; }
 
