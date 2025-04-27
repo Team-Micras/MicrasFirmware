@@ -20,6 +20,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: 🐋 Build Docker image
+        timeout-minutes: 10
         uses: docker/build-push-action@v6
         with:
           context: .

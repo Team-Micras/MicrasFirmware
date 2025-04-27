@@ -33,6 +33,7 @@ jobs:
 
       - name: 🐋 Build Docker image
         if: steps.cache.outputs.cache-hit != 'true'
+        timeout-minutes: 10
         uses: docker/build-push-action@v6
         with:
           context: .
