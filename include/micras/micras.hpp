@@ -25,6 +25,13 @@ public:
      */
     void update();
 
+    /**
+     * @brief Calibrate the robot.
+     *
+     * @return True if the calibration is finished, false otherwise.
+     */
+    bool calibrate();
+
 private:
     /**
      * @brief Enum for the current status of the robot.

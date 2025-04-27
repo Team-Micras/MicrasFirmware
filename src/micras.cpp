@@ -45,4 +45,22 @@ void Micras::update() {
 
     while (loop_stopwatch.elapsed_time_us() < loop_time_us) { }
 }
+
+bool Micras::calibrate() {
+    switch (this->calibration_type) {
+        case CalibrationType::SIDE_WALLS:
+            this->wall_sensors->calibrate_left_wall();
+            this->wall_sensors->calibrate_right_wall();
+            this->calibration_type = CalibrationType::FRONT_WALL;
+            return false;
+
+        case CalibrationType::FRONT_WALL:
+            this->wall_sensors->calibrate_front_wall();
+            this->calibration_type = CalibrationType::SIDE_WALLS;
+            this->wall_sensors->turn_off();
+            return true;
+    }
+
+    return false;
+}
 }  // namespace micras
