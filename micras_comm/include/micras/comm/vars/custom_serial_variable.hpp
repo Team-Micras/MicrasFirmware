@@ -3,18 +3,16 @@
 
 #include <type_traits>
 
+#include "micras/core/concepts.hpp"
 #include "micras/core/utils.hpp"
-#include "serial_variable.hpp"
+#include "micras/comm/vars/serial_variable.hpp"
 
 namespace micras::comm {
 
-template <typename T>
-concept Serializable = std::is_base_of<ISerialVariable, T>::value;
-
-template <Serializable T>
+template <core::Serializable T>
 class CustomSerialVariable : public ISerialVariable {
 private:
-    proxy::ISerializable* serializable_ptr;
+    core::ISerializable* serializable_ptr;
     std::string name;
     bool read_only;
 

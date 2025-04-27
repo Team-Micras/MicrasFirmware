@@ -2,16 +2,15 @@
 #define MICRAS_COMM_PRIMITIVE_SERIAL_VARIABLE_HPP
 
 #include <type_traits>
-#include "serial_variable.hpp"
+#include <cstring>
+
+#include "micras/core/concepts.hpp"
 #include "micras/core/utils.hpp"
+#include "micras/comm/vars/serial_variable.hpp"
 
 namespace micras::comm {
 
-//todo concept no core
-template <typename T>
-concept Fundamental = std::is_fundamental_v<T>;
-
-template <Fundamental T>
+template <core::Fundamental T>
 class PrimitiveSerialVariable : public ISerialVariable {
 
 public:
