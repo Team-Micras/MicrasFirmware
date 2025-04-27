@@ -70,15 +70,16 @@ private:
                 this->micras.current_action = this->micras.action_queuer.pop();
             } else {
                 const bool returning = (this->micras.objective == core::Objective::RETURN);
+                const bool solving = (this->micras.objective == core::Objective::SOLVE);
 
-                if (this->micras.objective != core::Objective::SOLVE) {
+                if (not solving) {
                     observation = this->micras.wall_sensors->get_observation();
                     this->micras.maze.update_walls(this->micras.grid_pose, observation);
                 }
 
                 micras::nav::GridPose next_goal{};
 
-                if (this->micras.maze.finished(this->micras.grid_pose.position, returning)) {
+                if (solving or this->micras.maze.finished(this->micras.grid_pose.position, returning)) {
                     this->finished = true;
                     next_goal = this->micras.grid_pose.turned_back().front();
                 } else {
