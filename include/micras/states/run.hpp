@@ -58,6 +58,11 @@ private:
         core::Observation         observation{};
 
         if (this->micras.current_action->finished(this->micras.action_pose.get())) {
+            if (this->finished) {
+                this->finished = false;
+                return true;
+            }
+
             this->micras.speed_controller.reset();
             this->micras.action_pose.reset_reference();
 
@@ -71,15 +76,18 @@ private:
                     this->micras.maze.update_walls(this->micras.grid_pose, observation);
                 }
 
+                micras::nav::GridPose next_goal{};
+
                 if (this->micras.maze.finished(this->micras.grid_pose.position, returning)) {
-                    return true;
-                }
+                    this->finished = true;
+                    next_goal = this->micras.grid_pose.turned_back().front();
+                } else {
+                    if (returning) {
+                        this->micras.maze.calculate_best_route();
+                    }
 
-                if (returning) {
-                    this->micras.maze.calculate_best_route();
+                    auto next_goal = this->micras.maze.get_next_goal(this->micras.grid_pose.position, returning);
                 }
-
-                auto next_goal = this->micras.maze.get_next_goal(this->micras.grid_pose.position, returning);
 
                 this->micras.action_queuer.push(this->micras.grid_pose, next_goal.position);
                 this->micras.current_action = this->micras.action_queuer.pop();
@@ -117,6 +125,8 @@ private:
      * @brief Stopwatch for aligning the robot to the back wall.
      */
     proxy::Stopwatch align_back_stopwatch;
+
+    bool finished{false};
 };
 }  // namespace micras
 
