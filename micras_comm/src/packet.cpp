@@ -5,6 +5,8 @@ Packet::Packet(PayloadType type, const std::vector<uint8_t>& payload) : type{typ
 
 Packet::Packet(PayloadType type) : Packet(type, {0}) { }
 
+Packet::Packet(const uint8_t* serialized_packet, uint16_t size) : Packet(std::vector<uint8_t>(serialized_packet, serialized_packet + size)) { }
+
 Packet::Packet(const std::vector<uint8_t>& serialized_packet) {
     if (not this->is_valid(serialized_packet)) {
         this->type = PayloadType::error;
@@ -13,7 +15,7 @@ Packet::Packet(const std::vector<uint8_t>& serialized_packet) {
     }
 
     this->type = static_cast<PayloadType>(serialized_packet[1]);
-    uint16_t             payload_size = (serialized_packet[2] << 8) | serialized_packet[3];
+    // uint16_t             payload_size = (serialized_packet[2] << 8) | serialized_packet[3];
     std::vector<uint8_t> read_payload(serialized_packet.begin() + 4, serialized_packet.end() - 2);
     this->payload = this->unescape_payload(read_payload);
 }
@@ -22,7 +24,7 @@ std::vector<uint8_t> Packet::serialize() const {
     std::vector<uint8_t> data;
 
     data.emplace_back(header_byte);
-    data.emplace_back(this->type);
+    data.emplace_back(static_cast<uint8_t>(this->type));
 
     data.emplace_back(this->payload.size() >> 8);
     data.emplace_back(this->payload.size() & 0xFF);
@@ -58,7 +60,7 @@ std::vector<uint8_t> Packet::escape_payload(const std::vector<uint8_t>& payload)
 std::vector<uint8_t> Packet::unescape_payload(const std::vector<uint8_t>& escaped_payload) const {
     std::vector<uint8_t> payload;
 
-    for (uint16_t i = 0; i < escaped_payload.size(); ++i) {
+    for (uint32_t i = 0; i < escaped_payload.size(); ++i) {
         if (escaped_payload[i] == escape_byte) {
             if (i + 1 < escaped_payload.size()) {
                 payload.emplace_back(escaped_payload[i + 1]);

@@ -41,6 +41,8 @@ public:
 
     explicit Packet(const std::vector<uint8_t>& serialized_packet);
 
+    explicit Packet(const uint8_t* serialized_packet, uint16_t size);
+
     std::vector<uint8_t> serialize() const;
 
     void deserialize(const uint8_t* buffer, uint16_t size);
