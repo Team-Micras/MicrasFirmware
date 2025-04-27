@@ -3,6 +3,7 @@
 
 #include <type_traits>
 #include "serial_variable.hpp"
+#include "micras/core/utils.hpp"
 
 namespace micras::comm {
 
@@ -18,7 +19,7 @@ public:
         : value_ptr(value), name(name), read_only(read_only) {}
 
     std::string get_name() const override { return name; }
-    std::string get_type() const override { return type_name<T>(); }
+    std::string get_type() const override { return core::type_name<T>(); }
     uint16_t get_size() const override { return sizeof(T); }
     bool is_read_only() const override { return read_only; }
 
