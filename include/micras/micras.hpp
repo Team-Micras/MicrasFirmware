@@ -116,14 +116,13 @@ private:
      */
     ///@{
     nav::ActionQueuer    action_queuer;
-    nav::FollowWall      follow_wall;
     nav::Maze            maze;
     nav::Odometry        odometry;
     nav::SpeedController speed_controller;
+    nav::FollowWall      follow_wall;
     ///@}
 
     nav::RelativePose action_pose;
-    nav::RelativePose follow_wall_pose;
 
     /**
      * @brief Finite state machine for the robot.

@@ -75,6 +75,9 @@ const nav::FollowWall::Config follow_wall_config{
             .max_integral = -1.0F,
         },
     .max_linear_speed = 0.1F,
+    .post_threshold = -16.5F,
+    .cell_size = cell_size,
+    .post_margin = 0.2F * cell_size,
 };
 
 const nav::Maze::Config maze_config{
@@ -117,16 +120,16 @@ const nav::SpeedController::Config speed_controller_config{
     .left_feed_forward =
         {
             .linear_speed = 12.706F,
-            .linear_acceleration = 0.0F,  // 2.796F,
+            .linear_acceleration = 2.796F,
             .angular_speed = -0.971F,
-            .angular_acceleration = 0.0F,  //-0.0258F,
+            .angular_acceleration = -0.0258F,
         },
     .right_feed_forward =
         {
             .linear_speed = 13.319F,
-            .linear_acceleration = 0.0F,  // 2.878F,
+            .linear_acceleration = 2.878F,
             .angular_speed = 0.901F,
-            .angular_acceleration = 0.0F,  //-0.0244F,
+            .angular_acceleration = -0.0244F,
         },
 };
 }  // namespace micras

@@ -23,17 +23,16 @@ ActionQueuer::ActionQueuer(Config config) :
         exploring_params.max_linear_deceleration
     )},
     turn_left{std::make_shared<TurnAction>(
-        std::numbers::pi_v<float> / 2.0F, cell_size / 2.0F, exploring_params.max_centrifugal_acceleration,
+        std::numbers::pi_v<float> / 2.0F, cell_size / 2.0F, exploring_params.max_linear_speed,
         exploring_params.max_angular_acceleration
     )},
     turn_right{std::make_shared<TurnAction>(
-        -std::numbers::pi_v<float> / 2.0F, cell_size / 2.0F, exploring_params.max_centrifugal_acceleration,
+        -std::numbers::pi_v<float> / 2.0F, cell_size / 2.0F, exploring_params.max_linear_speed,
         exploring_params.max_angular_acceleration
     )},
-    turn_back{std::make_shared<TurnAction>(
-        std::numbers::pi_v<float>, cell_size / 2.0F, exploring_params.max_centrifugal_acceleration,
-        exploring_params.max_angular_acceleration
-    )},
+    turn_back{
+        std::make_shared<TurnAction>(std::numbers::pi_v<float>, 0.0F, 0.0F, exploring_params.max_angular_acceleration)
+    },
     action_queue{{start}} { }
 
 void ActionQueuer::push(const GridPose& current_pose, const GridPoint& target_position) {

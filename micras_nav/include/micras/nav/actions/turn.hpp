@@ -18,16 +18,18 @@ static constexpr float correction_factor{0.95F};
  */
 class TurnAction : public Action {
 public:
-    TurnAction(float angle, float curve_radius, float max_centrifugal_acceleration, float max_angular_acceleration) :
+    TurnAction(float angle, float curve_radius, float linear_speed, float max_angular_acceleration) :
         angle{angle},
-        linear_speed{std::sqrt(max_centrifugal_acceleration * curve_radius)},
+        linear_speed{linear_speed},
         acceleration{max_angular_acceleration},
         max_speed{
-            correction_factor * max_angular_acceleration *
-            (curve_radius / linear_speed -
-             std::sqrt(
-                 std::pow(curve_radius / linear_speed, 2.0F) - 2.0F / (correction_factor * max_angular_acceleration)
-             ))
+            (linear_speed == 0.0F) ?
+                (max_angular_acceleration * 0.1F) :
+                (correction_factor * max_angular_acceleration *
+                 (curve_radius / linear_speed - std::sqrt(
+                                                    std::pow(curve_radius / linear_speed, 2.0F) -
+                                                    2.0F / (correction_factor * max_angular_acceleration)
+                                                )))
         } { }
 
     Twist get_twist(const Pose& pose) const override {

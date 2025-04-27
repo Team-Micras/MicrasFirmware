@@ -18,12 +18,11 @@ Micras::Micras() :
     rotary_sensor_right{std::make_shared<proxy::RotarySensor>(rotary_sensor_right_config)},
     wall_sensors{std::make_shared<proxy::WallSensors>(wall_sensors_config)},
     action_queuer{action_queuer_config},
-    follow_wall{wall_sensors, follow_wall_config},
     maze{maze_config},
     odometry{rotary_sensor_left, rotary_sensor_right, imu, odometry_config},
     speed_controller{speed_controller_config},
-    action_pose{odometry.get_state().pose},
-    follow_wall_pose{odometry.get_state().pose} {
+    follow_wall{wall_sensors, odometry.get_state().pose, follow_wall_config},
+    action_pose{odometry.get_state().pose} {
     this->fsm.add_state(std::make_unique<CalibrateState>(State::CALIBRATE, *this));
     this->fsm.add_state(std::make_unique<ErrorState>(State::ERROR, *this));
     this->fsm.add_state(std::make_unique<IdleState>(State::IDLE, *this));

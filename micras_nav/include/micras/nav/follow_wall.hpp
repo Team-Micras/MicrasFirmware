@@ -8,6 +8,7 @@
 #include <memory>
 
 #include "micras/core/pid_controller.hpp"
+#include "micras/nav/state.hpp"
 #include "micras/proxy/wall_sensors.hpp"
 
 namespace micras::nav {
@@ -22,6 +23,9 @@ public:
     struct Config {
         core::PidController::Config pid;
         float                       max_linear_speed{};
+        float                       post_threshold{};
+        float                       cell_size{};
+        float                       post_margin{};
     };
 
     /**
@@ -30,7 +34,9 @@ public:
      * @param wall_sensors The wall sensors of the robot.
      * @param config The configuration for the FollowWall class.
      */
-    FollowWall(const std::shared_ptr<proxy::TWallSensors<4>>& wall_sensors, const Config& config);
+    FollowWall(
+        const std::shared_ptr<proxy::TWallSensors<4>>& wall_sensors, const Pose& absolute_pose, const Config& config
+    );
 
     /**
      * @brief Update the PID controller and return the response.
@@ -39,7 +45,7 @@ public:
      * @param elapsed_time The time elapsed since the last update.
      * @return The response of the PID controller.
      */
-    float action(core::Observation observation, float elapsed_time, float linear_speed);
+    float action(float elapsed_time, float linear_speed);
 
     /**
      * @brief Reset the PID controller.
@@ -47,6 +53,10 @@ public:
     void reset();
 
 private:
+    void reset_displacement(bool reseted_by_post = false);
+
+    bool check_posts();
+
     /**
      * @brief Wall sensors of the robot.
      */
@@ -58,6 +68,22 @@ private:
     core::PidController pid;
 
     float max_linear_speed;
+
+    float post_threshold;
+
+    RelativePose blind_pose;
+    float        last_blind_distance;
+
+    float cell_size;
+    float post_margin;
+
+    bool left_wall{true};
+    bool right_wall{true};
+
+    float last_right_error{};
+    float last_left_error{};
+
+    bool reseted_by_post{};
 };
 }  // namespace micras::nav
 
