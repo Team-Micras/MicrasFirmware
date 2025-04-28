@@ -3,7 +3,17 @@
 namespace micras::comm {
 CommunicationService::CommunicationService(SerialVariablePool& pool, Logger& logger) : pool{pool}, logger{logger} { }
 
+void CommunicationService::register_communication_functions(SendDataFunction send_func, GetDataFunction get_func) {
+    this->send_data_func = std::move(send_func);
+    this->get_data_func = std::move(get_func);
+    this->functions_registered = true;
+}
+
 void CommunicationService::update() {
+    if (!this->functions_registered) {
+        return;
+    }
+
     this->update_incoming_packets();
     this->process_incomming_packets();
     this->send_debug_logs();
@@ -11,7 +21,7 @@ void CommunicationService::update() {
 }
 
 void CommunicationService::update_incoming_packets() {
-    auto data = this->get_data();
+    auto data = this->get_data_func();
 
     for (const auto& byte : data) {
         this->incoming_data_queue.push_back(byte);
@@ -68,25 +78,25 @@ void CommunicationService::send_debug_logs() {
     while (this->logger.has_logs()) {
         std::string log = this->logger.get_next_log();
         Packet packet(Packet::MessageType::DEBUG_LOG, {log.begin(), log.end()});
-        this->send_data(packet.serialize());
+        this->send_data_func(packet.serialize());
     }
 }
 
 void CommunicationService::send_serial_variables() {
     this->pool.for_each_read_only_variable([this](uint16_t id, ISerialVariable& variable) {
         Packet packet(Packet::MessageType::SERIAL_VARIABLE, id, variable.serialize());
-        this->send_data(packet.serialize());
+        this->send_data_func(packet.serialize());
     });
 }
 
 void CommunicationService::consume_packet(const Packet& packet) {
     switch (packet.get_type()) {
         case Packet::MessageType::PING:
-            this->send_data(Packet(Packet::MessageType::PONG).serialize());
+            this->send_data_func(Packet(Packet::MessageType::PONG).serialize());
             break;
 
         case Packet::MessageType::SERIAL_VARIABLE_MAP_REQUEST:
-            this->send_data(this->pool.serialize_var_map());
+            this->send_data_func(this->pool.serialize_var_map());
             break;
 
         case Packet::MessageType::SERIAL_VARIABLE:
