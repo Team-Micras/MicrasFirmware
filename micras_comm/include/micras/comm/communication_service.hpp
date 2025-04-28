@@ -4,12 +4,13 @@
 #include <deque>
 #include <queue>
 #include "micras/comm/serial_variable_pool.hpp"
+#include "micras/comm/logger.hpp"
 #include "micras/comm/packet.hpp"
 
 namespace micras::comm {
 class CommunicationService {
 public:
-    explicit CommunicationService(SerialVariablePool& pool);
+    explicit CommunicationService(SerialVariablePool& pool, Logger& logger);
 
     void update();
 private:
@@ -24,6 +25,8 @@ private:
     std::vector<uint8_t> receive_data();
 
     SerialVariablePool& pool;
+
+    Logger& logger;
 
     std::deque<uint8_t> incoming_data_queue{};
 

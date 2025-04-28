@@ -1,7 +1,7 @@
 #include "micras/comm/communication_service.hpp"
 
 namespace micras::comm {
-CommunicationService::CommunicationService(SerialVariablePool& pool) : pool{pool} { }
+CommunicationService::CommunicationService(SerialVariablePool& pool, Logger& logger) : pool{pool}, logger{logger} { }
 
 void CommunicationService::update() {
     this->update_incoming_packets();
@@ -25,6 +25,15 @@ void CommunicationService::process_incomming_packets() {
 }
 
 void CommunicationService::send_debug_logs() {
+    if (!this->logger.is_enabled()) {
+        return;
+    }
+
+    while (this->logger.has_logs()) {
+        std::string log = this->logger.get_next_log();
+        Packet packet(Packet::MessageType::DEBUG_LOG, {log.begin(), log.end()});
+        this->send_data(packet.serialize());
+    }
 }
 
 void CommunicationService::send_serial_variables() {
