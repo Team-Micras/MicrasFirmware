@@ -19,7 +19,7 @@ public:
      *
      * @return The id of the next state.
      */
-    uint8_t run(uint8_t /*previous_state_id*/) override {
+    uint8_t execute(uint8_t /*previous_state_id*/) override {
         if (not this->run(this->micras.elapsed_time)) {
             return this->get_id();
         }
@@ -100,15 +100,15 @@ private:
             }
         }
 
-        auto desired_twist = this->micras.current_action->get_twist(this->micras.action_pose.get());
+        auto desired_speeds = this->micras.current_action->get_speeds(this->micras.action_pose.get());
 
         if (this->micras.current_action->allow_follow_wall()) {
-            desired_twist.angular =
+            desired_speeds.angular =
                 this->micras.follow_wall.compute_angular_correction(elapsed_time, state.velocity.linear);
         }
 
         const auto [left_command, right_command] =
-            this->micras.speed_controller.compute_commands(state.velocity, desired_twist, elapsed_time);
+            this->micras.speed_controller.compute_commands(state.velocity, desired_speeds, elapsed_time);
         this->micras.locomotion.set_wheel_command(left_command, right_command);
 
         return false;

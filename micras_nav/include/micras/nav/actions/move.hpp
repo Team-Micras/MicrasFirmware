@@ -50,8 +50,8 @@ public:
      *
      * @details The desired velocity is calculated from the linear displacement based on the Torricelli equation.
      */
-    Twist get_twist(const Pose& pose) const override {
-        const float current_distance = pose.position.distance({0.0F, 0.0F});
+    Twist get_speeds(const Pose& pose) const override {
+        const float current_distance = pose.position.magnitude();
         Twist       twist{};
 
         if (current_distance < this->decelerate_distance) {
@@ -74,7 +74,7 @@ public:
      * @param pose The current pose of the robot.
      * @return True if the action is finished, false otherwise.
      */
-    bool finished(const Pose& pose) const override { return pose.position.distance({0.0F, 0.0F}) >= this->distance; }
+    bool finished(const Pose& pose) const override { return pose.position.magnitude() >= this->distance; }
 
     /**
      * @brief Check if the action allows the robot to follow walls.

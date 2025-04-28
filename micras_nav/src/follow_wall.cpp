@@ -46,7 +46,7 @@ float FollowWall::compute_angular_correction(float elapsed_time, float linear_sp
 }
 
 bool FollowWall::check_posts() {
-    const float current_distance = this->blind_pose.get().position.distance({0.0F, 0.0F});
+    const float current_distance = this->blind_pose.get().position.magnitude();
     const float delta_distance = current_distance - this->last_blind_distance;
 
     if (delta_distance <= 0.0F) {

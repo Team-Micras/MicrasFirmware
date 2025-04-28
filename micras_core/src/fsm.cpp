@@ -17,8 +17,8 @@ void FSM::add_state(std::unique_ptr<State> state) {
     this->states.emplace(state->get_id(), std::move(state));
 }
 
-void FSM::run() {
-    const uint8_t next_state = this->states.at(this->current_state_id)->run(this->previous_state_id);
+void FSM::update() {
+    const uint8_t next_state = this->states.at(this->current_state_id)->execute(this->previous_state_id);
     this->previous_state_id = this->current_state_id;
     this->current_state_id = next_state;
 }

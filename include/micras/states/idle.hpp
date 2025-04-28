@@ -19,7 +19,7 @@ public:
      *
      * @return The id of the next state.
      */
-    uint8_t run(uint8_t /*previous_state_id*/) override {
+    uint8_t execute(uint8_t /*previous_state_id*/) override {
         if (this->micras.button.get_status() != proxy::Button::Status::NO_PRESS) {
             this->micras.wall_sensors->turn_on();
         }

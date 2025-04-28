@@ -28,7 +28,7 @@ public:
      *
      * @return The id of the next state.
      */
-    uint8_t run(uint8_t previous_state_id) override {
+    uint8_t execute(uint8_t previous_state_id) override {
         if (previous_state_id != this->get_id()) {
             this->wait_stopwatch.reset_ms();
         }
