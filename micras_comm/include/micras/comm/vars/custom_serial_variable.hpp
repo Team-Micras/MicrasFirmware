@@ -22,7 +22,7 @@ public:
 
     std::string get_name() const override { return name; }
 
-    std::string get_type() const override { return core::type_name<T>(); }
+    std::string get_type() const override { return std::string(core::type_name<T>()); }
 
     uint16_t get_size() const override { return 0; }
 
