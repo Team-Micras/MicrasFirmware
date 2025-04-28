@@ -12,7 +12,8 @@ namespace micras::comm {
  *
  * @note The packet structure is defined as follows:
  * - Header byte: 0x42
- * - Payload type: 1 byte
+ * - message type: 1 byte
+ * - id byte: 2 bytes
  * - Payload size: 2 bytes
  * - Payload: variable size
  * - Checksum: 1 byte
@@ -25,19 +26,21 @@ public:
     static constexpr uint8_t escape_byte{0x7D};
     static constexpr uint8_t minimum_size{7};
 
-    enum class PayloadType : uint8_t {
-        ping = 0x00,
-        pong = 0x01,
-        serial_variable_map_request = 0x02,
-        serial_variable_map_response = 0x03,
-        serial_variable = 0x04,
-        debug_log = 0x05,
-        error = 0x06,
+    enum class MessageType : uint8_t {
+        PING = 0x00,
+        PONG = 0x01,
+        SERIAL_VARIABLE_MAP_REQUEST = 0x02,
+        SERIAL_VARIABLE_MAP_RESPONSE = 0x03,
+        SERIAL_VARIABLE = 0x04,
+        DEBUG_LOG = 0x05,
+        ERROR = 0x06,
     };
 
-    explicit Packet(PayloadType type, const std::vector<uint8_t>& payload);
+    explicit Packet(MessageType type, uint16_t id, const std::vector<uint8_t>& payload);
 
-    explicit Packet(PayloadType type);
+    explicit Packet(MessageType type, const std::vector<uint8_t>& payload);
+
+    explicit Packet(MessageType type);
 
     explicit Packet(const std::vector<uint8_t>& serialized_packet);
 
@@ -45,12 +48,18 @@ public:
 
     std::vector<uint8_t> serialize() const;
 
-    void deserialize(const uint8_t* buffer, uint16_t size);
-
     bool is_valid(const std::vector<uint8_t>& serialized_packet);
 
+    MessageType get_type() const;
+
+    uint16_t get_id() const;
+
+    std::vector<uint8_t> get_payload() const;
+
 private:
-    PayloadType type;
+    MessageType type;
+
+    uint16_t id;
 
     std::vector<uint8_t> payload;
 

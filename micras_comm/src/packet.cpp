@@ -1,23 +1,29 @@
 #include "micras/comm/packet.hpp"
 
 namespace micras::comm {
-Packet::Packet(PayloadType type, const std::vector<uint8_t>& payload) : type{type}, payload{payload} { }
 
-Packet::Packet(PayloadType type) : Packet(type, {0}) { }
+Packet::Packet(MessageType type, uint16_t id, const std::vector<uint8_t>& payload) :
+    type{type}, id{id}, payload{payload} { }
+
+Packet::Packet(MessageType type, const std::vector<uint8_t>& payload) : Packet(type, 0, payload) { }
+
+Packet::Packet(MessageType type) : Packet(type, 0, {0}) { }
 
 Packet::Packet(const uint8_t* serialized_packet, uint16_t size) :
     Packet(std::vector<uint8_t>(serialized_packet, serialized_packet + size)) { }
 
 Packet::Packet(const std::vector<uint8_t>& serialized_packet) {
     if (not this->is_valid(serialized_packet)) {
-        this->type = PayloadType::error;
+        this->type = MessageType::ERROR;
+        this->id = 0;
         this->payload = {0};
         return;
     }
 
-    this->type = static_cast<PayloadType>(serialized_packet[1]);
-    // uint16_t             payload_size = (serialized_packet[2] << 8) | serialized_packet[3];
-    std::vector<uint8_t> read_payload(serialized_packet.begin() + 4, serialized_packet.end() - 2);
+    this->type = static_cast<MessageType>(serialized_packet[1]);
+    this->id = (serialized_packet[2] << 8) | serialized_packet[3];
+    // uint16_t payload_size = (serialized_packet[4] << 8) | serialized_packet[5];
+    std::vector<uint8_t> read_payload(serialized_packet.begin() + 6, serialized_packet.end() - 2);
     this->payload = this->unescape_payload(read_payload);
 }
 
@@ -25,6 +31,10 @@ std::vector<uint8_t> Packet::serialize() const {
     std::vector<uint8_t> data;
 
     data.emplace_back(header_byte);
+
+    data.emplace_back(static_cast<uint8_t>(this->id >> 8));
+    data.emplace_back(static_cast<uint8_t>(this->id & 0xFF));
+
     data.emplace_back(static_cast<uint8_t>(this->type));
 
     data.emplace_back(this->payload.size() >> 8);
@@ -91,6 +101,18 @@ bool Packet::is_valid(const std::vector<uint8_t>& serialized_packet) {
     checksum %= 256;
 
     return checksum == serialized_packet[serialized_packet.size() - 2];
+}
+
+Packet::MessageType Packet::get_type() const {
+    return this->type;
+}
+
+uint16_t Packet::get_id() const {
+    return this->id;
+}
+
+std::vector<uint8_t> Packet::get_payload() const {
+    return this->payload;
 }
 
 }  // namespace micras::comm
