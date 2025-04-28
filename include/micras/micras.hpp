@@ -78,6 +78,7 @@ private:
     proxy::Locomotion locomotion{locomotion_config};
     proxy::Stopwatch  loop_stopwatch{stopwatch_config};
     proxy::Storage    maze_storage{maze_storage_config};
+    proxy::Bluetooth  bluetooth{bluetooth_config};
     // proxy::TorqueSensors torque_sensors{torque_sensors_config};
     ///@}
 
