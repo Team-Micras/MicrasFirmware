@@ -37,6 +37,7 @@ void Micras::update() {
     loop_stopwatch.reset_us();
 
     this->button.update();
+    this->bluetooth.update();
     this->buzzer.update();
     this->fan.update();
     this->imu->update();
