@@ -75,9 +75,9 @@ const nav::FollowWall::Config follow_wall_config{
             .max_integral = -1.0F,
         },
     .max_linear_speed = 0.1F,
-    .post_threshold = -16.5F,
+    .post_threshold = 16.5F,
     .cell_size = cell_size,
-    .post_margin = 0.2F * cell_size,
+    .post_clearance = 0.2F * cell_size,
 };
 
 const nav::Maze::Config maze_config{

@@ -37,7 +37,7 @@ public:
             this->micras.objective = core::Objective::SOLVE;
 
             this->micras.maze_storage.sync("maze", this->micras.maze);
-            this->micras.action_queuer.recalculate(this->micras.maze.get_best_route());
+            this->micras.action_queuer.recompute(this->micras.maze.get_best_route());
             this->micras.current_action = this->micras.action_queuer.pop();
 
             if (this->micras.dip_switch.get_switch_state(Micras::Switch::FAN)) {

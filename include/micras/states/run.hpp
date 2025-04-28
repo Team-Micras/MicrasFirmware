@@ -84,7 +84,7 @@ private:
                     next_goal = this->micras.grid_pose.turned_back().front();
                 } else {
                     if (returning) {
-                        this->micras.maze.calculate_best_route();
+                        this->micras.maze.compute_best_route();
                     }
 
                     next_goal = this->micras.maze.get_next_goal(this->micras.grid_pose.position, returning);
@@ -103,11 +103,12 @@ private:
         auto desired_twist = this->micras.current_action->get_twist(this->micras.action_pose.get());
 
         if (this->micras.current_action->allow_follow_wall()) {
-            desired_twist.angular = this->micras.follow_wall.action(elapsed_time, state.velocity.linear);
+            desired_twist.angular =
+                this->micras.follow_wall.compute_angular_correction(elapsed_time, state.velocity.linear);
         }
 
         const auto [left_command, right_command] =
-            this->micras.speed_controller.action(state.velocity, desired_twist, elapsed_time);
+            this->micras.speed_controller.compute_commands(state.velocity, desired_twist, elapsed_time);
         this->micras.locomotion.set_wheel_command(left_command, right_command);
 
         return false;

@@ -74,7 +74,7 @@ public:
     void add_state(std::unique_ptr<State> state);
 
     /**
-     * @brief Run the FSM current state to calculate the next state.
+     * @brief Run the FSM current state to compute the next state.
      */
     void run();
 

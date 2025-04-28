@@ -18,12 +18,12 @@ SpeedController::SpeedController(const Config& config) :
     right_feed_forward{config.right_feed_forward} { }
 
 std::pair<float, float>
-    SpeedController::action(const Twist& current_twist, const Twist& desired_twist, float elapsed_time) {
+    SpeedController::compute_commands(const Twist& current_twist, const Twist& desired_twist, float elapsed_time) {
     this->linear_pid.set_setpoint(desired_twist.linear);
     this->angular_pid.set_setpoint(desired_twist.angular);
 
-    const float linear_command = this->linear_pid.update(current_twist.linear, elapsed_time);
-    const float angular_command = this->angular_pid.update(current_twist.angular, elapsed_time);
+    const float linear_command = this->linear_pid.compute_response(current_twist.linear, elapsed_time);
+    const float angular_command = this->angular_pid.compute_response(current_twist.angular, elapsed_time);
 
     const float linear_acceleration = (desired_twist.linear - this->last_linear_speed) / elapsed_time;
     const float angular_acceleration = (desired_twist.angular - this->last_angular_speed) / elapsed_time;

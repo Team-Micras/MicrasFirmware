@@ -43,7 +43,7 @@ TMaze<width, height>::TMaze(Config config) : start{config.start}, goal{config.go
         this->get_cell(position).cost = 0;
     }
 
-    this->calculate_costmap();
+    this->compute_costmap();
 }
 
 template <uint8_t width, uint8_t height>
@@ -52,7 +52,7 @@ void TMaze<width, height>::update_walls(const GridPose& pose, const core::Observ
     this->update_wall(pose, observation.front);
     this->update_wall(pose.turned_right(), observation.right);
 
-    this->calculate_costmap();
+    this->compute_costmap();
 }
 
 template <uint8_t width, uint8_t height>
@@ -128,7 +128,7 @@ bool TMaze<width, height>::finished(const GridPoint& position, bool returning) c
 }
 
 template <uint8_t width, uint8_t height>
-void TMaze<width, height>::calculate_best_route() {
+void TMaze<width, height>::compute_best_route() {
     GridPose current_pose = this->start;
     this->best_route.clear();
     this->best_route.try_emplace(this->get_cell(this->start.position).cost, this->start);
@@ -145,7 +145,7 @@ const std::map<uint16_t, GridPose, std::greater<>>& TMaze<width, height>::get_be
 }
 
 template <uint8_t width, uint8_t height>
-void TMaze<width, height>::calculate_costmap() {
+void TMaze<width, height>::compute_costmap() {
     std::array<std::array<bool, width>, height> visited{};
     std::array<std::array<Side, width>, height> origin{};
     std::queue<GridPoint>                       queue;

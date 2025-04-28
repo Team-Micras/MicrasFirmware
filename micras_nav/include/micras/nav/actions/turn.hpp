@@ -26,14 +26,15 @@ public:
      * @param linear_speed Linear speed in m/s.
      * @param max_angular_acceleration Maximum angular acceleration in rad/s^2.
      *
-     * @details The angular max speed is calculated to generate a curve equivalent in displacement to one that
+     * @details Maximum angular velocity is computed to generate a curve equivalent in displacement to one that
      * maintains the desired radius of curvature throughout the entire turn.
+     * If linear speed is zero, a minimal angular speed is assigned.
      */
     TurnAction(float angle, float curve_radius, float linear_speed, float max_angular_acceleration) :
         angle{angle},
         linear_speed{linear_speed},
         acceleration{max_angular_acceleration},
-        max_speed{
+        max_angular_speed{
             (linear_speed == 0.0F) ?
                 (max_angular_acceleration * 0.01F) :
                 (correction_factor * max_angular_acceleration *
@@ -65,7 +66,8 @@ public:
             };
         }
 
-        twist.angular = std::copysign(std::clamp(twist.angular, -this->max_speed, this->max_speed), this->angle);
+        twist.angular =
+            std::copysign(std::clamp(twist.angular, -this->max_angular_speed, this->max_angular_speed), this->angle);
 
         return twist;
     }
@@ -104,7 +106,7 @@ private:
     /**
      * @brief Maximum angular speed in rad/s while turning.
      */
-    float max_speed;
+    float max_angular_speed;
 };
 }  // namespace micras::nav
 

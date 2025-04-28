@@ -12,7 +12,7 @@
 
 namespace micras::nav {
 /**
- * @brief Class to calculate a command to follow a pair of linear and angular speeds.
+ * @brief Class to compute a command to follow a pair of linear and angular speeds.
  */
 class SpeedController {
 public:
@@ -48,9 +48,10 @@ public:
      * @param current_twist The current speeds of the robot.
      * @param desired_twist The desired speeds of the robot.
      * @param elapsed_time The time since the last update.
-     * @return A pair of floats representing the left and right wheel speeds.
+     * @return A pair of floats representing the left and right commands.
      */
-    std::pair<float, float> action(const Twist& current_twist, const Twist& desired_twist, float elapsed_time);
+    std::pair<float, float>
+        compute_commands(const Twist& current_twist, const Twist& desired_twist, float elapsed_time);
 
     /**
      * @brief Reset the PID controllers.

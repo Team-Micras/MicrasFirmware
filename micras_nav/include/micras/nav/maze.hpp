@@ -51,10 +51,10 @@ public:
     GridPose get_next_goal(const GridPoint& position, bool returning) const;
 
     /**
-     * @brief Check the type of wall following the robot can do.
+     * @brief Detects walls around the robot at a given grid pose.
      *
-     * @param pose The pose of the robot.
-     * @return The type of wall following.
+     * @param pose The robot’s current grid pose.
+     * @return The walls that are present around the robot.
      */
     core::Observation get_observation(const GridPose& pose) const;
 
@@ -70,7 +70,7 @@ public:
     /**
      * @brief Calculate the best route to the goal using the current costmap.
      */
-    void calculate_best_route();
+    void compute_best_route();
 
     /**
      * @brief Return the best route to the goal.
@@ -106,7 +106,7 @@ private:
     /**
      * @brief Calculate the costmap for the flood fill algorithm.
      */
-    void calculate_costmap();
+    void compute_costmap();
 
     /**
      * @brief Return the cell at the given position.
@@ -125,7 +125,7 @@ private:
     Cell& get_cell(const GridPoint& position);
 
     /**
-     * @brief Update the probability of a wall in the maze.
+     * @brief Update the existence of a wall in the maze.
      *
      * @param pose The pose of the robot.
      * @param wall Whether there is a wall in front of the robot.
