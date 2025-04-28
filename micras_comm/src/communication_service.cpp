@@ -107,3 +107,4 @@ void CommunicationService::consume_packet(const Packet& packet) {
             break;
     }
 }
+}
