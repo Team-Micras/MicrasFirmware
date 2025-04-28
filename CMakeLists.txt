@@ -108,6 +108,7 @@ foreach(TEST_FILE ${PROJECT_TESTS})
 
     target_link_libraries(${TEST_NAME} PUBLIC
         micras::nav
+        micras::comm
     )
 
     generate_hex_file(${TEST_NAME})
