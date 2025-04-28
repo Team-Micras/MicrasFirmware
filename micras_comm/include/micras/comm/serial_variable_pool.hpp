@@ -44,6 +44,17 @@ public:
         this->variables[var_id] = std::make_unique<CustomSerialVariable<T>>(name, &data, false);
     }
 
+    void write(uint16_t id, std::vector<uint8_t> data);
+
+    template<typename Func>
+    void for_each_read_only_variable(Func callback) {
+        for (const auto& [id, variable] : this->variables) {
+            if (variable->is_read_only()) {
+                callback(id, *variable);
+            }
+        }
+    }
+
     std::vector<uint8_t> serialize_var_map();
 
 private:

@@ -18,6 +18,13 @@ uint16_t SerialVariablePool::current_id = 0;
 
 SerialVariablePool::SerialVariablePool() { }
 
+void SerialVariablePool::write(uint16_t id, std::vector<uint8_t> data) {
+    auto it = this->variables.find(id);
+    if (it != this->variables.end()) {
+        it->second->deserialize(data.data(), data.size());
+    }
+}
+
 std::vector<uint8_t> SerialVariablePool::serialize_var_map() {
     std::vector<uint8_t> buffer;
 
