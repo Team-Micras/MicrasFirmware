@@ -13,6 +13,7 @@ public:
     explicit CommunicationService(SerialVariablePool& pool, Logger& logger);
 
     void update();
+
 private:
     void update_incoming_packets();
     void process_incomming_packets();
@@ -22,7 +23,11 @@ private:
 
     void send_data(const std::vector<uint8_t>& data);
 
-    std::vector<uint8_t> receive_data();
+    std::vector<uint8_t> get_data();
+
+    bool has_valid_packet_tail(const std::deque<uint8_t>& queue);
+
+    std::vector<uint8_t> extract_valid_packet(std::deque<uint8_t>& queue);
 
     SerialVariablePool& pool;
 
