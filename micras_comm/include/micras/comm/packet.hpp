@@ -48,7 +48,7 @@ public:
 
     std::vector<uint8_t> serialize() const;
 
-    bool is_valid(const std::vector<uint8_t>& serialized_packet);
+    static bool is_valid(const std::vector<uint8_t>& serialized_packet);
 
     MessageType get_type() const;
 
