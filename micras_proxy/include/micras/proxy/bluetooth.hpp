@@ -24,11 +24,18 @@ namespace micras::proxy {
 class Bluetooth {
 public:
     /**
+     * @brief Configuration struct for the Bluetooth.
+     */
+    struct Config {
+        hal::UartDma::Config uart;
+    };
+
+    /**
      * @brief Construct a new Bluetooth object.
      *
      * @param config Configuration for the UART communication.
      */
-    explicit Bluetooth(const hal::UartDma::Config& config);
+    explicit Bluetooth(const Config& config);
 
     /**
      * @brief Process all received messages and send chosen variables.

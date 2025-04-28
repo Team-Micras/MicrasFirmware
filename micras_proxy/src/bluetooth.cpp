@@ -7,7 +7,7 @@
 #include "micras/proxy/bluetooth.hpp"
 
 namespace micras::proxy {
-Bluetooth::Bluetooth(const hal::UartDma::Config& config) : uart(config) {
+Bluetooth::Bluetooth(const Config& config) : uart(config.uart) {
     this->uart.start_rx_dma(this->rx_buffer);
 }
 
