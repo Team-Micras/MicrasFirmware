@@ -1,17 +1,4 @@
 #include "micras/comm/serial_variable_pool.hpp"
-
-// static uint16_t current_id = 0;
-
-// variable map serialization:
-// num of primitives
-// num of serializables
-// id
-// name_length
-// name
-// type_length
-// type
-// read_only
-
 namespace micras::comm {
 
 uint16_t SerialVariablePool::current_id = 0;
