@@ -82,12 +82,12 @@ private:
     /**
      * @brief Name of the variable.
      */
-    std::string          name;
+    std::string name;
 
     /**
      * @brief Read-only flag.
      */
-    bool                 read_only;
+    bool read_only;
 };
 }  // namespace micras::comm
 

@@ -62,12 +62,8 @@ int main(int argc, char* argv[]) {
     comm::CommunicationService comm_service{pool, logger};
 
     comm_service.register_communication_functions(
-        [&bluetooth](const std::vector<uint8_t>& data) {
-            bluetooth.send_data(data);
-        },
-        [&bluetooth]() {
-            return bluetooth.get_data();
-        }
+        [&bluetooth](const std::vector<uint8_t>& data) { bluetooth.send_data(data); },
+        [&bluetooth]() { return bluetooth.get_data(); }
     );
 
     uint32_t write_only_var = 0;

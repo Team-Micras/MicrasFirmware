@@ -35,14 +35,14 @@ public:
      *
      * @return Size of the variable.
      */
-    virtual uint16_t    get_size() const = 0;
+    virtual uint16_t get_size() const = 0;
 
     /**
      * @brief Check if the variable is read-only.
      *
      * @return True if the variable is read-only, false otherwise.
      */
-    virtual bool        is_read_only() const = 0;
+    virtual bool is_read_only() const = 0;
 };
 
 }  // namespace micras::comm

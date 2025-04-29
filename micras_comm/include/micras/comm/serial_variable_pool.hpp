@@ -87,7 +87,7 @@ public:
      * @tparam Func Type of the callback function.
      * @param callback Callback function to call for each read-only variable.
      */
-    template<typename Func>
+    template <typename Func>
     void for_each_read_only_variable(Func callback) {
         for (const auto& [id, variable] : this->variables) {
             if (variable->is_read_only()) {

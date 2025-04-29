@@ -1,4 +1,5 @@
 #include "micras/comm/serial_variable_pool.hpp"
+
 namespace micras::comm {
 
 uint16_t SerialVariablePool::current_id = 0;

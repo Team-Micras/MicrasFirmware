@@ -29,7 +29,7 @@ void CommunicationService::update_incoming_packets() {
         if (this->has_valid_packet_tail(this->incoming_data_queue)) {
             std::vector<uint8_t> packet_data = this->extract_valid_packet(this->incoming_data_queue);
 
-            if (Packet::is_valid(packet_data)) { // check is redundant
+            if (Packet::is_valid(packet_data)) {  // check is redundant
                 this->incoming_packets.push(Packet(packet_data));
             }
 
@@ -61,7 +61,6 @@ std::vector<uint8_t> CommunicationService::extract_valid_packet(std::deque<uint8
     return packet_data;
 }
 
-
 void CommunicationService::process_incomming_packets() {
     while (!this->incoming_packets.empty()) {
         Packet next_packet = this->incoming_packets.front();
@@ -77,7 +76,7 @@ void CommunicationService::send_debug_logs() {
 
     while (this->logger.has_logs()) {
         std::string log = this->logger.get_next_log();
-        Packet packet(Packet::MessageType::DEBUG_LOG, {log.begin(), log.end()});
+        Packet      packet(Packet::MessageType::DEBUG_LOG, {log.begin(), log.end()});
         this->send_data_func(packet.serialize());
     }
 }
@@ -107,4 +106,4 @@ void CommunicationService::consume_packet(const Packet& packet) {
             break;
     }
 }
-}
+}  // namespace micras::comm

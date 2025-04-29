@@ -82,7 +82,7 @@ private:
     /**
      * @brief Pointer to the variable.
      */
-    T*          value_ptr;
+    T* value_ptr;
 
     /**
      * @brief Name of the variable.
@@ -92,7 +92,7 @@ private:
     /**
      * @brief Read-only flag.
      */
-    bool        read_only;
+    bool read_only;
 };
 }  // namespace micras::comm
 

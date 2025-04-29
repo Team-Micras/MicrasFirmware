@@ -132,6 +132,6 @@ private:
      */
     std::queue<Packet> incoming_packets{};
 };
-}
+}  // namespace micras::comm
 
-#endif // MICRAS_COMM_COMMUNICATION_SERVICE_HPP
+#endif  // MICRAS_COMM_COMMUNICATION_SERVICE_HPP

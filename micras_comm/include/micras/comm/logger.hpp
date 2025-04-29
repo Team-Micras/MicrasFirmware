@@ -65,6 +65,6 @@ private:
      */
     std::queue<std::string> log_queue;
 };
-}
+}  // namespace micras::comm
 
-#endif // MICRAS_COMM_LOGGER_HPP
+#endif  // MICRAS_COMM_LOGGER_HPP
