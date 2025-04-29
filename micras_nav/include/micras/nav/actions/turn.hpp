@@ -31,6 +31,7 @@ public:
      * If linear speed is zero, a minimal angular speed is assigned.
      */
     TurnAction(float angle, float curve_radius, float linear_speed, float max_angular_acceleration) :
+        start_orientation{max_angular_acceleration * 0.001F * 0.001F / 2.0F},
         angle{angle},
         linear_speed{linear_speed},
         acceleration{max_angular_acceleration},
@@ -54,12 +55,10 @@ public:
      */
     Twist get_speeds(const Pose& pose) const override {
         Twist       twist{};
-        const float current_orientation = std::abs(pose.orientation);
+        const float current_orientation = std::max(std::abs(pose.orientation), this->start_orientation);
 
         if (current_orientation < std::abs(this->angle)) {
-            twist = {
-                linear_speed, std::sqrt(2.0F * this->acceleration * (current_orientation + this->acceleration / 2e6F))
-            };
+            twist = {linear_speed, std::sqrt(2.0F * this->acceleration * current_orientation)};
         } else {
             twist = {
                 linear_speed, std::sqrt(2.0F * this->acceleration * (std::abs(this->angle) - current_orientation))
@@ -88,6 +87,11 @@ public:
     bool allow_follow_wall() const override { return false; }
 
 private:
+    /**
+     * @brief Start orientation in radians. Being zero causes the robot to not move.
+     */
+    float start_orientation;
+
     /**
      * @brief Angle to turn in radians.
      */
