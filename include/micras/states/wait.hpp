@@ -34,8 +34,7 @@ public:
         }
 
         if (this->wait_stopwatch.elapsed_time_ms() > this->wait_time_ms) {
-            this->micras.odometry.reset();
-            this->micras.imu->calibrate();
+            this->micras.reset();
 
             return this->next_state_id;
         }

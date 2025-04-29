@@ -72,6 +72,15 @@ bool Micras::calibrate() {
     return false;
 }
 
+void Micras::prepare() {
+    if (this->objective == core::Objective::EXPLORE) {
+        this->grid_pose = this->maze.get_next_goal(this->grid_pose.position, false);
+        this->current_action = this->action_queuer.pop();
+    } else if (this->objective == core::Objective::SOLVE) {
+        this->current_action = this->action_queuer.pop();
+    }
+}
+
 bool Micras::run() {
     this->odometry.update(this->elapsed_time);
 
@@ -141,12 +150,34 @@ bool Micras::run() {
 
 void Micras::stop() {
     this->wall_sensors->turn_off();
+    this->locomotion.stop();
     this->locomotion.disable();
     this->fan.stop();
 }
 
-core::Objective get_objective() const {
+void Micras::reset() {
+    this->wall_sensors->turn_on();
+    this->locomotion.enable();
+    this->odometry.reset();
+    this->imu->calibrate();
+}
+
+void Micras::save_best_route() {
+    this->maze_storage.create("maze", this->maze);
+    this->maze_storage.save();
+}
+
+void Micras::load_best_route() {
+    this->maze_storage.sync("maze", this->maze);
+    this->action_queuer.recompute(this->maze.get_best_route());
+}
+
+core::Objective Micras::get_objective() const {
     return this->objective;
+}
+
+void Micras::set_objective(core::Objective objective) {
+    this->objective = objective;
 }
 
 bool Micras::check_initialization() const {

@@ -26,13 +26,12 @@ public:
 
         switch (this->micras.get_objective()) {
             case core::Objective::EXPLORE:
-                this->micras.get_objective() = core::Objective::RETURN;
+                this->micras.set_objective(core::Objective::RETURN);
                 return Micras::State::WAIT_FOR_RUN;
 
             case core::Objective::RETURN:
-                this->micras.get_objective() = core::Objective::SOLVE;
-                this->micras.maze_storage.create("maze", this->micras.maze);
-                this->micras.maze_storage.save();
+                this->micras.set_objective(core::Objective::SOLVE);
+                this->micras.save_best_route();
                 this->micras.stop();
                 return Micras::State::IDLE;
 

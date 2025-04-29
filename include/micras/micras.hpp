@@ -46,6 +46,8 @@ public:
      */
     bool calibrate();
 
+    void prepare();
+
     /**
      * @brief Run the main algorithm of the robot.
      *
@@ -58,7 +60,11 @@ public:
      */
     void stop();
 
+    void reset();
+
     core::Objective get_objective() const;
+
+    void set_objective(core::Objective objective);
 
     bool check_initialization() const;
 
@@ -67,6 +73,10 @@ public:
     bool acknowledge_event(Interface::Event event);
 
     bool peek_event(Interface::Event event) const;
+
+    void save_best_route();
+
+    void load_best_route();
 
 private:
     /**
