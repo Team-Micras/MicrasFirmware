@@ -18,6 +18,16 @@ namespace micras::nav {
 class FollowWall {
 public:
     /**
+     * @brief Name of each wall sensor.
+     */
+    enum SensorName {
+        LEFT_FRONT = 0,
+        LEFT = 1,
+        RIGHT = 2,
+        RIGHT_FRONT = 3,
+    };
+
+    /**
      * @brief Configuration struct for the FollowWall class.
      */
     struct Config {

@@ -23,19 +23,18 @@ float FollowWall::compute_angular_correction(float elapsed_time, float linear_sp
 
     if ((not this->following_left or not this->following_right) and
         (this->last_blind_distance >= (this->cell_size + (this->reset_by_post ? this->post_clearance : 0.0F)))) {
-        this->following_left = this->wall_sensors->get_wall(0);
-        this->following_right = this->wall_sensors->get_wall(3);
-        this->reset_displacement();
+        this->reset();
     }
 
     float error{};
 
     if (this->following_left and this->following_right) {
-        error = this->wall_sensors->get_sensor_error(1) - this->wall_sensors->get_sensor_error(2);
+        error = this->wall_sensors->get_sensor_error(SensorName::LEFT) -
+                this->wall_sensors->get_sensor_error(SensorName::RIGHT);
     } else if (this->following_left) {
-        error = 2.0F * this->wall_sensors->get_sensor_error(1);
+        error = 2.0F * this->wall_sensors->get_sensor_error(SensorName::LEFT);
     } else if (this->following_right) {
-        error = -2.0F * this->wall_sensors->get_sensor_error(2);
+        error = -2.0F * this->wall_sensors->get_sensor_error(SensorName::RIGHT);
     } else {
         return 0.0F;
     }
@@ -57,7 +56,8 @@ bool FollowWall::check_posts() {
     bool found_posts = false;
 
     if (this->following_left and
-        -(this->wall_sensors->get_sensor_error(1) - this->last_left_error) / delta_distance >= this->post_threshold) {
+        -(this->wall_sensors->get_sensor_error(SensorName::LEFT) - this->last_left_error) / delta_distance >=
+            this->post_threshold) {
         this->following_left = false;
 
         if (this->following_right) {
@@ -68,7 +68,8 @@ bool FollowWall::check_posts() {
     }
 
     if (this->following_right and
-        -(this->wall_sensors->get_sensor_error(2) - this->last_right_error) / delta_distance >= this->post_threshold) {
+        -(this->wall_sensors->get_sensor_error(SensorName::RIGHT) - this->last_right_error) / delta_distance >=
+            this->post_threshold) {
         this->following_right = false;
 
         if (this->following_left) {
@@ -78,8 +79,8 @@ bool FollowWall::check_posts() {
         found_posts = true;
     }
 
-    this->last_left_error = this->wall_sensors->get_sensor_error(1);
-    this->last_right_error = this->wall_sensors->get_sensor_error(2);
+    this->last_left_error = this->wall_sensors->get_sensor_error(SensorName::LEFT);
+    this->last_right_error = this->wall_sensors->get_sensor_error(SensorName::RIGHT);
 
     return found_posts;
 }
@@ -93,7 +94,7 @@ void FollowWall::reset_displacement(bool reset_by_post) {
 void FollowWall::reset() {
     this->pid.reset();
     this->reset_displacement();
-    this->following_left = this->wall_sensors->get_wall(1);
-    this->following_right = this->wall_sensors->get_wall(2);
+    this->following_left = this->wall_sensors->get_wall(SensorName::LEFT);
+    this->following_right = this->wall_sensors->get_wall(SensorName::RIGHT);
 }
 }  // namespace micras::nav

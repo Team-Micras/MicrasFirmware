@@ -19,6 +19,9 @@ namespace micras {
  */
 class Interface {
 public:
+    /**
+     * @brief Enum for the events that can be sent to the interface.
+     */
     enum Event : uint8_t {
         EXPLORE = 0,
         SOLVE = 1,
