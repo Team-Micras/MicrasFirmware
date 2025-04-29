@@ -15,11 +15,9 @@ public:
     /**
      * @brief Execute this state.
      *
-     * @param previous_state_id The id of the last executed state.
-     *
      * @return The id of the next state.
      */
-    uint8_t execute(uint8_t /*previous_state_id*/) override {
+    uint8_t execute() override {
         if (not this->micras.run()) {
             return this->get_id();
         }
@@ -37,6 +35,7 @@ public:
 
             case core::Objective::SOLVE:
                 this->micras.stop();
+                this->micras.reset();
                 return Micras::State::IDLE;
         }
 

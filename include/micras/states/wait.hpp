@@ -22,19 +22,18 @@ public:
         BaseState{id, micras}, next_state_id{next_state_id}, wait_time_ms{wait_time_ms} { }
 
     /**
+     * @brief Execute the entry function of this state.
+     */
+    void on_entry() override { this->wait_stopwatch.reset_ms(); }
+
+    /**
      * @brief Execute this state.
-     *
-     * @param previous_state_id The id of the last executed state.
      *
      * @return The id of the next state.
      */
-    uint8_t execute(uint8_t previous_state_id) override {
-        if (previous_state_id != this->get_id()) {
-            this->wait_stopwatch.reset_ms();
-        }
-
+    uint8_t execute() override {
         if (this->wait_stopwatch.elapsed_time_ms() > this->wait_time_ms) {
-            this->micras.reset();
+            this->micras.init();
 
             return this->next_state_id;
         }

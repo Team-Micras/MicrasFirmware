@@ -155,11 +155,18 @@ void Micras::stop() {
     this->fan.stop();
 }
 
-void Micras::reset() {
+void Micras::init() {
     this->wall_sensors->turn_on();
     this->locomotion.enable();
     this->odometry.reset();
     this->imu->calibrate();
+    this->action_pose.reset_reference();
+}
+
+void Micras::reset() {
+    this->action_queuer.recompute({});
+    this->grid_pose = maze_config.start;
+    this->finished = false;
 }
 
 void Micras::save_best_route() {

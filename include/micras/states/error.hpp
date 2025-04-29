@@ -15,11 +15,9 @@ public:
     /**
      * @brief Execute this state.
      *
-     * @param previous_state_id The id of the last executed state.
-     *
      * @return The id of the next state.
      */
-    uint8_t execute(uint8_t /*previous_state_id*/) override {
+    uint8_t execute() override {
         this->micras.send_event(Interface::Event::ERROR);
 
         return this->get_id();

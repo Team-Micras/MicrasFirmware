@@ -60,6 +60,8 @@ public:
      */
     void stop();
 
+    void init();
+
     void reset();
 
     core::Objective get_objective() const;

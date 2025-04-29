@@ -81,6 +81,10 @@ void ActionQueuer::recompute(const std::map<uint16_t, GridPose, std::greater<>>&
     this->action_queue = {};
     this->action_queue.emplace(start);
 
+    if (best_route.empty()) {
+        return;
+    }
+
     for (auto it = std::next(best_route.begin()); std::next(it) != best_route.end(); it++) {
         this->push(it->second, std::next(it)->second.position);
     }
