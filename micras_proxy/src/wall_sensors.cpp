@@ -47,15 +47,6 @@ bool TWallSensors<num_of_sensors>::get_wall(uint8_t sensor_index, bool disturbed
 }
 
 template <uint8_t num_of_sensors>
-core::Observation TWallSensors<num_of_sensors>::get_observation() const {
-    if (this->get_wall(0) && this->get_wall(3)) {
-        return {this->get_wall(1, true), true, this->get_wall(2, true)};
-    }
-
-    return {this->get_wall(1), false, this->get_wall(2)};
-}
-
-template <uint8_t num_of_sensors>
 float TWallSensors<num_of_sensors>::get_reading(uint8_t sensor_index) const {
     return this->filters.at(sensor_index).get_last();
 }
@@ -73,19 +64,8 @@ float TWallSensors<num_of_sensors>::get_sensor_error(uint8_t sensor_index) const
 }
 
 template <uint8_t num_of_sensors>
-void TWallSensors<num_of_sensors>::calibrate_front_wall() {
-    this->base_readings[0] = this->get_reading(0);
-    this->base_readings[3] = this->get_reading(3);
-}
-
-template <uint8_t num_of_sensors>
-void TWallSensors<num_of_sensors>::calibrate_left_wall() {
-    this->base_readings[1] = this->get_reading(1);
-}
-
-template <uint8_t num_of_sensors>
-void TWallSensors<num_of_sensors>::calibrate_right_wall() {
-    this->base_readings[2] = this->get_reading(2);
+void TWallSensors<num_of_sensors>::calibrate_sensor(uint8_t sensor_index) {
+    this->base_readings[sensor_index] = this->get_reading(sensor_index);
 }
 }  // namespace micras::proxy
 

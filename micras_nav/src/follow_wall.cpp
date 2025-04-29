@@ -85,6 +85,17 @@ bool FollowWall::check_posts() {
     return found_posts;
 }
 
+core::Observation FollowWall::get_observation() const {
+    if (this->wall_sensors->get_wall(SensorName::LEFT_FRONT) && this->wall_sensors->get_wall(SensorName::RIGHT_FRONT)) {
+        return {
+            this->wall_sensors->get_wall(SensorName::LEFT, true), true,
+            this->wall_sensors->get_wall(SensorName::RIGHT, true)
+        };
+    }
+
+    return {this->wall_sensors->get_wall(SensorName::LEFT), false, this->wall_sensors->get_wall(SensorName::RIGHT)};
+}
+
 void FollowWall::reset_displacement(bool reset_by_post) {
     this->blind_pose.reset_reference();
     this->last_blind_distance = 0.0F;

@@ -59,6 +59,13 @@ public:
     float compute_angular_correction(float elapsed_time, float linear_speed);
 
     /**
+     * @brief Get the observation of the walls around the robot.
+     *
+     * @return Observations from all sensors.
+     */
+    core::Observation get_observation() const;
+
+    /**
      * @brief Reset the PID controller and the relative pose.
      */
     void reset();

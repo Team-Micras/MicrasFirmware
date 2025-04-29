@@ -64,13 +64,6 @@ public:
     bool get_wall(uint8_t sensor_index, bool disturbed = false) const;
 
     /**
-     * @brief Get the observations from all sensors.
-     *
-     * @return Observations from all sensors.
-     */
-    core::Observation get_observation() const;
-
-    /**
      * @brief Get the reading from a sensor.
      *
      * @param sensor_index Index of the sensor.
@@ -95,19 +88,9 @@ public:
     float get_sensor_error(uint8_t sensor_index) const;
 
     /**
-     * @brief Calibrate the wall sensors for a wall at the front.
+     * @brief Calibrate a wall sensor base reading.
      */
-    void calibrate_front_wall();
-
-    /**
-     * @brief Calibrate the wall sensors for a wall at the left.
-     */
-    void calibrate_left_wall();
-
-    /**
-     * @brief Calibrate the wall sensors for a wall at the right.
-     */
-    void calibrate_right_wall();
+    void calibrate_sensor(uint8_t sensor_index);
 
 private:
     /**

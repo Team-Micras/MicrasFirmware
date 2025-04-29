@@ -57,13 +57,14 @@ void Micras::update() {
 bool Micras::calibrate() {
     switch (this->calibration_type) {
         case CalibrationType::SIDE_WALLS:
-            this->wall_sensors->calibrate_left_wall();
-            this->wall_sensors->calibrate_right_wall();
+            this->wall_sensors->calibrate_sensor(nav::FollowWall::SensorName::LEFT);
+            this->wall_sensors->calibrate_sensor(nav::FollowWall::SensorName::RIGHT);
             this->calibration_type = CalibrationType::FRONT_WALL;
             return false;
 
         case CalibrationType::FRONT_WALL:
-            this->wall_sensors->calibrate_front_wall();
+            this->wall_sensors->calibrate_sensor(nav::FollowWall::SensorName::LEFT_FRONT);
+            this->wall_sensors->calibrate_sensor(nav::FollowWall::SensorName::RIGHT_FRONT);
             this->calibration_type = CalibrationType::SIDE_WALLS;
             this->wall_sensors->turn_off();
             return true;
@@ -103,7 +104,7 @@ bool Micras::run() {
             const bool solving = (this->objective == core::Objective::SOLVE);
 
             if (not solving) {
-                observation = this->wall_sensors->get_observation();
+                observation = this->follow_wall.get_observation();
                 this->maze.update_walls(this->grid_pose, observation);
             }
 
