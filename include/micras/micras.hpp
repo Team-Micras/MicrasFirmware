@@ -46,6 +46,9 @@ public:
      */
     bool calibrate();
 
+    /**
+     * @brief Prepare the robot for the next run.
+     */
     void prepare();
 
     /**
@@ -60,24 +63,68 @@ public:
      */
     void stop();
 
+    /**
+     * @brief Turn on the sensors and reset the odometry.
+     */
     void init();
 
+    /**
+     * @brief Reset the robot to its initial state.
+     */
     void reset();
 
+    /**
+     * @brief Get the current objective of the robot.
+     *
+     * @return The current objective of the robot.
+     */
     core::Objective get_objective() const;
 
+    /**
+     * @brief Set the current objective of the robot.
+     *
+     * @param objective The new objective of the robot.
+     */
     void set_objective(core::Objective objective);
 
+    /**
+     * @brief Check if the robot was correctly initialized.
+     *
+     * @return True if the initialization was successful, false otherwise.
+     */
     bool check_initialization() const;
 
+    /**
+     * @brief Send an event to the interface.
+     *
+     * @param event The event to send.
+     */
     void send_event(Interface::Event event);
 
+    /**
+     * @brief Get the value of an event and reset it.
+     *
+     * @param event The event to get.
+     * @return True if the event happened, false otherwise.
+     */
     bool acknowledge_event(Interface::Event event);
 
+    /**
+     * @brief Get the value of an event without reseting it.
+     *
+     * @param event The event to get.
+     * @return True if the event happened, false otherwise.
+     */
     bool peek_event(Interface::Event event) const;
 
+    /**
+     * @brief Save the best route to the non-volatile storage.
+     */
     void save_best_route();
 
+    /**
+     * @brief Load the best route from the non-volatile storage.
+     */
     void load_best_route();
 
 private:

@@ -30,8 +30,17 @@ public:
         NUMBER_OF_EVENTS = 4,
     };
 
+    /**
+     * @brief Construct a new Interface object.
+     *
+     * @param argb Shared pointer to the addressable RGB LED object.
+     * @param button Shared pointer to the button object.
+     * @param buzzer Shared pointer to the buzzer object.
+     * @param dip_switch Shared pointer to the DIP switch object.
+     * @param led Shared pointer to the LED object.
+     */
     Interface(
-        const std::shared_ptr<proxy::TArgb<2>>& Argb, const std::shared_ptr<proxy::Button>& button,
+        const std::shared_ptr<proxy::TArgb<2>>& argb, const std::shared_ptr<proxy::Button>& button,
         const std::shared_ptr<proxy::Buzzer>& buzzer, const std::shared_ptr<proxy::TDipSwitch<4>>& dip_switch,
         const std::shared_ptr<proxy::Led>& led
     );
@@ -41,10 +50,27 @@ public:
      */
     void update();
 
+    /**
+     * @brief Send an event to the interface.
+     *
+     * @param event The event to send.
+     */
     void send_event(Event event);
 
+    /**
+     * @brief Get the value of an event and reset it.
+     *
+     * @param event The event to get.
+     * @return True if the event happened, false otherwise.
+     */
     bool acknowledge_event(Event event);
 
+    /**
+     * @brief Get the value of an event without reseting it.
+     *
+     * @param event The event to get.
+     * @return True if the event happened, false otherwise.
+     */
     bool peek_event(Event event) const;
 
 private:
@@ -73,6 +99,9 @@ private:
      */
     std::shared_ptr<proxy::Led> led;
 
+    /**
+     * @brief Array of the listed events.
+     */
     std::array<bool, Event::NUMBER_OF_EVENTS> events{};
 };
 }  // namespace micras
