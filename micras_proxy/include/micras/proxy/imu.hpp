@@ -37,9 +37,9 @@ public:
      * @brief Enum to select the axis of the IMU.
      */
     enum Axis : uint8_t {
-        X,
-        Y,
-        Z
+        X = 0,
+        Y = 1,
+        Z = 2
     };
 
     /**

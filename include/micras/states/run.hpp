@@ -20,17 +20,17 @@ public:
      * @return The id of the next state.
      */
     uint8_t execute(uint8_t /*previous_state_id*/) override {
-        if (not this->micras.run(this->micras.elapsed_time)) {
+        if (not this->micras.run()) {
             return this->get_id();
         }
 
-        switch (this->micras.objective) {
+        switch (this->micras.get_objective()) {
             case core::Objective::EXPLORE:
-                this->micras.objective = core::Objective::RETURN;
+                this->micras.get_objective() = core::Objective::RETURN;
                 return Micras::State::WAIT_FOR_RUN;
 
             case core::Objective::RETURN:
-                this->micras.objective = core::Objective::SOLVE;
+                this->micras.get_objective() = core::Objective::SOLVE;
                 this->micras.maze_storage.create("maze", this->micras.maze);
                 this->micras.maze_storage.save();
                 this->micras.stop();

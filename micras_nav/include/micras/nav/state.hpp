@@ -9,20 +9,6 @@
 
 namespace micras::nav {
 /**
- * @brief Possible directions in the maze.
- */
-enum Direction : uint8_t {
-    EAST = 0,
-    NORTHEAST = 1,
-    NORTH = 2,
-    NORTHWEST = 3,
-    WEST = 4,
-    SOUTHWEST = 5,
-    SOUTH = 6,
-    SOUTHEAST = 7,
-};
-
-/**
  * @brief Type to store a point in 2D space.
  */
 struct Point {
@@ -56,14 +42,6 @@ struct Point {
      * @return The grid point corresponding to the point.
      */
     GridPoint to_grid(float cell_size) const;
-
-    /**
-     * @brief Rotate the point by a given angle.
-     *
-     * @param angle The angle to rotate the point by.
-     * @return The rotated point.
-     */
-    Point rotate(Direction angle);
 
     /**
      * @brief Move the point towards another point by a given distance.

@@ -6,6 +6,7 @@
 #define MICRAS_HPP
 
 #include "constants.hpp"
+#include "micras/interface.hpp"
 #include "micras/core/fsm.hpp"
 #include "target.hpp"
 
@@ -15,6 +16,19 @@ namespace micras {
  */
 class Micras {
 public:
+    /**
+     * @brief Enum for the current status of the robot.
+     */
+    enum State : uint8_t {
+        INIT = 0,                // Initialization of the robot.
+        IDLE = 1,                // Waiting for the user to start the robot.
+        WAIT_FOR_RUN = 2,        // Timer for entering the RUN state.
+        RUN = 3,                 // Running the main algorithm.
+        WAIT_FOR_CALIBRATE = 4,  // Timer for entering the CALIBRATE state.
+        CALIBRATE = 5,           // Calibrating the robot.
+        ERROR = 6                // Error state.
+    };
+
     /**
      * @brief Construct a new Micras object.
      */
@@ -35,30 +49,26 @@ public:
     /**
      * @brief Run the main algorithm of the robot.
      *
-     * @param elapsed_time The elapsed time since the last update.
      * @return True if the robot is still running, false otherwise.
      */
-    bool run(float elapsed_time);
+    bool run();
 
     /**
      * @brief Stop the robot.
      */
     void stop();
 
-private:
-    /**
-     * @brief Enum for the current status of the robot.
-     */
-    enum State : uint8_t {
-        INIT = 0,                // Initialization of the robot.
-        IDLE = 1,                // Waiting for the user to start the robot.
-        WAIT_FOR_RUN = 2,        // Timer for entering the RUN state.
-        RUN = 3,                 // Running the main algorithm.
-        WAIT_FOR_CALIBRATE = 4,  // Timer for entering the CALIBRATE state.
-        CALIBRATE = 5,           // Calibrating the robot.
-        ERROR = 6                // Error state.
-    };
+    core::Objective get_objective() const;
 
+    bool check_initialization() const;
+
+    void send_event(Interface::Event event);
+
+    bool acknowledge_event(Interface::Event event);
+
+    bool peek_event(Interface::Event event) const;
+
+private:
     /**
      * @brief Enum for the type of calibration being performed.
      */
@@ -68,30 +78,26 @@ private:
     };
 
     /**
-     * @brief Enum for the dip switch definitions.
-     */
-    enum Switch : uint8_t {
-        DIAGONAL = 0,  // Whether the robot will be able to move in diagonal paths.
-        FAN = 1,       // Turn the fan on.
-        STOP = 2,      // Whether the robot will stop at each intersection when solving the maze.
-        TURBO = 3,     // Increase the robot speed.
-    };
-
-    /**
      * @brief Sensors and actuators.
      */
     ///@{
-    proxy::Argb       argb{argb_config};
     proxy::Battery    battery{battery_config};
-    proxy::Button     button{button_config};
-    proxy::Buzzer     buzzer{buzzer_config};
-    proxy::DipSwitch  dip_switch{dip_switch_config};
     proxy::Fan        fan{fan_config};
-    proxy::Led        led{led_config};
     proxy::Locomotion locomotion{locomotion_config};
     proxy::Stopwatch  loop_stopwatch{stopwatch_config};
     proxy::Storage    maze_storage{maze_storage_config};
     // proxy::TorqueSensors torque_sensors{torque_sensors_config};
+    ///@}
+
+    /**
+     * @brief Interface proxies with the external world.
+     */
+    ///@{
+    std::shared_ptr<proxy::Argb>      argb;
+    std::shared_ptr<proxy::Button>    button;
+    std::shared_ptr<proxy::Buzzer>    buzzer;
+    std::shared_ptr<proxy::DipSwitch> dip_switch;
+    std::shared_ptr<proxy::Led>       led;
     ///@}
 
     /**
@@ -119,6 +125,11 @@ private:
      * @brief Finite state machine for the robot.
      */
     core::FSM fsm{State::INIT};
+
+    /**
+     * @brief Class for controlling the interface with the external world.
+     */
+    Interface interface;
 
     /**
      * @brief Time elapsed since the last loop in seconds.
@@ -179,18 +190,6 @@ private:
      * @brief Last feed forward command to the right motor.
      */
     float right_ff{};
-
-    /**
-     * @brief Declare states as friend classes.
-     */
-    ///@{
-    friend class CalibrateState;
-    friend class ErrorState;
-    friend class IdleState;
-    friend class InitState;
-    friend class RunState;
-    friend class WaitState;
-    ///@}
 };
 }  // namespace micras
 

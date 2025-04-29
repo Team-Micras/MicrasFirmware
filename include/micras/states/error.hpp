@@ -20,7 +20,7 @@ public:
      * @return The id of the next state.
      */
     uint8_t execute(uint8_t /*previous_state_id*/) override {
-        this->micras.led.turn_on();
+        this->micras.send_event(Interface::Event::ERROR);
 
         return this->get_id();
     }
