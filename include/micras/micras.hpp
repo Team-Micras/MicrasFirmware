@@ -32,6 +32,19 @@ public:
      */
     bool calibrate();
 
+    /**
+     * @brief Run the main algorithm of the robot.
+     *
+     * @param elapsed_time The elapsed time since the last update.
+     * @return True if the robot is still running, false otherwise.
+     */
+    bool run(float elapsed_time);
+
+    /**
+     * @brief Stop the robot.
+     */
+    void stop();
+
 private:
     /**
      * @brief Enum for the current status of the robot.
@@ -136,6 +149,36 @@ private:
      * @brief Current pose of the robot relative to the current action.
      */
     nav::RelativePose action_pose;
+
+    /**
+     * @brief Flag for when the robot has finished an objective.
+     */
+    bool finished{};
+
+    /**
+     * @brief Current desired linear and angular speeds of the robot.
+     */
+    nav::Twist desired_speeds{};
+
+    /**
+     * @brief Last response of the speed controller to the left motor.
+     */
+    float left_response{};
+
+    /**
+     * @brief Last response of the speed controller to the right motor.
+     */
+    float right_response{};
+
+    /**
+     * @brief Last feed forward command to the left motor.
+     */
+    float left_ff{};
+
+    /**
+     * @brief Last feed forward command to the right motor.
+     */
+    float right_ff{};
 
     /**
      * @brief Declare states as friend classes.

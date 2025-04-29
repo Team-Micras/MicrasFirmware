@@ -51,7 +51,16 @@ public:
      * @return A pair of floats representing the left and right commands.
      */
     std::pair<float, float>
-        compute_commands(const Twist& current_twist, const Twist& desired_twist, float elapsed_time);
+        compute_control_commands(const Twist& current_twist, const Twist& desired_twist, float elapsed_time);
+
+    /**
+     * @brief Calculate the feed-forward command to achieve the desired speeds and accelerations.
+     *
+     * @param desired_twist The desired speeds of the robot.
+     * @param elapsed_time The time since the last update.
+     * @return A pair of floats representing the left and right feed-forward commands.
+     */
+    std::pair<float, float> compute_feed_forward_commands(const Twist& desired_twist, float elapsed_time);
 
     /**
      * @brief Reset the PID controllers.
