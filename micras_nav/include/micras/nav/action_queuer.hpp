@@ -21,7 +21,7 @@ public:
     /**
      * @brief Enum for the exploration action types.
      */
-    enum ActionType {
+    enum ActionType : uint8_t {
         STOP = 0,
         START = 1,
         MOVE_FORWARD = 2,

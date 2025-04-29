@@ -6,8 +6,8 @@
 #define MICRAS_HPP
 
 #include "constants.hpp"
-#include "micras/interface.hpp"
 #include "micras/core/fsm.hpp"
+#include "micras/interface.hpp"
 #include "target.hpp"
 
 namespace micras {

@@ -22,7 +22,7 @@ public:
     /**
      * @brief Do nothing by default.
      */
-    virtual void on_entry() override { }
+    void on_entry() override { }
 
 protected:
     /**
