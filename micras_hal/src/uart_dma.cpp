@@ -18,7 +18,8 @@ void UartDma::start_rx_dma(std::span<uint8_t> buffer) {
 }
 
 void UartDma::stop_rx_dma() {
-    HAL_UART_AbortReceive(this->handle);
+    // HAL_UART_AbortReceive(this->handle);
+    HAL_UART_DMAStop(this->handle);
 }
 
 bool UartDma::is_tx_busy() const {
