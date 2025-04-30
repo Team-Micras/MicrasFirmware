@@ -77,7 +77,7 @@ bool ActionQueuer::empty() const {
     return this->action_queue.empty();
 }
 
-void ActionQueuer::recalculate(const std::map<uint16_t, GridPose, std::greater<>>& best_route) {
+void ActionQueuer::recompute(const std::map<uint16_t, GridPose, std::greater<>>& best_route) {
     this->action_queue = {};
     this->action_queue.emplace(start);
 

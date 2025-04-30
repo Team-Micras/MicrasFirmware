@@ -29,6 +29,13 @@ constexpr float    exploration_speed{0.5F};
 constexpr float    max_linear_acceleration{1.0F};
 constexpr float    max_angular_acceleration{200.0F};
 
+constexpr core::WallSensorsIndex wall_sensors_index{
+    .left_front = 0,
+    .left = 1,
+    .right = 2,
+    .right_front = 3,
+};
+
 /*****************************************
  * Template Instantiations
  *****************************************/
@@ -75,9 +82,9 @@ const nav::FollowWall::Config follow_wall_config{
             .max_integral = -1.0F,
         },
     .max_linear_speed = 0.1F,
-    .post_threshold = -16.5F,
+    .post_threshold = 16.5F,
     .cell_size = cell_size,
-    .post_margin = 0.2F * cell_size,
+    .post_clearance = 0.2F * cell_size,
 };
 
 const nav::Maze::Config maze_config{

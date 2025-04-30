@@ -26,7 +26,7 @@ public:
          *
          * @return The id of the next state.
          */
-        virtual uint8_t run(uint8_t previous_state_id) = 0;
+        virtual uint8_t execute(uint8_t previous_state_id) = 0;
 
         /**
          * @brief Get the id object of the state.
@@ -74,9 +74,9 @@ public:
     void add_state(std::unique_ptr<State> state);
 
     /**
-     * @brief Run the FSM current state to calculate the next state.
+     * @brief Run the FSM current state to compute the next state.
      */
-    void run();
+    void update();
 
 private:
     /**

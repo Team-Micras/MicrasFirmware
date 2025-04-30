@@ -24,7 +24,7 @@ public:
      * @param pose The current pose of the robot.
      * @return The desired speeds for the robot.
      */
-    virtual Twist get_twist(const Pose& pose) const = 0;
+    virtual Twist get_speeds(const Pose& pose) const = 0;
 
     /**
      * @brief Check if the action is finished.

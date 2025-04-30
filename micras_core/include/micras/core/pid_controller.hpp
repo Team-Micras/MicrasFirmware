@@ -50,7 +50,7 @@ public:
      * @param save Whether to save the variables for calibration.
      * @return Response of the controller.
      */
-    float update(float state, float elapsed_time, bool save = false);
+    float compute_response(float state, float elapsed_time, bool save = false);
 
     /**
      * @brief Update PID with new state and return response.
@@ -61,7 +61,7 @@ public:
      * @param save Whether to save the variables for calibration.
      * @return Response of the controller.
      */
-    float update(float state, float elapsed_time, float state_change, bool save = false);
+    float compute_response(float state, float elapsed_time, float state_change, bool save = false);
 
 private:
     /**

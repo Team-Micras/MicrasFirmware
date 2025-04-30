@@ -35,6 +35,13 @@ struct Point {
     float distance(const Point& other) const;
 
     /**
+     * @brief Calculate the distance of the point to the origin.
+     *
+     * @return The distance of the point to the origin.
+     */
+    float magnitude() const;
+
+    /**
      * @brief Calculate the angle between two points.
      *
      * @param other The other point.
@@ -66,6 +73,14 @@ struct Point {
      * @return The point after moving towards the other point.
      */
     Point move_towards(const Point& other, float distance) const;
+
+    /**
+     * @brief Add a point to another.
+     *
+     * @param other The point to add.
+     * @return The result of the addition.
+     */
+    Point operator+(const Point& other) const;
 
     /**
      * @brief Subtract a point from another.

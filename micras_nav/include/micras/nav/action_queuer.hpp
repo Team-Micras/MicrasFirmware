@@ -67,9 +67,9 @@ public:
     bool empty() const;
 
     /**
-     * @brief Fill the action action queue with a sequence of actions to the end.
+     * @brief Fill the action queue with a sequence of actions to the end.
      */
-    void recalculate(const std::map<uint16_t, GridPose, std::greater<>>& best_route);
+    void recompute(const std::map<uint16_t, GridPose, std::greater<>>& best_route);
 
 private:
     /**

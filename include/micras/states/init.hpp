@@ -19,7 +19,7 @@ public:
      *
      * @return The id of the next state.
      */
-    uint8_t run(uint8_t /*previous_state_id*/) override {
+    uint8_t execute(uint8_t /*previous_state_id*/) override {
         if (not this->micras.imu->was_initialized()) {
             return Micras::State::ERROR;
         }
