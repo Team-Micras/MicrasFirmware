@@ -11,7 +11,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "serializable.hpp"
+#include "micras/core/serializable.hpp"
 
 namespace micras::proxy {
 template <typename T>
@@ -56,7 +56,7 @@ public:
      * @param name Name of the variable.
      * @param data Reference to the variable.
      */
-    void create(const std::string& name, const ISerializable& data);
+    void create(const std::string& name, const core::ISerializable& data);
 
     /**
      * @brief Sync a primitive variable with the storage.
@@ -81,7 +81,7 @@ public:
      * @param name Name of the variable.
      * @param data Reference to the variable.
      */
-    void sync(const std::string& name, ISerializable& data);
+    void sync(const std::string& name, core::ISerializable& data);
 
     /**
      * @brief Save the storage to the flash.
@@ -102,9 +102,9 @@ private:
      * @brief Struct for serializable variables.
      */
     struct SerializableVariable {
-        const ISerializable* ram_pointer{nullptr};
-        uint16_t             buffer_address{};
-        uint16_t             size{};
+        const core::ISerializable* ram_pointer{nullptr};
+        uint16_t                   buffer_address{};
+        uint16_t                   size{};
     };
 
     /**

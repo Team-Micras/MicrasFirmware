@@ -48,6 +48,7 @@ Imu::Imu(const Config& config) :
     lsm6dsv_filt_gy_lp1_bandwidth_set(&(this->dev_ctx), config.gyroscope_filter);
     lsm6dsv_filt_xl_lp2_set(&(this->dev_ctx), PROPERTY_ENABLE);
     lsm6dsv_filt_xl_lp2_bandwidth_set(&(this->dev_ctx), config.accelerometer_filter);
+    this->initialized = true;
 }
 
 bool Imu::check_whoami() {
@@ -141,5 +142,9 @@ int32_t Imu::platform_write(void* handle, uint8_t reg, const uint8_t* bufp, uint
 
 void Imu::calibrate() {
     this->calibrated = true;
+}
+
+bool Imu::was_initialized() const {
+    return this->initialized;
 }
 }  // namespace micras::proxy

@@ -12,6 +12,10 @@ float Point::distance(const Point& other) const {
     return std::hypot(other.x - this->x, other.y - this->y);
 }
 
+float Point::magnitude() const {
+    return std::hypot(this->x, this->y);
+}
+
 float Point::angle_between(const Point& other) const {
     return std::atan2(other.y - this->y, other.x - this->x);
 }
@@ -48,6 +52,10 @@ Point Point::rotate(Direction angle) {
 Point Point::move_towards(const Point& other, float distance) const {
     const float angle = this->angle_between(other);
     return {this->x + distance * std::cos(angle), this->y + distance * std::sin(angle)};
+}
+
+Point Point::operator+(const Point& other) const {
+    return {this->x + other.x, this->y + other.y};
 }
 
 Point Point::operator-(const Point& other) const {
@@ -96,5 +104,18 @@ Point Pose::to_cell(float cell_size) const {
     }
 
     return {cell_alignment, cell_advance};
+}
+
+RelativePose::RelativePose(const Pose& absolute_pose) : absolute_pose{&absolute_pose} { }
+
+Pose RelativePose::get() const {
+    return {
+        this->absolute_pose->position - this->reference_pose.position,
+        this->absolute_pose->orientation - this->reference_pose.orientation
+    };
+}
+
+void RelativePose::reset_reference() {
+    this->reference_pose = *(this->absolute_pose);
 }
 }  // namespace micras::nav

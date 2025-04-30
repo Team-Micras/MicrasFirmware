@@ -28,18 +28,14 @@ public:
      *
      * @return The id of the next state.
      */
-    uint8_t run(uint8_t previous_state_id) override {
+    uint8_t execute(uint8_t previous_state_id) override {
         if (previous_state_id != this->get_id()) {
             this->wait_stopwatch.reset_ms();
         }
 
         if (this->wait_stopwatch.elapsed_time_ms() > this->wait_time_ms) {
             this->micras.odometry.reset();
-            this->micras.look_at_point.reset();
-            this->micras.go_to_point.reset();
             this->micras.imu->calibrate();
-            this->micras.current_action =
-                this->micras.mapping.get_action(this->micras.odometry.get_state().pose, this->micras.objective);
 
             return this->next_state_id;
         }

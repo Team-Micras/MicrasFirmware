@@ -21,7 +21,7 @@ int main(int argc, char* argv[]) {
 
     proxy::Stopwatch::sleep_ms(2);
 
-    if (imu.check_whoami()) {
+    if (imu.was_initialized()) {
         argb.set_color(proxy::Argb::Colors::green);
 
     } else {

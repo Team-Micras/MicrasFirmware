@@ -11,10 +11,10 @@
 
 int main() {
     micras::hal::Mcu::init();
-    micras::Micras micras_controller;
+    micras::Micras micras;
 
     while (true) {
-        micras_controller.update();
+        micras.update();
     }
 
     return 0;

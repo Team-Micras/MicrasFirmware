@@ -12,7 +12,7 @@ set(CMAKE_BUILD_TYPE ${BUILD_TYPE})
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
 # Check if host system is Linux
-if(NOT CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
+if(NOT CMAKE_HOST_UNIX)
     message(FATAL_ERROR "${CMAKE_HOST_SYSTEM_NAME} is not supported")
 endif()
 
@@ -25,8 +25,14 @@ if(DEFINED ENV{WSL_DISTRO_NAME})
     set(JLINK_CMD "JLink.exe")
     set(OPENOCD_CMD "openocd.exe")
 else()
-    message(STATUS "Linux detected")
-    set(CUBE_DEFAULT_PATH "/usr/local/STMicroelectronics/STM32Cube/STM32CubeMX")
+    if (CMAKE_HOST_APPLE)
+        message(STATUS "MacOS detected")
+        set(CUBE_DEFAULT_PATH "/Applications/STMicroelectronics/STM32CubeMX.app")
+    else()
+        message(STATUS "Linux detected")
+        set(CUBE_DEFAULT_PATH "/usr/local/STMicroelectronics/STM32Cube/STM32CubeMX")
+    endif()
+
     set(CUBE_PROGRAM "STM32CubeMX")
     set(PROGRAMMER_CMD "STM32_Programmer_CLI")
     set(JLINK_CMD "JLinkExe")
@@ -109,7 +115,7 @@ message(STATUS "Device is ${DEVICE}")
 
 # Check cube directory for files
 # If it's empty, generate the files
-file(GLOB_RECURSE CUBE_SOURCES_CHECK "${CMAKE_CURRENT_SOURCE_DIR}/cube/Src/*.c")
+file(GLOB_RECURSE CUBE_SOURCES_CHECK "${CMAKE_CURRENT_SOURCE_DIR}/cube/**/*.c")
 list(LENGTH CUBE_SOURCES_CHECK CUBE_LENGTH)
 
 if(CUBE_LENGTH EQUAL 0)

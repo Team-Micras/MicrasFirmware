@@ -35,6 +35,13 @@ struct Point {
     float distance(const Point& other) const;
 
     /**
+     * @brief Calculate the distance of the point to the origin.
+     *
+     * @return The distance of the point to the origin.
+     */
+    float magnitude() const;
+
+    /**
      * @brief Calculate the angle between two points.
      *
      * @param other The other point.
@@ -66,6 +73,14 @@ struct Point {
      * @return The point after moving towards the other point.
      */
     Point move_towards(const Point& other, float distance) const;
+
+    /**
+     * @brief Add a point to another.
+     *
+     * @param other The point to add.
+     * @return The result of the addition.
+     */
+    Point operator+(const Point& other) const;
 
     /**
      * @brief Subtract a point from another.
@@ -170,6 +185,39 @@ struct State {
      * @brief The velocity of the robot.
      */
     Twist velocity;
+};
+
+class RelativePose {
+public:
+    /**
+     * @brief Construct a new Relative Pose object.
+     *
+     * @param absolute_pose The absolute pose to be used as a reference.
+     */
+    explicit RelativePose(const Pose& absolute_pose);
+
+    /**
+     * @brief Get the relative pose.
+     *
+     * @return The pose relative to the reference.
+     */
+    Pose get() const;
+
+    /**
+     * @brief Reset the reference to the current absolute pose.
+     */
+    void reset_reference();
+
+private:
+    /**
+     * @brief A reference to the absolute pose.
+     */
+    const Pose* absolute_pose;
+
+    /**
+     * @brief The reference pose to be used for calculations.
+     */
+    Pose reference_pose{};
 };
 }  // namespace micras::nav
 

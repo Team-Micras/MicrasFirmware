@@ -15,7 +15,7 @@
 
 namespace micras::nav {
 /**
- * @brief Class for calculating the robot odometry.
+ * @brief Class for computing the robot odometry.
  */
 class Odometry {
 public:

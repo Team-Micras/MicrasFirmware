@@ -16,7 +16,9 @@ int main(int argc, char* argv[]) {
     proxy::Fan    fan{fan_config};
 
     TestCore::loop([&button, &fan]() {
-        while (button.get_status() == proxy::Button::Status::NO_PRESS) { }
+        while (button.get_status() == proxy::Button::Status::NO_PRESS) {
+            button.update();
+        }
 
         fan.set_speed(max_speed);
 
