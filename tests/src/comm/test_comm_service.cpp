@@ -1,7 +1,7 @@
 #include "test_core.hpp"
 #include "micras/comm/communication_service.hpp"
-#include "micras/comm/serial_variable_pool.hpp"
 #include "micras/comm/logger.hpp"
+#include "micras/comm/serial_variable_pool.hpp"
 
 using namespace micras;  // NOLINT(google-build-using-namespace)
 
@@ -57,8 +57,8 @@ int main(int argc, char* argv[]) {
 
     proxy::BluetoothSerial bluetooth{bluetooth_config};
 
-    comm::SerialVariablePool   pool{};
-    comm::Logger               logger{true};
+    std::shared_ptr<comm::SerialVariablePool> pool = std::make_shared<comm::SerialVariablePool>();
+    std::shared_ptr<comm::Logger> logger = std::make_shared<comm::Logger>(true);
     comm::CommunicationService comm_service{pool, logger};
 
     comm_service.register_communication_functions(
@@ -69,11 +69,11 @@ int main(int argc, char* argv[]) {
     uint32_t write_only_var = 0;
     uint32_t read_only_var = 0;
 
-    TestSerializable test_serializable{};
+    const TestSerializable test_serializable{};
 
-    pool.add_read_only("read_only_var", read_only_var);
-    pool.add_write_only("write_only_var", write_only_var);
-    pool.add_read_only("test_serializable", test_serializable);
+    pool->add_read_only("read_only_var", read_only_var);
+    pool->add_write_only("write_only_var", write_only_var);
+    pool->add_read_only("test_serializable", test_serializable);
 
     TestCore::loop([&comm_service, &bluetooth, &write_only_var, &read_only_var]() {
         comm_service.update();
