@@ -18,6 +18,16 @@ namespace micras::nav {
 class FollowWall {
 public:
     /**
+     * @brief Name of each wall sensor.
+     */
+    enum SensorName {
+        LEFT_FRONT = 0,
+        LEFT = 1,
+        RIGHT = 2,
+        RIGHT_FRONT = 3,
+    };
+
+    /**
      * @brief Configuration struct for the FollowWall class.
      */
     struct Config {
@@ -47,6 +57,13 @@ public:
      * @return The desired angular speed to follow wall.
      */
     float compute_angular_correction(float elapsed_time, float linear_speed);
+
+    /**
+     * @brief Get the observation of the walls around the robot.
+     *
+     * @return Observations from all sensors.
+     */
+    core::Observation get_observation() const;
 
     /**
      * @brief Reset the PID controller and the relative pose.

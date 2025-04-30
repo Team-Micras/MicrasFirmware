@@ -104,9 +104,9 @@ private:
             return max_angular_acceleration * 0.01F;
         }
 
-        float radius_speed_ratio = curve_radius / linear_speed;
-        float discriminant = std::pow(radius_speed_ratio, 2.0F) -
-                             (2.0F * (1 - std::cos(angle))) / (correction_factor * max_angular_acceleration);
+        const float radius_speed_ratio = curve_radius / linear_speed;
+        const float discriminant = std::pow(radius_speed_ratio, 2.0F) -
+                                   (2.0F * (1 - std::cos(angle))) / (correction_factor * max_angular_acceleration);
 
         return correction_factor * max_angular_acceleration * (radius_speed_ratio - std::sqrt(discriminant));
     }
