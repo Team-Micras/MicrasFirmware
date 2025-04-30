@@ -139,7 +139,7 @@ private:
      * @param payload Unescaped payload data.
      * @return std::vector<uint8_t> Escaped payload data.
      */
-    std::vector<uint8_t> escape_payload(const std::vector<uint8_t>& payload) const;
+    static std::vector<uint8_t> escape_payload(const std::vector<uint8_t>& payload);
 
     /**
      * @brief Unescape the payload to restore original data.
@@ -147,7 +147,7 @@ private:
      * @param escaped_payload Escaped payload data.
      * @return std::vector<uint8_t> Unescaped payload data.
      */
-    std::vector<uint8_t> unescape_payload(const std::vector<uint8_t>& escaped_payload) const;
+    static std::vector<uint8_t> unescape_payload(const std::vector<uint8_t>& escaped_payload);
 };
 }  // namespace micras::comm
 

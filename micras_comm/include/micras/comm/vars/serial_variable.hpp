@@ -14,7 +14,7 @@ public:
     /**
      * @brief Virtual destructor for the ISerialVariable class.
      */
-    virtual ~ISerialVariable() = default;
+    ~ISerialVariable() override = default;
 
     /**
      * @brief Get the name of the variable.
@@ -43,6 +43,18 @@ public:
      * @return True if the variable is read-only, false otherwise.
      */
     virtual bool is_read_only() const = 0;
+
+protected:
+    /**
+     * @brief Special member functions declared as default.
+     */
+    ///@{
+    ISerialVariable() = default;
+    ISerialVariable(const ISerialVariable&) = default;
+    ISerialVariable(ISerialVariable&&) = default;
+    ISerialVariable& operator=(const ISerialVariable&) = default;
+    ISerialVariable& operator=(ISerialVariable&&) = default;
+    ///@}
 };
 
 }  // namespace micras::comm

@@ -7,12 +7,11 @@
 
 #include <cstdint>
 #include <string>
-#include <type_traits>
 #include <unordered_map>
 #include <vector>
 
-#include "micras/core/serializable.hpp"
 #include "micras/core/concepts.hpp"
+#include "micras/core/serializable.hpp"
 
 namespace micras::proxy {
 /**

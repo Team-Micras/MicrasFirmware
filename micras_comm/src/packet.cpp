@@ -1,3 +1,5 @@
+#include <span>
+
 #include "micras/comm/packet.hpp"
 
 namespace micras::comm {
@@ -10,10 +12,13 @@ Packet::Packet(MessageType type, const std::vector<uint8_t>& payload) : Packet(t
 Packet::Packet(MessageType type) : Packet(type, 0, {0}) { }
 
 Packet::Packet(const uint8_t* serialized_packet, uint16_t size) :
-    Packet(std::vector<uint8_t>(serialized_packet, serialized_packet + size)) { }
+    Packet(std::vector<uint8_t>(
+        std::span<const uint8_t>(serialized_packet, size).begin(),
+        std::span<const uint8_t>(serialized_packet, size).end()
+    )) { }
 
 Packet::Packet(const std::vector<uint8_t>& serialized_packet) {
-    if (not this->is_valid(serialized_packet)) {
+    if (not Packet::is_valid(serialized_packet)) {
         this->type = MessageType::ERROR;
         this->id = 0;
         this->payload = {0};
@@ -23,8 +28,8 @@ Packet::Packet(const std::vector<uint8_t>& serialized_packet) {
     this->type = static_cast<MessageType>(serialized_packet[1]);
     this->id = (serialized_packet[2] << 8) | serialized_packet[3];
     // uint16_t payload_size = (serialized_packet[4] << 8) | serialized_packet[5];
-    std::vector<uint8_t> read_payload(serialized_packet.begin() + 6, serialized_packet.end() - 2);
-    this->payload = this->unescape_payload(read_payload);
+    const std::vector<uint8_t> read_payload(serialized_packet.begin() + 6, serialized_packet.end() - 2);
+    this->payload = Packet::unescape_payload(read_payload);
 }
 
 std::vector<uint8_t> Packet::serialize() const {
@@ -40,11 +45,11 @@ std::vector<uint8_t> Packet::serialize() const {
     data.emplace_back(this->payload.size() >> 8);
     data.emplace_back(this->payload.size() & 0xFF);
 
-    std::vector<uint8_t> escaped_payload = this->escape_payload(this->payload);
+    std::vector<uint8_t> escaped_payload = Packet::escape_payload(this->payload);
     data.insert(data.end(), escaped_payload.begin(), escaped_payload.end());
 
     uint8_t checksum = 0;
-    for (uint16_t i = 1; i < data.size(); ++i) {
+    for (std::size_t i = 1; i < data.size(); ++i) {
         checksum += data[i];
     }
     checksum %= 256;
@@ -55,11 +60,11 @@ std::vector<uint8_t> Packet::serialize() const {
     return data;
 }
 
-std::vector<uint8_t> Packet::escape_payload(const std::vector<uint8_t>& payload) const {
+std::vector<uint8_t> Packet::escape_payload(const std::vector<uint8_t>& payload) {
     std::vector<uint8_t> escaped;
 
     for (auto byte : payload) {
-        if ((byte == header_byte) || (byte == tail_byte) || (byte == escape_byte)) {
+        if ((byte == header_byte) or (byte == tail_byte) or (byte == escape_byte)) {
             escaped.emplace_back(escape_byte);
         }
         escaped.emplace_back(byte);
@@ -68,7 +73,7 @@ std::vector<uint8_t> Packet::escape_payload(const std::vector<uint8_t>& payload)
     return escaped;
 }
 
-std::vector<uint8_t> Packet::unescape_payload(const std::vector<uint8_t>& escaped_payload) const {
+std::vector<uint8_t> Packet::unescape_payload(const std::vector<uint8_t>& escaped_payload) {
     std::vector<uint8_t> payload;
 
     for (uint32_t i = 0; i < escaped_payload.size(); ++i) {
@@ -90,12 +95,12 @@ bool Packet::is_valid(const std::vector<uint8_t>& serialized_packet) {
         return false;
     }
 
-    if (serialized_packet[0] != header_byte || serialized_packet.back() != tail_byte) {
+    if (serialized_packet[0] != header_byte or serialized_packet.back() != tail_byte) {
         return false;
     }
 
     uint8_t checksum = 0;
-    for (uint16_t i = 1; i < serialized_packet.size() - 2; ++i) {
+    for (std::size_t i = 1; i < serialized_packet.size() - 2; ++i) {
         checksum += serialized_packet[i];
     }
     checksum %= 256;

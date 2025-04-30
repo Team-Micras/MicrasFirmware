@@ -1,8 +1,8 @@
 #ifndef MICRAS_COMM_LOGGER_HPP
 #define MICRAS_COMM_LOGGER_HPP
 
-#include <string>
 #include <queue>
+#include <string>
 
 namespace micras::comm {
 /**

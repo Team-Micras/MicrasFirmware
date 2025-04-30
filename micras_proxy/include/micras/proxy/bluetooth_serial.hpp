@@ -90,12 +90,12 @@ private:
     /**
      * @brief Buffer for data waiting to be sent in the next update
      */
-    std::vector<uint8_t> tx_queue{};
+    std::vector<uint8_t> tx_queue;
 
     /**
      * @brief Buffer for received data waiting to be retrieved
      */
-    std::vector<uint8_t> received_data{};
+    std::vector<uint8_t> received_data;
 };
 }  // namespace micras::proxy
 

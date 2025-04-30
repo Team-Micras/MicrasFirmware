@@ -1,12 +1,12 @@
 #ifndef MICRAS_COMM_PRIMITIVE_SERIAL_VARIABLE_HPP
 #define MICRAS_COMM_PRIMITIVE_SERIAL_VARIABLE_HPP
 
-#include <type_traits>
 #include <cstring>
+#include <utility>
 
+#include "micras/comm/vars/serial_variable.hpp"
 #include "micras/core/concepts.hpp"
 #include "micras/core/utils.hpp"
-#include "micras/comm/vars/serial_variable.hpp"
 
 namespace micras::comm {
 /**
@@ -24,11 +24,11 @@ public:
      * @param value Pointer to the variable.
      * @param read_only True if the variable is read-only, false otherwise.
      */
-    PrimitiveSerialVariable(const std::string& name, T* value, bool read_only) :
-        value_ptr(value), name(name), read_only(read_only) { }
+    PrimitiveSerialVariable(std::string name, T* value, bool read_only) :
+        value_ptr{value}, name{std::move(name)}, read_only{read_only} { }
 
     /**
-     * @brief Get the varaible's name.
+     * @brief Get the variable's name.
      *
      * @return std::string name of the variable.
      */
@@ -73,8 +73,9 @@ public:
      * @param size Size of the serialized data.
      */
     void deserialize(const uint8_t* serial_data, uint16_t size) override {
-        if (read_only || size != sizeof(T))
+        if (read_only or size != sizeof(T)) {
             return;
+        }
         std::memcpy(value_ptr, serial_data, sizeof(T));
     }
 

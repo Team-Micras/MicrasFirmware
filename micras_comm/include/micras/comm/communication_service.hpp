@@ -2,12 +2,12 @@
 #define MICRAS_COMM_COMMUNICATION_SERVICE_HPP
 
 #include <deque>
-#include <queue>
 #include <functional>
+#include <queue>
 
-#include "micras/comm/serial_variable_pool.hpp"
 #include "micras/comm/logger.hpp"
 #include "micras/comm/packet.hpp"
+#include "micras/comm/serial_variable_pool.hpp"
 
 namespace micras::comm {
 /**
@@ -35,7 +35,7 @@ public:
      * @param pool Reference to the SerialVariablePool.
      * @param logger Reference to the Logger.
      */
-    explicit CommunicationService(SerialVariablePool& pool, Logger& logger);
+    explicit CommunicationService(std::shared_ptr<SerialVariablePool>& pool, std::shared_ptr<Logger>& logger);
 
     /**
      * @brief Register the communication functions for sending and receiving data.
@@ -87,7 +87,7 @@ private:
      * @param queue The incoming data queue.
      * @return true if the packet tail is valid, false otherwise.
      */
-    bool has_valid_packet_tail(const std::deque<uint8_t>& queue);
+    static bool has_valid_packet_tail(const std::deque<uint8_t>& queue);
 
     /**
      * @brief Extract a valid packet from the incoming data queue.
@@ -95,17 +95,17 @@ private:
      * @param queue The incoming data queue.
      * @return std::vector<uint8_t> The extracted packet data.
      */
-    std::vector<uint8_t> extract_valid_packet(std::deque<uint8_t>& queue);
+    static std::vector<uint8_t> extract_valid_packet(std::deque<uint8_t>& queue);
 
     /**
      * @brief Pool containing the variables to be sent and received.
      */
-    SerialVariablePool& pool;
+    std::shared_ptr<SerialVariablePool> pool;
 
     /**
      * @brief Logger for logging messages.
      */
-    Logger& logger;
+    std::shared_ptr<Logger> logger;
 
     /**
      * @brief Function to send data.
@@ -125,12 +125,12 @@ private:
     /**
      * @brief Queue for incoming raw data.
      */
-    std::deque<uint8_t> incoming_data_queue{};
+    std::deque<uint8_t> incoming_data_queue;
 
     /**
      * @brief Queue for incoming packets.
      */
-    std::queue<Packet> incoming_packets{};
+    std::queue<Packet> incoming_packets;
 };
 }  // namespace micras::comm
 

@@ -9,7 +9,7 @@
 
 #include "micras/proxy/argb.hpp"
 #include "micras/proxy/battery.hpp"
-#include "micras/proxy/bluetooth.hpp"
+#include "micras/proxy/bluetooth_serial.hpp"
 #include "micras/proxy/button.hpp"
 #include "micras/proxy/buzzer.hpp"
 #include "micras/proxy/dip_switch.hpp"

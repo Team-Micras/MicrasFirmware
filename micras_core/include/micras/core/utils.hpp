@@ -148,7 +148,9 @@ constexpr bool is_near(float x, float y, float tolerance = 0.001) {
  */
 template <typename T>
 constexpr auto type_name() {
-    std::string_view name, prefix, suffix;
+    std::string_view name;
+    std::string_view prefix;
+    std::string_view suffix;
 #ifdef __clang__
     name = __PRETTY_FUNCTION__;
     prefix = "auto type_name() [T = ";

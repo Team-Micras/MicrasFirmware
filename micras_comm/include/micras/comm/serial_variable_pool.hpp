@@ -7,11 +7,11 @@
 #include <unordered_map>
 #include <vector>
 
-#include "micras/core/utils.hpp"
-#include "micras/core/serializable.hpp"
 #include "micras/comm/vars/custom_serial_variable.hpp"
 #include "micras/comm/vars/primitive_serial_variable.hpp"
 #include "micras/comm/vars/serial_variable.hpp"
+#include "micras/core/serializable.hpp"
+#include "micras/core/utils.hpp"
 
 namespace micras::comm {
 class SerialVariablePool {
@@ -30,7 +30,7 @@ public:
      */
     template <core::Fundamental T>
     void add_read_only(const std::string& name, T& data) {
-        uint16_t var_id = current_id++;
+        const uint16_t var_id = current_id++;
         this->variables[var_id] = std::make_unique<PrimitiveSerialVariable<T>>(name, &data, true);
     }
 
@@ -43,7 +43,7 @@ public:
      */
     template <core::Fundamental T>
     void add_write_only(const std::string& name, T& data) {
-        uint16_t var_id = current_id++;
+        const uint16_t var_id = current_id++;
         this->variables[var_id] = std::make_unique<PrimitiveSerialVariable<T>>(name, &data, false);
     }
 
@@ -56,7 +56,7 @@ public:
      */
     template <core::Serializable T>
     void add_read_only(const std::string& name, T& data) {
-        uint16_t var_id = current_id++;
+        const uint16_t var_id = current_id++;
         this->variables[var_id] = std::make_unique<CustomSerialVariable<T>>(name, &data, true);
     }
 
@@ -69,7 +69,7 @@ public:
      */
     template <core::Serializable T>
     void add_write_only(const std::string& name, T& data) {
-        uint16_t var_id = current_id++;
+        const uint16_t var_id = current_id++;
         this->variables[var_id] = std::make_unique<CustomSerialVariable<T>>(name, &data, false);
     }
 

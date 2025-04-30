@@ -1,11 +1,11 @@
 #ifndef MICRAS_COMM_CUSTOM_SERIAL_VARIABLE_HPP
 #define MICRAS_COMM_CUSTOM_SERIAL_VARIABLE_HPP
 
-#include <type_traits>
+#include <utility>
 
+#include "micras/comm/vars/serial_variable.hpp"
 #include "micras/core/concepts.hpp"
 #include "micras/core/utils.hpp"
-#include "micras/comm/vars/serial_variable.hpp"
 
 namespace micras::comm {
 /**
@@ -23,8 +23,8 @@ public:
      * @param serializable Pointer to the serializable variable.
      * @param read_only True if the variable is read-only, false otherwise.
      */
-    CustomSerialVariable(const std::string& name, T* serializable, bool read_only) :
-        serializable_ptr(serializable), name(name), read_only(read_only) { }
+    CustomSerialVariable(std::string name, T* serializable, bool read_only) :
+        serializable_ptr{serializable}, name{std::move(name)}, read_only{read_only} { }
 
     /**
      * @brief Get the variable's name.
@@ -68,8 +68,9 @@ public:
      * @param size Size of the serialized data.
      */
     void deserialize(const uint8_t* serial_data, uint16_t size) override {
-        if (read_only)
+        if (read_only) {
             return;
+        }
         serializable_ptr->deserialize(serial_data, size);
     }
 
