@@ -18,6 +18,16 @@ void BluetoothSerial::update() {
     process_tx_data();
 }
 
+void BluetoothSerial::send_data(std::vector<uint8_t> data) {
+    this->tx_queue.insert(this->tx_queue.end(), data.begin(), data.end());
+}
+
+std::vector<uint8_t> BluetoothSerial::get_data() {
+    std::vector<uint8_t> data = std::move(this->received_data);
+    this->received_data.clear();
+    return data;
+}
+
 void BluetoothSerial::process_rx_data() {
     this->uart.stop_rx_dma();
 
@@ -36,12 +46,7 @@ void BluetoothSerial::process_tx_data() {
     }
 
     if (this->tx_queue.size() > BluetoothSerial::tx_queue_max_size) {
-        this->tx_queue.erase(
-            this->tx_queue.begin(),
-            this->tx_queue.begin() + static_cast<std::vector<uint8_t>::difference_type>(
-                                         this->tx_queue.size() - BluetoothSerial::tx_queue_max_size
-                                     )
-        );
+        this->trim_tx_queue();
     }
 
     const uint16_t bytes_to_send =
@@ -54,13 +59,11 @@ void BluetoothSerial::process_tx_data() {
     this->uart.start_tx_dma(std::span<uint8_t>(this->tx_buffer.data(), bytes_to_send));
 }
 
-std::vector<uint8_t> BluetoothSerial::get_data() {
-    std::vector<uint8_t> data = std::move(this->received_data);
-    this->received_data.clear();
-    return data;
-}
+void BluetoothSerial::trim_tx_queue() {
+    const auto excess_elements = static_cast<std::vector<uint8_t>::difference_type>(
+        this->tx_queue.size() - BluetoothSerial::tx_queue_max_size
+    );
 
-void BluetoothSerial::send_data(std::vector<uint8_t> data) {
-    this->tx_queue.insert(this->tx_queue.end(), data.begin(), data.end());
+    tx_queue.erase(tx_queue.begin(), tx_queue.begin() + excess_elements);
 }
 }  // namespace micras::proxy

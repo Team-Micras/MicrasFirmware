@@ -65,6 +65,14 @@ private:
     void process_tx_data();
 
     /**
+     * @brief Trim the tx queue to fit the maximum size.
+     *
+     * This method removes the oldest data from the tx queue if it exceeds
+     * the maximum size.
+     */
+    void trim_tx_queue();
+
+    /**
      * @brief Size of the UART buffers.
      */
     static constexpr uint16_t buffer_max_size{1000};
