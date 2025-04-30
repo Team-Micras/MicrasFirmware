@@ -7,11 +7,7 @@
 
 #include <array>
 #include <cstdint>
-#include <span>
-#include <unordered_map>
-
 #include <vector>
-#include <queue>
 
 #include "micras/hal/uart_dma.hpp"
 
