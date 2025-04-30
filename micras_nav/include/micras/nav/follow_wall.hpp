@@ -20,7 +20,7 @@ public:
     /**
      * @brief Name of each wall sensor.
      */
-    enum SensorName {
+    enum SensorName : uint8_t {
         LEFT_FRONT = 0,
         LEFT = 1,
         RIGHT = 2,

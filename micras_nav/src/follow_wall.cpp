@@ -88,9 +88,9 @@ bool FollowWall::check_posts() {
 }
 
 core::Observation FollowWall::get_observation() const {
-    bool front_wall =
+    const bool front_wall =
         this->wall_sensors->get_wall(SensorName::LEFT_FRONT) and this->wall_sensors->get_wall(SensorName::RIGHT_FRONT);
-    bool disturbed = front_wall;
+    const bool disturbed = front_wall;
 
     return {
         .left = this->wall_sensors->get_wall(SensorName::LEFT, disturbed),
