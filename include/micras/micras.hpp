@@ -6,6 +6,7 @@
 #define MICRAS_HPP
 
 #include "constants.hpp"
+#include "micras/comm/communication_service.hpp"
 #include "micras/core/fsm.hpp"
 #include "target.hpp"
 
@@ -93,6 +94,15 @@ private:
     proxy::Storage         maze_storage{maze_storage_config};
     proxy::BluetoothSerial bluetooth{bluetooth_config};
     // proxy::TorqueSensors torque_sensors{torque_sensors_config};
+    ///@}
+
+    /**
+     * @brief Communication service for the robot.
+     */
+    ///@{
+    std::shared_ptr<comm::Logger> logger;
+    std::shared_ptr<comm::SerialVariablePool> pool;
+    std::shared_ptr<comm::CommunicationService> comm_service;
     ///@}
 
     /**

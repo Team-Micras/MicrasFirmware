@@ -15,6 +15,9 @@
 
 namespace micras {
 Micras::Micras() :
+    logger{std::make_shared<comm::Logger>(debug_mode)},
+    pool{std::make_shared<comm::SerialVariablePool>()},
+    comm_service{std::make_shared<comm::CommunicationService>(pool, logger)},
     imu{std::make_shared<proxy::Imu>(imu_config)},
     rotary_sensor_left{std::make_shared<proxy::RotarySensor>(rotary_sensor_left_config)},
     rotary_sensor_right{std::make_shared<proxy::RotarySensor>(rotary_sensor_right_config)},
