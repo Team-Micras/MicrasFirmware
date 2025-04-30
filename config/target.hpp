@@ -115,7 +115,7 @@ const proxy::Buzzer::Config buzzer_config = {
         },
 };
 
-const proxy::Bluetooth::Config bluetooth_config = {
+const proxy::BluetoothSerial::Config bluetooth_config = {
     .uart =
         {
             .init_function = MX_USART3_UART_Init,

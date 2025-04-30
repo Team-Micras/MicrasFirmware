@@ -2,8 +2,8 @@
  * @file
  */
 
-#ifndef MICRAS_PROXY_BLUETOOTH_HPP
-#define MICRAS_PROXY_BLUETOOTH_HPP
+#ifndef MICRAS_PROXY_BLUETOOTH_SERIAL_HPP
+#define MICRAS_PROXY_BLUETOOTH_SERIAL_HPP
 
 #include <array>
 #include <cstdint>
@@ -13,25 +13,23 @@
 
 namespace micras::proxy {
 /**
- * @brief Class for controlling the Bluetooth communication.
- *
- * @todo Add ACK to received messages.
+ * @brief Class for handling sending and receiving data over Bluetooth using UART.
  */
-class Bluetooth {
+class BluetoothSerial {
 public:
     /**
-     * @brief Configuration struct for the Bluetooth.
+     * @brief Configuration struct for the BluetoothSerial.
      */
     struct Config {
         hal::UartDma::Config uart;
     };
 
     /**
-     * @brief Construct a new Bluetooth object.
+     * @brief Construct a new BluetoothSerial object.
      *
-     * @param config Configuration for the UART communication.
+     * @param config Configuration for the BluetoothSerial.
      */
-    explicit Bluetooth(const Config& config);
+    explicit BluetoothSerial(const Config& config);
 
     /**
      * @brief Process all received messages and send queued data.
@@ -44,7 +42,7 @@ public:
     /**
      * @brief Queue data to be sent during the next update call.
      *
-     * @param data Bytes to be sent over Bluetooth
+     * @param data Bytes to be sent over Bluetooth.
      */
     void send_data(std::vector<uint8_t> data);
 
@@ -74,7 +72,7 @@ private:
     /**
      * @brief Maximum size of the tx queue.
      */
-    static constexpr uint16_t tx_queue_max_size{buffer_max_size};
+    static constexpr uint16_t tx_queue_max_size{1500};
 
     /**
      * @brief UART for the bluetooth connection.
@@ -101,4 +99,4 @@ private:
 };
 }  // namespace micras::proxy
 
-#endif  // MICRAS_PROXY_BLUETOOTH_HPP
+#endif  // MICRAS_PROXY_BLUETOOTH_SERIAL_HPP

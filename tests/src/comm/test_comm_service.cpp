@@ -55,7 +55,7 @@ private:
 int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);
 
-    proxy::Bluetooth bluetooth{bluetooth_config};
+    proxy::BluetoothSerial bluetooth{bluetooth_config};
 
     comm::SerialVariablePool   pool{};
     comm::Logger               logger{true};
