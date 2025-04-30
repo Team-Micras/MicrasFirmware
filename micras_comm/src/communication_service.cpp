@@ -27,9 +27,9 @@ void CommunicationService::update_incoming_packets() {
     for (const auto& byte : data) {
         this->incoming_data_queue.push_back(byte);
 
-        if (micras::comm::CommunicationService::has_valid_packet_tail(this->incoming_data_queue)) {
+        if (CommunicationService::has_valid_packet_tail(this->incoming_data_queue)) {
             const std::vector<uint8_t> packet_data =
-                micras::comm::CommunicationService::extract_valid_packet(this->incoming_data_queue);
+                CommunicationService::extract_valid_packet(this->incoming_data_queue);
 
             if (Packet::is_valid(packet_data)) {  // check is redundant
                 this->incoming_packets.emplace(packet_data);
