@@ -13,13 +13,11 @@
 namespace micras::nav {
 template <uint8_t width, uint8_t height>
 TMaze<width, height>::TMaze(Config config) : start{config.start}, goal{config.goal} {
-    // Add left and right boundary walls
     for (uint8_t row = 0; row < height; row++) {
         this->cells[row][0].walls[Side::LEFT] = true;
         this->cells[row][width - 1].walls[Side::RIGHT] = true;
     }
 
-    // Add up and down boundary walls
     for (uint8_t col = 0; col < width; col++) {
         this->cells[0][col].walls[Side::DOWN] = true;
         this->cells[height - 1][col].walls[Side::UP] = true;
