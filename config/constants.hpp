@@ -29,6 +29,13 @@ constexpr float    exploration_speed{0.5F};
 constexpr float    max_linear_acceleration{1.0F};
 constexpr float    max_angular_acceleration{200.0F};
 
+constexpr core::WallSensorsIndex wall_sensors_index{
+    .left_front = 0,
+    .left = 1,
+    .right = 2,
+    .right_front = 3,
+};
+
 /*****************************************
  * Template Instantiations
  *****************************************/

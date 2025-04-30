@@ -57,14 +57,14 @@ void Micras::update() {
 bool Micras::calibrate() {
     switch (this->calibration_type) {
         case CalibrationType::SIDE_WALLS:
-            this->wall_sensors->calibrate_sensor(nav::FollowWall::SensorName::LEFT);
-            this->wall_sensors->calibrate_sensor(nav::FollowWall::SensorName::RIGHT);
+            this->wall_sensors->calibrate_sensor(wall_sensors_index.left);
+            this->wall_sensors->calibrate_sensor(wall_sensors_index.right);
             this->calibration_type = CalibrationType::FRONT_WALL;
             return false;
 
         case CalibrationType::FRONT_WALL:
-            this->wall_sensors->calibrate_sensor(nav::FollowWall::SensorName::LEFT_FRONT);
-            this->wall_sensors->calibrate_sensor(nav::FollowWall::SensorName::RIGHT_FRONT);
+            this->wall_sensors->calibrate_sensor(wall_sensors_index.left_front);
+            this->wall_sensors->calibrate_sensor(wall_sensors_index.right_front);
             this->calibration_type = CalibrationType::SIDE_WALLS;
             this->wall_sensors->turn_off();
             return true;
