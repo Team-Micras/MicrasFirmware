@@ -10,6 +10,7 @@ FollowWall::FollowWall(
 ) :
     wall_sensors{wall_sensors},
     pid{config.pid},
+    sensor_index{config.wall_sensor_index},
     max_linear_speed{config.max_linear_speed},
     post_threshold{config.post_threshold},
     blind_pose{absolute_pose},
@@ -23,20 +24,20 @@ float FollowWall::compute_angular_correction(float elapsed_time, float linear_sp
 
     if ((not this->following_left or not this->following_right) and
         (this->last_blind_distance >= (this->cell_size + (this->reset_by_post ? this->post_clearance : 0.0F)))) {
-        this->following_left = this->wall_sensors->get_wall(SensorName::LEFT);
-        this->following_right = this->wall_sensors->get_wall(SensorName::RIGHT);
+        this->following_left = this->wall_sensors->get_wall(this->sensor_index.left);
+        this->following_right = this->wall_sensors->get_wall(this->sensor_index.right);
         this->reset_displacement();
     }
 
     float error{};
 
     if (this->following_left and this->following_right) {
-        error = this->wall_sensors->get_sensor_error(SensorName::LEFT) -
-                this->wall_sensors->get_sensor_error(SensorName::RIGHT);
+        error = this->wall_sensors->get_sensor_error(this->sensor_index.left) -
+                this->wall_sensors->get_sensor_error(this->sensor_index.right);
     } else if (this->following_left) {
-        error = 2.0F * this->wall_sensors->get_sensor_error(SensorName::LEFT);
+        error = 2.0F * this->wall_sensors->get_sensor_error(this->sensor_index.left);
     } else if (this->following_right) {
-        error = -2.0F * this->wall_sensors->get_sensor_error(SensorName::RIGHT);
+        error = -2.0F * this->wall_sensors->get_sensor_error(this->sensor_index.right);
     } else {
         return 0.0F;
     }
@@ -58,7 +59,7 @@ bool FollowWall::check_posts() {
     bool found_posts = false;
 
     if (this->following_left and
-        -(this->wall_sensors->get_sensor_error(SensorName::LEFT) - this->last_left_error) / delta_distance >=
+        -(this->wall_sensors->get_sensor_error(this->sensor_index.left) - this->last_left_error) / delta_distance >=
             this->post_threshold) {
         this->following_left = false;
 
@@ -70,7 +71,7 @@ bool FollowWall::check_posts() {
     }
 
     if (this->following_right and
-        -(this->wall_sensors->get_sensor_error(SensorName::RIGHT) - this->last_right_error) / delta_distance >=
+        -(this->wall_sensors->get_sensor_error(this->sensor_index.right) - this->last_right_error) / delta_distance >=
             this->post_threshold) {
         this->following_right = false;
 
@@ -81,29 +82,29 @@ bool FollowWall::check_posts() {
         found_posts = true;
     }
 
-    this->last_left_error = this->wall_sensors->get_sensor_error(SensorName::LEFT);
-    this->last_right_error = this->wall_sensors->get_sensor_error(SensorName::RIGHT);
+    this->last_left_error = this->wall_sensors->get_sensor_error(this->sensor_index.left);
+    this->last_right_error = this->wall_sensors->get_sensor_error(this->sensor_index.right);
 
     return found_posts;
 }
 
 core::Observation FollowWall::get_observation() const {
-    const bool front_wall =
-        this->wall_sensors->get_wall(SensorName::LEFT_FRONT) and this->wall_sensors->get_wall(SensorName::RIGHT_FRONT);
+    const bool front_wall = this->wall_sensors->get_wall(this->sensor_index.left_front) and
+                            this->wall_sensors->get_wall(this->sensor_index.right_front);
     const bool disturbed = front_wall;
 
     return {
-        .left = this->wall_sensors->get_wall(SensorName::LEFT, disturbed),
+        .left = this->wall_sensors->get_wall(this->sensor_index.left, disturbed),
         .front = front_wall,
-        .right = this->wall_sensors->get_wall(SensorName::RIGHT, disturbed),
+        .right = this->wall_sensors->get_wall(this->sensor_index.right, disturbed),
     };
 }
 
 void FollowWall::reset() {
     this->pid.reset();
     this->reset_displacement();
-    this->following_left = this->wall_sensors->get_wall(SensorName::LEFT);
-    this->following_right = this->wall_sensors->get_wall(SensorName::RIGHT);
+    this->following_left = this->wall_sensors->get_wall(this->sensor_index.left);
+    this->following_right = this->wall_sensors->get_wall(this->sensor_index.right);
 }
 
 void FollowWall::reset_displacement(bool reset_by_post) {

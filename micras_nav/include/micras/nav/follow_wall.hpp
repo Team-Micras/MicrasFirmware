@@ -8,6 +8,7 @@
 #include <memory>
 
 #include "micras/core/pid_controller.hpp"
+#include "micras/core/types.hpp"
 #include "micras/nav/state.hpp"
 #include "micras/proxy/wall_sensors.hpp"
 
@@ -18,20 +19,11 @@ namespace micras::nav {
 class FollowWall {
 public:
     /**
-     * @brief Name of each wall sensor.
-     */
-    enum SensorName : uint8_t {
-        LEFT_FRONT = 0,
-        LEFT = 1,
-        RIGHT = 2,
-        RIGHT_FRONT = 3,
-    };
-
-    /**
      * @brief Configuration struct for the FollowWall class.
      */
     struct Config {
         core::PidController::Config pid;
+        core::WallSensorsIndex      wall_sensor_index{};
         float                       max_linear_speed{};
         float                       post_threshold{};
         float                       cell_size{};
@@ -97,6 +89,11 @@ private:
      * @brief PID controller for the wall following.
      */
     core::PidController pid;
+
+    /**
+     * @brief Index of each of the wall sensors used for wall following.
+     */
+    core::WallSensorsIndex sensor_index;
 
     /**
      * @brief Maximum linear speed of the robot.
