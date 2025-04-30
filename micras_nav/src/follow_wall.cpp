@@ -86,20 +86,15 @@ bool FollowWall::check_posts() {
 }
 
 core::Observation FollowWall::get_observation() const {
-    if (this->wall_sensors->get_wall(SensorName::LEFT_FRONT) && this->wall_sensors->get_wall(SensorName::RIGHT_FRONT)) {
-        return {
-            this->wall_sensors->get_wall(SensorName::LEFT, true), true,
-            this->wall_sensors->get_wall(SensorName::RIGHT, true)
-        };
-    }
+    const bool front_wall =
+        this->wall_sensors->get_wall(SensorName::LEFT_FRONT) and this->wall_sensors->get_wall(SensorName::RIGHT_FRONT);
+    const bool disturbed = front_wall;
 
-    return {this->wall_sensors->get_wall(SensorName::LEFT), false, this->wall_sensors->get_wall(SensorName::RIGHT)};
-}
-
-void FollowWall::reset_displacement(bool reset_by_post) {
-    this->blind_pose.reset_reference();
-    this->last_blind_distance = 0.0F;
-    this->reset_by_post = reset_by_post;
+    return {
+        .left = this->wall_sensors->get_wall(SensorName::LEFT, disturbed),
+        .front = front_wall,
+        .right = this->wall_sensors->get_wall(SensorName::RIGHT, disturbed),
+    };
 }
 
 void FollowWall::reset() {
@@ -107,5 +102,11 @@ void FollowWall::reset() {
     this->reset_displacement();
     this->following_left = this->wall_sensors->get_wall(SensorName::LEFT);
     this->following_right = this->wall_sensors->get_wall(SensorName::RIGHT);
+}
+
+void FollowWall::reset_displacement(bool reset_by_post) {
+    this->blind_pose.reset_reference();
+    this->last_blind_distance = 0.0F;
+    this->reset_by_post = reset_by_post;
 }
 }  // namespace micras::nav

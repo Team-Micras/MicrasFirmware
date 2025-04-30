@@ -9,7 +9,6 @@
 #include <cstdint>
 
 #include "micras/core/butterworth_filter.hpp"
-#include "micras/core/types.hpp"
 #include "micras/hal/adc_dma.hpp"
 #include "micras/hal/pwm.hpp"
 

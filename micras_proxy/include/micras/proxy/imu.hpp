@@ -75,6 +75,11 @@ public:
      */
     void calibrate();
 
+    /**
+     * @brief Check if IMU was initialized.
+     *
+     * @return True if the device was successfully initialized, false otherwise.
+     */
     bool was_initialized() const;
 
 private:

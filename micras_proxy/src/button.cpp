@@ -59,6 +59,7 @@ void Button::update_state() {
             this->is_debouncing = false;
         }
     } else {
+        this->is_debouncing = false;
         this->current_state = raw_reading;
     }
 }

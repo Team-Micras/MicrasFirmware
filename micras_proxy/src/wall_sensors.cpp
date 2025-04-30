@@ -65,7 +65,7 @@ float TWallSensors<num_of_sensors>::get_sensor_error(uint8_t sensor_index) const
 
 template <uint8_t num_of_sensors>
 void TWallSensors<num_of_sensors>::calibrate_sensor(uint8_t sensor_index) {
-    this->base_readings[sensor_index] = this->get_reading(sensor_index);
+    this->base_readings.at(sensor_index) = this->get_reading(sensor_index);
 }
 }  // namespace micras::proxy
 
