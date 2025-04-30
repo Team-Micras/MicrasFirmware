@@ -2,10 +2,11 @@
  * @file
  */
 
-#include <bit>
 #include <algorithm>
+#include <bit>
+#include <span>
 
-#include "micras/proxy/bluetooth.hpp"
+#include "micras/proxy/bluetooth_serial.hpp"
 
 namespace micras::proxy {
 BluetoothSerial::BluetoothSerial(const Config& config) : uart{config.uart} {
@@ -20,7 +21,7 @@ void BluetoothSerial::update() {
 void BluetoothSerial::process_rx_data() {
     this->uart.stop_rx_dma();
 
-    uint16_t received_bytes = this->rx_buffer.size() - this->uart.get_rx_dma_counter() - 1;
+    const uint16_t received_bytes = this->rx_buffer.size() - this->uart.get_rx_dma_counter() - 1;
 
     for (uint16_t i = 0; i < received_bytes; i++) {
         this->received_data.emplace_back(this->rx_buffer.at(i));
@@ -30,24 +31,27 @@ void BluetoothSerial::process_rx_data() {
 }
 
 void BluetoothSerial::process_tx_data() {
-    if (this->tx_queue.empty() || this->uart.is_tx_busy()) {
+    if (this->tx_queue.empty() or this->uart.is_tx_busy()) {
         return;
     }
 
-    if (this->tx_queue.size() > this->tx_queue_max_size) {
+    if (this->tx_queue.size() > BluetoothSerial::tx_queue_max_size) {
         this->tx_queue.erase(
-            this->tx_queue.begin(), this->tx_queue.begin() + (this->tx_queue.size() - this->tx_queue_max_size)
+            this->tx_queue.begin(),
+            this->tx_queue.begin() + static_cast<std::vector<uint8_t>::difference_type>(
+                                         this->tx_queue.size() - BluetoothSerial::tx_queue_max_size
+                                     )
         );
     }
 
-    uint16_t bytes_to_send = std::min(static_cast<uint16_t>(this->tx_queue.size()), this->buffer_max_size);
-    for (uint16_t i = 0; i < bytes_to_send; i++) {
-        this->tx_buffer[i] = this->tx_queue[i];
-    }
+    const uint16_t bytes_to_send =
+        std::min(static_cast<uint16_t>(this->tx_queue.size()), BluetoothSerial::buffer_max_size);
+
+    std::copy(this->tx_queue.begin(), this->tx_queue.begin() + bytes_to_send, this->tx_buffer.begin());
 
     this->tx_queue.erase(this->tx_queue.begin(), this->tx_queue.begin() + bytes_to_send);
 
-    this->uart.start_tx_dma({this->tx_buffer.data(), bytes_to_send});
+    this->uart.start_tx_dma(std::span<uint8_t>(this->tx_buffer.data(), bytes_to_send));
 }
 
 std::vector<uint8_t> BluetoothSerial::get_data() {
