@@ -69,7 +69,7 @@ int main(int argc, char* argv[]) {
     uint32_t write_only_var = 0;
     uint32_t read_only_var = 0;
 
-    const TestSerializable test_serializable{};
+    TestSerializable test_serializable{};
 
     pool->add_read_only("read_only_var", read_only_var);
     pool->add_write_only("write_only_var", write_only_var);

@@ -78,7 +78,7 @@ private:
     /**
      * @brief Pointer to the serializable variable.
      */
-    core::ISerializable* serializable_ptr;
+    T* serializable_ptr;
 
     /**
      * @brief Name of the variable.
