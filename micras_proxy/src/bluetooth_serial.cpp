@@ -35,7 +35,9 @@ void BluetoothSerial::process_tx_data() {
     }
 
     if (this->tx_queue.size() > this->tx_queue_max_size) {
-        this->tx_queue.erase(this->tx_queue.begin(), this->tx_queue.begin() + (this->tx_queue.size() - this->tx_queue_max_size));
+        this->tx_queue.erase(
+            this->tx_queue.begin(), this->tx_queue.begin() + (this->tx_queue.size() - this->tx_queue_max_size)
+        );
     }
 
     uint16_t bytes_to_send = std::min(static_cast<uint16_t>(this->tx_queue.size()), this->buffer_max_size);
