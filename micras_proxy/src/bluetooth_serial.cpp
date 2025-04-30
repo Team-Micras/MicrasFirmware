@@ -60,9 +60,8 @@ void BluetoothSerial::process_tx_data() {
 }
 
 void BluetoothSerial::trim_tx_queue() {
-    const auto excess_elements = static_cast<std::vector<uint8_t>::difference_type>(
-        this->tx_queue.size() - BluetoothSerial::tx_queue_max_size
-    );
+    const auto excess_elements =
+        static_cast<std::vector<uint8_t>::difference_type>(this->tx_queue.size() - BluetoothSerial::tx_queue_max_size);
 
     tx_queue.erase(tx_queue.begin(), tx_queue.begin() + excess_elements);
 }

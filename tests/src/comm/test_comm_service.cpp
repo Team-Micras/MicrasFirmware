@@ -58,8 +58,8 @@ int main(int argc, char* argv[]) {
     proxy::BluetoothSerial bluetooth{bluetooth_config};
 
     std::shared_ptr<comm::SerialVariablePool> pool = std::make_shared<comm::SerialVariablePool>();
-    std::shared_ptr<comm::Logger> logger = std::make_shared<comm::Logger>(true);
-    comm::CommunicationService comm_service{pool, logger};
+    std::shared_ptr<comm::Logger>             logger = std::make_shared<comm::Logger>(true);
+    comm::CommunicationService                comm_service{pool, logger};
 
     comm_service.register_communication_functions(
         [&bluetooth](const std::vector<uint8_t>& data) { bluetooth.send_data(data); },
