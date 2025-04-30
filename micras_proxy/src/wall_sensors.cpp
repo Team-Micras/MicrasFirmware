@@ -48,11 +48,14 @@ bool TWallSensors<num_of_sensors>::get_wall(uint8_t sensor_index, bool disturbed
 
 template <uint8_t num_of_sensors>
 core::Observation TWallSensors<num_of_sensors>::get_observation() const {
-    if (this->get_wall(0) && this->get_wall(3)) {
-        return {this->get_wall(1, true), true, this->get_wall(2, true)};
-    }
+    bool front_wall = this->get_wall(0) and this->get_wall(3);
+    bool disturbed = front_wall;
 
-    return {this->get_wall(1), false, this->get_wall(2)};
+    return {
+        .left = this->get_wall(1, disturbed),
+        .front = front_wall,
+        .right = this->get_wall(2, disturbed),
+    };
 }
 
 template <uint8_t num_of_sensors>

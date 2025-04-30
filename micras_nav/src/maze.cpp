@@ -13,19 +13,19 @@
 namespace micras::nav {
 template <uint8_t width, uint8_t height>
 TMaze<width, height>::TMaze(Config config) : start{config.start}, goal{config.goal} {
+    // Add left and right boundary walls
     for (uint8_t row = 0; row < height; row++) {
         this->cells[row][0].walls[Side::LEFT] = true;
         this->cells[row][width - 1].walls[Side::RIGHT] = true;
     }
 
+    // Add up and down boundary walls
     for (uint8_t col = 0; col < width; col++) {
         this->cells[0][col].walls[Side::DOWN] = true;
         this->cells[height - 1][col].walls[Side::UP] = true;
     }
 
-    this->cells[start.position.y][start.position.x].walls[start.turned_right().orientation] = true;
-    GridPose right_pose = start.turned_right().front();
-    this->get_cell(right_pose.position).walls[right_pose.turned_back().orientation] = true;
+    this->update_wall(start.turned_right(), true);
 
     // Hardcoded walls at the end region
     if (width == 16 and height == 16) {

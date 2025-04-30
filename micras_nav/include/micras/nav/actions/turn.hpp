@@ -58,10 +58,14 @@ public:
         const float current_orientation = std::max(std::abs(pose.orientation), this->start_orientation);
 
         if (current_orientation < std::abs(this->angle)) {
-            twist = {linear_speed, std::sqrt(2.0F * this->acceleration * current_orientation)};
+            twist = {
+                .linear = linear_speed,
+                .angular = std::sqrt(2.0F * this->acceleration * current_orientation),
+            };
         } else {
             twist = {
-                linear_speed, std::sqrt(2.0F * this->acceleration * (std::abs(this->angle) - current_orientation))
+                .linear = linear_speed,
+                .angular = std::sqrt(2.0F * this->acceleration * (std::abs(this->angle) - current_orientation)),
             };
         }
 

@@ -128,7 +128,7 @@ private:
      * @brief Update the existence of a wall in the maze.
      *
      * @param pose The pose of the robot.
-     * @param wall Whether there is a wall in front of the robot.
+     * @param wall Whether there is a wall at the front of a given pose.
      */
     void update_wall(const GridPose& pose, bool wall);
 

@@ -33,8 +33,8 @@ std::pair<float, float> SpeedController::compute_feed_forward_commands(const Twi
     const float linear_acceleration = (desired_twist.linear - this->last_linear_speed) / elapsed_time;
     const float angular_acceleration = (desired_twist.angular - this->last_angular_speed) / elapsed_time;
     const Twist acceleration_twist{
-        std::clamp(linear_acceleration, -this->max_linear_acceleration, this->max_linear_acceleration),
-        std::clamp(angular_acceleration, -this->max_angular_acceleration, this->max_angular_acceleration)
+        .linear = std::clamp(linear_acceleration, -this->max_linear_acceleration, this->max_linear_acceleration),
+        .angular = std::clamp(angular_acceleration, -this->max_angular_acceleration, this->max_angular_acceleration),
     };
 
     this->last_linear_speed = desired_twist.linear;

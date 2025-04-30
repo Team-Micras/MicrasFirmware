@@ -43,7 +43,7 @@ public:
         } { }
 
     /**
-     * @brief Get the desired speeds for the robot to compete the action.
+     * @brief Get the desired speeds for the robot to complete the action.
      *
      * @param pose The current pose of the robot.
      * @return The desired speeds for the robot to complete the action.
@@ -55,11 +55,15 @@ public:
         Twist       twist{};
 
         if (current_distance < this->decelerate_distance) {
-            twist = {std::sqrt(this->start_speed_2 + this->max_acceleration_doubled * current_distance), 0.0F};
+            twist = {
+                .linear = std::sqrt(this->start_speed_2 + this->max_acceleration_doubled * current_distance),
+                .angular = 0.0F,
+            };
         } else {
             twist = {
-                std::sqrt(this->end_speed_2 + this->max_deceleration_doubled * (this->distance - current_distance)),
-                0.0F
+                .linear =
+                    std::sqrt(this->end_speed_2 + this->max_deceleration_doubled * (this->distance - current_distance)),
+                .angular = 0.0F,
             };
         }
 
