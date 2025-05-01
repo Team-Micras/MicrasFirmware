@@ -100,8 +100,8 @@ private:
      * @brief Communication service for the robot.
      */
     ///@{
-    std::shared_ptr<comm::Logger> logger;
-    std::shared_ptr<comm::SerialVariablePool> pool;
+    std::shared_ptr<comm::Logger>               logger;
+    std::shared_ptr<comm::SerialVariablePool>   pool;
     std::shared_ptr<comm::CommunicationService> comm_service;
     ///@}
 
