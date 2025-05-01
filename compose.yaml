@@ -11,7 +11,7 @@ services:
       target: build
 
   lint:
-    command: /project/.docker/scripts/build.sh -DLINTER_MODE=ON
+    command: make -C build lint
     build:
       dockerfile: .docker/Dockerfile
       target: build

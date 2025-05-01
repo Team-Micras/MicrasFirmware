@@ -55,7 +55,7 @@ jobs:
 
       - name: 🚨 Lint project
         if: steps.cache.outputs.cache-hit != 'true'
-        run: docker run --rm project:build /bin/bash /project/.docker/scripts/build.sh -DLINTER_MODE=ON
+        run: docker run --rm project:build make -C build lint
 
       - name: 🗃️ Save cache
         if: steps.cache.outputs.cache-hit != 'true'
