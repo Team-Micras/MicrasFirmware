@@ -20,11 +20,6 @@ endfunction()
 # corresponding to the OUTPUT_EXTENSION argument value.
 # The generated file will be placed in the same directory as the target output file.
 function(_generate_file TARGET OUTPUT_EXTENSION OBJCOPY_BFD_OUTPUT)
-    # If linter is enabled, do not generate files
-    if(LINTER_MODE STREQUAL "ON" OR LINTER_MODE STREQUAL "FIX")
-        return()
-    endif()
-
     set(OUTPUT_FILE_NAME "${TARGET}.${OUTPUT_EXTENSION}")
 
     add_custom_command(

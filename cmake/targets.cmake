@@ -84,6 +84,20 @@ function(generate_format_target)
     )
 endfunction()
 
+function(generate_lint_target)
+    foreach(FILE ${ARGV})
+        list(APPEND FILES_LIST ${${FILE}})
+    endforeach()
+
+    add_custom_target(lint
+        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/cmake/run_clang_tidy.sh  ${FILES_LIST}
+    )
+
+    add_custom_target(lint_fix
+        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/cmake/run_clang_tidy.sh --fix ${FILES_LIST}
+    )
+endfunction()
+
 # Flash via st-link or jlink
 function(generate_flash_target TARGET)
     if("${TARGET}" STREQUAL "${PROJECT_NAME}")
