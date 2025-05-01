@@ -90,7 +90,7 @@ function(generate_lint_target)
     endforeach()
 
     add_custom_target(lint
-        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/cmake/run_clang_tidy.sh  ${FILES_LIST}
+        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/cmake/run_clang_tidy.sh ${FILES_LIST}
     )
 
     add_custom_target(lint_fix

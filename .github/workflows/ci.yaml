@@ -55,7 +55,9 @@ jobs:
 
       - name: 🚨 Lint project
         if: steps.cache.outputs.cache-hit != 'true'
-        run: docker run --rm project:build make -C build lint
+        run: |
+          docker run project:build cmake -B build
+          docker run --rm project:build make -C build lint
 
       - name: 🗃️ Save cache
         if: steps.cache.outputs.cache-hit != 'true'
