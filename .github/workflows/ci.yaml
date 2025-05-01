@@ -35,7 +35,6 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         timeout-minutes: 10
         uses: docker/build-push-action@v6
-        timeout-minutes: 10
         with:
           context: .
           file: .docker/Dockerfile
