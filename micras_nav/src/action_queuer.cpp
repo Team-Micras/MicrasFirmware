@@ -40,8 +40,7 @@ ActionQueuer::ActionQueuer(Config config) :
     )},
     turn_back{std::make_shared<TurnAction>(
         ActionType::TURN_BACK, std::numbers::pi_v<float>, 0.0F, 0.0F, exploring_params.max_angular_acceleration
-    )},
-    action_queue{{start}} { }
+    )} { }
 
 void ActionQueuer::push(const GridPose& current_pose, const GridPoint& target_position) {
     if (current_pose.front().position == target_position) {

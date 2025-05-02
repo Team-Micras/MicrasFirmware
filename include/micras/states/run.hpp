@@ -38,12 +38,9 @@ public:
             case core::Objective::RETURN:
                 this->micras.set_objective(core::Objective::SOLVE);
                 this->micras.save_best_route();
-                this->micras.stop();
                 return Micras::State::IDLE;
 
             case core::Objective::SOLVE:
-                this->micras.stop();
-                this->micras.reset();
                 return Micras::State::IDLE;
         }
 

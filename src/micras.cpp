@@ -76,6 +76,7 @@ bool Micras::calibrate() {
 void Micras::prepare() {
     if (this->objective == core::Objective::EXPLORE) {
         this->grid_pose = this->maze.get_next_goal(this->grid_pose.position, false);
+        this->action_queuer.recompute({});
         this->current_action = this->action_queuer.pop();
     } else {
         this->current_action = this->action_queuer.pop();
@@ -165,7 +166,6 @@ void Micras::init() {
 }
 
 void Micras::reset() {
-    this->action_queuer.recompute({});
     this->grid_pose = maze_config.start;
     this->finished = false;
 }
