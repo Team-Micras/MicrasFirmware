@@ -37,3 +37,6 @@ RUN echo "trap 'chown -R ubuntu /project' EXIT" >> "/root/.bashrc"
 FROM base AS build
 
 COPY . /project
+
+RUN mkdir -p build && \
+    cmake -B build -DCMAKE_BUILD_TYPE=Release

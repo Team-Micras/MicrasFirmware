@@ -51,13 +51,15 @@ jobs:
 
       - name: 🔨 Build project
         if: steps.cache.outputs.cache-hit != 'true'
-        run: docker run --rm project:build /bin/bash /project/.docker/scripts/build.sh
+        run: docker run --rm project:build make -C build --no-print-directory -j
+
+      - name: 🧪 Build tests
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: docker run --rm project:build make -C build --no-print-directory -j test_all
 
       - name: 🚨 Lint project
         if: steps.cache.outputs.cache-hit != 'true'
-        run: |
-          docker run project:build cmake -B build
-          docker run --rm project:build make -C build lint
+        run: docker run --rm project:build  make -C build --no-print-directory -j lint
 
       - name: 🗃️ Save cache
         if: steps.cache.outputs.cache-hit != 'true'

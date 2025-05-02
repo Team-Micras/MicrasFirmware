@@ -34,7 +34,7 @@ jobs:
 
       - name: 🔨 Build project
         run: |
-          docker run --name release project:build /bin/bash /project/.docker/scripts/build.sh
+          docker run --name release project:build make -C build --no-print-directory -j
           docker cp release:/project/build/ output/
 
       - name: ⬆️ Upload binaries
