@@ -39,4 +39,4 @@ FROM base AS build
 COPY . /project
 
 RUN mkdir -p build && \
-    cmake -B build -DCMAKE_BUILD_TYPE=Release
+    cmake -B build -DBUILD_TYPE=Release
