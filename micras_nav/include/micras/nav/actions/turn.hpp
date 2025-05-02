@@ -26,6 +26,7 @@ public:
     /**
      * @brief Construct a new Turn Action object.
      *
+     * @param action_id The ID of the action.
      * @param angle Angle to turn in radians.
      * @param curve_radius Radius of the curve in meters.
      * @param linear_speed Linear speed in m/s.

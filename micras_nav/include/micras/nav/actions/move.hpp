@@ -18,6 +18,7 @@ public:
     /**
      * @brief Construct a new Move Action object.
      *
+     * @param action_id The ID of the action.
      * @param distance Distance to move in meters.
      * @param start_speed Initial speed in m/s.
      * @param end_speed Final speed in m/s.
