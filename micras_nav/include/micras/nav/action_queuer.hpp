@@ -116,7 +116,7 @@ private:
     /**
      * @brief Queue of actions to be performed.
      */
-    std::queue<std::shared_ptr<Action>> action_queue{};
+    std::queue<std::shared_ptr<Action>> action_queue;
 };
 }  // namespace micras::nav
 
