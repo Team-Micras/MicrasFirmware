@@ -20,18 +20,18 @@ public:
      * @brief Enum for button status.
      */
     enum Status : uint8_t {
-        NO_PRESS,
-        SHORT_PRESS,
-        LONG_PRESS,
-        EXTRA_LONG_PRESS
+        NO_PRESS = 0,
+        SHORT_PRESS = 1,
+        LONG_PRESS = 2,
+        EXTRA_LONG_PRESS = 3
     };
 
     /**
      * @brief Enum for button pull resistor.
      */
     enum PullResistor : uint8_t {
-        PULL_UP,
-        PULL_DOWN,
+        PULL_UP = 0,
+        PULL_DOWN = 1,
     };
 
     /**

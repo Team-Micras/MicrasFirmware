@@ -11,37 +11,36 @@ ActionQueuer::ActionQueuer(Config config) :
     cell_size{config.cell_size},
     exploring_params{config.exploring},
     // solving_params{config.solving},
+    stop{std::make_shared<MoveAction>(
+        ActionType::STOP, cell_size / 2.0F, exploring_params.max_linear_speed, 0.0F, exploring_params.max_linear_speed,
+        exploring_params.max_linear_acceleration, exploring_params.max_linear_deceleration, false
+    )},
     start{std::make_shared<MoveAction>(
-        cell_size - config.start_offset, 0.001F * exploring_params.max_linear_acceleration,
+        ActionType::START, cell_size - config.start_offset, 0.001F * exploring_params.max_linear_acceleration,
         exploring_params.max_linear_speed, exploring_params.max_linear_speed, exploring_params.max_linear_acceleration,
         exploring_params.max_linear_deceleration
     )},
     move_forward{std::make_shared<MoveAction>(
-        cell_size, exploring_params.max_linear_speed, exploring_params.max_linear_speed,
+        ActionType::MOVE_FORWARD, cell_size, exploring_params.max_linear_speed, exploring_params.max_linear_speed,
         exploring_params.max_linear_speed, exploring_params.max_linear_acceleration,
         exploring_params.max_linear_deceleration
     )},
-    stop{std::make_shared<MoveAction>(
-        cell_size / 2.0F, exploring_params.max_linear_speed, 0.0F, exploring_params.max_linear_speed,
-        exploring_params.max_linear_acceleration, exploring_params.max_linear_deceleration, false
-    )},
     move_half{std::make_shared<MoveAction>(
-        cell_size / 2.0F, 0.001F * exploring_params.max_linear_acceleration, exploring_params.max_linear_speed,
-        exploring_params.max_linear_speed, exploring_params.max_linear_acceleration,
+        ActionType::MOVE_HALF, cell_size / 2.0F, 0.001F * exploring_params.max_linear_acceleration,
+        exploring_params.max_linear_speed, exploring_params.max_linear_speed, exploring_params.max_linear_acceleration,
         exploring_params.max_linear_deceleration, false
     )},
     turn_left{std::make_shared<TurnAction>(
-        std::numbers::pi_v<float> / 2.0F, cell_size / 2.0F, exploring_params.max_linear_speed,
+        ActionType::TURN_LEFT, std::numbers::pi_v<float> / 2.0F, cell_size / 2.0F, exploring_params.max_linear_speed,
         exploring_params.max_angular_acceleration
     )},
     turn_right{std::make_shared<TurnAction>(
-        -std::numbers::pi_v<float> / 2.0F, cell_size / 2.0F, exploring_params.max_linear_speed,
+        ActionType::TURN_RIGHT, -std::numbers::pi_v<float> / 2.0F, cell_size / 2.0F, exploring_params.max_linear_speed,
         exploring_params.max_angular_acceleration
     )},
-    turn_back{
-        std::make_shared<TurnAction>(std::numbers::pi_v<float>, 0.0F, 0.0F, exploring_params.max_angular_acceleration)
-    },
-    action_queue{{start}} { }
+    turn_back{std::make_shared<TurnAction>(
+        ActionType::TURN_BACK, std::numbers::pi_v<float>, 0.0F, 0.0F, exploring_params.max_angular_acceleration
+    )} { }
 
 void ActionQueuer::push(const GridPose& current_pose, const GridPoint& target_position) {
     if (current_pose.front().position == target_position) {
@@ -80,6 +79,10 @@ bool ActionQueuer::empty() const {
 void ActionQueuer::recompute(const std::map<uint16_t, GridPose, std::greater<>>& best_route) {
     this->action_queue = {};
     this->action_queue.emplace(start);
+
+    if (best_route.empty()) {
+        return;
+    }
 
     for (auto it = std::next(best_route.begin()); std::next(it) != best_route.end(); it++) {
         this->push(it->second, std::next(it)->second.position);

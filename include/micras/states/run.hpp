@@ -13,31 +13,34 @@ public:
     using BaseState::BaseState;
 
     /**
+     * @brief Execute the entry function of this state.
+     */
+    void on_entry() override {
+        this->micras.init();
+        this->micras.prepare();
+    }
+
+    /**
      * @brief Execute this state.
-     *
-     * @param previous_state_id The id of the last executed state.
      *
      * @return The id of the next state.
      */
-    uint8_t execute(uint8_t /*previous_state_id*/) override {
-        if (not this->micras.run(this->micras.elapsed_time)) {
+    uint8_t execute() override {
+        if (not this->micras.run()) {
             return this->get_id();
         }
 
-        switch (this->micras.objective) {
+        switch (this->micras.get_objective()) {
             case core::Objective::EXPLORE:
-                this->micras.objective = core::Objective::RETURN;
+                this->micras.set_objective(core::Objective::RETURN);
                 return Micras::State::WAIT_FOR_RUN;
 
             case core::Objective::RETURN:
-                this->micras.objective = core::Objective::SOLVE;
-                this->micras.maze_storage.create("maze", this->micras.maze);
-                this->micras.maze_storage.save();
-                this->micras.stop();
+                this->micras.set_objective(core::Objective::SOLVE);
+                this->micras.save_best_route();
                 return Micras::State::IDLE;
 
             case core::Objective::SOLVE:
-                this->micras.stop();
                 return Micras::State::IDLE;
         }
 

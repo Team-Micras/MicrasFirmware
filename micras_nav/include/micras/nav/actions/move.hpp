@@ -18,6 +18,7 @@ public:
     /**
      * @brief Construct a new Move Action object.
      *
+     * @param action_id The ID of the action.
      * @param distance Distance to move in meters.
      * @param start_speed Initial speed in m/s.
      * @param end_speed Final speed in m/s.
@@ -27,9 +28,10 @@ public:
      * @param follow_wall Whether the robot can follow wall while executing this action.
      */
     MoveAction(
-        float distance, float start_speed, float end_speed, float max_speed, float max_acceleration,
+        uint8_t action_id, float distance, float start_speed, float end_speed, float max_speed, float max_acceleration,
         float max_deceleration, bool follow_wall = true
     ) :
+        Action{action_id},
         distance(distance),
         start_speed_2(start_speed * start_speed),
         end_speed_2(end_speed * end_speed),
