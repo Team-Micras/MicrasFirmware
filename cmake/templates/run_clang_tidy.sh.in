@@ -1,33 +1,29 @@
 #!/bin/bash
 
 FIX_FLAG=""
-EXIT_CODE=0
 
 if [[ "$1" == "--fix" ]]; then
-    FIX_FLAG="--fix"
-    shift
+  FIX_FLAG="--fix"
+  shift
 fi
 
-run_clang_tidy() {
-    local output
-    output=$(clang-tidy $FIX_FLAG --use-color --quiet -p @CMAKE_CURRENT_BINARY_DIR@ $1 2>&1)
-
-    if [[ $? -ne 0 ]]; then
-        echo "$output"
-        return 1
-    fi
-}
-
-declare -a PIDS
 echo "Running clang-tidy on all source files..."
 
-for file in "$@"; do
-    run_clang_tidy "$file" &
-    PIDS+=("$!")
-done
+ERRORS=$(
+  {
+    for file in "$@"; do
+      {
+        clang-tidy $FIX_FLAG --use-color --quiet -p @CMAKE_CURRENT_BINARY_DIR@ "$file" 2>&1
+      } &
+    done
 
-for pid in "${PIDS[@]}"; do
-    wait "$pid" || EXIT_CODE=1
-done
+    wait
+  } | grep -v ' warnings generated\.$' | awk '!seen[$0]++'
+)
 
-exit $EXIT_CODE
+if [[ -n "$ERRORS" ]]; then
+  echo -e "\n$ERRORS\033[0m"
+  exit 1
+fi
+
+exit 0
