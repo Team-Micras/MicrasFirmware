@@ -77,7 +77,7 @@ void Micras::prepare() {
     if (this->objective == core::Objective::EXPLORE) {
         this->grid_pose = this->maze.get_next_goal(this->grid_pose.position, false);
         this->current_action = this->action_queuer.pop();
-    } else if (this->objective == core::Objective::SOLVE) {
+    } else {
         this->current_action = this->action_queuer.pop();
     }
 }

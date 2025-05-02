@@ -33,8 +33,6 @@ public:
      */
     uint8_t execute() override {
         if (this->wait_stopwatch.elapsed_time_ms() > this->wait_time_ms) {
-            this->micras.init();
-
             return this->next_state_id;
         }
 

@@ -13,6 +13,14 @@ public:
     using BaseState::BaseState;
 
     /**
+     * @brief Execute the entry function of this state.
+     */
+    void on_entry() override {
+        this->micras.init();
+        this->micras.prepare();
+    }
+
+    /**
      * @brief Execute this state.
      *
      * @return The id of the next state.
