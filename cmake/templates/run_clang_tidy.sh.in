@@ -10,7 +10,7 @@ fi
 
 run_clang_tidy() {
     local output
-    output=$(clang-tidy $FIX_FLAG --quiet -p build $1 2>&1)
+    output=$(clang-tidy $FIX_FLAG --use-color --quiet -p @CMAKE_CURRENT_BINARY_DIR@ $1 2>&1)
 
     if [[ $? -ne 0 ]]; then
         echo "$output"

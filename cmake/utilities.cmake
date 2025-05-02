@@ -50,13 +50,15 @@ function(generate_hex_file TARGET)
 endfunction()
 
 function(generate_helpme_text)
-    set(input_file "${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/helpme.in")
-    set(output_save_file "${CMAKE_CURRENT_BINARY_DIR}/helpme")
-    configure_file(${input_file} ${output_save_file})
+    configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/helpme.in
+        ${CMAKE_CURRENT_BINARY_DIR}/helpme
+    )
 endfunction()
 
 function(generate_vscode_tasks_json)
-    set(input_file "${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/tasks.json.in")
-    set(output_save_file "${CMAKE_CURRENT_SOURCE_DIR}/.vscode/tasks.json")
-    configure_file(${input_file} ${output_save_file})
+    configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/tasks.json.in
+        ${CMAKE_CURRENT_SOURCE_DIR}/.vscode/tasks.json
+    )
 endfunction()
