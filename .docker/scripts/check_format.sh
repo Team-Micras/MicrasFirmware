@@ -1,7 +1,7 @@
 #!/bin/bash
 
 FILES=$(find . \( -name "*.c" -o -name "*.cpp" -o -name "*.h" -o -name "*.hpp" \) \
-                -not \( -path "*/cube/*" -o -path "*/build/*" -o -path "*/libs/*" \))
+    -not \( -path "*/cube/*" -o -path "*/build/*" -o -path "*/libs/*" \))
 
 for FILE in $FILES; do
     clang-format -style=file -output-replacements-xml $FILE | grep "<replacement " >/dev/null
