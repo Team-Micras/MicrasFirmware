@@ -92,6 +92,7 @@ bool Micras::run() {
     if (this->current_action->finished(this->action_pose.get())) {
         if (this->finished) {
             this->finished = false;
+            this->locomotion.stop();
             return true;
         }
 

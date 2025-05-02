@@ -24,10 +24,7 @@ public:
     /**
      * @brief Execute the entry function of this state.
      */
-    void on_entry() override {
-        this->micras.stop();
-        this->wait_stopwatch.reset_ms();
-    }
+    void on_entry() override { this->wait_stopwatch.reset_ms(); }
 
     /**
      * @brief Execute this state.
