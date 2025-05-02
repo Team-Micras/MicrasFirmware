@@ -46,9 +46,12 @@ void Micras::update() {
 
     this->button->update();
     this->buzzer->update();
+    this->interface.update();
+
     this->fan.update();
     this->imu->update();
     this->wall_sensors->update();
+
     this->fsm.update();
 
     while (loop_stopwatch.elapsed_time_us() < loop_time_us) { }
