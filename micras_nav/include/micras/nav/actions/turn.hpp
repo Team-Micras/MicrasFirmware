@@ -26,12 +26,14 @@ public:
     /**
      * @brief Construct a new Turn Action object.
      *
+     * @param action_id The ID of the action.
      * @param angle Angle to turn in radians.
      * @param curve_radius Radius of the curve in meters.
      * @param linear_speed Linear speed in m/s.
      * @param max_angular_acceleration Maximum angular acceleration in rad/s^2.
      */
-    TurnAction(float angle, float curve_radius, float linear_speed, float max_angular_acceleration) :
+    TurnAction(uint8_t action_id, float angle, float curve_radius, float linear_speed, float max_angular_acceleration) :
+        Action{action_id},
         start_orientation{max_angular_acceleration * 0.001F * 0.001F / 2.0F},
         angle{angle},
         linear_speed{linear_speed},

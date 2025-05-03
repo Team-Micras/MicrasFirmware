@@ -14,6 +14,13 @@ namespace micras::nav {
 class Action {
 public:
     /**
+     * @brief Constructor for the Action class.
+     *
+     * @param action_id The ID of the action.
+     */
+    explicit Action(uint8_t action_id) : id(action_id) { }
+
+    /**
      * @brief Virtual destructor for the Action class.
      */
     virtual ~Action() = default;
@@ -41,17 +48,29 @@ public:
      */
     virtual bool allow_follow_wall() const = 0;
 
+    /**
+     * @brief Get the ID of the action.
+     *
+     * @return The ID of the action.
+     */
+    uint8_t get_id() const { return id; }
+
 protected:
     /**
      * @brief Special member functions declared as default.
      */
     ///@{
-    Action() = default;
     Action(const Action&) = default;
     Action(Action&&) = default;
     Action& operator=(const Action&) = default;
     Action& operator=(Action&&) = default;
     ///@}
+
+private:
+    /**
+     * @brief The ID of the action.
+     */
+    uint8_t id;
 };
 }  // namespace micras::nav
 

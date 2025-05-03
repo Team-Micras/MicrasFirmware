@@ -13,13 +13,16 @@ public:
     using BaseState::BaseState;
 
     /**
+     * @brief Execute the entry function of this state.
+     */
+    void on_entry() override { this->micras.init(); }
+
+    /**
      * @brief Execute this state.
-     *
-     * @param previous_state_id The id of the last executed state.
      *
      * @return The id of the next state.
      */
-    uint8_t execute(uint8_t /*previous_state_id*/) override {
+    uint8_t execute() override {
         if (this->micras.calibrate()) {
             return Micras::State::IDLE;
         }

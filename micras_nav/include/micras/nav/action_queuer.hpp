@@ -19,6 +19,19 @@ namespace micras::nav {
 class ActionQueuer {
 public:
     /**
+     * @brief Enum for the exploration action types.
+     */
+    enum ActionType : uint8_t {
+        STOP = 0,
+        START = 1,
+        MOVE_FORWARD = 2,
+        MOVE_HALF = 3,
+        TURN_LEFT = 4,
+        TURN_RIGHT = 5,
+        TURN_BACK = 6,
+    };
+
+    /**
      * @brief Configuration struct for the ActionQueuer class.
      */
     struct Config {
@@ -91,9 +104,9 @@ private:
      * @brief Pre-built actions to use in the exploration.
      */
     ///@{
+    std::shared_ptr<MoveAction> stop;
     std::shared_ptr<MoveAction> start;
     std::shared_ptr<MoveAction> move_forward;
-    std::shared_ptr<MoveAction> stop;
     std::shared_ptr<MoveAction> move_half;
     std::shared_ptr<TurnAction> turn_left;
     std::shared_ptr<TurnAction> turn_right;
