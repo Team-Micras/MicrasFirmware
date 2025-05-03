@@ -174,6 +174,13 @@ void Micras::reset() {
     this->finished = false;
 }
 
+bool Micras::check_crash() const {
+    return std::hypot(
+               this->imu->get_linear_acceleration(proxy::Imu::Axis::X),
+               this->imu->get_linear_acceleration(proxy::Imu::Axis::Y)
+           ) > crash_acceleration;
+}
+
 void Micras::save_best_route() {
     this->maze_storage.create("maze", this->maze);
     this->maze_storage.save();
