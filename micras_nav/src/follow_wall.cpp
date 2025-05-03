@@ -24,9 +24,7 @@ float FollowWall::compute_angular_correction(float elapsed_time, float linear_sp
 
     if ((not this->following_left or not this->following_right) and
         (this->last_blind_distance >= (this->cell_size + (this->reset_by_post ? this->post_clearance : 0.0F)))) {
-        this->following_left = this->wall_sensors->get_wall(this->sensor_index.left);
-        this->following_right = this->wall_sensors->get_wall(this->sensor_index.right);
-        this->reset_displacement();
+        this->reset();
     }
 
     float error{};

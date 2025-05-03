@@ -20,13 +20,16 @@ public:
         virtual ~State() = default;
 
         /**
+         * @brief Execute the entry function of this state.
+         */
+        virtual void on_entry() = 0;
+
+        /**
          * @brief Execute this state.
-         *
-         * @param previous_state_id The id of the last executed state.
          *
          * @return The id of the next state.
          */
-        virtual uint8_t execute(uint8_t previous_state_id) = 0;
+        virtual uint8_t execute() = 0;
 
         /**
          * @brief Get the id object of the state.
