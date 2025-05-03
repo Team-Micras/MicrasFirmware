@@ -31,20 +31,6 @@ enum Side : uint8_t {
 Side angle_to_grid(float angle);
 
 /**
- * @brief Type to store information originating from the wall sensors.
- */
-struct Information {
-    /**
-     * @brief Possible walls in the grid to be checked.
-     */
-    core::Observation left;
-    core::Observation front_left;
-    core::Observation front;
-    core::Observation front_right;
-    core::Observation right;
-};
-
-/**
  * @brief Type to store a point in the grid.
  */
 struct GridPoint {

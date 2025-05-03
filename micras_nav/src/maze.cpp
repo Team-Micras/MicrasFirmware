@@ -26,7 +26,7 @@ TMaze<width, height>::TMaze(Config config) : start{config.start}, goal{config.go
     this->update_wall(start.turned_right(), true);
 
     // Hardcoded walls at the end region
-    if (width == 16 and height == 16) {
+    if constexpr (width == 16 and height == 16) {
         this->update_wall({{7, 7}, Side::DOWN}, true);
         this->update_wall({{8, 7}, Side::DOWN}, true);
         // this->update_wall({{8, 7}, Side::RIGHT}, true);
@@ -117,7 +117,11 @@ bool TMaze<width, height>::has_wall(const GridPose& pose) const {
 
 template <uint8_t width, uint8_t height>
 core::Observation TMaze<width, height>::get_observation(const GridPose& pose) const {
-    return {this->has_wall(pose.turned_left()), this->has_wall(pose), this->has_wall(pose.turned_right())};
+    return {
+        .left = this->has_wall(pose.turned_left()),
+        .front = this->has_wall(pose),
+        .right = this->has_wall(pose.turned_right())
+    };
 }
 
 template <uint8_t width, uint8_t height>
