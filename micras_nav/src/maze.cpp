@@ -75,7 +75,7 @@ void TMaze<width, height>::update_walls(const GridPose& pose, const core::Observ
 
 template <uint8_t width, uint8_t height>
 GridPose TMaze<width, height>::get_next_goal(const GridPose& pose) const {
-    uint16_t current_cost = 0x7FFF;
+    int16_t  current_cost = 0x7FFF;
     GridPose next_pose = {};
 
     for (uint8_t i = Side::RIGHT; i <= Side::DOWN; i++) {
@@ -110,7 +110,7 @@ bool TMaze<width, height>::update_wall(const GridPose& pose, bool wall) {
         return false;
     }
 
-    bool updated = wall;
+    const bool updated = wall;
     this->get_cell(pose.position).walls[pose.orientation] = wall ? WallState::WALL : WallState::NO_WALL;
 
     GridPose front_pose = pose.front();
