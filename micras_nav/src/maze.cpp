@@ -28,6 +28,11 @@ TMaze<width, height>::TMaze(Config config) : start{config.start}, goal{config.go
 
     // Hardcoded walls at the end region
     if constexpr (width == 16 and height == 16) {
+        this->update_wall({{7, 7}, Side::UP}, false);
+        this->update_wall({{8, 7}, Side::UP}, false);
+        this->update_wall({{8, 7}, Side::LEFT}, false);
+        this->update_wall({{8, 8}, Side::LEFT}, false);
+
         this->update_wall({{7, 7}, Side::DOWN}, true);
         this->update_wall({{8, 7}, Side::DOWN}, true);
         // this->update_wall({{8, 7}, Side::RIGHT}, true);
@@ -78,10 +83,11 @@ GridPose TMaze<width, height>::get_next_goal(const GridPose& pose) const {
     int16_t  current_cost = 0x7FFF;
     GridPose next_pose = {};
 
-    for (uint8_t i = Side::RIGHT; i <= Side::DOWN; i++) {
-        Side      side = static_cast<Side>(i);
+    for (Side side :
+         {pose.orientation.turned_right(), pose.orientation.turned_left(), pose.orientation,
+          pose.orientation.turned_back()}) {
         GridPoint front_position = pose.position + side;
-        int16_t   flip_cost = pose.turned_back().orientation == side ? 2 : 0;
+        int16_t   flip_cost = pose.turned_back().orientation == side ? 1 : 0;
 
         if (not this->has_wall({pose.position, side}) and
             this->get_cell(front_position).cost + flip_cost < current_cost) {
@@ -194,7 +200,7 @@ void TMaze<width, height>::compute_costmap(const GridPoint& reference) {
                 int16_t new_cost =
                     current_cell.cost + 1 -
                     (this->returning and current_cell.visited() and not this->get_cell(front_position).visited() ?
-                         width + height :
+                         std::lround(std::hypot(width, height)) :
                          0);
 
                 if (this->get_cell(front_position).cost > new_cost) {
