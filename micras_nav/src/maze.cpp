@@ -199,10 +199,9 @@ void TMaze<width, height>::compute_costmap(const GridPoint& reference) {
 
             if (not this->has_wall({current_position, side})) {
                 int16_t new_cost =
-                    current_cell.cost + 1 -
                     (this->returning and current_cell.visited() and not this->get_cell(front_position).visited() ?
-                         std::lround(std::hypot(width, height)) :
-                         0);
+                         -(width + height) / 2 :
+                         current_cell.cost + 1);
 
                 if (this->get_cell(front_position).cost > new_cost) {
                     this->get_cell(front_position).cost = new_cost;
