@@ -48,7 +48,7 @@ public:
      * @param returning Whether the robot is returning to the start position.
      * @return The next point the robot should go to when exploring.
      */
-    GridPose get_next_goal(const GridPoint& position) const;
+    GridPose get_next_goal(const GridPose& pose) const;
 
     /**
      * @brief Detects walls around the robot at a given grid pose.

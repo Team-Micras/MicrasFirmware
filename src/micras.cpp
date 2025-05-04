@@ -78,7 +78,7 @@ bool Micras::calibrate() {
 
 void Micras::prepare() {
     if (this->objective == core::Objective::EXPLORE) {
-        this->grid_pose = this->maze.get_next_goal(this->grid_pose.position);
+        this->grid_pose = this->maze.get_next_goal(this->grid_pose);
         this->action_queuer.recompute({});
         this->current_action = this->action_queuer.pop();
     } else {
@@ -123,7 +123,7 @@ bool Micras::run() {
                 this->finished = true;
                 next_goal = this->grid_pose.turned_back().front();
             } else {
-                next_goal = this->maze.get_next_goal(this->grid_pose.position);
+                next_goal = this->maze.get_next_goal(this->grid_pose);
             }
 
             this->action_queuer.push(this->grid_pose, next_goal.position);

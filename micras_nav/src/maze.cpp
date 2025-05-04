@@ -74,16 +74,18 @@ void TMaze<width, height>::update_walls(const GridPose& pose, const core::Observ
 }
 
 template <uint8_t width, uint8_t height>
-GridPose TMaze<width, height>::get_next_goal(const GridPoint& position) const {
-    uint16_t current_cost = this->get_cell(position).cost;
-    GridPose next_pose = {position, {}};
+GridPose TMaze<width, height>::get_next_goal(const GridPose& pose) const {
+    uint16_t current_cost = 0x7FFF;
+    GridPose next_pose = {};
 
     for (uint8_t i = Side::RIGHT; i <= Side::DOWN; i++) {
         Side      side = static_cast<Side>(i);
-        GridPoint front_position = position + side;
+        GridPoint front_position = pose.position + side;
+        int16_t   flip_cost = pose.turned_back().orientation == side ? 2 : 0;
 
-        if (not this->has_wall({position, side}) and this->get_cell(front_position).cost < current_cost) {
-            current_cost = this->get_cell(front_position).cost;
+        if (not this->has_wall({pose.position, side}) and
+            this->get_cell(front_position).cost + flip_cost < current_cost) {
+            current_cost = this->get_cell(front_position).cost + flip_cost;
             next_pose.position = front_position;
             next_pose.orientation = side;
         }
@@ -163,7 +165,7 @@ void TMaze<width, height>::compute_best_route() {
     this->best_route.try_emplace(this->get_cell(this->start.position).cost, this->start);
 
     while (not this->goal.contains(current_pose.position)) {
-        current_pose = this->get_next_goal(current_pose.position, false);
+        current_pose = this->get_next_goal(current_pose, false);
         this->best_route.try_emplace(this->get_cell(current_pose.position).cost, current_pose);
     }
 }
@@ -191,8 +193,9 @@ void TMaze<width, height>::compute_costmap(const GridPoint& reference) {
             if (not this->has_wall({current_position, side})) {
                 uint16_t new_cost =
                     current_cell.cost + 1 -
-                    (this->returning and current_cell.visited() and not this->get_cell(front_position).visited() ? 10 :
-                                                                                                                   0);
+                    (this->returning and current_cell.visited() and not this->get_cell(front_position).visited() ?
+                         width + height :
+                         0);
 
                 if (this->get_cell(front_position).cost > new_cost) {
                     this->get_cell(front_position).cost = new_cost;
