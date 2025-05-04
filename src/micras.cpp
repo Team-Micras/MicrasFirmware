@@ -97,7 +97,7 @@ bool Micras::run() {
             this->finished = false;
             this->locomotion.stop();
 
-            if (this->objective == core::Objective::RETURN) {
+            if (this->objective == core::Objective::EXPLORE) {
                 this->maze.compute_return_costmap();
             }
 
