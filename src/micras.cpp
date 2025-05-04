@@ -93,13 +93,11 @@ bool Micras::run() {
     core::Observation         observation{};
 
     if (this->current_action->finished(this->action_pose.get())) {
-        const bool returning = (this->objective == core::Objective::RETURN);
-
         if (this->finished) {
             this->finished = false;
             this->locomotion.stop();
 
-            if (returning) {
+            if (this->objective == core::Objective::RETURN) {
                 this->maze.compute_return_costmap();
             }
 
@@ -121,7 +119,7 @@ bool Micras::run() {
 
             micras::nav::GridPose next_goal{};
 
-            if (solving or this->maze.finished(this->grid_pose.position, returning)) {
+            if (solving or this->maze.finished(this->grid_pose.position)) {
                 this->finished = true;
                 next_goal = this->grid_pose.turned_back().front();
             } else {

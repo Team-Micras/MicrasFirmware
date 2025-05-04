@@ -49,25 +49,25 @@ template <uint8_t width, uint8_t height>
 void TMaze<width, height>::update_walls(const GridPose& pose, const core::Observation& observation) {
     this->get_cell(pose.position).visited = true;
 
-    bool updated_left = this->update_wall(pose.turned_left(), observation.left);
-    bool updated_front = this->update_wall(pose, observation.front);
-    bool updated_right = this->update_wall(pose.turned_right(), observation.right);
+    this->update_wall(pose.turned_left(), observation.left);
+    this->update_wall(pose, observation.front);
+    this->update_wall(pose.turned_right(), observation.right);
 
-    if (updated_left) {
-        this->update_cost(pose.turned_left().front().position);
+    for (auto& row : this->cells) {
+        for (auto& cell : row) {
+            cell.cost = 0x7FFF;
+        }
     }
 
-    if (updated_front) {
-        this->update_cost(pose.front().position);
+    if (this->returning) {
+        this->get_cell(this->start.position).cost = 0;
+    } else {
+        for (const auto& position : this->goal) {
+            this->get_cell(position).cost = 0;
+        }
     }
 
-    if (updated_right) {
-        this->update_cost(pose.turned_right().front().position);
-    }
-
-    if (updated_left or updated_front or updated_right) {
-        this->update_cost(pose.position);
-    }
+    this->compute_costmap(this->returning ? this->start.position : *(this->goal.begin()));
 }
 
 template <uint8_t width, uint8_t height>
@@ -134,8 +134,8 @@ core::Observation TMaze<width, height>::get_observation(const GridPose& pose) co
 }
 
 template <uint8_t width, uint8_t height>
-bool TMaze<width, height>::finished(const GridPoint& position, bool returning) const {
-    return returning ? this->start.position == position : this->goal.contains(position);
+bool TMaze<width, height>::finished(const GridPoint& position) const {
+    return this->returning ? this->start.position == position : this->goal.contains(position);
 }
 
 template <uint8_t width, uint8_t height>
@@ -145,6 +145,8 @@ void TMaze<width, height>::compute_return_costmap() {
             cell.cost = 0x7FFF;
         }
     }
+
+    this->returning = true;
 
     this->get_cell(this->start.position).cost = 0;
     this->compute_costmap(this->start.position);
@@ -183,8 +185,9 @@ void TMaze<width, height>::compute_costmap(const GridPoint& reference) {
             GridPoint front_position = current_position + side;
 
             if (not this->has_wall({current_position, side})) {
-                uint16_t new_cost = current_cell.cost + 1 -
-                                    (current_cell.visited and not this->get_cell(front_position).visited ? 10 : 0);
+                uint16_t new_cost =
+                    current_cell.cost + 1 -
+                    (this->returning and current_cell.visited and not this->get_cell(front_position).visited ? 10 : 0);
 
                 if (this->get_cell(front_position).cost > new_cost) {
                     this->get_cell(front_position).cost = new_cost;

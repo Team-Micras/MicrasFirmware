@@ -65,7 +65,7 @@ public:
      * @param returning Whether the robot is returning to the start position.
      * @return True if the robot has finished the maze, false otherwise.
      */
-    bool finished(const GridPoint& position, bool returning) const;
+    bool finished(const GridPoint& position) const;
 
     void compute_return_costmap();
 
@@ -164,6 +164,8 @@ private:
      * @brief Current best found route to the goal.
      */
     std::map<uint16_t, GridPose, std::greater<>> best_route;
+
+    bool returning{};
 };
 }  // namespace micras::nav
 
