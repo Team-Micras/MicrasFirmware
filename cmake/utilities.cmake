@@ -20,11 +20,6 @@ endfunction()
 # corresponding to the OUTPUT_EXTENSION argument value.
 # The generated file will be placed in the same directory as the target output file.
 function(_generate_file TARGET OUTPUT_EXTENSION OBJCOPY_BFD_OUTPUT)
-    # If linter is enabled, do not generate files
-    if(LINTER_MODE STREQUAL "ON" OR LINTER_MODE STREQUAL "FIX")
-        return()
-    endif()
-
     set(OUTPUT_FILE_NAME "${TARGET}.${OUTPUT_EXTENSION}")
 
     add_custom_command(
@@ -55,13 +50,15 @@ function(generate_hex_file TARGET)
 endfunction()
 
 function(generate_helpme_text)
-    set(input_file "${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/helpme.in")
-    set(output_save_file "${CMAKE_CURRENT_BINARY_DIR}/helpme")
-    configure_file(${input_file} ${output_save_file})
+    configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/helpme.in
+        ${CMAKE_CURRENT_BINARY_DIR}/helpme
+    )
 endfunction()
 
 function(generate_vscode_tasks_json)
-    set(input_file "${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/tasks.json.in")
-    set(output_save_file "${CMAKE_CURRENT_SOURCE_DIR}/.vscode/tasks.json")
-    configure_file(${input_file} ${output_save_file})
+    configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/tasks.json.in
+        ${CMAKE_CURRENT_SOURCE_DIR}/.vscode/tasks.json
+    )
 endfunction()
