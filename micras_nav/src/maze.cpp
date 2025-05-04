@@ -5,6 +5,7 @@
 #ifndef MICRAS_NAV_MAZE_CPP
 #define MICRAS_NAV_MAZE_CPP
 
+#include <cmath>
 #include <iterator>
 #include <queue>
 
@@ -84,8 +85,8 @@ GridPose TMaze<width, height>::get_next_goal(const GridPose& pose) const {
     GridPose next_pose = {};
 
     for (Side side :
-         {pose.orientation.turned_right(), pose.orientation.turned_left(), pose.orientation,
-          pose.orientation.turned_back()}) {
+         {pose.turned_right().orientation, pose.turned_left().orientation, pose.orientation,
+          pose.turned_back().orientation}) {
         GridPoint front_position = pose.position + side;
         int16_t   flip_cost = pose.turned_back().orientation == side ? 1 : 0;
 
