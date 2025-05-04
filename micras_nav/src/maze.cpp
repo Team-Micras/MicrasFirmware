@@ -42,7 +42,10 @@ TMaze<width, height>::TMaze(Config config) : start{config.start}, goal{config.go
     }
 
     this->get_cell(this->start.position).visited = true;
-    this->compute_costmap(*(this->goal.begin()));
+
+    for (const auto& position : this->goal) {
+        this->compute_costmap(position);
+    }
 }
 
 template <uint8_t width, uint8_t height>
@@ -61,13 +64,16 @@ void TMaze<width, height>::update_walls(const GridPose& pose, const core::Observ
 
     if (this->returning) {
         this->get_cell(this->start.position).cost = 0;
+        this->compute_costmap(this->start.position);
     } else {
         for (const auto& position : this->goal) {
             this->get_cell(position).cost = 0;
         }
-    }
 
-    this->compute_costmap(this->returning ? this->start.position : *(this->goal.begin()));
+        for (const auto& position : this->goal) {
+            this->compute_costmap(position);
+        }
+    }
 }
 
 template <uint8_t width, uint8_t height>
