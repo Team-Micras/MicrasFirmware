@@ -14,15 +14,16 @@ namespace micras::nav {
 template <uint8_t width, uint8_t height>
 TMaze<width, height>::TMaze(Config config) : start{config.start}, goal{config.goal} {
     for (uint8_t row = 0; row < height; row++) {
-        this->cells[row][0].walls[Side::LEFT] = true;
-        this->cells[row][width - 1].walls[Side::RIGHT] = true;
+        this->cells[row][0].walls[Side::LEFT] = WallState::WALL;
+        this->cells[row][width - 1].walls[Side::RIGHT] = WallState::WALL;
     }
 
     for (uint8_t col = 0; col < width; col++) {
-        this->cells[0][col].walls[Side::DOWN] = true;
-        this->cells[height - 1][col].walls[Side::UP] = true;
+        this->cells[0][col].walls[Side::DOWN] = WallState::WALL;
+        this->cells[height - 1][col].walls[Side::UP] = WallState::WALL;
     }
 
+    this->update_wall(this->start, false);
     this->update_wall(start.turned_right(), true);
 
     // Hardcoded walls at the end region
@@ -41,8 +42,6 @@ TMaze<width, height>::TMaze(Config config) : start{config.start}, goal{config.go
         this->get_cell(position).cost = 0;
     }
 
-    this->get_cell(this->start.position).visited = true;
-
     for (const auto& position : this->goal) {
         this->compute_costmap(position);
     }
@@ -50,8 +49,6 @@ TMaze<width, height>::TMaze(Config config) : start{config.start}, goal{config.go
 
 template <uint8_t width, uint8_t height>
 void TMaze<width, height>::update_walls(const GridPose& pose, const core::Observation& observation) {
-    this->get_cell(pose.position).visited = true;
-
     this->update_wall(pose.turned_left(), observation.left);
     this->update_wall(pose, observation.front);
     this->update_wall(pose.turned_right(), observation.right);
@@ -107,12 +104,12 @@ TMaze<width, height>::Cell& TMaze<width, height>::get_cell(const GridPoint& posi
 
 template <uint8_t width, uint8_t height>
 bool TMaze<width, height>::update_wall(const GridPose& pose, bool wall) {
-    if (pose.position.x >= width or pose.position.y >= height) {
+    if (pose.position.x >= width or pose.position.y >= height or this->has_wall(pose)) {
         return false;
     }
 
-    bool updated = wall and not this->get_cell(pose.position).walls[pose.orientation];
-    this->get_cell(pose.position).walls[pose.orientation] |= wall;
+    bool updated = wall;
+    this->get_cell(pose.position).walls[pose.orientation] = wall ? WallState::WALL : WallState::NO_WALL;
 
     GridPose front_pose = pose.front();
 
@@ -120,14 +117,15 @@ bool TMaze<width, height>::update_wall(const GridPose& pose, bool wall) {
         return updated;
     }
 
-    this->get_cell(front_pose.position).walls[pose.turned_back().orientation] |= wall;
+    this->get_cell(front_pose.position).walls[pose.turned_back().orientation] =
+        wall ? WallState::WALL : WallState::NO_WALL;
 
     return updated;
 }
 
 template <uint8_t width, uint8_t height>
 bool TMaze<width, height>::has_wall(const GridPose& pose) const {
-    return this->get_cell(pose.position).walls[pose.orientation];
+    return this->get_cell(pose.position).walls[pose.orientation] == WallState::WALL;
 }
 
 template <uint8_t width, uint8_t height>
@@ -193,7 +191,8 @@ void TMaze<width, height>::compute_costmap(const GridPoint& reference) {
             if (not this->has_wall({current_position, side})) {
                 uint16_t new_cost =
                     current_cell.cost + 1 -
-                    (this->returning and current_cell.visited and not this->get_cell(front_position).visited ? 10 : 0);
+                    (this->returning and current_cell.visited() and not this->get_cell(front_position).visited() ? 10 :
+                                                                                                                   0);
 
                 if (this->get_cell(front_position).cost > new_cost) {
                     this->get_cell(front_position).cost = new_cost;

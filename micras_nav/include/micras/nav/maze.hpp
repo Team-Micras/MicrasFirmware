@@ -97,13 +97,23 @@ public:
     void deserialize(const uint8_t* buffer, uint16_t size) override;
 
 private:
+    enum WallState : uint8_t {
+        UNKNOWN = 0,
+        NO_WALL = 1,
+        WALL = 2,
+    };
+
     /**
      * @brief Type to store the information of a cell in the maze.
      */
     struct Cell {
-        std::array<bool, 4> walls{};
-        int16_t             cost{0x7FFF};
-        bool                visited{};
+        std::array<WallState, 4> walls{};
+        int16_t                  cost{0x7FFF};
+
+        bool visited() const {
+            return this->walls[Side::UP] != WallState::UNKNOWN and this->walls[Side::RIGHT] != WallState::UNKNOWN and
+                   this->walls[Side::LEFT] != WallState::UNKNOWN and this->walls[Side::DOWN] != WallState::UNKNOWN;
+        }
     };
 
     /**
