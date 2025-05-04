@@ -48,7 +48,7 @@ public:
      * @param returning Whether the robot is returning to the start position.
      * @return The next point the robot should go to when exploring.
      */
-    GridPose get_next_goal(const GridPoint& position, bool returning) const;
+    GridPose get_next_goal(const GridPoint& position) const;
 
     /**
      * @brief Detects walls around the robot at a given grid pose.
@@ -66,6 +66,8 @@ public:
      * @return True if the robot has finished the maze, false otherwise.
      */
     bool finished(const GridPoint& position, bool returning) const;
+
+    void compute_return_costmap();
 
     /**
      * @brief Calculate the best route to the goal using the current costmap.
@@ -100,13 +102,16 @@ private:
      */
     struct Cell {
         std::array<bool, 4> walls{};
-        uint16_t            cost{0xFFFF};
+        int16_t             cost{0x7FFF};
+        bool                visited{};
     };
 
     /**
      * @brief Calculate the costmap for the flood fill algorithm.
      */
-    void compute_costmap();
+    void compute_costmap(const GridPoint& reference);
+
+    void update_cost(const GridPoint& reference);
 
     /**
      * @brief Return the cell at the given position.
@@ -130,7 +135,7 @@ private:
      * @param pose The pose of the robot.
      * @param wall Whether there is a wall at the front of a given pose.
      */
-    void update_wall(const GridPose& pose, bool wall);
+    bool update_wall(const GridPose& pose, bool wall);
 
     /**
      * @brief Check whether there is a wall at the front of a given pose.
