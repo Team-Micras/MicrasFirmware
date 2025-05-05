@@ -47,8 +47,8 @@ void Micras::update() {
     this->elapsed_time = loop_stopwatch.elapsed_time_us() / 1e6F;
     loop_stopwatch.reset_us();
 
-    this->button.update();
-    this->buzzer.update();
+    this->button->update();
+    this->buzzer->update();
     this->interface.update();
     this->bluetooth.update();
 

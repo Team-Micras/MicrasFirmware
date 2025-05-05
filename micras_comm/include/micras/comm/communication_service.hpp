@@ -7,7 +7,7 @@
 
 #include "micras/comm/logger.hpp"
 #include "micras/comm/packet.hpp"
-#include "micras/comm/serial_variable_pool.hpp"
+#include "micras/core/serial/variable_pool.hpp"
 
 namespace micras::comm {
 /**
@@ -35,7 +35,7 @@ public:
      * @param pool Reference to the SerialVariablePool.
      * @param logger Reference to the Logger.
      */
-    explicit CommunicationService(std::shared_ptr<SerialVariablePool>& pool, std::shared_ptr<Logger>& logger);
+    explicit CommunicationService(std::shared_ptr<core::SerialVariablePool>& pool, std::shared_ptr<Logger>& logger);
 
     /**
      * @brief Register the communication functions for sending and receiving data.
@@ -62,7 +62,7 @@ private:
     /**
      * @brief Process incoming packets.
      */
-    void process_incomming_packets();
+    void process_incoming_packets();
 
     /**
      * @brief Send debug logs through the registered send function.

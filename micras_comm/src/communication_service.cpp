@@ -1,7 +1,9 @@
 #include "micras/comm/communication_service.hpp"
 
 namespace micras::comm {
-CommunicationService::CommunicationService(std::shared_ptr<SerialVariablePool>& pool, std::shared_ptr<Logger>& logger) :
+CommunicationService::CommunicationService(
+    std::shared_ptr<core::SerialVariablePool>& pool, std::shared_ptr<Logger>& logger
+) :
     pool{pool}, logger{logger} { }
 
 void CommunicationService::register_communication_functions(SendDataFunction send_func, GetDataFunction get_func) {
@@ -16,7 +18,7 @@ void CommunicationService::update() {
     }
 
     this->update_incoming_packets();
-    this->process_incomming_packets();
+    this->process_incoming_packets();
     this->send_debug_logs();
     this->send_serial_variables();
 }
@@ -63,7 +65,7 @@ std::vector<uint8_t> CommunicationService::extract_valid_packet(std::deque<uint8
     return packet_data;
 }
 
-void CommunicationService::process_incomming_packets() {
+void CommunicationService::process_incoming_packets() {
     while (not this->incoming_packets.empty()) {
         const Packet next_packet = this->incoming_packets.front();
         this->incoming_packets.pop();
@@ -101,7 +103,7 @@ void CommunicationService::consume_packet(const Packet& packet) {
             break;
 
         case Packet::MessageType::SERIAL_VARIABLE:
-            this->pool->write(packet.get_id(), packet.get_payload());
+            this->pool->update_variable(packet.get_id(), packet.get_payload());
             break;
 
         default:

@@ -71,9 +71,9 @@ int main(int argc, char* argv[]) {
 
     TestSerializable test_serializable{};
 
-    pool->add_read_only("read_only_var", read_only_var);
-    pool->add_write_only("write_only_var", write_only_var);
-    pool->add_read_only("test_serializable", test_serializable);
+    pool->add_monitoring_var("read_only_var", read_only_var);
+    pool->add_bidirectional_var("write_only_var", write_only_var);
+    pool->add_monitoring_var("test_serializable", test_serializable);
 
     TestCore::loop([&comm_service, &bluetooth, &write_only_var, &read_only_var]() {
         comm_service.update();

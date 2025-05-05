@@ -147,6 +147,7 @@ private:
     proxy::Stopwatch  loop_stopwatch{stopwatch_config};
     proxy::Storage    maze_storage{maze_storage_config};
     // proxy::TorqueSensors torque_sensors{torque_sensors_config};
+    proxy::BluetoothSerial bluetooth{bluetooth_config};
     ///@}
 
     /**
