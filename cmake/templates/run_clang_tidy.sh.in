@@ -13,7 +13,11 @@ ERRORS=$(
     {
         for file in "$@"; do
             {
-                clang-tidy $FIX_FLAG --use-color --quiet -p @CMAKE_CURRENT_BINARY_DIR@ "$file" 2>&1
+                clang-tidy $FIX_FLAG --use-color --quiet --warnings-as-errors="*" \
+                --extra-arg-before="--sysroot=@SYSROOT@/" \
+                --extra-arg-before="-I@CXX_INCLUDE_DIR@/" \
+                --extra-arg-before="-I@CXX_TRIPLE_INCLUDE_DIR@/" \
+                -p @CMAKE_CURRENT_BINARY_DIR@ "$file" 2>&1
             } &
         done
 
