@@ -3,9 +3,7 @@
  */
 
 #include <cmath>
-#include <numbers>
 
-#include "micras/core/utils.hpp"
 #include "micras/nav/odometry.hpp"
 
 namespace micras::nav {

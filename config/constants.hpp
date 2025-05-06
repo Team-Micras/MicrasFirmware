@@ -6,7 +6,6 @@
 #define MICRAS_CONSTANTS_HPP
 
 #include <cstdint>
-#include <numbers>
 
 #include "micras/nav/action_queuer.hpp"
 #include "micras/nav/follow_wall.hpp"

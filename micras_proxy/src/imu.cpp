@@ -3,7 +3,6 @@
  */
 
 #include <cmath>
-#include <numbers>
 
 #include "micras/proxy/imu.hpp"
 #include "micras/proxy/stopwatch.hpp"

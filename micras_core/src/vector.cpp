@@ -3,7 +3,6 @@
  */
 
 #include <cmath>
-#include <numbers>
 
 #include "micras/core/vector.hpp"
 

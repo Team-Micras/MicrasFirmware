@@ -11,6 +11,7 @@
 #include <unordered_set>
 
 #include "micras/core/serializable.hpp"
+#include "micras/core/types.hpp"
 #include "micras/nav/grid_pose.hpp"
 
 namespace micras::nav {

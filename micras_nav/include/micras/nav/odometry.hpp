@@ -5,7 +5,6 @@
 #ifndef MICRAS_NAV_ODOMETRY_HPP
 #define MICRAS_NAV_ODOMETRY_HPP
 
-#include <cstdint>
 #include <memory>
 
 #include "micras/core/butterworth_filter.hpp"

@@ -6,7 +6,6 @@
 #define MICRAS_NAV_MAZE_CPP
 
 #include <cmath>
-#include <iterator>
 #include <queue>
 
 #include "micras/nav/maze.hpp"

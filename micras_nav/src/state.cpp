@@ -3,7 +3,6 @@
  */
 
 #include <cmath>
-#include <numbers>
 
 #include "micras/nav/state.hpp"
 

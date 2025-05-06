@@ -8,7 +8,6 @@
 #include <cstdint>
 #include <functional>
 
-#include "micras/core/types.hpp"
 #include "micras/core/vector.hpp"
 
 namespace micras::nav {
