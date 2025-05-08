@@ -89,6 +89,28 @@ function(generate_lint_target)
         list(APPEND FILES_LIST ${${FILE}})
     endforeach()
 
+    execute_process(
+        COMMAND ${CMAKE_CXX_COMPILER} -print-search-dirs
+        OUTPUT_VARIABLE _SEARCH_DIRS
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+
+    string(REGEX MATCH "install: ([^\n]+)/" _ ${_SEARCH_DIRS})
+    set(COMPILER_INSTALL_DIR "${CMAKE_MATCH_1}")
+    get_filename_component(COMPILER_VERSION "${COMPILER_INSTALL_DIR}" NAME)
+
+    execute_process(
+        COMMAND ${CMAKE_CXX_COMPILER} -dumpmachine
+        OUTPUT_VARIABLE TARGET_TRIPLE
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+
+    get_filename_component(_PARENT3 "${COMPILER_INSTALL_DIR}/../../../" REALPATH)
+    set(SYSROOT "${_PARENT3}/${TARGET_TRIPLE}")
+
+    set(CXX_INCLUDE_DIR      "${SYSROOT}/include/c++/${COMPILER_VERSION}")
+    set(CXX_TRIPLE_INCLUDE_DIR "${CXX_INCLUDE_DIR}/${TARGET_TRIPLE}")
+
     set(SCRIPT_SAVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/run_clang_tidy.sh")
     configure_file(
         ${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/run_clang_tidy.sh.in
