@@ -192,22 +192,16 @@ The project uses a linter in order to follow the best code practices. The linter
 sudo apt install clang-tidy
 ```
 
-The linting process is done when compiling the project using a special config variable, the `LINTER_MODE` CMake variable. You can enable the linter by running:
+The linting process is done by running the following command in the `build` folder:
 
 ```bash
-cmake .. -DLINTER_MODE=ON
-```
-
-To disable the linter while compiling, do as follows:
-
-```bash
-cmake .. -DLINTER_MODE=OFF
+make lint
 ```
 
 It is also possible to lint the project and let the linter fix it using its suggestions:
 
 ```bash
-cmake .. -DLINTER_MODE=FIX
+make lint_fix
 ```
 
 ## 🐋 Docker
