@@ -15,6 +15,9 @@
 
 namespace micras {
 Micras::Micras() :
+    logger{std::make_shared<comm::Logger>(debug_mode)},
+    pool{std::make_shared<comm::SerialVariablePool>()},
+    comm_service{std::make_shared<comm::CommunicationService>(pool, logger)},
     argb{std::make_shared<proxy::Argb>(argb_config)},
     button{std::make_shared<proxy::Button>(button_config)},
     buzzer{std::make_shared<proxy::Buzzer>(buzzer_config)},
@@ -47,6 +50,7 @@ void Micras::update() {
     this->button->update();
     this->buzzer->update();
     this->interface.update();
+    this->bluetooth.update();
 
     this->fan.update();
     this->imu->update();

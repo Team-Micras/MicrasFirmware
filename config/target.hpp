@@ -9,6 +9,7 @@
 
 #include "micras/proxy/argb.hpp"
 #include "micras/proxy/battery.hpp"
+#include "micras/proxy/bluetooth_serial.hpp"
 #include "micras/proxy/button.hpp"
 #include "micras/proxy/buzzer.hpp"
 #include "micras/proxy/dip_switch.hpp"
@@ -111,6 +112,14 @@ const proxy::Buzzer::Config buzzer_config = {
             .init_function = MX_TIM4_Init,
             .handle = &htim4,
             .timer_channel = TIM_CHANNEL_1,
+        },
+};
+
+const proxy::BluetoothSerial::Config bluetooth_config = {
+    .uart =
+        {
+            .init_function = MX_USART3_UART_Init,
+            .handle = &huart3,
         },
 };
 
