@@ -98,7 +98,7 @@ bool Micras::run() {
             this->locomotion.stop();
 
             if (this->objective == core::Objective::EXPLORE) {
-                this->maze.enable_discovery_costmap();
+                this->maze.compute_best_route();
             }
 
             return true;

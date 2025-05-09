@@ -44,21 +44,14 @@ public:
     void update_walls(const GridPose& pose, const core::Observation& observation);
 
     /**
-     * @brief Return the next point the robot should go to when exploring.
+     * @brief Return the next point the robot should go based on the costmap.
      *
      * @param position The current position of the robot.
      * @param returning Whether the robot is returning to the start position.
-     * @return The next point the robot should go to when exploring.
+     * @param discover Whether the robot should discover new cells.
+     * @return The next point the robot should go.
      */
-    GridPose get_next_goal(const GridPose& pose, bool returning, bool discover = true) const;
-
-    /**
-     * @brief Detects walls around the robot at a given grid pose.
-     *
-     * @param pose The robot’s current grid pose.
-     * @return The walls that are present around the robot.
-     */
-    core::Observation get_observation(const GridPose& pose) const;
+    GridPose get_next_goal(const GridPose& pose, bool returning, bool discover = true);
 
     /**
      * @brief Check whether the robot has finished the maze.
@@ -73,8 +66,6 @@ public:
      * @brief Calculate the best route to the goal using the current costmap.
      */
     void compute_best_route();
-
-    void enable_discovery_costmap();
 
     /**
      * @brief Return the best route to the goal.
@@ -99,26 +90,58 @@ public:
     void deserialize(const uint8_t* buffer, uint16_t size) override;
 
 private:
+    /**
+     * @brief The layers of the costmap.
+     */
     enum Layer : uint8_t {
         EXPLORE = 0,
         RETURN = 1,
-        DISCOVER = 2,
         NUM_OF_LAYERS = 3,
     };
 
     /**
-     * @brief Calculate the costmap for the flood fill algorithm.
+     * @brief Update the cell costs at the given position.
+     *
+     * @param position The position of the cell.
      */
-    void compute_costmap(const GridPoint& reference);
-
-    static bool is_dead_end(const Costmap<width, height, Layer::NUM_OF_LAYERS>::Cell& cell);
-
-    static bool was_visited(const Costmap<width, height, Layer::NUM_OF_LAYERS>::Cell& cell);
-
-    static bool must_visit(const Costmap<width, height, Layer::NUM_OF_LAYERS>::Cell& cell, int16_t cost_threshold);
-
     void update_cell(const GridPoint& position);
 
+    /**
+     * @brief Get the next goal for the robot to discover more cells.
+     *
+     * @param pose The current pose of the robot.
+     * @return The next discovery goal for the robot.
+     */
+    GridPose get_next_discovery_goal(const GridPose& pose) const;
+
+    /**
+     * @brief Check if the cell is a dead end.
+     *
+     * @param cell The cell to check.
+     * @return True if the cell is a dead end, false otherwise.
+     */
+    static bool is_dead_end(const Costmap<width, height, Layer::NUM_OF_LAYERS>::Cell& cell);
+
+    /**
+     * @brief Check if the cell was visited.
+     *
+     * @param cell The cell to check.
+     * @return True if the cell was visited, false otherwise.
+     */
+    static bool was_visited(const Costmap<width, height, Layer::NUM_OF_LAYERS>::Cell& cell);
+
+    /**
+     * @brief Check if the cell must be visited.
+     *
+     * @param cell The cell to check.
+     * @param cost_threshold The cost threshold for the cell.
+     * @return True if the cell must be visited, false otherwise.
+     */
+    static bool must_visit(const Costmap<width, height, Layer::NUM_OF_LAYERS>::Cell& cell, int16_t cost_threshold);
+
+    /**
+     * @brief Layered costmap for the maze.
+     */
     Costmap<width, height, Layer::NUM_OF_LAYERS> costmap;
 
     /**
@@ -132,7 +155,7 @@ private:
     std::unordered_set<GridPoint> goal;
 
     /**
-     * @brief Cost margin for the robot to explore.
+     * @brief Cost margin above the minimum cost that the robot should explore.
      */
     uint16_t cost_margin;
 
@@ -141,7 +164,10 @@ private:
      */
     int16_t minimum_cost{};
 
-    bool discovery_enabled{false};
+    /**
+     * @brief Flag indicating whether the robot has finished discovering the cells of the maze.
+     */
+    bool finished_discovery{false};
 
     /**
      * @brief Current best found route to the goal.

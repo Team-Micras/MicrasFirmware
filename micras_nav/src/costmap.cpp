@@ -26,42 +26,6 @@ Costmap<width, height, layers>::Costmap() {
 }
 
 template <uint8_t width, uint8_t height, uint8_t layers>
-const Costmap<width, height, layers>::Cell& Costmap<width, height, layers>::get_cell(const GridPoint& position) const {
-    return this->cells.at(position.y).at(position.x);
-}
-
-template <uint8_t width, uint8_t height, uint8_t layers>
-Costmap<width, height, layers>::Cell& Costmap<width, height, layers>::get_cell(const GridPoint& position) {
-    return this->cells.at(position.y).at(position.x);
-}
-
-template <uint8_t width, uint8_t height, uint8_t layers>
-void Costmap<width, height, layers>::update_cost(const GridPoint& position, uint8_t layer, int16_t cost) {
-    this->get_cell(position).costs.at(layer) = cost;
-}
-
-template <uint8_t width, uint8_t height, uint8_t layers>
-bool Costmap<width, height, layers>::update_wall(const GridPose& pose, bool wall) {
-    if (pose.position.x >= width or pose.position.y >= height or this->has_wall(pose)) {
-        return false;
-    }
-
-    const bool updated = wall;
-    this->get_cell(pose.position).walls[pose.orientation] = wall ? WallState::WALL : WallState::NO_WALL;
-
-    GridPose front_pose = pose.front();
-
-    if (front_pose.position.x >= width or front_pose.position.y >= height) {
-        return updated;
-    }
-
-    this->get_cell(front_pose.position).walls[pose.turned_back().orientation] =
-        wall ? WallState::WALL : WallState::NO_WALL;
-
-    return updated;
-}
-
-template <uint8_t width, uint8_t height, uint8_t layers>
 void Costmap<width, height, layers>::compute(const GridPoint& reference, uint8_t layer) {
     std::queue<GridPoint> queue;
     queue.push(reference);
@@ -133,8 +97,8 @@ void Costmap<width, height, layers>::recompute(const GridPoint& reference, uint8
 }
 
 template <uint8_t width, uint8_t height, uint8_t layers>
-bool Costmap<width, height, layers>::has_wall(const GridPose& pose) const {
-    return this->get_cell(pose.position).walls[pose.orientation] == WallState::WALL;
+const Costmap<width, height, layers>::Cell& Costmap<width, height, layers>::get_cell(const GridPoint& position) const {
+    return this->cells.at(position.y).at(position.x);
 }
 
 template <uint8_t width, uint8_t height, uint8_t layers>
@@ -143,9 +107,52 @@ int16_t Costmap<width, height, layers>::get_cost(const GridPoint& position, uint
 }
 
 template <uint8_t width, uint8_t height, uint8_t layers>
+void Costmap<width, height, layers>::update_cost(const GridPoint& position, uint8_t layer, int16_t cost) {
+    this->cell_on_position(position).costs.at(layer) = cost;
+}
+
+template <uint8_t width, uint8_t height, uint8_t layers>
+bool Costmap<width, height, layers>::has_wall(const GridPose& pose) const {
+    return this->get_cell(pose.position).walls[pose.orientation] == WallState::WALL;
+}
+
+template <uint8_t width, uint8_t height, uint8_t layers>
+bool Costmap<width, height, layers>::update_wall(const GridPose& pose, bool wall) {
+    if (this->has_wall(pose)) {
+        return false;
+    }
+
+    const bool updated = wall;
+    this->cell_on_position(pose.position).walls[pose.orientation] = wall ? WallState::WALL : WallState::NO_WALL;
+
+    GridPose front_pose = pose.front();
+
+    if (front_pose.position.x >= width or front_pose.position.y >= height) {
+        return updated;
+    }
+
+    this->cell_on_position(front_pose.position).walls[pose.turned_back().orientation] =
+        wall ? WallState::WALL : WallState::NO_WALL;
+
+    return updated;
+}
+
+template <uint8_t width, uint8_t height, uint8_t layers>
 void Costmap<width, height, layers>::add_virtual_wall(const GridPose& pose) {
-    this->get_cell(pose.position).walls[pose.orientation] = WallState::VIRTUAL;
-    this->get_cell(pose.position).walls[pose.turned_back().orientation] = WallState::VIRTUAL;
+    this->cell_on_position(pose.position).walls[pose.orientation] = WallState::VIRTUAL;
+
+    GridPose front_pose = pose.front();
+
+    if (front_pose.position.x >= width or front_pose.position.y >= height) {
+        return;
+    }
+
+    this->cell_on_position(front_pose.position).walls[pose.turned_back().orientation] = WallState::VIRTUAL;
+}
+
+template <uint8_t width, uint8_t height, uint8_t layers>
+Costmap<width, height, layers>::Cell& Costmap<width, height, layers>::cell_on_position(const GridPoint& position) {
+    return this->cells.at(position.y).at(position.x);
 }
 }  // namespace micras::nav
 
