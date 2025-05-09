@@ -5,13 +5,13 @@
 #ifndef MICRAS_NAV_MAZE_HPP
 #define MICRAS_NAV_MAZE_HPP
 
-#include <array>
 #include <cstdint>
 #include <map>
 #include <unordered_set>
 
 #include "micras/core/serializable.hpp"
 #include "micras/core/types.hpp"
+#include "micras/nav/costmap.hpp"
 #include "micras/nav/grid_pose.hpp"
 
 namespace micras::nav {
@@ -27,6 +27,7 @@ public:
     struct Config {
         GridPose                      start{};
         std::unordered_set<GridPoint> goal;
+        uint16_t                      cost_margin{};
     };
 
     /**
@@ -49,7 +50,7 @@ public:
      * @param returning Whether the robot is returning to the start position.
      * @return The next point the robot should go to when exploring.
      */
-    GridPose get_next_goal(const GridPose& pose) const;
+    GridPose get_next_goal(const GridPose& pose, bool returning, bool discover = true) const;
 
     /**
      * @brief Detects walls around the robot at a given grid pose.
@@ -66,14 +67,14 @@ public:
      * @param returning Whether the robot is returning to the start position.
      * @return True if the robot has finished the maze, false otherwise.
      */
-    bool finished(const GridPoint& position) const;
-
-    void compute_return_costmap();
+    bool finished(const GridPoint& position, bool returning) const;
 
     /**
      * @brief Calculate the best route to the goal using the current costmap.
      */
     void compute_best_route();
+
+    void enable_discovery_costmap();
 
     /**
      * @brief Return the best route to the goal.
@@ -98,23 +99,11 @@ public:
     void deserialize(const uint8_t* buffer, uint16_t size) override;
 
 private:
-    enum WallState : uint8_t {
-        UNKNOWN = 0,
-        NO_WALL = 1,
-        WALL = 2,
-    };
-
-    /**
-     * @brief Type to store the information of a cell in the maze.
-     */
-    struct Cell {
-        std::array<WallState, 4> walls{};
-        int16_t                  cost{0x7FFF};
-
-        bool visited() const {
-            return this->walls[Side::UP] != WallState::UNKNOWN and this->walls[Side::RIGHT] != WallState::UNKNOWN and
-                   this->walls[Side::LEFT] != WallState::UNKNOWN and this->walls[Side::DOWN] != WallState::UNKNOWN;
-        }
+    enum Layer : uint8_t {
+        EXPLORE = 0,
+        RETURN = 1,
+        DISCOVER = 2,
+        NUM_OF_LAYERS = 3,
     };
 
     /**
@@ -122,44 +111,15 @@ private:
      */
     void compute_costmap(const GridPoint& reference);
 
-    void update_cost(const GridPoint& reference);
+    static bool is_dead_end(const Costmap<width, height, Layer::NUM_OF_LAYERS>::Cell& cell);
 
-    /**
-     * @brief Return the cell at the given position.
-     *
-     * @param position The position of the cell.
-     * @return The cell at the given position.
-     */
-    const Cell& get_cell(const GridPoint& position) const;
+    static bool was_visited(const Costmap<width, height, Layer::NUM_OF_LAYERS>::Cell& cell);
 
-    /**
-     * @brief Return the cell at the given position.
-     *
-     * @param position The position of the cell.
-     * @return The cell at the given position.
-     */
-    Cell& get_cell(const GridPoint& position);
+    static bool must_visit(const Costmap<width, height, Layer::NUM_OF_LAYERS>::Cell& cell, int16_t cost_threshold);
 
-    /**
-     * @brief Update the existence of a wall in the maze.
-     *
-     * @param pose The pose of the robot.
-     * @param wall Whether there is a wall at the front of a given pose.
-     */
-    bool update_wall(const GridPose& pose, bool wall);
+    void update_cell(const GridPoint& position);
 
-    /**
-     * @brief Check whether there is a wall at the front of a given pose.
-     *
-     * @param pose The pose to check.
-     * @return True if there is a wall, false otherwise.
-     */
-    bool has_wall(const GridPose& pose) const;
-
-    /**
-     * @brief Cells matrix representing the maze.
-     */
-    std::array<std::array<Cell, width>, height> cells{};
+    Costmap<width, height, Layer::NUM_OF_LAYERS> costmap;
 
     /**
      * @brief Start pose of the robot in the maze.
@@ -172,11 +132,21 @@ private:
     std::unordered_set<GridPoint> goal;
 
     /**
+     * @brief Cost margin for the robot to explore.
+     */
+    uint16_t cost_margin;
+
+    /**
+     * @brief Minimum cost of path to the goal containing only visited cells.
+     */
+    int16_t minimum_cost{};
+
+    bool discovery_enabled{false};
+
+    /**
      * @brief Current best found route to the goal.
      */
     std::map<uint16_t, GridPose, std::greater<>> best_route;
-
-    bool returning{};
 };
 }  // namespace micras::nav
 

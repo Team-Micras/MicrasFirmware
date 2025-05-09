@@ -6,92 +6,123 @@
 #define MICRAS_NAV_MAZE_CPP
 
 #include <cmath>
-#include <queue>
+#include <utility>
 
 #include "micras/nav/maze.hpp"
 
 namespace micras::nav {
 template <uint8_t width, uint8_t height>
-TMaze<width, height>::TMaze(Config config) : start{config.start}, goal{config.goal} {
-    for (uint8_t row = 0; row < height; row++) {
-        this->cells[row][0].walls[Side::LEFT] = WallState::WALL;
-        this->cells[row][width - 1].walls[Side::RIGHT] = WallState::WALL;
-    }
-
-    for (uint8_t col = 0; col < width; col++) {
-        this->cells[0][col].walls[Side::DOWN] = WallState::WALL;
-        this->cells[height - 1][col].walls[Side::UP] = WallState::WALL;
-    }
-
-    this->update_wall(this->start, false);
-    this->update_wall(start.turned_right(), true);
+TMaze<width, height>::TMaze(Config config) : start{config.start}, goal{config.goal}, cost_margin(config.cost_margin) {
+    this->costmap.update_wall(this->start, false);
+    this->costmap.update_wall(start.turned_right(), true);
 
     // Hardcoded walls at the end region
     if constexpr (width == 16 and height == 16) {
-        this->update_wall({{7, 7}, Side::UP}, false);
-        this->update_wall({{8, 7}, Side::UP}, false);
-        this->update_wall({{8, 7}, Side::LEFT}, false);
-        this->update_wall({{8, 8}, Side::LEFT}, false);
+        this->costmap.update_wall({{7, 7}, Side::UP}, false);
+        this->costmap.update_wall({{8, 7}, Side::UP}, false);
+        this->costmap.update_wall({{8, 7}, Side::LEFT}, false);
+        this->costmap.update_wall({{8, 8}, Side::LEFT}, false);
 
-        this->update_wall({{7, 7}, Side::DOWN}, true);
-        this->update_wall({{8, 7}, Side::DOWN}, true);
+        // this->update_wall({{7, 7}, Side::DOWN}, true);
+        // this->update_wall({{8, 7}, Side::DOWN}, true);
         // this->update_wall({{8, 7}, Side::RIGHT}, true);
-        this->update_wall({{8, 8}, Side::RIGHT}, true);
-        this->update_wall({{8, 8}, Side::UP}, true);
-        this->update_wall({{7, 8}, Side::UP}, true);
-        this->update_wall({{7, 8}, Side::LEFT}, true);
-        this->update_wall({{7, 7}, Side::LEFT}, true);
+        // this->update_wall({{8, 8}, Side::RIGHT}, true);
+        // this->update_wall({{8, 8}, Side::UP}, true);
+        // this->update_wall({{7, 8}, Side::UP}, true);
+        // this->update_wall({{7, 8}, Side::LEFT}, true);
+        // this->update_wall({{7, 7}, Side::LEFT}, true);
     }
 
     for (const auto& position : this->goal) {
-        this->get_cell(position).cost = 0;
+        this->costmap.update_cost(position, Layer::EXPLORE, 0);
     }
 
     for (const auto& position : this->goal) {
-        this->compute_costmap(position);
+        this->costmap.compute(position, Layer::EXPLORE);
     }
+
+    this->costmap.update_cost(this->start.position, Layer::RETURN, 0);
+    this->costmap.compute(this->start.position, Layer::RETURN);
 }
 
 template <uint8_t width, uint8_t height>
 void TMaze<width, height>::update_walls(const GridPose& pose, const core::Observation& observation) {
-    this->update_wall(pose.turned_left(), observation.left);
-    this->update_wall(pose, observation.front);
-    this->update_wall(pose.turned_right(), observation.right);
+    const bool new_left_wall = this->costmap.update_wall(pose.turned_left(), observation.left);
+    const bool new_front_wall = this->costmap.update_wall(pose, observation.front);
+    const bool new_right_wall = this->costmap.update_wall(pose.turned_right(), observation.right);
 
-    for (auto& row : this->cells) {
-        for (auto& cell : row) {
-            cell.cost = 0x7FFF;
-        }
+    if (new_left_wall) {
+        this->update_cell(pose.turned_left().front().position);
     }
 
-    if (this->returning) {
-        this->get_cell(this->start.position).cost = 0;
-        this->compute_costmap(this->start.position);
-    } else {
-        for (const auto& position : this->goal) {
-            this->get_cell(position).cost = 0;
-        }
+    if (new_front_wall) {
+        this->update_cell(pose.front().position);
+    }
 
-        for (const auto& position : this->goal) {
-            this->compute_costmap(position);
-        }
+    if (new_right_wall) {
+        this->update_cell(pose.turned_right().front().position);
+    }
+
+    if (new_left_wall or new_front_wall or new_right_wall) {
+        this->update_cell(pose.position);
     }
 }
 
 template <uint8_t width, uint8_t height>
-GridPose TMaze<width, height>::get_next_goal(const GridPose& pose) const {
-    int16_t  current_cost = 0x7FFF;
-    GridPose next_pose = {};
+void TMaze<width, height>::update_cell(const GridPoint& position) {
+    this->costmap.recompute(position, Layer::EXPLORE);
+    this->costmap.recompute(position, Layer::RETURN);
+
+    GridPoint current_position = position;
+
+    while (this->is_dead_end(std::as_const(this->costmap).get_cell(current_position))) {
+        for (Side side : {Side::UP, Side::DOWN, Side::LEFT, Side::RIGHT}) {
+            if (this->costmap.has_wall({current_position, side})) {
+                continue;
+            }
+
+            this->costmap.add_virtual_wall({current_position, side});
+            this->costmap.update_cost(current_position, Layer::DISCOVER, max_cost);
+            current_position = current_position + side;
+            break;
+        }
+    }
+
+    if (not this->discovery_enabled) {
+        return;
+    }
+
+    if (not this->must_visit(
+            std::as_const(this->costmap).get_cell(current_position), this->minimum_cost + this->cost_margin
+        )) {
+        this->costmap.update_cost(current_position, Layer::DISCOVER, max_cost);
+    }
+
+    this->costmap.recompute(current_position, Layer::DISCOVER);
+}
+
+template <uint8_t width, uint8_t height>
+GridPose TMaze<width, height>::get_next_goal(const GridPose& pose, bool returning, bool discover) const {
+    int16_t       current_cost = max_cost;
+    GridPose      next_pose = {};
+    const uint8_t discovery_factor = this->discovery_enabled ? 2 : 0;
 
     for (Side side :
          {pose.turned_right().orientation, pose.turned_left().orientation, pose.orientation,
           pose.turned_back().orientation}) {
-        GridPoint front_position = pose.position + side;
-        int16_t   flip_cost = pose.turned_back().orientation == side ? 1 : 0;
+        GridPoint     front_position = pose.position + side;
+        const int16_t flip_cost = pose.turned_back().orientation == side ? 1 : 0;
+        const int16_t front_cost =
+            (returning ? this->costmap.get_cost(front_position, Layer::RETURN) +
+                             discovery_factor * this->costmap.get_cost(front_position, Layer::DISCOVER) :
+                         this->costmap.get_cost(front_position, Layer::EXPLORE)) +
+            flip_cost;
 
-        if (not this->has_wall({pose.position, side}) and
-            this->get_cell(front_position).cost + flip_cost < current_cost) {
-            current_cost = this->get_cell(front_position).cost + flip_cost;
+        const bool can_go = discover ? not this->costmap.has_wall({pose.position, side}) :
+                                       was_visited(this->costmap.get_cell(front_position));
+
+        if (can_go and front_cost < current_cost) {
+            current_cost = front_cost;
             next_pose.position = front_position;
             next_pose.orientation = side;
         }
@@ -101,78 +132,49 @@ GridPose TMaze<width, height>::get_next_goal(const GridPose& pose) const {
 }
 
 template <uint8_t width, uint8_t height>
-const TMaze<width, height>::Cell& TMaze<width, height>::get_cell(const GridPoint& position) const {
-    return this->cells.at(position.y).at(position.x);
-}
-
-template <uint8_t width, uint8_t height>
-TMaze<width, height>::Cell& TMaze<width, height>::get_cell(const GridPoint& position) {
-    return this->cells.at(position.y).at(position.x);
-}
-
-template <uint8_t width, uint8_t height>
-bool TMaze<width, height>::update_wall(const GridPose& pose, bool wall) {
-    if (pose.position.x >= width or pose.position.y >= height or this->has_wall(pose)) {
-        return false;
-    }
-
-    const bool updated = wall;
-    this->get_cell(pose.position).walls[pose.orientation] = wall ? WallState::WALL : WallState::NO_WALL;
-
-    GridPose front_pose = pose.front();
-
-    if (front_pose.position.x >= width or front_pose.position.y >= height) {
-        return updated;
-    }
-
-    this->get_cell(front_pose.position).walls[pose.turned_back().orientation] =
-        wall ? WallState::WALL : WallState::NO_WALL;
-
-    return updated;
-}
-
-template <uint8_t width, uint8_t height>
-bool TMaze<width, height>::has_wall(const GridPose& pose) const {
-    return this->get_cell(pose.position).walls[pose.orientation] == WallState::WALL;
-}
-
-template <uint8_t width, uint8_t height>
 core::Observation TMaze<width, height>::get_observation(const GridPose& pose) const {
     return {
-        .left = this->has_wall(pose.turned_left()),
-        .front = this->has_wall(pose),
-        .right = this->has_wall(pose.turned_right())
+        .left = this->costmap.has_wall(pose.turned_left()),
+        .front = this->costmap.has_wall(pose),
+        .right = this->costmap.has_wall(pose.turned_right())
     };
 }
 
 template <uint8_t width, uint8_t height>
-bool TMaze<width, height>::finished(const GridPoint& position) const {
-    return this->returning ? this->start.position == position : this->goal.contains(position);
+bool TMaze<width, height>::finished(const GridPoint& position, bool returning) const {
+    return returning ? this->start.position == position : this->goal.contains(position);
 }
 
 template <uint8_t width, uint8_t height>
-void TMaze<width, height>::compute_return_costmap() {
-    for (auto& row : this->cells) {
-        for (auto& cell : row) {
-            cell.cost = 0x7FFF;
+void TMaze<width, height>::enable_discovery_costmap() {
+    this->compute_best_route();
+    this->minimum_cost = this->best_route.size();
+
+    for (uint8_t y = 0; y < height; y++) {
+        for (uint8_t x = 0; x < width; x++) {
+            GridPoint position{x, y};
+
+            if (this->must_visit(
+                    std::as_const(this->costmap).get_cell(position), this->minimum_cost + this->cost_margin
+                )) {
+                this->costmap.update_cost(position, Layer::DISCOVER, 0);
+                this->costmap.compute(position, Layer::DISCOVER);
+            }
         }
     }
 
-    this->returning = true;
-
-    this->get_cell(this->start.position).cost = 0;
-    this->compute_costmap(this->start.position);
+    this->discovery_enabled = true;
 }
 
 template <uint8_t width, uint8_t height>
 void TMaze<width, height>::compute_best_route() {
     GridPose current_pose = this->start;
     this->best_route.clear();
-    this->best_route.try_emplace(this->get_cell(this->start.position).cost, this->start);
+    this->best_route.try_emplace(this->costmap.get_cost(this->start.position, Layer::EXPLORE), this->start);
 
     while (not this->goal.contains(current_pose.position)) {
-        current_pose = this->get_next_goal(current_pose, false);
-        this->best_route.try_emplace(this->get_cell(current_pose.position).cost, current_pose);
+        current_pose = this->get_next_goal(current_pose, false, false);
+        this->best_route.try_emplace(this->costmap.get_cost(current_pose.position, Layer::EXPLORE), current_pose);
     }
 }
 
@@ -182,59 +184,34 @@ const std::map<uint16_t, GridPose, std::greater<>>& TMaze<width, height>::get_be
 }
 
 template <uint8_t width, uint8_t height>
-void TMaze<width, height>::compute_costmap(const GridPoint& reference) {
-    std::queue<GridPoint> queue;
-    queue.push(reference);
+bool TMaze<width, height>::is_dead_end(const Costmap<width, height, Layer::NUM_OF_LAYERS>::Cell& cell) {
+    uint8_t wall_count = 0;
 
-    while (not queue.empty()) {
-        GridPoint current_position = queue.front();
-        queue.pop();
-
-        const Cell& current_cell = this->get_cell(current_position);
-
-        for (uint8_t i = Side::RIGHT; i <= Side::DOWN; i++) {
-            Side      side = static_cast<Side>(i);
-            GridPoint front_position = current_position + side;
-
-            if (not this->has_wall({current_position, side})) {
-                int16_t new_cost =
-                    (this->returning and current_cell.visited() and not this->get_cell(front_position).visited() ?
-                         -(width + height) / 2 :
-                         current_cell.cost + 1);
-
-                if (this->get_cell(front_position).cost > new_cost) {
-                    this->get_cell(front_position).cost = new_cost;
-                    queue.push(front_position);
-                }
-            }
+    for (const auto& wall : cell.walls) {
+        if (wall == Costmap<width, height, Layer::NUM_OF_LAYERS>::WallState::WALL or
+            wall == Costmap<width, height, Layer::NUM_OF_LAYERS>::WallState::VIRTUAL) {
+            wall_count++;
         }
     }
+
+    return (wall_count == 3);
 }
 
 template <uint8_t width, uint8_t height>
-void TMaze<width, height>::update_cost(const GridPoint& reference) {
-    for (uint8_t i = Side::RIGHT; i <= Side::DOWN; i++) {
-        Side      side = static_cast<Side>(i);
-        GridPoint front_position = reference + side;
+bool TMaze<width, height>::was_visited(const Costmap<width, height, Layer::NUM_OF_LAYERS>::Cell& cell) {
+    return not(
+        cell.walls[Side::UP] == Costmap<width, height, Layer::NUM_OF_LAYERS>::WallState::UNKNOWN or
+        cell.walls[Side::DOWN] == Costmap<width, height, Layer::NUM_OF_LAYERS>::WallState::UNKNOWN or
+        cell.walls[Side::LEFT] == Costmap<width, height, Layer::NUM_OF_LAYERS>::WallState::UNKNOWN or
+        cell.walls[Side::RIGHT] == Costmap<width, height, Layer::NUM_OF_LAYERS>::WallState::UNKNOWN
+    );
+}
 
-        if (not this->has_wall({reference, side}) and
-            this->get_cell(reference).cost == this->get_cell(front_position).cost + 1) {
-            this->compute_costmap(reference);
-            return;
-        }
-    }
-
-    uint16_t old_cost = this->get_cell(reference).cost;
-    this->get_cell(reference).cost = 0x7FFF;
-
-    for (uint8_t i = Side::RIGHT; i <= Side::DOWN; i++) {
-        Side      side = static_cast<Side>(i);
-        GridPoint front_position = reference + side;
-
-        if (not this->has_wall({reference, side}) and this->get_cell(front_position).cost == old_cost + 1) {
-            this->update_cost(front_position);
-        }
-    }
+template <uint8_t width, uint8_t height>
+bool TMaze<width, height>::must_visit(
+    const Costmap<width, height, Layer::NUM_OF_LAYERS>::Cell& cell, int16_t cost_threshold
+) {
+    return not was_visited(cell) and (cell.costs[Layer::EXPLORE] + cell.costs[Layer::RETURN] <= cost_threshold);
 }
 
 template <uint8_t width, uint8_t height>

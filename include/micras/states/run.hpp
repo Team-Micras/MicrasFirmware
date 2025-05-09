@@ -37,6 +37,7 @@ public:
         switch (this->micras.get_objective()) {
             case core::Objective::EXPLORE:
                 this->micras.set_objective(core::Objective::RETURN);
+                this->micras.save_best_route();
                 return Micras::State::WAIT_FOR_RUN;
 
             case core::Objective::RETURN:

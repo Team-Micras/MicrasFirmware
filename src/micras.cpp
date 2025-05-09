@@ -78,7 +78,7 @@ bool Micras::calibrate() {
 
 void Micras::prepare() {
     if (this->objective == core::Objective::EXPLORE) {
-        this->grid_pose = this->maze.get_next_goal(this->grid_pose);
+        this->grid_pose = this->maze.get_next_goal(this->grid_pose, false);
         this->action_queuer.recompute({});
         this->current_action = this->action_queuer.pop();
     } else {
@@ -98,7 +98,7 @@ bool Micras::run() {
             this->locomotion.stop();
 
             if (this->objective == core::Objective::EXPLORE) {
-                this->maze.compute_return_costmap();
+                this->maze.enable_discovery_costmap();
             }
 
             return true;
@@ -110,6 +110,7 @@ bool Micras::run() {
         if (not this->action_queuer.empty()) {
             this->current_action = this->action_queuer.pop();
         } else {
+            const bool returning = (this->objective == core::Objective::RETURN);
             const bool solving = (this->objective == core::Objective::SOLVE);
 
             if (not solving) {
@@ -119,11 +120,11 @@ bool Micras::run() {
 
             micras::nav::GridPose next_goal{};
 
-            if (solving or this->maze.finished(this->grid_pose.position)) {
+            if (solving or this->maze.finished(this->grid_pose.position, returning)) {
                 this->finished = true;
                 next_goal = this->grid_pose.turned_back().front();
             } else {
-                next_goal = this->maze.get_next_goal(this->grid_pose);
+                next_goal = this->maze.get_next_goal(this->grid_pose, returning);
             }
 
             this->action_queuer.push(this->grid_pose, next_goal.position);
