@@ -93,7 +93,7 @@ GridPose TMaze<width, height>::get_next_goal(const GridPose& pose, bool returnin
             this->costmap.get_cost(front_position, returning ? Layer::RETURN : Layer::EXPLORE) + flip_cost;
 
         const bool can_go = discover ? not this->costmap.has_wall({pose.position, side}) :
-                                       was_visited(std::as_const(this->costmap).get_cell(front_position));
+                                       was_visited(this->costmap.get_cell(front_position));
 
         if (can_go and front_cost < current_cost) {
             current_cost = front_cost;
@@ -167,15 +167,13 @@ void TMaze<width, height>::update_cell(const GridPoint& position) {
 
     GridPoint dead_end_position = position;
 
-    while (this->is_dead_end(std::as_const(this->costmap).get_cell(dead_end_position))) {
+    while (this->is_dead_end(this->costmap.get_cell(dead_end_position))) {
         for (Side side : {Side::UP, Side::DOWN, Side::LEFT, Side::RIGHT}) {
-            if (this->costmap.has_wall({dead_end_position, side})) {
-                continue;
+            if (not this->costmap.has_wall({dead_end_position, side}, true)) {
+                this->costmap.add_virtual_wall({dead_end_position, side});
+                dead_end_position = dead_end_position + side;
+                break;
             }
-
-            this->costmap.add_virtual_wall({dead_end_position, side});
-            dead_end_position = dead_end_position + side;
-            break;
         }
     }
 }
@@ -185,6 +183,8 @@ GridPose TMaze<width, height>::get_next_discovery_goal(const GridPose& pose) con
     std::queue<GridPose>                        queue;
     std::array<std::array<bool, width>, height> checked{};
     GridPose                                    next_goal = this->start;
+
+    checked.at(pose.position.y).at(pose.position.x) = true;
 
     for (Side side :
          {pose.turned_right().orientation, pose.turned_left().orientation, pose.orientation,
@@ -205,11 +205,12 @@ GridPose TMaze<width, height>::get_next_discovery_goal(const GridPose& pose) con
         }
 
         for (uint8_t i = Side::RIGHT; i <= Side::DOWN; i++) {
-            Side side = static_cast<Side>(i);
+            Side            side = static_cast<Side>(i);
+            const GridPoint front_position = current_pose.position + side;
 
             if (not this->costmap.has_wall({current_pose.position, side}) and
-                not checked.at(current_pose.position.y).at(current_pose.position.x)) {
-                queue.emplace(current_pose.position + side, current_pose.orientation);
+                not checked.at(front_position.y).at(front_position.x)) {
+                queue.emplace(front_position, current_pose.orientation);
             }
         }
     }

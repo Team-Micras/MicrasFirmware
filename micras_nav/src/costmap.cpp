@@ -112,8 +112,9 @@ void Costmap<width, height, layers>::update_cost(const GridPoint& position, uint
 }
 
 template <uint8_t width, uint8_t height, uint8_t layers>
-bool Costmap<width, height, layers>::has_wall(const GridPose& pose) const {
-    return this->get_cell(pose.position).walls[pose.orientation] == WallState::WALL;
+bool Costmap<width, height, layers>::has_wall(const GridPose& pose, bool consider_virtual) const {
+    return this->get_cell(pose.position).walls[pose.orientation] == WallState::WALL or
+           (consider_virtual and this->get_cell(pose.position).walls[pose.orientation] == WallState::VIRTUAL);
 }
 
 template <uint8_t width, uint8_t height, uint8_t layers>

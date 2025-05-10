@@ -91,10 +91,11 @@ public:
     /**
      * @brief Check whether there is a wall at the front of a given pose.
      *
-     * @param pose The pose to check.
+     * @param pose The pose to check.\
+     * @param consider_virtual Whether to consider virtual walls.
      * @return True if there is a wall, false otherwise.
      */
-    bool has_wall(const GridPose& pose) const;
+    bool has_wall(const GridPose& pose, bool consider_virtual = false) const;
 
     /**
      * @brief Update the existence of a wall in the maze.
