@@ -71,6 +71,7 @@ void TMaze<width, height>::update_walls(const GridPose& pose, const core::Observ
 template <uint8_t width, uint8_t height>
 GridPose TMaze<width, height>::get_next_goal(const GridPose& pose, bool returning) {
     if (returning and not this->finished_discovery) {
+        this->compute_best_route();
         const auto& next_goal = this->get_next_bfs_goal(pose, true);
 
         if (next_goal != this->start) {
@@ -200,7 +201,9 @@ GridPose TMaze<width, height>::get_next_bfs_goal(const GridPose& pose, bool disc
         checked.at(current_pose.position.y).at(current_pose.position.x) = true;
 
         if ((discover and
-             this->must_visit(this->costmap.get_cell(current_pose.position), this->minimum_cost + this->cost_margin)) or
+             this->must_visit(
+                 this->costmap.get_cell(current_pose.position), std::round(this->minimum_cost * this->cost_margin)
+             )) or
             (not discover and this->goal.contains(current_pose.position))) {
             next_goal = {pose.position + current_pose.orientation, current_pose.orientation};
             break;

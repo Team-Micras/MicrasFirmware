@@ -27,7 +27,7 @@ public:
     struct Config {
         GridPose                      start{};
         std::unordered_set<GridPoint> goal;
-        uint16_t                      cost_margin{};
+        float                         cost_margin{};
     };
 
     /**
@@ -157,7 +157,7 @@ private:
     /**
      * @brief Cost margin above the minimum cost that the robot should explore.
      */
-    uint16_t cost_margin;
+    float cost_margin;
 
     /**
      * @brief Minimum cost of path to the goal containing only visited cells.
