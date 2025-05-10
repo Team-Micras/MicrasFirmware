@@ -6,7 +6,6 @@
 #define MICRAS_NAV_MAZE_CPP
 
 #include <cmath>
-#include <utility>
 
 #include "micras/nav/grid_pose.hpp"
 #include "micras/nav/maze.hpp"
@@ -87,15 +86,16 @@ GridPose TMaze<width, height>::get_next_goal(const GridPose& pose, bool returnin
     for (Side side :
          {pose.turned_right().orientation, pose.turned_left().orientation, pose.orientation,
           pose.turned_back().orientation}) {
+        if (this->costmap.has_wall({pose.position, side})) {
+            continue;
+        }
+
         GridPoint     front_position = pose.position + side;
         const int16_t flip_cost = pose.turned_back().orientation == side ? 1 : 0;
         const int16_t front_cost =
             this->costmap.get_cost(front_position, returning ? Layer::RETURN : Layer::EXPLORE) + flip_cost;
 
-        const bool can_go = discover ? not this->costmap.has_wall({pose.position, side}) :
-                                       was_visited(this->costmap.get_cell(front_position));
-
-        if (can_go and front_cost < current_cost) {
+        if ((discover or was_visited(this->costmap.get_cell(front_position))) and front_cost < current_cost) {
             current_cost = front_cost;
             next_pose.position = front_position;
             next_pose.orientation = side;
@@ -205,11 +205,15 @@ GridPose TMaze<width, height>::get_next_discovery_goal(const GridPose& pose) con
         }
 
         for (uint8_t i = Side::RIGHT; i <= Side::DOWN; i++) {
-            Side            side = static_cast<Side>(i);
+            Side side = static_cast<Side>(i);
+
+            if (this->costmap.has_wall({current_pose.position, side})) {
+                continue;
+            }
+
             const GridPoint front_position = current_pose.position + side;
 
-            if (not this->costmap.has_wall({current_pose.position, side}) and
-                not checked.at(front_position.y).at(front_position.x)) {
+            if (not checked.at(front_position.y).at(front_position.x)) {
                 queue.emplace(front_position, current_pose.orientation);
             }
         }

@@ -6,7 +6,6 @@
 #define MICRAS_NAV_COSTMAP_CPP
 
 #include <cmath>
-#include <list>
 #include <queue>
 
 #include "micras/nav/costmap.hpp"
@@ -53,32 +52,27 @@ void Costmap<width, height, layers>::compute(const GridPoint& reference, uint8_t
 template <uint8_t width, uint8_t height, uint8_t layers>
 void Costmap<width, height, layers>::recompute(const GridPoint& reference, uint8_t layer) {
     std::queue<GridPoint> queue;
-    std::list<GridPoint>  compute_list;
     queue.push(reference);
 
     while (not queue.empty()) {
         GridPoint current_position = queue.front();
         queue.pop();
-        bool reset_cost = true;
+        int16_t lowest_cost = max_cost - 1;
 
         for (uint8_t i = Side::RIGHT; i <= Side::DOWN; i++) {
-            Side      side = static_cast<Side>(i);
-            GridPoint front_position = current_position + side;
+            Side side = static_cast<Side>(i);
 
-            if (not this->has_wall({current_position, side}) and
-                this->get_cost(current_position, layer) == this->get_cost(front_position, layer) + 1) {
-                compute_list.emplace_back(current_position);
-                reset_cost = false;
-                break;
+            if (not this->has_wall({current_position, side})) {
+                lowest_cost = std::min(lowest_cost, this->get_cost(current_position + side, layer));
             }
         }
 
-        if (not reset_cost) {
+        if (this->get_cost(current_position, layer) == lowest_cost + 1) {
             continue;
         }
 
         uint16_t old_cost = this->get_cost(current_position, layer);
-        this->update_cost(current_position, layer, max_cost);
+        this->update_cost(current_position, layer, lowest_cost + 1);
 
         for (uint8_t i = Side::RIGHT; i <= Side::DOWN; i++) {
             Side      side = static_cast<Side>(i);
@@ -89,10 +83,6 @@ void Costmap<width, height, layers>::recompute(const GridPoint& reference, uint8
                 queue.push(front_position);
             }
         }
-    }
-
-    for (const auto& position : compute_list) {
-        this->compute(position, layer);
     }
 }
 
