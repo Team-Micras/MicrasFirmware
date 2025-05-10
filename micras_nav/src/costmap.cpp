@@ -109,7 +109,7 @@ bool Costmap<width, height, layers>::has_wall(const GridPose& pose, bool conside
 
 template <uint8_t width, uint8_t height, uint8_t layers>
 bool Costmap<width, height, layers>::update_wall(const GridPose& pose, bool wall) {
-    if (this->has_wall(pose)) {
+    if (this->has_wall(pose, true)) {
         return false;
     }
 
