@@ -70,7 +70,7 @@ void TMaze<width, height>::update_walls(const GridPose& pose, const core::Observ
 
 template <uint8_t width, uint8_t height>
 GridPose TMaze<width, height>::get_next_goal(const GridPose& pose, bool returning) {
-    if (returning or this->finished_discovery) {
+    if (returning and not this->finished_discovery) {
         const auto& next_goal = this->get_next_bfs_goal(pose, true);
 
         if (next_goal != this->start) {
@@ -114,18 +114,18 @@ template <uint8_t width, uint8_t height>
 void TMaze<width, height>::compute_best_route() {
     GridPose current_pose = this->start;
     this->best_route.clear();
-    this->best_route.try_emplace(this->costmap.get_cost(this->start.position, Layer::EXPLORE), this->start);
+    this->best_route.emplace_back(this->start);
 
     while (not this->goal.contains(current_pose.position)) {
         current_pose = this->get_next_bfs_goal(current_pose, false);
-        this->best_route.try_emplace(this->costmap.get_cost(current_pose.position, Layer::EXPLORE), current_pose);
+        this->best_route.emplace_back(current_pose);
     }
 
     this->minimum_cost = this->best_route.size();
 }
 
 template <uint8_t width, uint8_t height>
-const std::map<uint16_t, GridPose, std::greater<>>& TMaze<width, height>::get_best_route() const {
+const std::list<GridPose>& TMaze<width, height>::get_best_route() const {
     return this->best_route;
 }
 
@@ -134,7 +134,7 @@ std::vector<uint8_t> TMaze<width, height>::serialize() const {
     std::vector<uint8_t> buffer;
     buffer.reserve(3 * this->best_route.size());
 
-    for (const auto& [cost, grid_pose] : this->best_route) {
+    for (const auto& grid_pose : this->best_route) {
         buffer.emplace_back(grid_pose.position.x);
         buffer.emplace_back(grid_pose.position.y);
         buffer.emplace_back(grid_pose.orientation);
@@ -148,9 +148,9 @@ void TMaze<width, height>::deserialize(const uint8_t* buffer, uint16_t size) {
     this->best_route.clear();
 
     for (uint32_t i = 0; i < size; i += 3) {
-        this->best_route.try_emplace(
+        this->best_route.emplace_back(
             // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-            (size - i) / 3 - 1, GridPose{{buffer[i], buffer[i + 1]}, static_cast<Side>(buffer[i + 2])}
+            GridPoint{buffer[i], buffer[i + 1]}, static_cast<Side>(buffer[i + 2])
         );
     }
 }
