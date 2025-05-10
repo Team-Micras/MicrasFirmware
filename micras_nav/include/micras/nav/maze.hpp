@@ -95,7 +95,7 @@ private:
     enum Layer : uint8_t {
         EXPLORE = 0,
         RETURN = 1,
-        NUM_OF_LAYERS = 3,
+        NUM_OF_LAYERS = 2,
     };
 
     /**
