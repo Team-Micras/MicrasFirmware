@@ -48,10 +48,9 @@ public:
      *
      * @param position The current position of the robot.
      * @param returning Whether the robot is returning to the start position.
-     * @param discover Whether the robot should discover new cells.
      * @return The next point the robot should go.
      */
-    GridPose get_next_goal(const GridPose& pose, bool returning, bool discover = true);
+    GridPose get_next_goal(const GridPose& pose, bool returning);
 
     /**
      * @brief Check whether the robot has finished the maze.
@@ -107,12 +106,13 @@ private:
     void update_cell(const GridPoint& position);
 
     /**
-     * @brief Get the next goal for the robot to discover more cells.
+     * @brief Get the next goal for the robot using a BFS algorithm.
      *
      * @param pose The current pose of the robot.
+     * @param discover Whether the robot is discovering new cells.
      * @return The next discovery goal for the robot.
      */
-    GridPose get_next_discovery_goal(const GridPose& pose) const;
+    GridPose get_next_bfs_goal(const GridPose& pose, bool discover) const;
 
     /**
      * @brief Check if the cell is a dead end.

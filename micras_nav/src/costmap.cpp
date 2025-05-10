@@ -57,7 +57,7 @@ void Costmap<width, height, layers>::recompute(const GridPoint& reference, uint8
     while (not queue.empty()) {
         GridPoint current_position = queue.front();
         queue.pop();
-        int16_t lowest_cost = max_cost - 1;
+        int16_t lowest_cost = max_cost;
 
         for (uint8_t i = Side::RIGHT; i <= Side::DOWN; i++) {
             Side side = static_cast<Side>(i);

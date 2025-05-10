@@ -11,7 +11,7 @@
 #include "micras/nav/grid_pose.hpp"
 
 namespace micras::nav {
-constexpr int16_t max_cost{0x7FFF};
+constexpr int16_t max_cost{0x1FFF};
 
 /**
  * @brief Class for managing a layered costmap.
@@ -37,8 +37,10 @@ public:
      * @brief Type to store the information of a cell in the maze.
      */
     struct Cell {
+        Cell() { costs.fill(max_cost); }
+
         std::array<WallState, 4>    walls{WallState::UNKNOWN};
-        std::array<int16_t, layers> costs{max_cost};
+        std::array<int16_t, layers> costs;
     };
 
     /**

@@ -69,9 +69,9 @@ void TMaze<width, height>::update_walls(const GridPose& pose, const core::Observ
 }
 
 template <uint8_t width, uint8_t height>
-GridPose TMaze<width, height>::get_next_goal(const GridPose& pose, bool returning, bool discover) {
+GridPose TMaze<width, height>::get_next_goal(const GridPose& pose, bool returning) {
     if (returning or this->finished_discovery) {
-        const auto& next_goal = this->get_next_discovery_goal(pose);
+        const auto& next_goal = this->get_next_bfs_goal(pose, true);
 
         if (next_goal != this->start) {
             return next_goal;
@@ -95,7 +95,7 @@ GridPose TMaze<width, height>::get_next_goal(const GridPose& pose, bool returnin
         const int16_t front_cost =
             this->costmap.get_cost(front_position, returning ? Layer::RETURN : Layer::EXPLORE) + flip_cost;
 
-        if ((discover or was_visited(this->costmap.get_cell(front_position))) and front_cost < current_cost) {
+        if (front_cost < current_cost) {
             current_cost = front_cost;
             next_pose.position = front_position;
             next_pose.orientation = side;
@@ -117,7 +117,7 @@ void TMaze<width, height>::compute_best_route() {
     this->best_route.try_emplace(this->costmap.get_cost(this->start.position, Layer::EXPLORE), this->start);
 
     while (not this->goal.contains(current_pose.position)) {
-        current_pose = this->get_next_goal(current_pose, false, false);
+        current_pose = this->get_next_bfs_goal(current_pose, false);
         this->best_route.try_emplace(this->costmap.get_cost(current_pose.position, Layer::EXPLORE), current_pose);
     }
 
@@ -179,7 +179,7 @@ void TMaze<width, height>::update_cell(const GridPoint& position) {
 }
 
 template <uint8_t width, uint8_t height>
-GridPose TMaze<width, height>::get_next_discovery_goal(const GridPose& pose) const {
+GridPose TMaze<width, height>::get_next_bfs_goal(const GridPose& pose, bool discover) const {
     std::queue<GridPose>                        queue;
     std::array<std::array<bool, width>, height> checked{};
     GridPose                                    next_goal = this->start;
@@ -199,7 +199,9 @@ GridPose TMaze<width, height>::get_next_discovery_goal(const GridPose& pose) con
         queue.pop();
         checked.at(current_pose.position.y).at(current_pose.position.x) = true;
 
-        if (this->must_visit(this->costmap.get_cell(current_pose.position), this->minimum_cost + this->cost_margin)) {
+        if ((discover and
+             this->must_visit(this->costmap.get_cell(current_pose.position), this->minimum_cost + this->cost_margin)) or
+            (not discover and this->goal.contains(current_pose.position))) {
             next_goal = {pose.position + current_pose.orientation, current_pose.orientation};
             break;
         }
@@ -213,7 +215,8 @@ GridPose TMaze<width, height>::get_next_discovery_goal(const GridPose& pose) con
 
             const GridPoint front_position = current_pose.position + side;
 
-            if (not checked.at(front_position.y).at(front_position.x)) {
+            if ((discover or this->was_visited(this->costmap.get_cell(front_position))) and
+                not checked.at(front_position.y).at(front_position.x)) {
                 queue.emplace(front_position, current_pose.orientation);
             }
         }
