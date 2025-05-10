@@ -74,6 +74,13 @@ public:
     void reset();
 
     /**
+     * @brief Use the imu to check if the robot crashed.
+     *
+     * @return True if the robot crashed, false otherwise.
+     */
+    bool check_crash() const;
+
+    /**
      * @brief Get the current objective of the robot.
      *
      * @return The current objective of the robot.

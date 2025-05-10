@@ -5,7 +5,7 @@
 #ifndef MICRAS_NAV_ACTION_QUEUER_HPP
 #define MICRAS_NAV_ACTION_QUEUER_HPP
 
-#include <map>
+#include <list>
 #include <memory>
 #include <queue>
 
@@ -82,7 +82,7 @@ public:
     /**
      * @brief Fill the action queue with a sequence of actions to the end.
      */
-    void recompute(const std::map<uint16_t, GridPose, std::greater<>>& best_route);
+    void recompute(const std::list<GridPose>& best_route);
 
 private:
     /**

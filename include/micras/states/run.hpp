@@ -26,6 +26,10 @@ public:
      * @return The id of the next state.
      */
     uint8_t execute() override {
+        if (this->micras.check_crash()) {
+            return Micras::State::ERROR;
+        }
+
         if (not this->micras.run()) {
             return this->get_id();
         }
@@ -33,6 +37,7 @@ public:
         switch (this->micras.get_objective()) {
             case core::Objective::EXPLORE:
                 this->micras.set_objective(core::Objective::RETURN);
+                this->micras.save_best_route();
                 return Micras::State::WAIT_FOR_RUN;
 
             case core::Objective::RETURN:

@@ -32,6 +32,14 @@ Side GridPoint::direction(const GridPoint& next) const {
     return Side::UP;
 }
 
+GridPoint GridPoint::from_vector(const core::Vector& point, float cell_size) {
+    return {static_cast<uint8_t>(point.x / cell_size), static_cast<uint8_t>(point.y / cell_size)};
+}
+
+core::Vector GridPoint::to_vector(float cell_size) const {
+    return {cell_size * (this->x + 0.5F), cell_size * (this->y + 0.5F)};
+}
+
 GridPoint GridPoint::operator+(const Side& side) const {
     switch (side) {
         case Side::RIGHT:

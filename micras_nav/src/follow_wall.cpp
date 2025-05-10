@@ -18,6 +18,10 @@ FollowWall::FollowWall(
     post_clearance{config.post_clearance} { }
 
 float FollowWall::compute_angular_correction(float elapsed_time, float linear_speed) {
+    if (this->wall_sensors.use_count() == 1) {
+        this->wall_sensors->update();
+    }
+
     if (this->check_posts()) {
         return 0.0F;
     }

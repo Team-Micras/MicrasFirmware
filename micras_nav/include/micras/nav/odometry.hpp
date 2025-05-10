@@ -5,7 +5,6 @@
 #ifndef MICRAS_NAV_ODOMETRY_HPP
 #define MICRAS_NAV_ODOMETRY_HPP
 
-#include <cstdint>
 #include <memory>
 
 #include "micras/core/butterworth_filter.hpp"
@@ -37,8 +36,8 @@ public:
      * @param config Configuration for the odometry.
      */
     Odometry(
-        const std::shared_ptr<proxy::RotarySensor>& left_rotary_sensor,
-        const std::shared_ptr<proxy::RotarySensor>& right_rotary_sensor, const std::shared_ptr<proxy::Imu>& imu,
+        const std::shared_ptr<const proxy::RotarySensor>& left_rotary_sensor,
+        const std::shared_ptr<const proxy::RotarySensor>& right_rotary_sensor, const std::shared_ptr<proxy::Imu>& imu,
         Config config
     );
 
@@ -72,12 +71,12 @@ private:
     /**
      * @brief Left rotary sensor.
      */
-    std::shared_ptr<proxy::RotarySensor> left_rotary_sensor;
+    std::shared_ptr<const proxy::RotarySensor> left_rotary_sensor;
 
     /**
      * @brief Right rotary sensor.
      */
-    std::shared_ptr<proxy::RotarySensor> right_rotary_sensor;
+    std::shared_ptr<const proxy::RotarySensor> right_rotary_sensor;
 
     /**
      * @brief IMU sensor.

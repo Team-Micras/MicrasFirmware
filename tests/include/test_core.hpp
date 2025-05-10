@@ -5,6 +5,7 @@
 #ifndef MICRAS_TEST_CORE_HPP
 #define MICRAS_TEST_CORE_HPP
 
+#include "micras/hal/mcu.hpp"
 #include "target.hpp"
 
 namespace micras {

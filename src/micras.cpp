@@ -78,7 +78,7 @@ bool Micras::calibrate() {
 
 void Micras::prepare() {
     if (this->objective == core::Objective::EXPLORE) {
-        this->grid_pose = this->maze.get_next_goal(this->grid_pose.position, false);
+        this->grid_pose = this->maze.get_next_goal(this->grid_pose, false);
         this->action_queuer.recompute({});
         this->current_action = this->action_queuer.pop();
     } else {
@@ -96,6 +96,11 @@ bool Micras::run() {
         if (this->finished) {
             this->finished = false;
             this->locomotion.stop();
+
+            if (this->objective == core::Objective::EXPLORE) {
+                this->maze.compute_best_route();
+            }
+
             return true;
         }
 
@@ -119,11 +124,7 @@ bool Micras::run() {
                 this->finished = true;
                 next_goal = this->grid_pose.turned_back().front();
             } else {
-                if (returning) {
-                    this->maze.compute_best_route();
-                }
-
-                next_goal = this->maze.get_next_goal(this->grid_pose.position, returning);
+                next_goal = this->maze.get_next_goal(this->grid_pose, returning);
             }
 
             this->action_queuer.push(this->grid_pose, next_goal.position);
@@ -172,6 +173,13 @@ void Micras::init() {
 void Micras::reset() {
     this->grid_pose = maze_config.start;
     this->finished = false;
+}
+
+bool Micras::check_crash() const {
+    return std::hypot(
+               this->imu->get_linear_acceleration(proxy::Imu::Axis::X),
+               this->imu->get_linear_acceleration(proxy::Imu::Axis::Y)
+           ) > crash_acceleration;
 }
 
 void Micras::save_best_route() {

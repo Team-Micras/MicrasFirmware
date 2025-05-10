@@ -5,7 +5,6 @@
 #include <algorithm>
 #include <cmath>
 
-#include "micras/core/utils.hpp"
 #include "micras/nav/speed_controller.hpp"
 
 namespace micras::nav {
