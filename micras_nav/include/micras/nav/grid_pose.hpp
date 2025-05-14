@@ -115,6 +115,14 @@ struct GridPose {
     GridPose turned_right() const;
 
     /**
+     * @brief Gets the relative side of a grid point compared to current pose.
+     *
+     * @param other The grid point to check.
+     * @return LEFT/RIGHT for left/right of pose, UP for in front, DOWN for behind.
+     */
+    Side get_relative_side(const GridPoint& other) const;
+
+    /**
      * @brief Compare two poses for equality.
      *
      * @param other The other pose to compare.
@@ -145,6 +153,20 @@ struct hash<micras::nav::GridPoint> {
     size_t operator()(const micras::nav::GridPoint& point) const noexcept {
         const size_t h1 = hash<uint8_t>{}(point.x);
         const size_t h2 = hash<uint8_t>{}(point.y);
+        return h1 ^ (h2 << 1);
+    }
+};
+
+/**
+ * @brief Hash specialization for the GridPose type.
+ *
+ * @tparam T GridPose type.
+ */
+template <>
+struct hash<micras::nav::GridPose> {
+    size_t operator()(const micras::nav::GridPose& pose) const noexcept {
+        const size_t h1 = hash<micras::nav::GridPoint>{}(pose.position);
+        const size_t h2 = hash<uint8_t>{}(pose.orientation);
         return h1 ^ (h2 << 1);
     }
 };
