@@ -32,13 +32,16 @@ public:
      * @param linear_speed Linear speed in m/s.
      * @param max_angular_acceleration Maximum angular acceleration in rad/s^2.
      */
-    TurnAction(uint8_t action_id, float angle, float curve_radius, float linear_speed, float max_angular_acceleration) :
-        Action{action_id},
+    TurnAction(
+        uint8_t action_type, float angle, float curve_radius, float linear_speed, float max_angular_acceleration
+    ) :
+        Action{{action_type, angle}, false},
         start_orientation{max_angular_acceleration * 0.001F * 0.001F / 2.0F},
         angle{angle},
         linear_speed{linear_speed},
         acceleration{max_angular_acceleration},
-        max_angular_speed{calculate_max_angular_speed(angle, curve_radius, linear_speed, max_angular_acceleration)} { }
+        max_angular_speed{calculate_max_angular_speed(angle, curve_radius, linear_speed, max_angular_acceleration)},
+        total_time{calculate_total_time(angle, max_angular_speed, max_angular_acceleration)} { }
 
     /**
      * @brief Get the desired speeds for the robot to complete the action.
@@ -78,12 +81,7 @@ public:
      */
     bool finished(const Pose& pose) const override { return std::abs(pose.orientation) >= std::abs(this->angle); }
 
-    /**
-     * @brief Check if the action allows following the wall.
-     *
-     * @return True if the action allows following the wall, false otherwise.
-     */
-    bool allow_follow_wall() const override { return false; }
+    float get_total_time() const override { return this->total_time; }
 
 private:
     /**
@@ -113,6 +111,12 @@ private:
         return correction_factor * max_angular_acceleration * (radius_speed_ratio - std::sqrt(discriminant));
     }
 
+    static constexpr float calculate_total_time(float angle, float max_angular_speed, float max_angular_acceleration) {
+        const float acceleration_time = max_angular_speed / max_angular_acceleration;
+
+        return std::abs(angle) / max_angular_speed + acceleration_time;
+    }
+
     /**
      * @brief Start orientation in radians. Being zero causes the robot to not move.
      */
@@ -137,6 +141,8 @@ private:
      * @brief Maximum angular speed in rad/s while turning.
      */
     float max_angular_speed;
+
+    float total_time;
 };
 }  // namespace micras::nav
 
