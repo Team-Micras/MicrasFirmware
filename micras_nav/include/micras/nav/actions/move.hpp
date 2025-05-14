@@ -28,20 +28,21 @@ public:
      * @param follow_wall Whether the robot can follow wall while executing this action.
      */
     MoveAction(
-        uint8_t action_id, float distance, float start_speed, float end_speed, float max_speed, float max_acceleration,
-        float max_deceleration, bool follow_wall = true
+        uint8_t action_type, float distance, float start_speed, float end_speed, float max_speed,
+        float max_acceleration, float max_deceleration, bool follow_wall = true
     ) :
-        Action{action_id},
+        Action{{action_type, distance}, follow_wall},
         distance(distance),
         start_speed_2(start_speed * start_speed),
         end_speed_2(end_speed * end_speed),
         max_speed{max_speed},
         max_acceleration_doubled{2.0F * max_acceleration},
         max_deceleration_doubled{2.0F * max_deceleration},
-        follow_wall(follow_wall),
         decelerate_distance{
             (end_speed_2 - start_speed_2 + max_deceleration_doubled * distance) /
             (max_acceleration_doubled + max_deceleration_doubled)
+        },
+        total_time{calculate_total_time(distance, start_speed, end_speed, max_speed, max_acceleration, max_deceleration)
         } { }
 
     /**
@@ -82,14 +83,38 @@ public:
      */
     bool finished(const Pose& pose) const override { return pose.position.magnitude() >= this->distance; }
 
-    /**
-     * @brief Check if the action allows the robot to follow walls.
-     *
-     * @return True if the action allows the robot to follow walls, false otherwise.
-     */
-    bool allow_follow_wall() const override { return this->follow_wall; }
+    float get_total_time() const override { return this->total_time; }
+
+    void trim_distance(float reduction) {
+        this->distance -= reduction;
+
+        this->decelerate_distance =
+            (this->end_speed_2 - this->start_speed_2 + this->max_deceleration_doubled * this->distance) /
+            (this->max_acceleration_doubled + this->max_deceleration_doubled);
+
+        this->total_time = calculate_total_time(
+            this->distance, std::sqrt(this->start_speed_2), std::sqrt(this->end_speed_2), this->max_speed,
+            this->max_acceleration_doubled / 2.0F, this->max_deceleration_doubled / 2.0F
+        );
+    }
 
 private:
+    static constexpr float calculate_total_time(
+        float distance, float start_speed, float end_speed, float max_speed, float max_acceleration,
+        float max_deceleration
+    ) {
+        const float acceleration_time = (max_speed - start_speed) / max_acceleration;
+        const float deceleration_time = (max_speed - end_speed) / max_deceleration;
+
+        const float acceleration_distance =
+            (start_speed * start_speed + max_speed * max_speed) / (2.0F * max_acceleration);
+        const float deceleration_distance = (max_speed * max_speed + end_speed * end_speed) / (2.0F * max_deceleration);
+        const float constant_speed_distance = distance - acceleration_distance - deceleration_distance;
+        const float constant_speed_time = constant_speed_distance / max_speed;
+
+        return acceleration_time + deceleration_time + constant_speed_time;
+    }
+
     /**
      * @brief Distance to move in meters.
      */
@@ -121,14 +146,11 @@ private:
     float max_deceleration_doubled;
 
     /**
-     * @brief Whether the robot can follow walls while executing this action.
-     */
-    bool follow_wall;
-
-    /**
      * @brief Distance from the start where the robot should start to decelerate in meters.
      */
     float decelerate_distance;
+
+    float total_time;
 };
 }  // namespace micras::nav
 
