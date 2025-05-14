@@ -2,15 +2,18 @@
  * @file
  */
 
+#include <cmath>
 #include <numbers>
 
 #include "micras/nav/action_queuer.hpp"
+#include "micras/nav/actions/move.hpp"
 
 namespace micras::nav {
 ActionQueuer::ActionQueuer(Config config) :
     cell_size{config.cell_size},
     exploring_params{config.exploring},
-    // solving_params{config.solving},
+    solving_params{config.solving},
+    curve_linear_speed{std::sqrt(config.solving.max_centrifugal_acceleration * config.solving.curve_radius)},
     stop{std::make_shared<MoveAction>(
         ActionType::STOP, cell_size / 2.0F, exploring_params.max_linear_speed, 0.0F, exploring_params.max_linear_speed,
         exploring_params.max_linear_acceleration, exploring_params.max_linear_deceleration, false
@@ -26,49 +29,131 @@ ActionQueuer::ActionQueuer(Config config) :
         exploring_params.max_linear_deceleration
     )},
     move_half{std::make_shared<MoveAction>(
-        ActionType::MOVE_HALF, cell_size / 2.0F, 0.001F * exploring_params.max_linear_acceleration,
+        ActionType::MOVE_FORWARD, cell_size / 2.0F, 0.001F * exploring_params.max_linear_acceleration,
         exploring_params.max_linear_speed, exploring_params.max_linear_speed, exploring_params.max_linear_acceleration,
         exploring_params.max_linear_deceleration, false
     )},
     turn_left{std::make_shared<TurnAction>(
-        ActionType::TURN_LEFT, std::numbers::pi_v<float> / 2.0F, cell_size / 2.0F, exploring_params.max_linear_speed,
+        ActionType::TURN, std::numbers::pi_v<float> / 2.0F, cell_size / 2.0F, exploring_params.max_linear_speed,
         exploring_params.max_angular_acceleration
     )},
     turn_right{std::make_shared<TurnAction>(
-        ActionType::TURN_RIGHT, -std::numbers::pi_v<float> / 2.0F, cell_size / 2.0F, exploring_params.max_linear_speed,
+        ActionType::TURN, -std::numbers::pi_v<float> / 2.0F, cell_size / 2.0F, exploring_params.max_linear_speed,
         exploring_params.max_angular_acceleration
     )},
     turn_back{std::make_shared<TurnAction>(
-        ActionType::TURN_BACK, std::numbers::pi_v<float>, 0.0F, 0.0F, exploring_params.max_angular_acceleration
+        ActionType::SPIN, std::numbers::pi_v<float>, 0.0F, 0.0F, exploring_params.max_angular_acceleration
     )} { }
 
-void ActionQueuer::push(const GridPose& current_pose, const GridPoint& target_position) {
-    if (current_pose.front().position == target_position) {
-        this->action_queue.emplace(move_forward);
+void ActionQueuer::push_exploring(const GridPose& origin_pose, const GridPoint& target_position) {
+    if (origin_pose.front().position == target_position) {
+        this->action_queue.emplace_back(move_forward);
         return;
     }
 
-    if (current_pose.turned_left().front().position == target_position) {
-        this->action_queue.emplace(turn_left);
+    if (origin_pose.turned_left().front().position == target_position) {
+        this->action_queue.emplace_back(turn_left);
         return;
     }
 
-    if (current_pose.turned_right().front().position == target_position) {
-        this->action_queue.emplace(turn_right);
+    if (origin_pose.turned_right().front().position == target_position) {
+        this->action_queue.emplace_back(turn_right);
         return;
     }
 
-    if (current_pose.turned_back().front().position == target_position) {
-        this->action_queue.emplace(stop);
-        this->action_queue.emplace(turn_back);
-        this->action_queue.emplace(move_half);
+    if (origin_pose.turned_back().front().position == target_position) {
+        this->action_queue.emplace_back(stop);
+        this->action_queue.emplace_back(turn_back);
+        this->action_queue.emplace_back(move_half);
         return;
     }
 }
 
+void ActionQueuer::push_solving(const GridPose& origin_pose, const GridPose& target_pose) {
+    const Side relative_side = origin_pose.get_relative_side(target_pose.position);
+
+    if (relative_side == Side::UP and origin_pose.orientation == target_pose.orientation) {
+        const float distance =
+            origin_pose.position.to_vector(this->cell_size).distance(target_pose.position.to_vector(this->cell_size));
+        this->action_queue.emplace_back(std::make_shared<MoveAction>(
+            ActionType::MOVE_FORWARD, distance, this->curve_linear_speed, this->curve_linear_speed,
+            this->solving_params.max_linear_speed, this->solving_params.max_linear_acceleration,
+            this->solving_params.max_linear_deceleration
+        ));
+    }
+
+    if (origin_pose.turned_left().front() == target_pose) {
+        this->action_queue.emplace_back(std::make_shared<TurnAction>(
+            ActionType::TURN, std::numbers::pi_v<float> / 2.0F, this->cell_size / 2.0F, this->curve_linear_speed,
+            this->solving_params.max_angular_acceleration
+        ));
+        return;
+    }
+
+    if (origin_pose.turned_right().front() == target_pose) {
+        this->action_queue.emplace_back(std::make_shared<TurnAction>(
+            ActionType::TURN, -std::numbers::pi_v<float> / 2.0F, this->cell_size / 2.0F, this->curve_linear_speed,
+            this->solving_params.max_angular_acceleration
+        ));
+        return;
+    }
+
+    if (origin_pose.turned_left().front().turned_left().front() == target_pose) {
+        this->action_queue.emplace_back(std::make_shared<TurnAction>(
+            ActionType::TURN, std::numbers::pi_v<float>, this->cell_size / 2.0F, this->curve_linear_speed,
+            this->solving_params.max_angular_acceleration
+        ));
+        return;
+    }
+
+    if (origin_pose.turned_right().front().turned_right().front() == target_pose) {
+        this->action_queue.emplace_back(std::make_shared<TurnAction>(
+            ActionType::TURN, -std::numbers::pi_v<float>, this->cell_size / 2.0F, this->curve_linear_speed,
+            this->solving_params.max_angular_acceleration
+        ));
+        return;
+    }
+
+    const bool      keep_direction = (origin_pose.orientation == target_pose.orientation);
+    const GridPoint target_position = (keep_direction ? target_pose : target_pose.turned_back().front()).position;
+
+    if (std::abs(target_position.x - origin_pose.position.x) != std::abs(target_position.y - origin_pose.position.y)) {
+        return;
+    }
+
+    float turn_angle =
+        relative_side == Side::LEFT ? std::numbers::pi_v<float> / 4.0F : -std::numbers::pi_v<float> / 4.0F;
+
+    this->action_queue.emplace_back(std::make_shared<TurnAction>(
+        ActionType::TURN, turn_angle, this->cell_size / 2.0F, this->curve_linear_speed,
+        this->solving_params.max_angular_acceleration
+    ));
+
+    float distance =
+        origin_pose.position.to_vector(this->cell_size).distance(target_position.to_vector(this->cell_size)) -
+        std::tan(std::numbers::pi_v<float> / 8.0F) * this->cell_size;
+
+    if (not keep_direction) {
+        turn_angle *= -1.0F;
+    } else {
+        distance += std::numbers::sqrt2_v<float> / 2;
+    }
+
+    this->action_queue.emplace_back(std::make_shared<MoveAction>(
+        ActionType::DIAGONAL, distance, this->curve_linear_speed, this->curve_linear_speed,
+        this->solving_params.max_linear_speed, this->solving_params.max_linear_acceleration,
+        this->solving_params.max_linear_deceleration
+    ));
+
+    this->action_queue.emplace_back(std::make_shared<TurnAction>(
+        ActionType::TURN, turn_angle, this->cell_size / 2.0F, this->curve_linear_speed,
+        this->solving_params.max_angular_acceleration
+    ));
+}
+
 std::shared_ptr<Action> ActionQueuer::pop() {
     const auto& action = this->action_queue.front();
-    this->action_queue.pop();
+    this->action_queue.pop_front();
     return action;
 }
 
@@ -76,16 +161,32 @@ bool ActionQueuer::empty() const {
     return this->action_queue.empty();
 }
 
-void ActionQueuer::recompute(const std::list<GridPose>& best_route) {
+void ActionQueuer::recompute(const std::list<GridPose>& best_route, bool add_start) {
     this->action_queue = {};
-    this->action_queue.emplace(start);
+
+    if (add_start) {
+        this->action_queue.emplace_back(start);
+    }
 
     if (best_route.empty()) {
         return;
     }
 
     for (auto it = std::next(best_route.begin()); std::next(it) != best_route.end(); it++) {
-        this->push(*it, std::next(it)->position);
+        this->push_solving(*it, *std::next(it));
+        uint16_t last_index = this->action_queue.size() - 1;
+
+        if (this->action_queue.back()->get_id().type == ActionType::DIAGONAL) { }
     }
+}
+
+float ActionQueuer::get_total_time() const {
+    float total_time = 0.0F;
+
+    for (const auto& action : this->action_queue) {
+        total_time += action->get_total_time();
+    }
+
+    return total_time;
 }
 }  // namespace micras::nav
