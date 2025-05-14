@@ -13,6 +13,7 @@
 #include "micras/core/types.hpp"
 #include "micras/nav/costmap.hpp"
 #include "micras/nav/grid_pose.hpp"
+#include "micras/nav/maze_graph.hpp"
 
 namespace micras::nav {
 /**
@@ -33,7 +34,12 @@ public:
     /**
      * @brief Construct a new Maze object.
      */
-    explicit TMaze(Config config);
+    explicit TMaze(
+        Config           config,
+        EdgeCostFunction edge_cost_function = [](const GridPose& from, const GridPose& to) -> float {
+            return std::abs(from.position.x - to.position.x) + std::abs(from.position.y - to.position.y);
+        }
+    );
 
     /**
      * @brief Update the maze walls with the current pose and new information.
@@ -72,6 +78,8 @@ public:
      * @return The best route to the goal.
      */
     const std::list<GridPose>& get_best_route() const;
+
+    void compute_graph();
 
     /**
      * @brief Serialize the best route to the goal.
@@ -143,6 +151,8 @@ private:
      * @brief Layered costmap for the maze.
      */
     Costmap<width, height, Layer::NUM_OF_LAYERS> costmap;
+
+    MazeGraph graph;
 
     /**
      * @brief Start pose of the robot in the maze.
