@@ -119,9 +119,10 @@ void MazeGraph::add_extra_edges(const GridPose& start) {
     }
 }
 
-void MazeGraph::dijkstra(const GridPose& start, const GridPose& end) {
-    std::unordered_map<GridPose, float> distance;
-    std::unordered_set<GridPose>        visited;
+std::list<GridPose> MazeGraph::get_best_route(const GridPose& start, const GridPose& end) {
+    std::unordered_map<GridPose, float>    distance;
+    std::unordered_map<GridPose, GridPose> previous;
+    std::unordered_set<GridPose>           visited;
 
     auto comp_function = [&distance](const GridPose& first, const GridPose& second) {
         return distance.at(first) > distance.at(second);
@@ -152,10 +153,22 @@ void MazeGraph::dijkstra(const GridPose& start, const GridPose& end) {
 
         for (const auto& [next_pose, edge_cost] : this->graph.at(current_pose).next_costs) {
             if (distance.at(current_pose) > (distance.at(current_pose) + edge_cost)) {
+                previous[next_pose] = current_pose;
                 distance.at(current_pose) = distance.at(current_pose) + edge_cost;
                 queue.push(next_pose);
             }
         }
     }
+
+    std::list<GridPose> route;
+    GridPose            current_pose = end;
+
+    while (current_pose != start) {
+        route.push_front(current_pose);
+        current_pose = previous.at(current_pose);
+    }
+
+    route.push_front(start);
+    return route;
 }
 }  // namespace micras::nav
