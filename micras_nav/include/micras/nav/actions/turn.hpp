@@ -26,7 +26,7 @@ public:
     /**
      * @brief Construct a new Turn Action object.
      *
-     * @param action_id The ID of the action.
+     * @param action_type The type of the action to be performed.
      * @param angle Angle to turn in radians.
      * @param curve_radius Radius of the curve in meters.
      * @param linear_speed Linear speed in m/s.
@@ -36,7 +36,7 @@ public:
         uint8_t action_type, float angle, float curve_radius, float linear_speed, float max_angular_acceleration
     ) :
         Action{{action_type, angle}, false},
-        start_orientation{max_angular_acceleration * 0.001F * 0.001F / 2.0F},
+        angular_speed_step{max_angular_acceleration * Action::time_step},
         angle{angle},
         linear_speed{linear_speed},
         acceleration{max_angular_acceleration},
@@ -52,18 +52,18 @@ public:
      * @details The desired velocity is calculated from the angular displacement based on the Torricelli equation.
      */
     Twist get_speeds(const Pose& pose) const override {
-        Twist       twist{};
-        const float current_orientation = std::max(std::abs(pose.orientation), this->start_orientation);
+        Twist twist{};
 
-        if (current_orientation < std::abs(this->angle)) {
+        if (pose.orientation < std::abs(this->angle)) {
             twist = {
                 .linear = linear_speed,
-                .angular = std::sqrt(2.0F * this->acceleration * current_orientation),
+                .angular = std::sqrt(2.0F * this->acceleration * pose.orientation) + this->angular_speed_step,
             };
         } else {
             twist = {
                 .linear = linear_speed,
-                .angular = std::sqrt(2.0F * this->acceleration * (std::abs(this->angle) - current_orientation)),
+                .angular = std::sqrt(2.0F * this->acceleration * (std::abs(this->angle) - pose.orientation)) -
+                           this->angular_speed_step,
             };
         }
 
@@ -81,6 +81,11 @@ public:
      */
     bool finished(const Pose& pose) const override { return std::abs(pose.orientation) >= std::abs(this->angle); }
 
+    /**
+     * @brief Get the total time it takes to perform the action.
+     *
+     * @return The total time of the action in seconds.
+     */
     float get_total_time() const override { return this->total_time; }
 
 private:
@@ -118,9 +123,9 @@ private:
     }
 
     /**
-     * @brief Start orientation in radians. Being zero causes the robot to not move.
+     * @brief Angular step in radians to the next loop.
      */
-    float start_orientation;
+    float angular_speed_step;
 
     /**
      * @brief Angle to turn in radians.
@@ -142,6 +147,9 @@ private:
      */
     float max_angular_speed;
 
+    /**
+     * @brief Total time to complete the action in seconds.
+     */
     float total_time;
 };
 }  // namespace micras::nav

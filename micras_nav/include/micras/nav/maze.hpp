@@ -37,7 +37,8 @@ public:
     explicit TMaze(
         Config           config,
         EdgeCostFunction edge_cost_function = [](const GridPose& from, const GridPose& to) -> float {
-            return std::abs(from.position.x - to.position.x) + std::abs(from.position.y - to.position.y);
+            float edge_cost = std::abs(from.position.x - to.position.x) + std::abs(from.position.y - to.position.y);
+            return edge_cost > 1.0F ? 0.0F : edge_cost;
         }
     );
 
@@ -79,6 +80,9 @@ public:
      */
     const std::list<GridPose>& get_best_route() const;
 
+    /**
+     * @brief Compute the maze graph.
+     */
     void compute_graph();
 
     /**
@@ -107,6 +111,11 @@ private:
     };
 
     /**
+     * @brief Compute the minumum cost from the start to the end considering only discoverd cells.
+     */
+    void compute_minimum_cost();
+
+    /**
      * @brief Update the cell costs at the given position.
      *
      * @param position The position of the cell.
@@ -118,9 +127,9 @@ private:
      *
      * @param pose The current pose of the robot.
      * @param discover Whether the robot is discovering new cells.
-     * @return The next discovery goal for the robot.
+     * @return A pair containing the next discovery goal for the robot and the total distance.
      */
-    GridPose get_next_bfs_goal(const GridPose& pose, bool discover) const;
+    std::pair<GridPose, uint16_t> get_next_bfs_goal(const GridPose& pose, bool discover) const;
 
     /**
      * @brief Check if the cell is a dead end.
@@ -152,6 +161,9 @@ private:
      */
     Costmap<width, height, Layer::NUM_OF_LAYERS> costmap;
 
+    /**
+     * @brief Graph of the maze for computing the best route.
+     */
     MazeGraph graph;
 
     /**
