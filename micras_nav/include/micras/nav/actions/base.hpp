@@ -49,7 +49,7 @@ public:
     /**
      * @brief Get the total time it takes to perform the action.
      *
-     * @return The total time of the action.
+     * @return The total time of the action in seconds.
      */
     virtual float get_total_time() const = 0;
 
@@ -66,6 +66,11 @@ public:
      * @return True if the action allows the robot to follow walls, false otherwise.
      */
     bool allow_follow_wall() const { return follow_wall; }
+
+    /**
+     * @brief Time step for the action in seconds.
+     */
+    static constexpr float time_step{0.001F};
 
 protected:
     /**

@@ -18,7 +18,7 @@ public:
     /**
      * @brief Construct a new Move Action object.
      *
-     * @param action_id The ID of the action.
+     * @param action_type The type of the action to be performed.
      * @param distance Distance to move in meters.
      * @param start_speed Initial speed in m/s.
      * @param end_speed Final speed in m/s.
@@ -32,6 +32,8 @@ public:
         float max_acceleration, float max_deceleration, bool follow_wall = true
     ) :
         Action{{action_type, distance}, follow_wall},
+        positive_linear_speed_step{max_acceleration * Action::time_step},
+        negative_linear_speed_step{max_deceleration * Action::time_step},
         distance(distance),
         start_speed_2(start_speed * start_speed),
         end_speed_2(end_speed * end_speed),
@@ -59,13 +61,16 @@ public:
 
         if (current_distance < this->decelerate_distance) {
             twist = {
-                .linear = std::sqrt(this->start_speed_2 + this->max_acceleration_doubled * current_distance),
+                .linear = std::sqrt(this->start_speed_2 + this->max_acceleration_doubled * current_distance) +
+                          this->positive_linear_speed_step,
                 .angular = 0.0F,
             };
         } else {
             twist = {
-                .linear =
-                    std::sqrt(this->end_speed_2 + this->max_deceleration_doubled * (this->distance - current_distance)),
+                .linear = std::sqrt(
+                              this->end_speed_2 + this->max_deceleration_doubled * (this->distance - current_distance)
+                          ) -
+                          this->negative_linear_speed_step,
                 .angular = 0.0F,
             };
         }
@@ -83,8 +88,18 @@ public:
      */
     bool finished(const Pose& pose) const override { return pose.position.magnitude() >= this->distance; }
 
+    /**
+     * @brief Get the total time it takes to perform the action.
+     *
+     * @return The total time of the action in seconds.
+     */
     float get_total_time() const override { return this->total_time; }
 
+    /**
+     * @brief Reduce the distance to move and recalculate the total time.
+     *
+     * @param reduction Amount to reduce the distance in meters.
+     */
     void trim_distance(float reduction) {
         this->distance -= reduction;
 
@@ -99,6 +114,17 @@ public:
     }
 
 private:
+    /**
+     * @brief Calculate the total time to complete the action.
+     *
+     * @param distance Distance to move in meters.
+     * @param start_speed Initial speed in m/s.
+     * @param end_speed Final speed in m/s.
+     * @param max_speed Maximum speed in m/s.
+     * @param max_acceleration Maximum acceleration in m/s^2.
+     * @param max_deceleration Maximum deceleration in m/s^2.
+     * @return Total time to complete the action in seconds.
+     */
     static constexpr float calculate_total_time(
         float distance, float start_speed, float end_speed, float max_speed, float max_acceleration,
         float max_deceleration
@@ -114,6 +140,16 @@ private:
 
         return acceleration_time + deceleration_time + constant_speed_time;
     }
+
+    /**
+     * @brief Linear speed step in m/s to the next loop when accelerating.
+     */
+    float positive_linear_speed_step{};
+
+    /**
+     * @brief Linear speed step in m/s to the next loop when decelerating.
+     */
+    float negative_linear_speed_step{};
 
     /**
      * @brief Distance to move in meters.
@@ -150,6 +186,9 @@ private:
      */
     float decelerate_distance;
 
+    /**
+     * @brief Total time to complete the action in seconds.
+     */
     float total_time;
 };
 }  // namespace micras::nav

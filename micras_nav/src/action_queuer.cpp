@@ -19,8 +19,8 @@ ActionQueuer::ActionQueuer(Config config) :
         exploring_params.max_linear_acceleration, exploring_params.max_linear_deceleration, false
     )},
     start{std::make_shared<MoveAction>(
-        ActionType::START, cell_size - config.start_offset, 0.001F * exploring_params.max_linear_acceleration,
-        exploring_params.max_linear_speed, exploring_params.max_linear_speed, exploring_params.max_linear_acceleration,
+        ActionType::START, cell_size - config.start_offset, 0.0F, exploring_params.max_linear_speed,
+        exploring_params.max_linear_speed, exploring_params.max_linear_acceleration,
         exploring_params.max_linear_deceleration
     )},
     move_forward{std::make_shared<MoveAction>(
@@ -29,8 +29,8 @@ ActionQueuer::ActionQueuer(Config config) :
         exploring_params.max_linear_deceleration
     )},
     move_half{std::make_shared<MoveAction>(
-        ActionType::MOVE_FORWARD, cell_size / 2.0F, 0.001F * exploring_params.max_linear_acceleration,
-        exploring_params.max_linear_speed, exploring_params.max_linear_speed, exploring_params.max_linear_acceleration,
+        ActionType::MOVE_FORWARD, cell_size / 2.0F, 0.0F, exploring_params.max_linear_speed,
+        exploring_params.max_linear_speed, exploring_params.max_linear_acceleration,
         exploring_params.max_linear_deceleration, false
     )},
     turn_left{std::make_shared<TurnAction>(
