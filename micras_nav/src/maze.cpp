@@ -124,6 +124,12 @@ void TMaze<width, height>::compute_minimum_cost() {
 }
 
 template <uint8_t width, uint8_t height>
+void TMaze<width, height>::compute_best_route() {
+    this->compute_graph();
+    this->best_route = this->graph.get_best_route(this->start, this->goal);
+}
+
+template <uint8_t width, uint8_t height>
 const std::list<GridPose>& TMaze<width, height>::get_best_route() const {
     return this->best_route;
 }
@@ -155,6 +161,10 @@ void TMaze<width, height>::compute_graph() {
 
             GridPose next_pose = {current_pose.position + side, side};
 
+            if (not this->was_visited(this->costmap.get_cell(next_pose.position))) {
+                continue;
+            }
+
             if (not this->graph.has_node(next_pose)) {
                 this->graph.add_node(next_pose);
                 queue.push(next_pose);
@@ -163,6 +173,8 @@ void TMaze<width, height>::compute_graph() {
             this->graph.add_edge(current_pose, next_pose);
         }
     }
+
+    this->graph.process_nodes(this->start);
 }
 
 template <uint8_t width, uint8_t height>

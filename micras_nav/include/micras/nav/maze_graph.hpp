@@ -5,6 +5,7 @@
 #ifndef MICRAS_NAV_MAZE_GRAPH_HPP
 #define MICRAS_NAV_MAZE_GRAPH_HPP
 
+#include <list>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -67,6 +68,15 @@ public:
      */
     void process_nodes(const GridPose& start);
 
+    /**
+     * @brief Compute the best route on the graph using the dijkstra algorithm.
+     *
+     * @param start The starting node.
+     * @param end The ending node.
+     * @return A list of poses representing the best route from start to end.
+     */
+    std::list<GridPose> get_best_route(const GridPose& start, const GridPose& end);
+
 private:
     /**
      * @brief Remove unnecessary nodes from the graph.
@@ -81,14 +91,6 @@ private:
      * @param start The starting node.
      */
     void add_extra_edges(const GridPose& start);
-
-    /**
-     * @brief Compute the best route on the graph using the dijkstra algorithm.
-     *
-     * @param start The starting node.
-     * @param end The ending node.
-     */
-    void get_best_route(const GridPose& start, const GridPose& end);
 
     /**
      * @brief Function to compute the cost of an edge.

@@ -97,7 +97,7 @@ bool Micras::run() {
             this->finished = false;
             this->locomotion.stop();
 
-            if (this->objective == core::Objective::EXPLORE) {
+            if (this->objective != core::Objective::SOLVE) {
                 this->maze.compute_best_route();
             }
 
