@@ -32,15 +32,19 @@ public:
     };
 
     /**
-     * @brief Construct a new Maze object.
+     * @brief Construct a new TMaze object.
+     *
+     * @param config The configuration for the maze.
+     * @param edge_cost_function The function to compute the cost of the edges in the maze.
      */
-    explicit TMaze(
-        Config           config,
-        EdgeCostFunction edge_cost_function = [](const GridPose& from, const GridPose& to) -> float {
-            float edge_cost = std::abs(from.position.x - to.position.x) + std::abs(from.position.y - to.position.y);
-            return edge_cost > 1.0F ? 0.0F : edge_cost;
-        }
-    );
+    TMaze(Config config, EdgeCostFunction edge_cost_function);
+
+    /**
+     * @brief Construct a new TMaze object.
+     *
+     * @param config The configuration for the maze.
+     */
+    explicit TMaze(Config config);
 
     /**
      * @brief Update the maze walls with the current pose and new information.
