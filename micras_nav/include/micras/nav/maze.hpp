@@ -13,6 +13,7 @@
 #include "micras/core/types.hpp"
 #include "micras/nav/costmap.hpp"
 #include "micras/nav/grid_pose.hpp"
+#include "micras/nav/maze_graph.hpp"
 
 namespace micras::nav {
 /**
@@ -31,7 +32,17 @@ public:
     };
 
     /**
-     * @brief Construct a new Maze object.
+     * @brief Construct a new TMaze object.
+     *
+     * @param config The configuration for the maze.
+     * @param edge_cost_function The function to compute the cost of the edges in the maze.
+     */
+    TMaze(Config config, EdgeCostFunction edge_cost_function);
+
+    /**
+     * @brief Construct a new TMaze object.
+     *
+     * @param config The configuration for the maze.
      */
     explicit TMaze(Config config);
 
@@ -74,6 +85,11 @@ public:
     const std::list<GridPose>& get_best_route() const;
 
     /**
+     * @brief Compute the maze graph.
+     */
+    void compute_graph();
+
+    /**
      * @brief Serialize the best route to the goal.
      *
      * @return The serialized data.
@@ -99,6 +115,11 @@ private:
     };
 
     /**
+     * @brief Compute the minumum cost from the start to the end considering only discoverd cells.
+     */
+    void compute_minimum_cost();
+
+    /**
      * @brief Update the cell costs at the given position.
      *
      * @param position The position of the cell.
@@ -110,9 +131,9 @@ private:
      *
      * @param pose The current pose of the robot.
      * @param discover Whether the robot is discovering new cells.
-     * @return The next discovery goal for the robot.
+     * @return A pair containing the next discovery goal for the robot and the total distance.
      */
-    GridPose get_next_bfs_goal(const GridPose& pose, bool discover) const;
+    std::pair<GridPose, uint16_t> get_next_bfs_goal(const GridPose& pose, bool discover) const;
 
     /**
      * @brief Check if the cell is a dead end.
@@ -143,6 +164,11 @@ private:
      * @brief Layered costmap for the maze.
      */
     Costmap<width, height, Layer::NUM_OF_LAYERS> costmap;
+
+    /**
+     * @brief Graph of the maze for computing the best route.
+     */
+    MazeGraph graph;
 
     /**
      * @brief Start pose of the robot in the maze.

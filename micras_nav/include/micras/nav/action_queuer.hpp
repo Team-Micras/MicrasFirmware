@@ -5,9 +5,9 @@
 #ifndef MICRAS_NAV_ACTION_QUEUER_HPP
 #define MICRAS_NAV_ACTION_QUEUER_HPP
 
+#include <deque>
 #include <list>
 #include <memory>
-#include <queue>
 
 #include "micras/nav/actions/move.hpp"
 #include "micras/nav/actions/turn.hpp"
@@ -25,10 +25,9 @@ public:
         STOP = 0,
         START = 1,
         MOVE_FORWARD = 2,
-        MOVE_HALF = 3,
-        TURN_LEFT = 4,
-        TURN_RIGHT = 5,
-        TURN_BACK = 6,
+        TURN = 3,
+        SPIN = 4,
+        DIAGONAL = 5,
     };
 
     /**
@@ -58,12 +57,20 @@ public:
     explicit ActionQueuer(Config config);
 
     /**
-     * @brief Push an action to the queue.
+     * @brief Push an exploring action to the queue.
      *
      * @param current_pose Current pose of the robot.
      * @param target_position Target position to move to.
      */
-    void push(const GridPose& current_pose, const GridPoint& target_position);
+    void push_exploring(const GridPose& origin_pose, const GridPoint& target_position);
+
+    /**
+     * @brief Push a solving action to the queue.
+     *
+     * @param current_pose Current pose of the robot.
+     * @param target_angle Target pose to move to..
+     */
+    void push_solving(const GridPose& origin_pose, const GridPose& target_pose);
 
     /**
      * @brief Pop an action from the queue.
@@ -82,7 +89,14 @@ public:
     /**
      * @brief Fill the action queue with a sequence of actions to the end.
      */
-    void recompute(const std::list<GridPose>& best_route);
+    void recompute(const std::list<GridPose>& best_route, bool add_start = true);
+
+    /**
+     * @brief Get the total time to complete the actions in the queue.
+     *
+     * @return Total time to complete the actions in the queue.
+     */
+    float get_total_time() const;
 
 private:
     /**
@@ -98,7 +112,12 @@ private:
     /**
      * @brief Dynamic solving parameters.
      */
-    // Config::Dynamic solving_params;
+    Config::Dynamic solving_params;
+
+    /**
+     * @brief Solving linear speed of the robot when performing a curve.
+     */
+    float curve_linear_speed;
 
     /**
      * @brief Pre-built actions to use in the exploration.
@@ -116,7 +135,22 @@ private:
     /**
      * @brief Queue of actions to be performed.
      */
-    std::queue<std::shared_ptr<Action>> action_queue;
+    std::deque<std::shared_ptr<Action>> action_queue;
+};
+
+class ActionCost {
+public:
+    explicit ActionCost(const ActionQueuer::Config& config) : action_queuer(config) { }
+
+    float operator()(const GridPose& from, const GridPose& to) {
+        this->action_queuer.push_solving(from, to);
+        const float total_time = this->action_queuer.get_total_time();
+        this->action_queuer.recompute({}, false);
+
+        return total_time;
+    }
+
+    ActionQueuer action_queuer;
 };
 }  // namespace micras::nav
 

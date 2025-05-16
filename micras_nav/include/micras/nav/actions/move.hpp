@@ -18,7 +18,7 @@ public:
     /**
      * @brief Construct a new Move Action object.
      *
-     * @param action_id The ID of the action.
+     * @param action_type The type of the action to be performed.
      * @param distance Distance to move in meters.
      * @param start_speed Initial speed in m/s.
      * @param end_speed Final speed in m/s.
@@ -28,20 +28,23 @@ public:
      * @param follow_wall Whether the robot can follow wall while executing this action.
      */
     MoveAction(
-        uint8_t action_id, float distance, float start_speed, float end_speed, float max_speed, float max_acceleration,
-        float max_deceleration, bool follow_wall = true
+        uint8_t action_type, float distance, float start_speed, float end_speed, float max_speed,
+        float max_acceleration, float max_deceleration, bool follow_wall = true
     ) :
-        Action{action_id},
+        Action{{action_type, distance}, follow_wall},
+        positive_linear_speed_step{max_acceleration * Action::time_step},
+        negative_linear_speed_step{max_deceleration * Action::time_step},
         distance(distance),
         start_speed_2(start_speed * start_speed),
         end_speed_2(end_speed * end_speed),
         max_speed{max_speed},
         max_acceleration_doubled{2.0F * max_acceleration},
         max_deceleration_doubled{2.0F * max_deceleration},
-        follow_wall(follow_wall),
         decelerate_distance{
             (end_speed_2 - start_speed_2 + max_deceleration_doubled * distance) /
             (max_acceleration_doubled + max_deceleration_doubled)
+        },
+        total_time{calculate_total_time(distance, start_speed, end_speed, max_speed, max_acceleration, max_deceleration)
         } { }
 
     /**
@@ -58,13 +61,16 @@ public:
 
         if (current_distance < this->decelerate_distance) {
             twist = {
-                .linear = std::sqrt(this->start_speed_2 + this->max_acceleration_doubled * current_distance),
+                .linear = std::sqrt(this->start_speed_2 + this->max_acceleration_doubled * current_distance) +
+                          this->positive_linear_speed_step,
                 .angular = 0.0F,
             };
         } else {
             twist = {
-                .linear =
-                    std::sqrt(this->end_speed_2 + this->max_deceleration_doubled * (this->distance - current_distance)),
+                .linear = std::sqrt(
+                              this->end_speed_2 + this->max_deceleration_doubled * (this->distance - current_distance)
+                          ) -
+                          this->negative_linear_speed_step,
                 .angular = 0.0F,
             };
         }
@@ -83,13 +89,68 @@ public:
     bool finished(const Pose& pose) const override { return pose.position.magnitude() >= this->distance; }
 
     /**
-     * @brief Check if the action allows the robot to follow walls.
+     * @brief Get the total time it takes to perform the action.
      *
-     * @return True if the action allows the robot to follow walls, false otherwise.
+     * @return The total time of the action in seconds.
      */
-    bool allow_follow_wall() const override { return this->follow_wall; }
+    float get_total_time() const override { return this->total_time; }
+
+    /**
+     * @brief Reduce the distance to move and recalculate the total time.
+     *
+     * @param reduction Amount to reduce the distance in meters.
+     */
+    void trim_distance(float reduction) {
+        this->distance -= reduction;
+
+        this->decelerate_distance =
+            (this->end_speed_2 - this->start_speed_2 + this->max_deceleration_doubled * this->distance) /
+            (this->max_acceleration_doubled + this->max_deceleration_doubled);
+
+        this->total_time = calculate_total_time(
+            this->distance, std::sqrt(this->start_speed_2), std::sqrt(this->end_speed_2), this->max_speed,
+            this->max_acceleration_doubled / 2.0F, this->max_deceleration_doubled / 2.0F
+        );
+    }
 
 private:
+    /**
+     * @brief Calculate the total time to complete the action.
+     *
+     * @param distance Distance to move in meters.
+     * @param start_speed Initial speed in m/s.
+     * @param end_speed Final speed in m/s.
+     * @param max_speed Maximum speed in m/s.
+     * @param max_acceleration Maximum acceleration in m/s^2.
+     * @param max_deceleration Maximum deceleration in m/s^2.
+     * @return Total time to complete the action in seconds.
+     */
+    static constexpr float calculate_total_time(
+        float distance, float start_speed, float end_speed, float max_speed, float max_acceleration,
+        float max_deceleration
+    ) {
+        const float acceleration_time = (max_speed - start_speed) / max_acceleration;
+        const float deceleration_time = (max_speed - end_speed) / max_deceleration;
+
+        const float acceleration_distance =
+            (start_speed * start_speed + max_speed * max_speed) / (2.0F * max_acceleration);
+        const float deceleration_distance = (max_speed * max_speed + end_speed * end_speed) / (2.0F * max_deceleration);
+        const float constant_speed_distance = distance - acceleration_distance - deceleration_distance;
+        const float constant_speed_time = constant_speed_distance / max_speed;
+
+        return acceleration_time + deceleration_time + constant_speed_time;
+    }
+
+    /**
+     * @brief Linear speed step in m/s to the next loop when accelerating.
+     */
+    float positive_linear_speed_step{};
+
+    /**
+     * @brief Linear speed step in m/s to the next loop when decelerating.
+     */
+    float negative_linear_speed_step{};
+
     /**
      * @brief Distance to move in meters.
      */
@@ -121,14 +182,14 @@ private:
     float max_deceleration_doubled;
 
     /**
-     * @brief Whether the robot can follow walls while executing this action.
-     */
-    bool follow_wall;
-
-    /**
      * @brief Distance from the start where the robot should start to decelerate in meters.
      */
     float decelerate_distance;
+
+    /**
+     * @brief Total time to complete the action in seconds.
+     */
+    float total_time;
 };
 }  // namespace micras::nav
 
