@@ -100,9 +100,22 @@ public:
 
 private:
     /**
+     * @brief Join curves in the action queue.
+     *
+     * @param turn_it Iterator to the first of the turn actions.
+     * @return Iterator to the merged turn action.
+     */
+    std::deque<std::shared_ptr<Action>>::iterator join_curves(std::deque<std::shared_ptr<Action>>::iterator turn_it);
+
+    /**
      * @brief Size of the cells in the grid.
      */
     float cell_size;
+
+    /**
+     * @brief Distance of the robot to the on on the start cell.
+     */
+    float start_offset;
 
     /**
      * @brief Dynamic exploring parameters.

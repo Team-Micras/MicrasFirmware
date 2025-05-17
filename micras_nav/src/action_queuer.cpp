@@ -3,6 +3,7 @@
  */
 
 #include <cmath>
+#include <iterator>
 #include <numbers>
 
 #include "micras/nav/action_queuer.hpp"
@@ -11,6 +12,7 @@
 namespace micras::nav {
 ActionQueuer::ActionQueuer(Config config) :
     cell_size{config.cell_size},
+    start_offset{config.start_offset},
     exploring_params{config.exploring},
     solving_params{config.solving},
     curve_linear_speed{std::sqrt(config.solving.max_centrifugal_acceleration * config.solving.curve_radius)},
@@ -172,11 +174,45 @@ void ActionQueuer::recompute(const std::list<GridPose>& best_route, bool add_sta
         return;
     }
 
-    for (auto it = std::next(best_route.begin()); std::next(it) != best_route.end(); it++) {
-        this->push_solving(*it, *std::next(it));
-        uint16_t last_index = this->action_queue.size() - 1;
+    for (auto route_it = std::next(best_route.begin()); std::next(route_it) != best_route.end(); route_it++) {
+        this->push_solving(*route_it, *std::next(route_it));
+    }
 
-        if (this->action_queue.back()->get_id().type == ActionType::DIAGONAL) { }
+    float start_distance = this->start_offset;
+
+    if (this->action_queue.front()->get_id().type == ActionType::MOVE_FORWARD) {
+        start_distance += this->action_queue.front()->get_id().value;
+        this->action_queue.pop_front();
+    }
+
+    this->action_queue.emplace_front(std::make_shared<MoveAction>(
+        ActionType::MOVE_FORWARD, start_distance, 0.0F, this->curve_linear_speed, this->solving_params.max_linear_speed,
+        this->solving_params.max_linear_acceleration, this->solving_params.max_linear_deceleration
+    ));
+    this->action_queue.emplace_back(stop);
+
+    for (auto action_it = this->action_queue.begin(); action_it != this->action_queue.end();) {
+        if ((*action_it)->get_id().type != ActionType::DIAGONAL) {
+            auto before_diagonal_it = std::prev(action_it, 2);
+
+            if ((*before_diagonal_it)->get_id().type == ActionType::TURN) {
+                action_it = std::next(this->join_curves(before_diagonal_it));
+            }
+
+            auto last_straight = *std::prev(action_it, 2);
+            (*last_straight) -= std::tan(std::numbers::pi_v<float> / 8.0F) * this->cell_size;
+
+            auto after_diagonal_it = std::next(action_it, 2);
+
+            if ((*after_diagonal_it)->get_id().type == ActionType::TURN) {
+                action_it = std::prev(this->join_curves(std::prev(after_diagonal_it)));
+            }
+
+            auto next_straight = *std::next(action_it, 2);
+            (*next_straight) -= std::tan(std::numbers::pi_v<float> / 8.0F) * this->cell_size;
+        }
+
+        action_it++;
     }
 }
 
@@ -188,5 +224,15 @@ float ActionQueuer::get_total_time() const {
     }
 
     return total_time;
+}
+
+std::deque<std::shared_ptr<Action>>::iterator
+    ActionQueuer::join_curves(std::deque<std::shared_ptr<Action>>::iterator turn_it) {
+    const float turn_angle = (*turn_it)->get_id().value;
+
+    turn_it = this->action_queue.erase(turn_it);
+    (**turn_it) += turn_angle;
+
+    return turn_it;
 }
 }  // namespace micras::nav

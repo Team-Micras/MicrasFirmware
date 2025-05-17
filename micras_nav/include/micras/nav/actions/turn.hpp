@@ -88,6 +88,31 @@ public:
      */
     float get_total_time() const override { return this->total_time; }
 
+    /**
+     * @brief Increment the angle to move by a certain value.
+     *
+     * @param value_increment The increment value.
+     * @return A reference to the current action.
+     */
+    TurnAction& operator+=(float value_increment) override {
+        Action::operator+=(value_increment);
+        this->angle += value_increment;
+
+        this->max_angular_speed =
+            calculate_max_angular_speed(this->angle, this->linear_speed, this->max_angular_speed, this->acceleration);
+        this->total_time = calculate_total_time(this->angle, this->max_angular_speed, this->acceleration);
+
+        return *this;
+    }
+
+    /**
+     * @brief Decrement the angle to move by a certain value.
+     *
+     * @param value_increment The decrement value.
+     * @return A reference to the current action.
+     */
+    TurnAction& operator-=(float value_increment) override { return *this += -value_increment; }
+
 private:
     /**
      * @brief Calculate the maximum angular speed for a given curve radius and linear speed.

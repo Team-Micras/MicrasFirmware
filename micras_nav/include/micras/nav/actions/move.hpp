@@ -96,12 +96,14 @@ public:
     float get_total_time() const override { return this->total_time; }
 
     /**
-     * @brief Reduce the distance to move and recalculate the total time.
+     * @brief Increment the distance to move by a certain value.
      *
-     * @param reduction Amount to reduce the distance in meters.
+     * @param value_increment The increment value.
+     * @return A reference to the current action.
      */
-    void trim_distance(float reduction) {
-        this->distance -= reduction;
+    MoveAction& operator+=(float value_increment) override {
+        Action::operator+=(value_increment);
+        this->distance += value_increment;
 
         this->decelerate_distance =
             (this->end_speed_2 - this->start_speed_2 + this->max_deceleration_doubled * this->distance) /
@@ -111,7 +113,17 @@ public:
             this->distance, std::sqrt(this->start_speed_2), std::sqrt(this->end_speed_2), this->max_speed,
             this->max_acceleration_doubled / 2.0F, this->max_deceleration_doubled / 2.0F
         );
+
+        return *this;
     }
+
+    /**
+     * @brief Decrement the distance to move by a certain value.
+     *
+     * @param value_increment The decrement value.
+     * @return A reference to the current action.
+     */
+    MoveAction& operator-=(float value_increment) override { return *this += -value_increment; }
 
 private:
     /**

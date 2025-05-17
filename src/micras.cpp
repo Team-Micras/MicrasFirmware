@@ -189,7 +189,7 @@ void Micras::save_best_route() {
 
 void Micras::load_best_route() {
     this->maze_storage.sync("maze", this->maze);
-    this->action_queuer.recompute(this->maze.get_best_route());
+    this->action_queuer.recompute(this->maze.get_best_route(), false);
 }
 
 core::Objective Micras::get_objective() const {

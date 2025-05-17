@@ -72,10 +72,10 @@ public:
      * @brief Compute the best route on the graph using the dijkstra algorithm.
      *
      * @param start The starting node.
-     * @param end The ending node.
+     * @param end A set of ending nodes.
      * @return A list of poses representing the best route from start to end.
      */
-    std::list<GridPose> get_best_route(const GridPose& start, const GridPose& end);
+    std::list<GridPose> get_best_route(const GridPose& start, const std::unordered_set<GridPoint>& end);
 
 private:
     /**
