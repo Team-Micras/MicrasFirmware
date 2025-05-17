@@ -14,7 +14,7 @@
 namespace micras::nav {
 template <uint8_t width, uint8_t height>
 TMaze<width, height>::TMaze(Config config, EdgeCostFunction edge_cost_function) : TMaze(config) {
-    this->graph.set_edge_cost_function(edge_cost_function);
+    this->graph = MazeGraph{std::move(edge_cost_function)};
 }
 
 template <uint8_t width, uint8_t height>
@@ -78,7 +78,7 @@ template <uint8_t width, uint8_t height>
 GridPose TMaze<width, height>::get_next_goal(const GridPose& pose, bool returning) {
     if (returning and not this->finished_discovery) {
         this->compute_minimum_cost();
-        const auto& next_goal = this->get_next_bfs_goal(pose, true);
+        const auto& [next_goal, _] = this->get_next_bfs_goal(pose, true);
 
         if (next_goal != this->start) {
             return next_goal;

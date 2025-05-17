@@ -4,6 +4,7 @@
 
 #include <limits>
 #include <queue>
+#include <unordered_set>
 #include <utility>
 
 #include "micras/nav/maze_graph.hpp"
@@ -119,7 +120,7 @@ void MazeGraph::add_extra_edges(const GridPose& start) {
     }
 }
 
-std::list<GridPose> MazeGraph::get_best_route(const GridPose& start, const GridPose& end) {
+std::list<GridPose> MazeGraph::get_best_route(const GridPose& start, const std::unordered_set<GridPoint>& end) {
     std::unordered_map<GridPose, float>    distance;
     std::unordered_map<GridPose, GridPose> previous;
     std::unordered_set<GridPose>           visited;
@@ -136,39 +137,38 @@ std::list<GridPose> MazeGraph::get_best_route(const GridPose& start, const GridP
 
     distance[start] = 0;
     queue.push(start);
+    GridPose current_pose = start;
 
     while (!queue.empty()) {
-        const GridPose current_pose = queue.top();
         queue.pop();
+        current_pose = queue.top();
 
         if (visited.contains(current_pose)) {
             continue;
         }
 
-        if (current_pose == end) {
+        if (end.contains(current_pose.position)) {
             break;
         }
 
         visited.insert(current_pose);
 
         for (const auto& [next_pose, edge_cost] : this->graph.at(current_pose).next_costs) {
-            if (distance.at(current_pose) > (distance.at(current_pose) + edge_cost)) {
+            if (distance.at(next_pose) > distance.at(current_pose) + edge_cost) {
                 previous[next_pose] = current_pose;
-                distance.at(current_pose) = distance.at(current_pose) + edge_cost;
+                distance[next_pose] = distance.at(current_pose) + edge_cost;
                 queue.push(next_pose);
             }
         }
     }
 
     std::list<GridPose> route;
-    GridPose            current_pose = end;
 
     while (current_pose != start) {
         route.push_front(current_pose);
         current_pose = previous.at(current_pose);
     }
 
-    route.push_front(start);
     return route;
 }
 }  // namespace micras::nav
