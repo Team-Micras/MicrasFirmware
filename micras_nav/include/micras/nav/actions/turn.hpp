@@ -52,17 +52,18 @@ public:
      * @details The desired velocity is calculated from the angular displacement based on the Torricelli equation.
      */
     Twist get_speeds(const Pose& pose) const override {
-        Twist twist{};
+        Twist       twist{};
+        const float current_orientation = std::abs(pose.orientation);
 
-        if (pose.orientation < std::abs(this->angle)) {
+        if (current_orientation < std::abs(this->angle)) {
             twist = {
                 .linear = linear_speed,
-                .angular = std::sqrt(2.0F * this->acceleration * pose.orientation) + this->angular_speed_step,
+                .angular = std::sqrt(2.0F * this->acceleration * current_orientation) + this->angular_speed_step,
             };
         } else {
             twist = {
                 .linear = linear_speed,
-                .angular = std::sqrt(2.0F * this->acceleration * (std::abs(this->angle) - pose.orientation)) -
+                .angular = std::sqrt(2.0F * this->acceleration * (std::abs(this->angle) - current_orientation)) -
                            this->angular_speed_step,
             };
         }
