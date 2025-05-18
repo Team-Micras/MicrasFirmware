@@ -169,6 +169,8 @@ std::list<GridPose> MazeGraph::get_best_route(const GridPose& start, const std::
         current_pose = previous.at(current_pose);
     }
 
+    route.push_front(start);
+
     return route;
 }
 }  // namespace micras::nav
