@@ -193,7 +193,7 @@ void ActionQueuer::recompute(const std::list<GridPose>& best_route, bool add_sta
     this->action_queue.emplace_back(stop);
 
     for (auto action_it = this->action_queue.begin(); action_it != this->action_queue.end();) {
-        if ((*action_it)->get_id().type != ActionType::DIAGONAL) {
+        if ((*action_it)->get_id().type == ActionType::DIAGONAL) {
             auto before_diagonal_it = std::prev(action_it, 2);
 
             if ((*before_diagonal_it)->get_id().type == ActionType::TURN) {
