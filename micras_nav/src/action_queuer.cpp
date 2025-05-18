@@ -13,9 +13,10 @@ namespace micras::nav {
 ActionQueuer::ActionQueuer(Config config) :
     cell_size{config.cell_size},
     start_offset{config.start_offset},
+    curve_linear_speed{std::sqrt(config.solving.max_centrifugal_acceleration * config.solving.curve_radius)},
+    straight_trim_distance{std::tan(std::numbers::pi_v<float> / 8.0F) * cell_size / 2.0F},
     exploring_params{config.exploring},
     solving_params{config.solving},
-    curve_linear_speed{std::sqrt(config.solving.max_centrifugal_acceleration * config.solving.curve_radius)},
     stop{std::make_shared<MoveAction>(
         ActionType::STOP, cell_size / 2.0F, exploring_params.max_linear_speed, 0.0F, exploring_params.max_linear_speed,
         exploring_params.max_linear_acceleration, exploring_params.max_linear_deceleration, false
@@ -133,7 +134,7 @@ void ActionQueuer::push_solving(const GridPose& origin_pose, const GridPose& tar
 
     float distance =
         origin_pose.position.to_vector(this->cell_size).distance(target_position.to_vector(this->cell_size)) -
-        std::tan(std::numbers::pi_v<float> / 8.0F) * this->cell_size;
+        2.0F * this->straight_trim_distance;
 
     if (not keep_direction) {
         turn_angle *= -1.0F;
@@ -200,7 +201,7 @@ void ActionQueuer::recompute(const std::list<GridPose>& best_route, bool add_sta
             }
 
             auto last_straight = *std::prev(action_it, 2);
-            (*last_straight) -= std::tan(std::numbers::pi_v<float> / 8.0F) * this->cell_size;
+            this->trim_straight(*last_straight);
 
             auto after_diagonal_it = std::next(action_it, 2);
 
@@ -209,7 +210,7 @@ void ActionQueuer::recompute(const std::list<GridPose>& best_route, bool add_sta
             }
 
             auto next_straight = *std::next(action_it, 2);
-            (*next_straight) -= std::tan(std::numbers::pi_v<float> / 8.0F) * this->cell_size;
+            this->trim_straight(*next_straight);
         }
 
         action_it++;
@@ -224,6 +225,14 @@ float ActionQueuer::get_total_time() const {
     }
 
     return total_time;
+}
+
+void ActionQueuer::trim_straight(Action& straight_action) const {
+    if (straight_action.get_id().type == ActionType::DIAGONAL) {
+        straight_action -= this->cell_size / 2.0F - this->straight_trim_distance;
+    } else {
+        straight_action -= this->straight_trim_distance;
+    }
 }
 
 std::deque<std::shared_ptr<Action>>::iterator
