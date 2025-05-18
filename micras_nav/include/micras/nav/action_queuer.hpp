@@ -100,6 +100,13 @@ public:
 
 private:
     /**
+     * @brief Trim the edge of a straight action.
+     *
+     * @param straight_action Straight action to trim.
+     */
+    void trim_straight(Action& straight_action) const;
+
+    /**
      * @brief Join curves in the action queue.
      *
      * @param turn_it Iterator to the first of the turn actions.
@@ -118,6 +125,16 @@ private:
     float start_offset;
 
     /**
+     * @brief Solving linear speed of the robot when performing a curve.
+     */
+    float curve_linear_speed;
+
+    /**
+     * @brief Distance to trim from the straight actions.
+     */
+    float straight_trim_distance;
+
+    /**
      * @brief Dynamic exploring parameters.
      */
     Config::Dynamic exploring_params;
@@ -126,11 +143,6 @@ private:
      * @brief Dynamic solving parameters.
      */
     Config::Dynamic solving_params;
-
-    /**
-     * @brief Solving linear speed of the robot when performing a curve.
-     */
-    float curve_linear_speed;
 
     /**
      * @brief Pre-built actions to use in the exploration.
