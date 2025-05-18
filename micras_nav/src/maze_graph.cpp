@@ -61,8 +61,8 @@ void MazeGraph::remove_extra_nodes(const GridPose& start) {
                     this->add_edge(current_pose, next_next);
 
                     if (next_node.prev.empty()) {
-                        this->graph.erase(next_node.pose);
                         this->graph.at(next_next).prev.erase(next_node.pose);
+                        this->graph.erase(next_node.pose);
                     }
 
                     next_it = current_node.next_costs.begin();
