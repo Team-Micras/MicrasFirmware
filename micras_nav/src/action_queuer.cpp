@@ -175,19 +175,19 @@ void ActionQueuer::recompute(const std::list<GridPose>& best_route, bool add_sta
         return;
     }
 
-    for (auto route_it = std::next(best_route.begin()); std::next(route_it) != best_route.end(); route_it++) {
+    for (auto route_it = best_route.begin(); std::next(route_it) != best_route.end(); route_it++) {
         this->push_solving(*route_it, *std::next(route_it));
     }
 
-    float start_distance = this->start_offset;
+    float start_distance = this->cell_size - this->start_offset;
 
     if (this->action_queue.front()->get_id().type == ActionType::MOVE_FORWARD) {
-        start_distance += this->action_queue.front()->get_id().value;
+        start_distance += this->action_queue.front()->get_id().value - this->cell_size;
         this->action_queue.pop_front();
     }
 
     this->action_queue.emplace_front(std::make_shared<MoveAction>(
-        ActionType::MOVE_FORWARD, start_distance, 0.0F, this->curve_linear_speed, this->solving_params.max_linear_speed,
+        ActionType::START, start_distance, 0.0F, this->curve_linear_speed, this->solving_params.max_linear_speed,
         this->solving_params.max_linear_acceleration, this->solving_params.max_linear_deceleration
     ));
     this->action_queue.emplace_back(stop);
