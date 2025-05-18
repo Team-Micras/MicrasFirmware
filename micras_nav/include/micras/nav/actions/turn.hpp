@@ -55,7 +55,7 @@ public:
         Twist       twist{};
         const float current_orientation = std::abs(pose.orientation);
 
-        if (current_orientation < std::abs(this->angle)) {
+        if (current_orientation < std::abs(this->angle) / 2.0F) {
             twist = {
                 .linear = linear_speed,
                 .angular = std::sqrt(2.0F * this->acceleration * current_orientation) + this->angular_speed_step,
