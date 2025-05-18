@@ -155,7 +155,7 @@ void ActionQueuer::push_solving(const GridPose& origin_pose, const GridPose& tar
 }
 
 std::shared_ptr<Action> ActionQueuer::pop() {
-    const auto& action = this->action_queue.front();
+    auto action = this->action_queue.front();
     this->action_queue.pop_front();
     return action;
 }
