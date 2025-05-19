@@ -124,7 +124,8 @@ void ActionQueuer::push_solving(const GridPose& origin_pose, const GridPose& tar
     const bool      keep_direction = (origin_pose.orientation == target_pose.orientation);
     const GridPoint target_position = (keep_direction ? target_pose : target_pose.turned_back().front()).position;
 
-    if (std::abs(target_position.x - origin_pose.position.x) != std::abs(target_position.y - origin_pose.position.y)) {
+    if (std::abs(target_position.x - origin_pose.position.x) != std::abs(target_position.y - origin_pose.position.y) or
+        origin_pose.turned_right().get_relative_side(target_position) != Side::LEFT) {
         return;
     }
 
@@ -148,8 +149,7 @@ void ActionQueuer::push_solving(const GridPose& origin_pose, const GridPose& tar
 
     if (not keep_direction) {
         turn_angle *= -1.0F;
-    } else {
-        distance += std::numbers::sqrt2_v<float> / 2;
+        distance += this->cell_size * std::numbers::sqrt2_v<float> / 2;
     }
 
     this->action_queue.emplace_back(std::make_shared<MoveAction>(
@@ -232,6 +232,10 @@ float ActionQueuer::get_total_time() const {
 
     for (const auto& action : this->action_queue) {
         total_time += action->get_total_time();
+    }
+
+    if (this->action_queue.size() == 3 and this->action_queue.at(1)->get_id().type == ActionType::DIAGONAL) {
+        total_time -= 2.0F * this->straight_trim_distance / this->solving_params.max_linear_speed;
     }
 
     return total_time;
