@@ -16,7 +16,7 @@ namespace micras::nav {
  *
  * @details This factor is determined by analyzing the graph of the maximum angular speed.
  */
-static constexpr float correction_factor{0.95F};
+static constexpr float correction_factor{1.9F};
 
 /**
  * @brief Action to turn the robot following a curve radius.
