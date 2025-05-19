@@ -26,6 +26,7 @@ constexpr float    wall_thickness{0.0126F};
 constexpr float    start_offset{0.04F + wall_thickness / 2.0F};
 constexpr float    exploration_speed{0.5F};
 constexpr float    max_linear_acceleration{1.0F};
+constexpr float    max_linear_deceleration{2.0F};
 constexpr float    max_angular_acceleration{200.0F};
 constexpr float    crash_acceleration{20.0F};
 
@@ -55,7 +56,7 @@ const nav::ActionQueuer::Config action_queuer_config{
         {
             .max_linear_speed = exploration_speed,
             .max_linear_acceleration = max_linear_acceleration,
-            .max_linear_deceleration = max_linear_acceleration,
+            .max_linear_deceleration = max_linear_deceleration,
             .curve_radius = cell_size / 2.0F,
             .max_centrifugal_acceleration = 2.78F,
             .max_angular_acceleration = max_angular_acceleration,
@@ -64,7 +65,7 @@ const nav::ActionQueuer::Config action_queuer_config{
         {
             .max_linear_speed = exploration_speed,
             .max_linear_acceleration = max_linear_acceleration,
-            .max_linear_deceleration = max_linear_acceleration,
+            .max_linear_deceleration = max_linear_deceleration,
             .curve_radius = cell_size / 2.0F,
             .max_centrifugal_acceleration = 1.0F,
             .max_angular_acceleration = max_angular_acceleration,
