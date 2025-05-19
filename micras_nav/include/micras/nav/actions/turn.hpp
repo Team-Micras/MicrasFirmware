@@ -136,10 +136,11 @@ private:
         }
 
         const float radius_speed_ratio = curve_radius / linear_speed;
-        const float discriminant = std::pow(radius_speed_ratio, 2.0F) -
-                                   (2.0F * (1 - std::cos(angle))) / (correction_factor * max_angular_acceleration);
+        const float quadratic_term =
+            1.0F / (std::pow(1 - std::cos(angle), 2.0F) * correction_factor * max_angular_acceleration);
+        const float discriminant = std::pow(radius_speed_ratio, 2.0F) - 4.0F * quadratic_term;
 
-        return correction_factor * max_angular_acceleration * (radius_speed_ratio - std::sqrt(discriminant));
+        return (radius_speed_ratio - std::sqrt(discriminant)) / (2.0F * quadratic_term);
     }
 
     static constexpr float calculate_total_time(float angle, float max_angular_speed, float max_angular_acceleration) {
