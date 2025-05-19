@@ -29,7 +29,6 @@ public:
         uint8_t action_type, float angle, float curve_radius, float linear_speed, float max_angular_acceleration
     ) :
         Action{{action_type, angle}, false},
-        angular_speed_step{max_angular_acceleration * Action::time_step},
         angle{angle},
         linear_speed{linear_speed},
         acceleration{max_angular_acceleration},
@@ -39,30 +38,26 @@ public:
     /**
      * @brief Get the desired speeds for the robot to complete the action.
      *
-     * @param pose Current pose of the robot.
+     * @param time_step The time step for the action in seconds.
      * @return The desired speeds for the robot to complete the action.
-     *
-     * @details The desired velocity is calculated from the angular displacement based on the Torricelli equation.
      */
-    Twist get_speeds(const Pose& pose) const override {
-        Twist       twist{};
-        const float current_orientation = std::abs(pose.orientation);
+    Twist get_speeds(float time_step) override {
+        this->elapsed_time += time_step;
+        Twist twist{};
 
-        if (current_orientation < std::abs(this->angle) / 2.0F) {
+        if (this->elapsed_time < this->total_time / 2.0F) {
             twist = {
                 .linear = linear_speed,
-                .angular = std::sqrt(2.0F * this->acceleration * current_orientation) + this->angular_speed_step,
+                .angular = this->acceleration * this->elapsed_time,
             };
         } else {
             twist = {
                 .linear = linear_speed,
-                .angular = std::sqrt(2.0F * this->acceleration * (std::abs(this->angle) - current_orientation)) -
-                           this->angular_speed_step,
+                .angular = this->acceleration * (this->total_time - this->elapsed_time),
             };
         }
 
-        twist.angular =
-            std::copysign(std::clamp(twist.angular, -this->max_angular_speed, this->max_angular_speed), this->angle);
+        twist.angular = std::copysign(std::clamp(twist.angular, 0.0F, this->max_angular_speed), this->angle);
 
         return twist;
     }
@@ -70,10 +65,9 @@ public:
     /**
      * @brief Check if the action is finished.
      *
-     * @param pose Current pose of the robot.
      * @return True if the action is finished, false otherwise.
      */
-    bool finished(const Pose& pose) const override { return std::abs(pose.orientation) >= std::abs(this->angle); }
+    bool finished() const override { return this->elapsed_time >= this->total_time; }
 
     /**
      * @brief Get the total time it takes to perform the action.
@@ -137,16 +131,19 @@ private:
         return (radius_speed_ratio - std::sqrt(discriminant)) / (2.0F * quadratic_term);
     }
 
+    /**
+     * @brief Calculate the total time to complete the action.
+     *
+     * @param angle Angle to turn in radians.
+     * @param max_angular_speed Maximum angular speed in rad/s.
+     * @param max_angular_acceleration Maximum angular acceleration in rad/s^2.
+     * @return Total time to complete the action in seconds.
+     */
     static constexpr float calculate_total_time(float angle, float max_angular_speed, float max_angular_acceleration) {
         const float acceleration_time = max_angular_speed / max_angular_acceleration;
 
         return std::abs(angle) / max_angular_speed + acceleration_time;
     }
-
-    /**
-     * @brief Angular step in radians to the next loop.
-     */
-    float angular_speed_step;
 
     /**
      * @brief Angle to turn in radians.
@@ -172,6 +169,11 @@ private:
      * @brief Total time to complete the action in seconds.
      */
     float total_time;
+
+    /**
+     * @brief Elapsed time in seconds since the action started.
+     */
+    float elapsed_time{};
 };
 }  // namespace micras::nav
 

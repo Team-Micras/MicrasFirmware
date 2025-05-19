@@ -32,50 +32,39 @@ public:
         float max_acceleration, float max_deceleration, bool follow_wall = true
     ) :
         Action{{action_type, distance}, follow_wall},
-        positive_linear_speed_step{max_acceleration * Action::time_step},
-        negative_linear_speed_step{max_deceleration * Action::time_step},
         distance(distance),
-        start_speed_2(start_speed * start_speed),
-        end_speed_2(end_speed * end_speed),
+        start_speed(start_speed),
+        end_speed(end_speed),
         max_speed{max_speed},
-        max_acceleration_doubled{2.0F * max_acceleration},
-        max_deceleration_doubled{2.0F * max_deceleration},
-        decelerate_distance{
-            (end_speed_2 - start_speed_2 + max_deceleration_doubled * distance) /
-            (max_acceleration_doubled + max_deceleration_doubled)
-        },
+        max_acceleration{max_acceleration},
+        max_deceleration{max_deceleration},
         total_time{calculate_total_time(distance, start_speed, end_speed, max_speed, max_acceleration, max_deceleration)
-        } { }
+        },
+        half_time{(end_speed - start_speed + max_deceleration * total_time) / (max_acceleration + max_deceleration)} { }
 
     /**
      * @brief Get the desired speeds for the robot to complete the action.
      *
-     * @param pose The current pose of the robot.
+     * @param time_step The time step for the action in seconds.
      * @return The desired speeds for the robot to complete the action.
-     *
-     * @details The desired velocity is calculated from the linear displacement based on the Torricelli equation.
      */
-    Twist get_speeds(const Pose& pose) const override {
-        const float current_distance = pose.position.magnitude();
-        Twist       twist{};
+    Twist get_speeds(float time_step) override {
+        this->elapsed_time += time_step;
+        Twist twist{};
 
-        if (current_distance < this->decelerate_distance) {
+        if (this->elapsed_time < this->half_time) {
             twist = {
-                .linear = std::sqrt(this->start_speed_2 + this->max_acceleration_doubled * current_distance) +
-                          this->positive_linear_speed_step,
+                .linear = this->start_speed + this->max_acceleration * this->elapsed_time,
                 .angular = 0.0F,
             };
         } else {
             twist = {
-                .linear = std::sqrt(
-                              this->end_speed_2 + this->max_deceleration_doubled * (this->distance - current_distance)
-                          ) -
-                          this->negative_linear_speed_step,
+                .linear = this->end_speed + this->max_deceleration * (this->total_time - this->elapsed_time),
                 .angular = 0.0F,
             };
         }
 
-        twist.linear = std::fminf(twist.linear, this->max_speed);
+        twist.linear = std::clamp(twist.linear, 0.0F, this->max_speed);
 
         return twist;
     }
@@ -83,10 +72,9 @@ public:
     /**
      * @brief Check if the action is finished.
      *
-     * @param pose The current pose of the robot.
      * @return True if the action is finished, false otherwise.
      */
-    bool finished(const Pose& pose) const override { return pose.position.magnitude() >= this->distance; }
+    bool finished() const override { return this->elapsed_time >= this->total_time; }
 
     /**
      * @brief Get the total time it takes to perform the action.
@@ -105,14 +93,13 @@ public:
         Action::operator+=(value_increment);
         this->distance += value_increment;
 
-        this->decelerate_distance =
-            (this->end_speed_2 - this->start_speed_2 + this->max_deceleration_doubled * this->distance) /
-            (this->max_acceleration_doubled + this->max_deceleration_doubled);
-
         this->total_time = calculate_total_time(
-            this->distance, std::sqrt(this->start_speed_2), std::sqrt(this->end_speed_2), this->max_speed,
-            this->max_acceleration_doubled / 2.0F, this->max_deceleration_doubled / 2.0F
+            this->distance, this->start_speed, this->end_speed, this->max_speed, this->max_acceleration,
+            this->max_deceleration
         );
+
+        this->half_time = (this->end_speed - this->start_speed + this->max_deceleration * this->total_time) /
+                          (this->max_acceleration + this->max_deceleration);
 
         return *this;
     }
@@ -154,29 +141,19 @@ private:
     }
 
     /**
-     * @brief Linear speed step in m/s to the next loop when accelerating.
-     */
-    float positive_linear_speed_step{};
-
-    /**
-     * @brief Linear speed step in m/s to the next loop when decelerating.
-     */
-    float negative_linear_speed_step{};
-
-    /**
      * @brief Distance to move in meters.
      */
     float distance;
 
     /**
-     * @brief Initial speed squared.
+     * @brief Initial linear speed in m/s.
      */
-    float start_speed_2;
+    float start_speed;
 
     /**
-     * @brief Final speed squared.
+     * @brief Final linear speed in m/s.
      */
-    float end_speed_2;
+    float end_speed;
 
     /**
      * @brief Maximum linear speed in m/s.
@@ -184,24 +161,29 @@ private:
     float max_speed;
 
     /**
-     * @brief Maximum linear acceleration multiplied by 2.
+     * @brief Maximum linear acceleration.
      */
-    float max_acceleration_doubled;
+    float max_acceleration;
 
     /**
-     * @brief Maximum linear deceleration multiplied by 2.
+     * @brief Maximum linear deceleration.
      */
-    float max_deceleration_doubled;
-
-    /**
-     * @brief Distance from the start where the robot should start to decelerate in meters.
-     */
-    float decelerate_distance;
+    float max_deceleration;
 
     /**
      * @brief Total time to complete the action in seconds.
      */
     float total_time;
+
+    /**
+     * @brief Threshold time to start the deceleration phase.
+     */
+    float half_time{};
+
+    /**
+     * @brief Elapsed time in seconds since the action started.
+     */
+    float elapsed_time{};
 };
 }  // namespace micras::nav
 

@@ -33,18 +33,17 @@ public:
     /**
      * @brief Get the desired speeds for the robot.
      *
-     * @param pose The current pose of the robot.
+     * @param time_step The time step for the action in seconds.
      * @return The desired speeds for the robot.
      */
-    virtual Twist get_speeds(const Pose& pose) const = 0;
+    virtual Twist get_speeds(float time_step) = 0;
 
     /**
      * @brief Check if the action is finished.
      *
-     * @param pose The current pose of the robot.
      * @return True if the action is finished, false otherwise.
      */
-    virtual bool finished(const Pose& pose) const = 0;
+    virtual bool finished() const = 0;
 
     /**
      * @brief Get the total time it takes to perform the action.
@@ -88,11 +87,6 @@ public:
      * @return True if the action allows the robot to follow walls, false otherwise.
      */
     bool allow_follow_wall() const { return follow_wall; }
-
-    /**
-     * @brief Time step for the action in seconds.
-     */
-    static constexpr float time_step{0.001F};
 
 protected:
     /**
