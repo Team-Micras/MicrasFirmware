@@ -32,20 +32,22 @@ public:
         angle{angle},
         linear_speed{linear_speed},
         acceleration{max_angular_acceleration},
-        max_angular_speed{calculate_max_angular_speed(angle, curve_radius, linear_speed, max_angular_acceleration)},
-        total_time{calculate_total_time(angle, max_angular_speed, max_angular_acceleration)} { }
+        max_angular_speed{calculate_max_angular_speed(angle, curve_radius, linear_speed, max_angular_acceleration)} {
+        this->set_total_time(calculate_total_time(angle, max_angular_speed, max_angular_acceleration));
+    }
 
     /**
      * @brief Get the desired speeds for the robot to complete the action.
      *
+     * @param current_pose The current pose of the robot.
      * @param time_step The time step for the action in seconds.
      * @return The desired speeds for the robot to complete the action.
      */
-    Twist get_speeds(float time_step) override {
+    Twist get_speeds(const Pose& /*current_pose*/, float time_step) override {
         this->elapsed_time += time_step;
         Twist twist{};
 
-        if (this->elapsed_time < this->total_time / 2.0F) {
+        if (this->elapsed_time < this->get_total_time() / 2.0F) {
             twist = {
                 .linear = linear_speed,
                 .angular = this->acceleration * this->elapsed_time,
@@ -53,7 +55,7 @@ public:
         } else {
             twist = {
                 .linear = linear_speed,
-                .angular = this->acceleration * (this->total_time - this->elapsed_time),
+                .angular = this->acceleration * (this->get_total_time() - this->elapsed_time),
             };
         }
 
@@ -65,16 +67,10 @@ public:
     /**
      * @brief Check if the action is finished.
      *
+     * @param current_pose The current pose of the robot.
      * @return True if the action is finished, false otherwise.
      */
-    bool finished() const override { return this->elapsed_time >= this->total_time; }
-
-    /**
-     * @brief Get the total time it takes to perform the action.
-     *
-     * @return The total time of the action in seconds.
-     */
-    float get_total_time() const override { return this->total_time; }
+    bool finished(const Pose& /*current_pose*/) const override { return this->elapsed_time >= this->get_total_time(); }
 
     /**
      * @brief Increment the angle to move by a certain value.
@@ -85,10 +81,10 @@ public:
     TurnAction& operator+=(float value_increment) override {
         Action::operator+=(value_increment);
         this->angle += value_increment;
-
         this->max_angular_speed =
             calculate_max_angular_speed(this->angle, this->linear_speed, this->max_angular_speed, this->acceleration);
-        this->total_time = calculate_total_time(this->angle, this->max_angular_speed, this->acceleration);
+
+        this->set_total_time(calculate_total_time(this->angle, this->max_angular_speed, this->acceleration));
 
         return *this;
     }
@@ -164,11 +160,6 @@ private:
      * @brief Maximum angular speed in rad/s while turning.
      */
     float max_angular_speed;
-
-    /**
-     * @brief Total time to complete the action in seconds.
-     */
-    float total_time;
 
     /**
      * @brief Elapsed time in seconds since the action started.
