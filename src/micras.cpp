@@ -92,7 +92,7 @@ bool Micras::run() {
     const micras::nav::State& state = this->odometry.get_state();
     core::Observation         observation{};
 
-    if (this->current_action->finished()) {
+    if (this->current_action->finished(this->action_pose.get())) {
         if (this->finished) {
             this->finished = false;
             this->locomotion.stop();
@@ -137,7 +137,7 @@ bool Micras::run() {
         }
     }
 
-    this->desired_speeds = this->current_action->get_speeds(this->elapsed_time);
+    this->desired_speeds = this->current_action->get_speeds(this->action_pose.get(), this->elapsed_time);
 
     if (this->current_action->allow_follow_wall()) {
         this->desired_speeds.angular =

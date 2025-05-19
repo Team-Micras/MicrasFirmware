@@ -22,8 +22,11 @@ public:
      * @brief Constructor for the Action class.
      *
      * @param action_id The ID of the action.
+     * @param follow_wall Whether the robot can follow walls while executing this action.
+     * @param total_time The total time it takes to perform the action.
      */
-    Action(const Id& action_id, bool follow_wall) : id{action_id}, follow_wall{follow_wall} { }
+    Action(const Id& action_id, bool follow_wall, float total_time = 0.0F) :
+        id{action_id}, follow_wall{follow_wall}, total_time{total_time} { }
 
     /**
      * @brief Virtual destructor for the Action class.
@@ -33,24 +36,19 @@ public:
     /**
      * @brief Get the desired speeds for the robot.
      *
+     * @param current_pose The current pose of the robot.
      * @param time_step The time step for the action in seconds.
      * @return The desired speeds for the robot.
      */
-    virtual Twist get_speeds(float time_step) = 0;
+    virtual Twist get_speeds(const Pose& current_pose, float time_step) = 0;
 
     /**
      * @brief Check if the action is finished.
      *
+     * @param current_pose The current pose of the robot.
      * @return True if the action is finished, false otherwise.
      */
-    virtual bool finished() const = 0;
-
-    /**
-     * @brief Get the total time it takes to perform the action.
-     *
-     * @return The total time of the action in seconds.
-     */
-    virtual float get_total_time() const = 0;
+    virtual bool finished(const Pose& current_pose) const = 0;
 
     /**
      * @brief Increment the action ID value.
@@ -88,6 +86,20 @@ public:
      */
     bool allow_follow_wall() const { return follow_wall; }
 
+    /**
+     * @brief Get the total time it takes to perform the action.
+     *
+     * @return The total time of the action in seconds.
+     */
+    float get_total_time() const { return this->total_time; };
+
+    /**
+     * @brief Set the total time it takes to perform the action.
+     *
+     * @param total_time The total time of the action in seconds.
+     */
+    void set_total_time(float total_time) { this->total_time = total_time; }
+
 protected:
     /**
      * @brief Special member functions declared as default.
@@ -109,6 +121,11 @@ private:
      * @brief Whether the robot can follow walls while executing this action.
      */
     bool follow_wall;
+
+    /**
+     * @brief The total time it takes to perform the action.
+     */
+    float total_time;
 };
 }  // namespace micras::nav
 
