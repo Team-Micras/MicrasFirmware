@@ -12,13 +12,6 @@
 
 namespace micras::nav {
 /**
- * @brief Correction factor to adjust the maximum angular speed.
- *
- * @details This factor is determined by analyzing the graph of the maximum angular speed.
- */
-static constexpr float correction_factor{1.9F};
-
-/**
  * @brief Action to turn the robot following a curve radius.
  */
 class TurnAction : public Action {
@@ -134,7 +127,8 @@ private:
         if (linear_speed == 0.0F) {
             return max_angular_acceleration * 0.01F;
         }
-
+        const float correction_factor =
+            14.35F - 13.57F * std::cos(std::abs(angle) - 2) - 10.0F / max_angular_acceleration;
         const float radius_speed_ratio = curve_radius / linear_speed;
         const float quadratic_term =
             1.0F / (std::pow(1 - std::cos(angle), 2.0F) * correction_factor * max_angular_acceleration);
