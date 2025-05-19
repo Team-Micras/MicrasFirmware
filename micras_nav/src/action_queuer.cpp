@@ -147,8 +147,9 @@ void ActionQueuer::push_solving(const GridPose& origin_pose, const GridPose& tar
         origin_pose.position.to_vector(this->cell_size).distance(target_position.to_vector(this->cell_size)) -
         2.0F * this->straight_trim_distance;
 
-    if (not keep_direction) {
+    if (keep_direction) {
         turn_angle *= -1.0F;
+    } else {
         distance += this->cell_size * std::numbers::sqrt2_v<float> / 2;
     }
 
