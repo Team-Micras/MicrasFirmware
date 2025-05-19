@@ -30,11 +30,7 @@ void CommunicationService::update_incoming_packets() {
         if (CommunicationService::has_valid_packet_tail(this->incoming_data_queue)) {
             const std::vector<uint8_t> packet_data =
                 CommunicationService::extract_valid_packet(this->incoming_data_queue);
-
-            if (Packet::is_valid(packet_data)) {  // check is redundant
-                this->incoming_packets.emplace(packet_data);
-            }
-
+            this->incoming_packets.emplace(packet_data);
             this->incoming_data_queue.clear();
         }
     }
@@ -45,7 +41,7 @@ bool CommunicationService::has_valid_packet_tail(const std::deque<uint8_t>& queu
         return false;
     }
 
-    return (queue[queue.size() - 1] != Packet::escape_byte && queue.back() == Packet::tail_byte);
+    return (queue[queue.size() - 2] != Packet::escape_byte && queue.back() == Packet::tail_byte);
 }
 
 std::vector<uint8_t> CommunicationService::extract_valid_packet(std::deque<uint8_t>& queue) {
