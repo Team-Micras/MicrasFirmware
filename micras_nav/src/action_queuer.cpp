@@ -155,7 +155,7 @@ void ActionQueuer::push_solving(const GridPose& origin_pose, const GridPose& tar
     this->action_queue.emplace_back(std::make_shared<MoveAction>(
         ActionType::DIAGONAL, distance, this->curve_linear_speed, this->curve_linear_speed,
         this->solving_params.max_linear_speed, this->solving_params.max_linear_acceleration,
-        this->solving_params.max_linear_deceleration
+        this->solving_params.max_linear_deceleration, false
     ));
 
     this->action_queue.emplace_back(std::make_shared<TurnAction>(
