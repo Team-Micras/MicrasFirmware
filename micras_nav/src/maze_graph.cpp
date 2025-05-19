@@ -140,8 +140,8 @@ std::list<GridPose> MazeGraph::get_best_route(const GridPose& start, const std::
     GridPose current_pose = start;
 
     while (!queue.empty()) {
-        queue.pop();
         current_pose = queue.top();
+        queue.pop();
 
         if (visited.contains(current_pose)) {
             continue;
