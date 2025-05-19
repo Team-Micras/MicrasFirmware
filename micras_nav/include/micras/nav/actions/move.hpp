@@ -85,7 +85,7 @@ public:
      * @param pose The current pose of the robot.
      * @return True if the action is finished, false otherwise.
      */
-    bool finished(const Pose& pose) const override { return pose.position.magnitude() >= this->distance; }
+    bool finished(const Pose& pose) override { return pose.position.magnitude() >= this->distance; }
 
     /**
      * @brief Increment the distance to move by a certain value.
