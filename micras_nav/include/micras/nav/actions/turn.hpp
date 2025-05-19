@@ -70,7 +70,14 @@ public:
      * @param current_pose The current pose of the robot.
      * @return True if the action is finished, false otherwise.
      */
-    bool finished(const Pose& /*current_pose*/) const override { return this->elapsed_time >= this->get_total_time(); }
+    bool finished(const Pose& /*current_pose*/) override {
+        if (this->elapsed_time >= this->get_total_time()) {
+            this->elapsed_time = 0.0F;
+            return true;
+        }
+
+        return false;
+    }
 
     /**
      * @brief Increment the angle to move by a certain value.

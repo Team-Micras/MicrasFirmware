@@ -48,7 +48,7 @@ public:
      * @param current_pose The current pose of the robot.
      * @return True if the action is finished, false otherwise.
      */
-    virtual bool finished(const Pose& current_pose) const = 0;
+    virtual bool finished(const Pose& current_pose) = 0;
 
     /**
      * @brief Increment the action ID value.
