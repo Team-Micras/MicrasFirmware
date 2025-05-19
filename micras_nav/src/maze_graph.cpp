@@ -53,8 +53,8 @@ void MazeGraph::remove_extra_nodes(const GridPose& start) {
             if (next_node.next_costs.size() == 1) {
                 const GridPose& next_next = next_node.next_costs.begin()->first;
 
-                if (next_next.orientation == current_pose.orientation or
-                    next_next.orientation == current_pose.turned_back().orientation) {
+                if (current_pose.orientation == next_node.pose.orientation and
+                    current_pose.orientation == next_next.orientation) {
                     current_node.next_costs.erase(next_it);
                     next_node.prev.erase(current_pose);
 

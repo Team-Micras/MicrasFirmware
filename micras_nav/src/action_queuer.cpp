@@ -75,6 +75,10 @@ void ActionQueuer::push_exploring(const GridPose& origin_pose, const GridPoint& 
 void ActionQueuer::push_solving(const GridPose& origin_pose, const GridPose& target_pose) {
     const Side relative_side = origin_pose.get_relative_side(target_pose.position);
 
+    if (origin_pose.position == target_pose.position or relative_side == Side::DOWN) {
+        return;
+    }
+
     if (relative_side == Side::UP and origin_pose.orientation == target_pose.orientation) {
         const float distance =
             origin_pose.position.to_vector(this->cell_size).distance(target_pose.position.to_vector(this->cell_size));
@@ -121,6 +125,12 @@ void ActionQueuer::push_solving(const GridPose& origin_pose, const GridPose& tar
     const GridPoint target_position = (keep_direction ? target_pose : target_pose.turned_back().front()).position;
 
     if (std::abs(target_position.x - origin_pose.position.x) != std::abs(target_position.y - origin_pose.position.y)) {
+        return;
+    }
+
+    if (not keep_direction and
+        target_pose.orientation != (relative_side == Side::LEFT ? origin_pose.turned_left().orientation :
+                                                                  origin_pose.turned_right().orientation)) {
         return;
     }
 
