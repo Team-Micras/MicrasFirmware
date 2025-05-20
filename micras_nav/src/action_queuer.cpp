@@ -7,14 +7,12 @@
 #include <numbers>
 
 #include "micras/nav/action_queuer.hpp"
-#include "micras/nav/actions/move.hpp"
 
 namespace micras::nav {
 ActionQueuer::ActionQueuer(Config config) :
     cell_size{config.cell_size},
     start_offset{config.start_offset},
     curve_linear_speed{std::sqrt(config.solving.max_centrifugal_acceleration * config.solving.curve_radius)},
-    straight_trim_distance{std::tan(std::numbers::pi_v<float> / 8.0F) * cell_size / 2.0F},
     exploring_params{config.exploring},
     solving_params{config.solving},
     stop{std::make_shared<MoveAction>(
@@ -144,8 +142,7 @@ void ActionQueuer::push_solving(const GridPose& origin_pose, const GridPose& tar
     ));
 
     float distance =
-        origin_pose.position.to_vector(this->cell_size).distance(target_position.to_vector(this->cell_size)) -
-        2.0F * this->straight_trim_distance;
+        origin_pose.position.to_vector(this->cell_size).distance(target_position.to_vector(this->cell_size));
 
     if (keep_direction) {
         turn_angle *= -1.0F;
@@ -203,28 +200,22 @@ void ActionQueuer::recompute(const std::list<GridPose>& best_route, bool add_sta
     ));
     this->action_queue.emplace_back(stop);
 
-    for (auto action_it = this->action_queue.begin(); action_it != this->action_queue.end();) {
-        if ((*action_it)->get_id().type == ActionType::DIAGONAL) {
-            auto before_diagonal_it = std::prev(action_it, 2);
-
-            if ((*before_diagonal_it)->get_id().type == ActionType::TURN) {
-                action_it = std::next(this->join_curves(before_diagonal_it));
-            }
-
-            auto last_straight = *std::prev(action_it, 2);
-            this->trim_straight(*last_straight);
-
-            auto after_diagonal_it = std::next(action_it, 2);
-
-            if ((*after_diagonal_it)->get_id().type == ActionType::TURN) {
-                action_it = std::prev(this->join_curves(std::prev(after_diagonal_it)));
-            }
-
-            auto next_straight = *std::next(action_it, 2);
-            this->trim_straight(*next_straight);
+    for (auto action_it = this->action_queue.begin(); action_it != this->action_queue.end(); action_it++) {
+        if ((*action_it)->get_id().type != ActionType::TURN or
+            std::abs((*action_it)->get_id().value) != std::numbers::pi_v<float> / 4.0F) {
+            continue;
         }
 
-        action_it++;
+        if ((*std::prev(action_it))->get_id().type == ActionType::TURN) {
+            action_it = this->join_curves(std::prev(action_it));
+        } else if ((*std::next(action_it))->get_id().type == ActionType::TURN) {
+            action_it = this->join_curves(action_it);
+        }
+
+        auto [trim_before_distance, trim_after_distance] = this->get_trim_distances(**action_it);
+
+        **std::prev(action_it) -= trim_before_distance;
+        **std::next(action_it) -= trim_after_distance;
     }
 }
 
@@ -235,19 +226,45 @@ float ActionQueuer::get_total_time() const {
         total_time += action->get_total_time();
     }
 
-    if (this->action_queue.size() == 3 and this->action_queue.at(1)->get_id().type == ActionType::DIAGONAL) {
-        total_time -= 2.0F * this->straight_trim_distance / this->solving_params.max_linear_speed;
-    }
-
     return total_time;
 }
 
-void ActionQueuer::trim_straight(Action& straight_action) const {
-    if (straight_action.get_id().type == ActionType::DIAGONAL) {
-        straight_action -= this->cell_size / 2.0F - this->straight_trim_distance;
-    } else {
-        straight_action -= this->straight_trim_distance;
+std::pair<float, float> ActionQueuer::get_trim_distances(const Action& turn_action) const {
+    const float turn_angle = std::abs(turn_action.get_id().value);
+    const float side_displacement = (1.0F - std::cos(turn_angle)) * this->cell_size / (2.0F * this->curve_linear_speed);
+
+    const float correction_factor = 14.12F - 13.3F * std::cos(turn_angle - 1.145F);
+    const float max_angular_speed = TurnAction::calculate_max_angular_speed(
+        turn_angle, this->cell_size / 2.0F, this->curve_linear_speed, this->solving_params.max_angular_acceleration
+    );
+    const float forward_displacement =
+        std::sin(turn_angle) / max_angular_speed +
+        max_angular_speed / (std::sin(turn_angle) * correction_factor * this->solving_params.max_angular_acceleration);
+
+    if (turn_angle == std::numbers::pi_v<float> / 4.0F) {
+        const float trim_before_distance = forward_displacement - side_displacement;
+        const float trim_after_distance = side_displacement * std::numbers::sqrt2_v<float>;
+
+        return {trim_before_distance, trim_after_distance};
     }
+
+    if (turn_angle == std::numbers::pi_v<float> / 2.0F) {
+        const float trim_distance = side_displacement;
+
+        return {trim_distance, trim_distance};
+    }
+
+    if (turn_angle == 3.0F * std::numbers::pi_v<float> / 4.0F) {
+        const float trim_before_distance =
+            forward_displacement + side_displacement - (this->cell_size * std::numbers::sqrt2_v<float> / 2.0F);
+        const float trim_after_distance =
+            (side_displacement - (this->cell_size * std::numbers::sqrt2_v<float> / 2.0F)) *
+            std::numbers::sqrt2_v<float>;
+
+        return {trim_before_distance, trim_after_distance};
+    }
+
+    return {0.0F, 0.0F};
 }
 
 std::deque<std::shared_ptr<Action>>::iterator
