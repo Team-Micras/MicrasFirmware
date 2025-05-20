@@ -238,8 +238,9 @@ std::pair<float, float> ActionQueuer::get_trim_distances(const Action& turn_acti
         turn_angle, this->cell_size / 2.0F, this->curve_linear_speed, this->solving_params.max_angular_acceleration
     );
     const float forward_displacement =
-        std::sin(turn_angle) / max_angular_speed +
-        max_angular_speed / (std::sin(turn_angle) * correction_factor * this->solving_params.max_angular_acceleration);
+        this->curve_linear_speed * (std::sin(turn_angle) / max_angular_speed +
+                                    max_angular_speed / (std::sin(turn_angle) * correction_factor *
+                                                         this->solving_params.max_angular_acceleration));
 
     if (turn_angle == std::numbers::pi_v<float> / 4.0F) {
         const float trim_before_distance = forward_displacement - side_displacement;
