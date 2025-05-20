@@ -104,7 +104,6 @@ public:
      */
     TurnAction& operator-=(float value_increment) override { return *this += -value_increment; }
 
-private:
     /**
      * @brief Calculate the maximum angular speed for a given curve radius and linear speed.
      *
@@ -134,6 +133,7 @@ private:
         return (radius_speed_ratio - std::sqrt(discriminant)) / (2.0F * quadratic_term);
     }
 
+private:
     /**
      * @brief Calculate the total time to complete the action.
      *

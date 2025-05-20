@@ -100,11 +100,12 @@ public:
 
 private:
     /**
-     * @brief Trim the edge of a straight action.
+     * @brief Get the trim distances for a turn action.
      *
-     * @param straight_action Straight action to trim.
+     * @param turn_action Turn action to get the trim distances for.
+     * @return Pair of trim distances before and after the turn.
      */
-    void trim_straight(Action& straight_action) const;
+    std::pair<float, float> get_trim_distances(const Action& turn_action) const;
 
     /**
      * @brief Join curves in the action queue.
@@ -128,11 +129,6 @@ private:
      * @brief Solving linear speed of the robot when performing a curve.
      */
     float curve_linear_speed;
-
-    /**
-     * @brief Distance to trim from the straight actions.
-     */
-    float straight_trim_distance;
 
     /**
      * @brief Dynamic exploring parameters.
