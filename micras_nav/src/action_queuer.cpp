@@ -231,7 +231,7 @@ float ActionQueuer::get_total_time() const {
 
 std::pair<float, float> ActionQueuer::get_trim_distances(const Action& turn_action) const {
     const float turn_angle = std::abs(turn_action.get_id().value);
-    const float side_displacement = (1.0F - std::cos(turn_angle)) * this->cell_size / (2.0F * this->curve_linear_speed);
+    const float side_displacement = (1.0F - std::cos(turn_angle)) * this->cell_size / 2.0F;
 
     const float correction_factor = 14.12F - 13.3F * std::cos(turn_angle - 1.145F);
     const float max_angular_speed = TurnAction::calculate_max_angular_speed(
@@ -257,9 +257,7 @@ std::pair<float, float> ActionQueuer::get_trim_distances(const Action& turn_acti
     if (turn_angle == 3.0F * std::numbers::pi_v<float> / 4.0F) {
         const float trim_before_distance =
             forward_displacement + side_displacement - (this->cell_size * std::numbers::sqrt2_v<float> / 2.0F);
-        const float trim_after_distance =
-            (side_displacement - (this->cell_size * std::numbers::sqrt2_v<float> / 2.0F)) *
-            std::numbers::sqrt2_v<float>;
+        const float trim_after_distance = std::numbers::sqrt2_v<float> * side_displacement - this->cell_size;
 
         return {trim_before_distance, trim_after_distance};
     }
