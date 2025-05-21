@@ -201,8 +201,7 @@ void ActionQueuer::recompute(const std::list<GridPose>& best_route, bool add_sta
     this->action_queue.emplace_back(stop);
 
     for (auto action_it = this->action_queue.begin(); action_it != this->action_queue.end(); action_it++) {
-        if ((*action_it)->get_id().type != ActionType::TURN or
-            std::abs((*action_it)->get_id().value) != std::numbers::pi_v<float> / 4.0F) {
+        if ((*action_it)->get_id().type != ActionType::TURN) {
             continue;
         }
 
@@ -212,7 +211,8 @@ void ActionQueuer::recompute(const std::list<GridPose>& best_route, bool add_sta
             action_it = this->join_curves(action_it);
         }
 
-        auto [trim_before_distance, trim_after_distance] = this->get_trim_distances(**action_it);
+        auto [trim_before_distance, trim_after_distance] =
+            this->get_trim_distances((*std::prev(action_it))->get_id(), **action_it);
 
         **std::prev(action_it) -= trim_before_distance;
         **std::next(action_it) -= trim_after_distance;
@@ -229,7 +229,8 @@ float ActionQueuer::get_total_time() const {
     return total_time;
 }
 
-std::pair<float, float> ActionQueuer::get_trim_distances(const Action& turn_action) const {
+std::pair<float, float>
+    ActionQueuer::get_trim_distances(const Action::Id& action_before, const Action& turn_action) const {
     const float turn_angle = std::abs(turn_action.get_id().value);
     const float side_displacement = (1.0F - std::cos(turn_angle)) * this->cell_size / 2.0F;
 
@@ -250,15 +251,28 @@ std::pair<float, float> ActionQueuer::get_trim_distances(const Action& turn_acti
     }
 
     if (turn_angle == std::numbers::pi_v<float> / 2.0F) {
-        const float trim_distance = side_displacement;
+        float trim_before_distance = forward_displacement;
+        float trim_after_distance = side_displacement;
 
-        return {trim_distance, trim_distance};
+        if (action_before.type == ActionType::MOVE_FORWARD) {
+            trim_before_distance -= this->cell_size / 2.0F;
+            trim_after_distance -= this->cell_size / 2.0F;
+        }
+
+        return {trim_before_distance, trim_after_distance};
     }
 
     if (turn_angle == 3.0F * std::numbers::pi_v<float> / 4.0F) {
-        const float trim_before_distance =
-            forward_displacement + side_displacement - (this->cell_size * std::numbers::sqrt2_v<float> / 2.0F);
-        const float trim_after_distance = std::numbers::sqrt2_v<float> * side_displacement - this->cell_size;
+        float trim_before_distance = forward_displacement + side_displacement;
+        float trim_after_distance = std::numbers::sqrt2_v<float> * side_displacement;
+
+        if (action_before.type == ActionType::DIAGONAL) {
+            trim_before_distance -= this->cell_size * std::numbers::sqrt2_v<float> / 2.0F;
+            trim_after_distance -= this->cell_size;
+        } else {
+            trim_before_distance -= this->cell_size;
+            trim_after_distance -= this->cell_size * std::numbers::sqrt2_v<float> / 2.0F;
+        }
 
         return {trim_before_distance, trim_after_distance};
     }

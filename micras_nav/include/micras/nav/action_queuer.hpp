@@ -102,10 +102,11 @@ private:
     /**
      * @brief Get the trim distances for a turn action.
      *
+     * @param action_before Id of the action before the turn action.
      * @param turn_action Turn action to get the trim distances for.
      * @return Pair of trim distances before and after the turn.
      */
-    std::pair<float, float> get_trim_distances(const Action& turn_action) const;
+    std::pair<float, float> get_trim_distances(const Action::Id& action_before, const Action& turn_action) const;
 
     /**
      * @brief Join curves in the action queue.
