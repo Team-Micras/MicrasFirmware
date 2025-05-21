@@ -144,6 +144,12 @@ private:
      * @return Total time to complete the action in seconds.
      */
     static constexpr float calculate_total_time(float angle, float max_angular_speed, float max_angular_acceleration) {
+        const float peak_velocity = std::sqrt(angle * max_angular_acceleration);
+
+        if (peak_velocity < max_angular_speed) {
+            return 2.0F * peak_velocity / max_angular_acceleration;
+        }
+
         const float acceleration_time = max_angular_speed / max_angular_acceleration;
 
         return std::abs(angle) / max_angular_speed + acceleration_time;

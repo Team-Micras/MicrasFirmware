@@ -133,6 +133,16 @@ private:
         float distance, float start_speed, float end_speed, float max_speed, float max_acceleration,
         float max_deceleration
     ) {
+        const float peak_velocity = std::sqrt(
+            (2.0F * distance * max_acceleration * max_deceleration + start_speed * start_speed * max_deceleration +
+             end_speed * end_speed * max_acceleration) /
+            (max_acceleration + max_deceleration)
+        );
+
+        if (peak_velocity < max_speed) {
+            return (peak_velocity - start_speed) / max_acceleration + (peak_velocity - end_speed) / max_deceleration;
+        }
+
         const float acceleration_time = (max_speed - start_speed) / max_acceleration;
         const float deceleration_time = (max_speed - end_speed) / max_deceleration;
 
