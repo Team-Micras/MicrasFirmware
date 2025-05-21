@@ -32,7 +32,8 @@ public:
         angle{angle},
         linear_speed{linear_speed},
         acceleration{max_angular_acceleration},
-        max_angular_speed{calculate_max_angular_speed(angle, curve_radius, linear_speed, max_angular_acceleration)} {
+        max_angular_speed{calculate_max_angular_speed(angle, curve_radius, linear_speed, max_angular_acceleration)},
+        curve_radius{curve_radius} {
         this->set_total_time(calculate_total_time(angle, max_angular_speed, max_angular_acceleration));
     }
 
@@ -89,7 +90,7 @@ public:
         Action::operator+=(value_increment);
         this->angle += value_increment;
         this->max_angular_speed =
-            calculate_max_angular_speed(this->angle, this->linear_speed, this->max_angular_speed, this->acceleration);
+            calculate_max_angular_speed(this->angle, this->curve_radius, this->linear_speed, this->acceleration);
 
         this->set_total_time(calculate_total_time(this->angle, this->max_angular_speed, this->acceleration));
 
@@ -167,6 +168,11 @@ private:
      * @brief Maximum angular speed in rad/s while turning.
      */
     float max_angular_speed;
+
+    /**
+     * @brief Radius of the equivalent curve in meters.
+     */
+    float curve_radius;
 
     /**
      * @brief Elapsed time in seconds since the action started.

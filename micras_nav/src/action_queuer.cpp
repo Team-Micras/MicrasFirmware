@@ -254,7 +254,7 @@ std::pair<float, float>
         float trim_before_distance = forward_displacement;
         float trim_after_distance = side_displacement;
 
-        if (action_before.type == ActionType::MOVE_FORWARD) {
+        if (action_before.type != ActionType::DIAGONAL) {
             trim_before_distance -= this->cell_size / 2.0F;
             trim_after_distance -= this->cell_size / 2.0F;
         }
