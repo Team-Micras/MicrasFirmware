@@ -77,6 +77,11 @@ public:
      */
     std::list<GridPose> get_best_route(const GridPose& start, const std::unordered_set<GridPoint>& end);
 
+    /**
+     * @brief Clear the contents of the graph.
+     */
+    void reset();
+
 private:
     /**
      * @brief Remove unnecessary nodes from the graph.

@@ -141,6 +141,8 @@ const std::list<GridPose>& TMaze<width, height>::get_best_route() const {
 template <uint8_t width, uint8_t height>
 void TMaze<width, height>::compute_graph() {
     std::queue<GridPose> queue;
+    this->graph.reset();
+
     this->graph.add_node(this->start);
     queue.push(this->start);
 

@@ -173,4 +173,8 @@ std::list<GridPose> MazeGraph::get_best_route(const GridPose& start, const std::
 
     return route;
 }
+
+void MazeGraph::reset() {
+    this->graph.clear();
+}
 }  // namespace micras::nav
