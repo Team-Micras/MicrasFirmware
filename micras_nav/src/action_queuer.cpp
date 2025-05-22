@@ -163,14 +163,7 @@ void ActionQueuer::recompute(const std::list<GridPose>& best_route, bool add_sta
         std::next(action_it)->value -= trim_after_distance;
     }
 
-    const float start_distance = this->cell_size - this->start_offset;
-
-    if (actions.front().type == ActionType::MOVE_FORWARD) {
-        actions.front().value += start_distance;
-    } else {
-        actions.emplace_front(ActionType::MOVE_FORWARD, start_distance);
-    }
-
+    actions.front().value -= this->start_offset;
     float start_speed = 0.0F;
 
     for (auto action_it = std::next(actions.begin()); action_it != actions.end(); action_it++) {
