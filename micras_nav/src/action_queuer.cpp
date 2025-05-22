@@ -75,16 +75,17 @@ ActionQueuer::ActionQueuer(Config config) :
         const float max_angular_speed = TurnAction::calculate_max_angular_speed(
             angle, curve_radius, config.solving.max_angular_acceleration, config.solving.max_centrifugal_acceleration
         );
+        const float curve_linear_speed = this->solving_params.max_centrifugal_acceleration / max_angular_speed;
 
         this->curves_parameters[angle] = {
             .curve_radius = curve_radius,
             .max_angular_speed = max_angular_speed,
-            .linear_speed = this->solving_params.max_centrifugal_acceleration / max_angular_speed,
+            .linear_speed = curve_linear_speed,
             .side_displacement = TurnAction::calculate_side_displacement(
-                angle, max_angular_speed, this->solving_params.max_linear_speed, config.solving.max_angular_acceleration
+                angle, max_angular_speed, curve_linear_speed, config.solving.max_angular_acceleration
             ),
             .forward_displacement = TurnAction::calculate_forward_displacement(
-                angle, max_angular_speed, this->solving_params.max_linear_speed, config.solving.max_angular_acceleration
+                angle, max_angular_speed, curve_linear_speed, config.solving.max_angular_acceleration
             ),
         };
     }
