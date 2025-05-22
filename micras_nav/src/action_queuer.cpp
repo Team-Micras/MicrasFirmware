@@ -43,15 +43,28 @@ ActionQueuer::ActionQueuer(Config config) :
         exploring_params.max_linear_deceleration
     )},
     turn_left{std::make_shared<TurnAction>(
-        ActionType::TURN, std::numbers::pi_v<float> / 2.0F, exploration_curve_radius, exploring_params.max_linear_speed,
-        exploring_params.max_angular_acceleration
+        ActionType::TURN, std::numbers::pi_v<float> / 2.0F,
+        TurnAction::calculate_max_angular_speed(
+            std::numbers::pi_v<float> / 2.0F, exploration_curve_radius, exploring_params.max_angular_acceleration,
+            exploring_params.max_centrifugal_acceleration
+        ),
+        exploring_params.max_linear_speed, exploring_params.max_angular_acceleration
     )},
     turn_right{std::make_shared<TurnAction>(
-        ActionType::TURN, -std::numbers::pi_v<float> / 2.0F, exploration_curve_radius,
+        ActionType::TURN, -std::numbers::pi_v<float> / 2.0F,
+        TurnAction::calculate_max_angular_speed(
+            -std::numbers::pi_v<float> / 2.0F, exploration_curve_radius, exploring_params.max_angular_acceleration,
+            exploring_params.max_centrifugal_acceleration
+        ),
         exploring_params.max_linear_speed, exploring_params.max_angular_acceleration
     )},
     turn_back{std::make_shared<TurnAction>(
-        ActionType::SPIN, std::numbers::pi_v<float>, 0.0F, 0.0F, exploring_params.max_angular_acceleration
+        ActionType::SPIN, std::numbers::pi_v<float>,
+        TurnAction::calculate_max_angular_speed(
+            std::numbers::pi_v<float>, 0.0F, exploring_params.max_angular_acceleration,
+            exploring_params.max_centrifugal_acceleration
+        ),
+        0.0F, exploring_params.max_angular_acceleration
     )} {
     for (const auto& [angle, curve_radius] : {
              std::pair{std::numbers::pi_v<float> / 4.0F, config.radius_45},

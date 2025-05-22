@@ -96,6 +96,7 @@ public:
         if (curve_radius == 0.0F) {
             return max_angular_acceleration * 0.01F;
         }
+
         const float correction_factor =
             14.35F - 13.57F * std::cos(std::abs(angle) - 2) - 10.0F / max_angular_acceleration;
 
@@ -140,7 +141,7 @@ public:
     static constexpr float calculate_forward_displacement(
         float angle, float max_angular_speed, float linear_speed, float max_angular_acceleration
     ) {
-        const float transformed_speed = max_angular_speed / std::sin(angle);
+        const float transformed_speed = max_angular_speed / std::sin(std::abs(angle));
         const float correction_factor =
             14.12F - 13.3F * std::cos(std::abs(angle) - 1.146F) - 10.0F / max_angular_acceleration;
 
@@ -157,7 +158,7 @@ public:
      * @return Total time to complete the action in seconds.
      */
     static constexpr float calculate_total_time(float angle, float max_angular_speed, float max_angular_acceleration) {
-        const float peak_velocity = std::sqrt(angle * max_angular_acceleration);
+        const float peak_velocity = std::sqrt(std::abs(angle) * max_angular_acceleration);
 
         if (peak_velocity < max_angular_speed) {
             return 2.0F * peak_velocity / max_angular_acceleration;
