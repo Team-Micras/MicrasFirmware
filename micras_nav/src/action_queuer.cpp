@@ -105,71 +105,6 @@ void ActionQueuer::push_exploring(const GridPose& origin_pose, const GridPoint& 
     }
 }
 
-std::list<Action::Id> ActionQueuer::get_actions(const GridPose& origin_pose, const GridPose& target_pose) const {
-    const Side relative_side = origin_pose.get_relative_side(target_pose.position);
-
-    if (origin_pose.position == target_pose.position or relative_side == Side::DOWN) {
-        return {};
-    }
-
-    if (relative_side == Side::UP and origin_pose.orientation == target_pose.orientation) {
-        const float distance =
-            origin_pose.position.to_vector(this->cell_size).distance(target_pose.position.to_vector(this->cell_size));
-        return {{ActionType::MOVE_FORWARD, distance}};
-    }
-
-    if (origin_pose.turned_left().front() == target_pose) {
-        return {{ActionType::TURN, std::numbers::pi_v<float> / 2.0F}};
-    }
-
-    if (origin_pose.turned_right().front() == target_pose) {
-        return {{ActionType::TURN, -std::numbers::pi_v<float> / 2.0F}};
-    }
-
-    if (origin_pose.turned_left().front().turned_left().front() == target_pose) {
-        return {{ActionType::TURN, std::numbers::pi_v<float>}};
-    }
-
-    if (origin_pose.turned_right().front().turned_right().front() == target_pose) {
-        return {{ActionType::TURN, -std::numbers::pi_v<float>}};
-    }
-
-    const bool      keep_direction = (origin_pose.orientation == target_pose.orientation);
-    const GridPoint target_position = (keep_direction ? target_pose : target_pose.turned_back().front()).position;
-
-    if (std::abs(target_position.x - origin_pose.position.x) != std::abs(target_position.y - origin_pose.position.y) or
-        origin_pose.turned_right().get_relative_side(target_position) != Side::LEFT) {
-        return {};
-    }
-
-    if (not keep_direction and
-        target_pose.orientation != (relative_side == Side::LEFT ? origin_pose.turned_left().orientation :
-                                                                  origin_pose.turned_right().orientation)) {
-        return {};
-    }
-
-    std::list<Action::Id> actions;
-
-    float turn_angle =
-        relative_side == Side::LEFT ? std::numbers::pi_v<float> / 4.0F : -std::numbers::pi_v<float> / 4.0F;
-
-    actions.emplace_back(Action::Id{ActionType::TURN, turn_angle});
-
-    float distance =
-        origin_pose.position.to_vector(this->cell_size).distance(target_position.to_vector(this->cell_size));
-
-    if (keep_direction) {
-        turn_angle *= -1.0F;
-    } else {
-        distance += this->cell_size * std::numbers::sqrt2_v<float> / 2;
-    }
-
-    actions.emplace_back(Action::Id{ActionType::DIAGONAL, distance});
-    actions.emplace_back(Action::Id{ActionType::TURN, turn_angle});
-
-    return actions;
-}
-
 std::shared_ptr<Action> ActionQueuer::pop() {
     auto action = this->action_queue.front();
     this->action_queue.pop_front();
@@ -194,7 +129,7 @@ void ActionQueuer::recompute(const std::list<GridPose>& best_route, bool add_sta
     std::list<Action::Id> actions;
 
     for (auto route_it = best_route.begin(); std::next(route_it) != best_route.end(); route_it++) {
-        actions.splice(actions.end(), this->get_actions(*route_it, *std::next(route_it)));
+        actions.splice(actions.end(), get_actions(*route_it, *std::next(route_it), this->cell_size));
     }
 
     for (auto action_it = actions.begin(); action_it != actions.end(); action_it++) {
@@ -267,6 +202,71 @@ float ActionQueuer::get_total_time() const {
     }
 
     return total_time;
+}
+
+std::list<Action::Id>
+    ActionQueuer::get_actions(const GridPose& origin_pose, const GridPose& target_pose, float cell_size) {
+    const Side relative_side = origin_pose.get_relative_side(target_pose.position);
+
+    if (origin_pose.position == target_pose.position or relative_side == Side::DOWN) {
+        return {};
+    }
+
+    if (relative_side == Side::UP and origin_pose.orientation == target_pose.orientation) {
+        const float distance =
+            origin_pose.position.to_vector(cell_size).distance(target_pose.position.to_vector(cell_size));
+        return {{ActionType::MOVE_FORWARD, distance}};
+    }
+
+    if (origin_pose.turned_left().front() == target_pose) {
+        return {{ActionType::TURN, std::numbers::pi_v<float> / 2.0F}};
+    }
+
+    if (origin_pose.turned_right().front() == target_pose) {
+        return {{ActionType::TURN, -std::numbers::pi_v<float> / 2.0F}};
+    }
+
+    if (origin_pose.turned_left().front().turned_left().front() == target_pose) {
+        return {{ActionType::TURN, std::numbers::pi_v<float>}};
+    }
+
+    if (origin_pose.turned_right().front().turned_right().front() == target_pose) {
+        return {{ActionType::TURN, -std::numbers::pi_v<float>}};
+    }
+
+    const bool      keep_direction = (origin_pose.orientation == target_pose.orientation);
+    const GridPoint target_position = (keep_direction ? target_pose : target_pose.turned_back().front()).position;
+
+    if (std::abs(target_position.x - origin_pose.position.x) != std::abs(target_position.y - origin_pose.position.y) or
+        origin_pose.turned_right().get_relative_side(target_position) != Side::LEFT) {
+        return {};
+    }
+
+    if (not keep_direction and
+        target_pose.orientation != (relative_side == Side::LEFT ? origin_pose.turned_left().orientation :
+                                                                  origin_pose.turned_right().orientation)) {
+        return {};
+    }
+
+    std::list<Action::Id> actions;
+
+    float turn_angle =
+        relative_side == Side::LEFT ? std::numbers::pi_v<float> / 4.0F : -std::numbers::pi_v<float> / 4.0F;
+
+    actions.emplace_back(Action::Id{ActionType::TURN, turn_angle});
+
+    float distance = origin_pose.position.to_vector(cell_size).distance(target_position.to_vector(cell_size));
+
+    if (keep_direction) {
+        turn_angle *= -1.0F;
+    } else {
+        distance += cell_size * std::numbers::sqrt2_v<float> / 2;
+    }
+
+    actions.emplace_back(Action::Id{ActionType::DIAGONAL, distance});
+    actions.emplace_back(Action::Id{ActionType::TURN, turn_angle});
+
+    return actions;
 }
 
 std::pair<float, float>

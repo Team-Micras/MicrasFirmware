@@ -87,7 +87,6 @@ public:
      */
     bool finished(const Pose& pose) override { return pose.position.magnitude() >= this->distance; }
 
-private:
     /**
      * @brief Calculate the total time to complete the action.
      *
@@ -125,6 +124,7 @@ private:
         return acceleration_time + deceleration_time + constant_speed_time;
     }
 
+private:
     /**
      * @brief Distance to move in meters.
      */

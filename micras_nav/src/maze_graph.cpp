@@ -2,16 +2,19 @@
  * @file
  */
 
+#include <cmath>
 #include <limits>
 #include <queue>
-#include <unordered_set>
-#include <utility>
+#include "micras/nav/action_queuer.hpp"
 
 #include "micras/nav/maze_graph.hpp"
-#include "micras/nav/grid_pose.hpp"
 
 namespace micras::nav {
-MazeGraph::MazeGraph(EdgeCostFunction edge_cost_function) : get_edge_cost(std::move(edge_cost_function)) { }
+MazeGraph::MazeGraph(Config config) :
+    cell_size{config.cell_size},
+    cost_params{config.cost_params},
+    curve_radius{this->cell_size / 2.0F},
+    curve_linear_speed{std::sqrt(cost_params.max_centrifugal_acceleration * curve_radius)} { }
 
 bool MazeGraph::has_node(const GridPose& pose) const {
     return this->graph.contains(pose);
@@ -21,62 +24,22 @@ void MazeGraph::add_node(const GridPose& pose) {
     this->graph.emplace(pose, Node{pose});
 }
 
-void MazeGraph::add_edge(const GridPose& from, const GridPose& to, float cost) {
-    if (this->graph.at(from).next_costs.contains(to)) {
+void MazeGraph::add_edge(const GridPose& from, const GridPose& to) {
+    if (this->graph.at(from).next.contains(to)) {
         return;
     }
 
-    this->graph.at(from).next_costs[to] = cost;
+    this->graph.at(from).next.emplace(to);
     this->graph.at(to).prev.emplace(from);
 }
 
-void MazeGraph::process_nodes(const GridPose& start) {
-    this->remove_extra_nodes(start);
-    this->add_extra_edges(start);
+void MazeGraph::remove_edge(const GridPose& from, const GridPose& to) {
+    this->graph.at(from).next.erase(to);
+    this->graph.at(to).prev.erase(from);
 }
 
-void MazeGraph::remove_extra_nodes(const GridPose& start) {
-    std::unordered_set<GridPose> visited;
-    std::queue<GridPose>         queue;
-    queue.push(start);
-
-    while (not queue.empty()) {
-        const GridPose current_pose = queue.front();
-        Node&          current_node = this->graph.at(current_pose);
-        queue.pop();
-
-        visited.insert(current_pose);
-
-        for (auto next_it = current_node.next_costs.begin(); next_it != current_node.next_costs.end();) {
-            Node& next_node = this->graph.at(next_it->first);
-
-            if (next_node.next_costs.size() == 1) {
-                const GridPose& next_next = next_node.next_costs.begin()->first;
-
-                if (current_pose.orientation == next_node.pose.orientation and
-                    current_pose.orientation == next_next.orientation) {
-                    current_node.next_costs.erase(next_it);
-                    next_node.prev.erase(current_pose);
-
-                    this->add_edge(current_pose, next_next);
-
-                    if (next_node.prev.empty()) {
-                        this->graph.at(next_next).prev.erase(next_node.pose);
-                        this->graph.erase(next_node.pose);
-                    }
-
-                    next_it = current_node.next_costs.begin();
-                    continue;
-                }
-            }
-
-            if (not visited.contains(next_it->first)) {
-                queue.push(next_it->first);
-            }
-
-            next_it++;
-        }
-    }
+void MazeGraph::process_nodes(const GridPose& start) {
+    this->add_extra_edges(start);
 }
 
 void MazeGraph::add_extra_edges(const GridPose& start) {
@@ -90,29 +53,40 @@ void MazeGraph::add_extra_edges(const GridPose& start) {
         queue.pop();
 
         visited.insert(current_pose);
+        bool skipped = false;
 
-        for (auto next_it = current_node.next_costs.begin(); next_it != current_node.next_costs.end();) {
-            if (next_it->second == 0) {
-                next_it->second = this->get_edge_cost(current_pose, next_it->first);
-            }
+        for (auto next_it = current_node.next.begin(); next_it != current_node.next.end();) {
+            GridPose next_pose = *next_it;
 
-            GridPose next_pose = next_it->first;
-
-            for (const auto& [next_next_pose, next_next_cost] : this->graph.at(next_pose).next_costs) {
-                if (current_node.next_costs.contains(next_next_pose)) {
+            for (const GridPose& next_next_pose : this->graph.at(next_pose).next) {
+                if (current_node.next.contains(next_next_pose)) {
                     continue;
                 }
 
-                const float edge_cost = this->get_edge_cost(current_pose, next_next_pose);
+                if (this->can_skip(current_pose, next_pose, next_next_pose)) {
+                    skipped = true;
+                    this->add_edge(current_pose, next_next_pose);
+                    next_it = current_node.next.begin();
 
-                if (edge_cost > 0) {
-                    this->add_edge(current_pose, next_next_pose, edge_cost);
-                    next_it = current_node.next_costs.begin();
+                    if (this->graph.at(next_pose).next.size() == 1) {
+                        this->remove_edge(current_pose, next_pose);
+                        next_it = current_node.next.begin();
+
+                        if (this->graph.at(next_pose).prev.empty()) {
+                            this->graph.erase(next_pose);
+                            break;
+                        }
+                    }
                 }
             }
 
-            if (not visited.contains(next_it->first)) {
-                queue.push(next_it->first);
+            if (skipped) {
+                skipped = false;
+                continue;
+            }
+
+            if (not visited.contains(next_pose)) {
+                queue.push(next_pose);
             }
 
             next_it++;
@@ -153,7 +127,9 @@ std::list<GridPose> MazeGraph::get_best_route(const GridPose& start, const std::
 
         visited.insert(current_pose);
 
-        for (const auto& [next_pose, edge_cost] : this->graph.at(current_pose).next_costs) {
+        for (const GridPose& next_pose : this->graph.at(current_pose).next) {
+            float edge_cost = this->get_edge_cost(current_pose, next_pose);
+
             if (distance.at(next_pose) > distance.at(current_pose) + edge_cost) {
                 previous[next_pose] = current_pose;
                 distance[next_pose] = distance.at(current_pose) + edge_cost;
@@ -176,5 +152,58 @@ std::list<GridPose> MazeGraph::get_best_route(const GridPose& start, const std::
 
 void MazeGraph::reset() {
     this->graph.clear();
+}
+
+bool MazeGraph::can_skip(const GridPose& first, const GridPose& second, const GridPose& third) const {
+    auto skip_action = this->get_main_action_type(first, third);
+
+    if (skip_action == ActionQueuer::ActionType::STOP) {
+        return false;
+    }
+
+    if (skip_action != ActionQueuer::ActionType::MOVE_FORWARD) {
+        return true;
+    }
+
+    return this->get_main_action_type(first, second) == ActionQueuer::ActionType::MOVE_FORWARD;
+}
+
+float MazeGraph::get_edge_cost(const GridPose& from, const GridPose& to) const {
+    auto  actions = ActionQueuer::get_actions(from, to, this->cell_size);
+    float total_time = 0.0F;
+
+    for (const auto& action : actions) {
+        if (action.type == ActionQueuer::ActionType::TURN) {
+            const float max_angular_speed = TurnAction::calculate_max_angular_speed(
+                action.value, this->curve_radius, this->cost_params.max_angular_acceleration,
+                this->cost_params.max_centrifugal_acceleration
+            );
+
+            total_time += TurnAction::calculate_total_time(
+                action.value, max_angular_speed, this->cost_params.max_angular_acceleration
+            );
+        } else {
+            total_time += MoveAction::calculate_total_time(
+                action.value, this->curve_linear_speed, this->curve_linear_speed, this->cost_params.max_linear_speed,
+                this->cost_params.max_linear_acceleration, this->cost_params.max_linear_deceleration
+            );
+        }
+    }
+
+    return total_time;
+}
+
+ActionQueuer::ActionType MazeGraph::get_main_action_type(const GridPose& from, const GridPose& to) const {
+    auto actions = ActionQueuer::get_actions(from, to, this->cell_size);
+
+    if (actions.empty()) {
+        return ActionQueuer::ActionType::STOP;
+    }
+
+    if (actions.size() == 3) {
+        return ActionQueuer::ActionType::DIAGONAL;
+    }
+
+    return static_cast<ActionQueuer::ActionType>(actions.front().type);
 }
 }  // namespace micras::nav

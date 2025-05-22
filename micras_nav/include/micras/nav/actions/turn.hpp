@@ -148,7 +148,6 @@ public:
                (1.0F / transformed_speed + transformed_speed / (correction_factor * max_angular_acceleration));
     }
 
-private:
     /**
      * @brief Calculate the total time to complete the action.
      *
@@ -169,6 +168,7 @@ private:
         return std::abs(angle) / max_angular_speed + acceleration_time;
     }
 
+private:
     /**
      * @brief Angle to turn in radians.
      */

@@ -57,7 +57,6 @@ const nav::ActionQueuer::Config action_queuer_config{
             .max_linear_speed = exploration_speed,
             .max_linear_acceleration = max_linear_acceleration,
             .max_linear_deceleration = max_linear_deceleration,
-            .curve_radius = cell_size / 2.0F,
             .max_centrifugal_acceleration = 2.78F,
             .max_angular_acceleration = max_angular_acceleration,
         },
@@ -66,10 +65,12 @@ const nav::ActionQueuer::Config action_queuer_config{
             .max_linear_speed = exploration_speed,
             .max_linear_acceleration = max_linear_acceleration,
             .max_linear_deceleration = max_linear_deceleration,
-            .curve_radius = cell_size / 2.0F,
             .max_centrifugal_acceleration = 1.0F,
             .max_angular_acceleration = max_angular_acceleration,
         },
+    .radius_45 = cell_size / 2.0F,
+    .radius_90 = cell_size / 2.0F,
+    .radius_135 = cell_size / 2.0F,
 };
 
 const nav::FollowWall::Config follow_wall_config{
@@ -97,6 +98,11 @@ const nav::Maze::Config maze_config{
         {(maze_width - 1) / 2, (maze_height - 1) / 2},
     }},
     .cost_margin = 1.2F,
+    .graph_config =
+        {
+            .cell_size = cell_size,
+            .cost_params = action_queuer_config.solving,
+        },
 };
 
 const nav::Odometry::Config odometry_config{

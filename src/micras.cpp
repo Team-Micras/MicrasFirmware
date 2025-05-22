@@ -25,7 +25,7 @@ Micras::Micras() :
     rotary_sensor_right{std::make_shared<proxy::RotarySensor>(rotary_sensor_right_config)},
     wall_sensors{std::make_shared<proxy::WallSensors>(wall_sensors_config)},
     action_queuer{action_queuer_config},
-    maze{maze_config, nav::ActionCost(action_queuer_config)},
+    maze{maze_config},
     odometry{rotary_sensor_left, rotary_sensor_right, imu, odometry_config},
     speed_controller{speed_controller_config},
     follow_wall{wall_sensors, odometry.get_state().pose, follow_wall_config},
