@@ -25,19 +25,15 @@ namespace micras::nav {
 template <uint8_t width, uint8_t height>
 class TMaze : public core::ISerializable {
 public:
+    /**
+     * @brief Configuration structure for the maze.
+     */
     struct Config {
         GridPose                      start{};
         std::unordered_set<GridPoint> goal;
         float                         cost_margin{};
+        MazeGraph::Config             graph_config{};
     };
-
-    /**
-     * @brief Construct a new TMaze object.
-     *
-     * @param config The configuration for the maze.
-     * @param edge_cost_function The function to compute the cost of the edges in the maze.
-     */
-    TMaze(Config config, EdgeCostFunction edge_cost_function);
 
     /**
      * @brief Construct a new TMaze object.

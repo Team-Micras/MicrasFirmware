@@ -69,15 +69,6 @@ public:
     void push_exploring(const GridPose& origin_pose, const GridPoint& target_position);
 
     /**
-     * @brief Get the actions to perform from the origin pose to the target pose.
-     *
-     * @param origin_pose Origin pose of the robot.
-     * @param target_pose Target pose to move to.
-     * @return List of actions to perform.
-     */
-    std::list<Action::Id> get_actions(const GridPose& origin_pose, const GridPose& target_pose) const;
-
-    /**
      * @brief Pop an action from the queue.
      *
      * @return Shared pointer to the action.
@@ -102,6 +93,16 @@ public:
      * @return Total time to complete the actions in the queue.
      */
     float get_total_time() const;
+
+    /**
+     * @brief Get the actions to perform from the origin pose to the target pose.
+     *
+     * @param origin_pose Origin pose of the robot.
+     * @param target_pose Target pose to move to.
+     * @param cell_size Size of the cells in the grid.
+     * @return List of actions to perform.
+     */
+    static std::list<Action::Id> get_actions(const GridPose& origin_pose, const GridPose& target_pose, float cell_size);
 
 private:
     /**

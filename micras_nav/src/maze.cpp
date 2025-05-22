@@ -13,12 +13,8 @@
 
 namespace micras::nav {
 template <uint8_t width, uint8_t height>
-TMaze<width, height>::TMaze(Config config, EdgeCostFunction edge_cost_function) : TMaze(config) {
-    this->graph = MazeGraph{std::move(edge_cost_function)};
-}
-
-template <uint8_t width, uint8_t height>
-TMaze<width, height>::TMaze(Config config) : start{config.start}, goal{config.goal}, cost_margin{config.cost_margin} {
+TMaze<width, height>::TMaze(Config config) :
+    graph(config.graph_config), start{config.start}, goal{config.goal}, cost_margin{config.cost_margin} {
     this->costmap.update_wall(this->start, false);
     this->costmap.update_wall(start.turned_right(), true);
 
