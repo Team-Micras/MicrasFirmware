@@ -8,6 +8,7 @@
 #include <deque>
 #include <list>
 #include <memory>
+#include <unordered_map>
 
 #include "micras/nav/actions/move.hpp"
 #include "micras/nav/actions/turn.hpp"
@@ -38,7 +39,6 @@ public:
             float max_linear_speed;
             float max_linear_acceleration;
             float max_linear_deceleration;
-            float curve_radius;
             float max_centrifugal_acceleration;
             float max_angular_acceleration;
         };
@@ -47,6 +47,10 @@ public:
         float   start_offset;
         Dynamic exploring;
         Dynamic solving;
+
+        float radius_45;
+        float radius_90;
+        float radius_135;
     };
 
     /**
@@ -65,12 +69,13 @@ public:
     void push_exploring(const GridPose& origin_pose, const GridPoint& target_position);
 
     /**
-     * @brief Push a solving action to the queue.
+     * @brief Get the actions to perform from the origin pose to the target pose.
      *
-     * @param current_pose Current pose of the robot.
-     * @param target_angle Target pose to move to..
+     * @param origin_pose Origin pose of the robot.
+     * @param target_pose Target pose to move to.
+     * @return List of actions to perform.
      */
-    void push_solving(const GridPose& origin_pose, const GridPose& target_pose);
+    std::list<Action::Id> get_actions(const GridPose& origin_pose, const GridPose& target_pose) const;
 
     /**
      * @brief Pop an action from the queue.
@@ -100,21 +105,24 @@ public:
 
 private:
     /**
+     * @brief Struct to hold the parameters for a curve.
+     */
+    struct CurveParameters {
+        float curve_radius;
+        float max_angular_speed;
+        float linear_speed;
+        float side_displacement;
+        float forward_displacement;
+    };
+
+    /**
      * @brief Get the trim distances for a turn action.
      *
      * @param action_before Id of the action before the turn action.
      * @param turn_action Turn action to get the trim distances for.
      * @return Pair of trim distances before and after the turn.
      */
-    std::pair<float, float> get_trim_distances(const Action::Id& action_before, const Action& turn_action) const;
-
-    /**
-     * @brief Join curves in the action queue.
-     *
-     * @param turn_it Iterator to the first of the turn actions.
-     * @return Iterator to the merged turn action.
-     */
-    std::deque<std::shared_ptr<Action>>::iterator join_curves(std::deque<std::shared_ptr<Action>>::iterator turn_it);
+    std::pair<float, float> get_trim_distances(const Action::Id& action_before, const Action::Id& turn_action) const;
 
     /**
      * @brief Size of the cells in the grid.
@@ -127,11 +135,6 @@ private:
     float start_offset;
 
     /**
-     * @brief Solving linear speed of the robot when performing a curve.
-     */
-    float curve_linear_speed;
-
-    /**
      * @brief Dynamic exploring parameters.
      */
     Config::Dynamic exploring_params;
@@ -142,6 +145,16 @@ private:
     Config::Dynamic solving_params;
 
     /**
+     * @brief Radius of the exploration curve.
+     */
+    float exploration_curve_radius;
+
+    /**
+     * @brief Pre-computed curve parameters for different angles.
+     */
+    std::unordered_map<float, CurveParameters> curves_parameters;
+
+    /**
      * @brief Pre-built actions to use in the exploration.
      */
     ///@{
@@ -149,6 +162,7 @@ private:
     std::shared_ptr<MoveAction> start;
     std::shared_ptr<MoveAction> move_forward;
     std::shared_ptr<MoveAction> move_half;
+    std::shared_ptr<MoveAction> move_to_turn;
     std::shared_ptr<TurnAction> turn_left;
     std::shared_ptr<TurnAction> turn_right;
     std::shared_ptr<TurnAction> turn_back;
@@ -158,21 +172,6 @@ private:
      * @brief Queue of actions to be performed.
      */
     std::deque<std::shared_ptr<Action>> action_queue;
-};
-
-class ActionCost {
-public:
-    explicit ActionCost(const ActionQueuer::Config& config) : action_queuer(config) { }
-
-    float operator()(const GridPose& from, const GridPose& to) {
-        this->action_queuer.push_solving(from, to);
-        const float total_time = this->action_queuer.get_total_time();
-        this->action_queuer.recompute({}, false);
-
-        return total_time;
-    }
-
-    ActionQueuer action_queuer;
 };
 }  // namespace micras::nav
 
