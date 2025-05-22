@@ -176,7 +176,7 @@ void ActionQueuer::recompute(const std::list<GridPose>& best_route, bool add_sta
         this->action_queue.emplace_back(std::make_shared<MoveAction>(
             std::prev(action_it)->type, std::prev(action_it)->value, start_speed, curve_parameters.linear_speed,
             this->solving_params.max_linear_speed, this->solving_params.max_linear_acceleration,
-            this->solving_params.max_linear_deceleration
+            this->solving_params.max_linear_deceleration, std::prev(action_it)->type != ActionType::DIAGONAL
         ));
 
         this->action_queue.emplace_back(std::make_shared<TurnAction>(
