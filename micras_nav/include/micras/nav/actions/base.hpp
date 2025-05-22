@@ -51,28 +51,6 @@ public:
     virtual bool finished(const Pose& current_pose) = 0;
 
     /**
-     * @brief Increment the action ID value.
-     *
-     * @param value_increment The increment value.
-     * @return A reference to the current action.
-     */
-    virtual Action& operator+=(float value_increment) {
-        this->id.value += value_increment;
-        return *this;
-    }
-
-    /**
-     * @brief Decrement the action ID value.
-     *
-     * @param value_decrement The decrement value.
-     * @return A reference to the current action.
-     */
-    virtual Action& operator-=(float value_decrement) {
-        this->id.value -= value_decrement;
-        return *this;
-    }
-
-    /**
      * @brief Get the ID of the action.
      *
      * @return The ID of the action.

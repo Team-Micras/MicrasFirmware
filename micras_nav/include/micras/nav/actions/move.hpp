@@ -87,36 +87,6 @@ public:
      */
     bool finished(const Pose& pose) override { return pose.position.magnitude() >= this->distance; }
 
-    /**
-     * @brief Increment the distance to move by a certain value.
-     *
-     * @param value_increment The increment value.
-     * @return A reference to the current action.
-     */
-    MoveAction& operator+=(float value_increment) override {
-        Action::operator+=(value_increment);
-        this->distance += value_increment;
-
-        this->set_total_time(calculate_total_time(
-            this->distance, std::sqrt(this->start_speed_2), std::sqrt(this->end_speed_2), this->max_speed,
-            this->max_acceleration_doubled / 2.0F, this->max_deceleration_doubled / 2.0F
-        ));
-
-        this->decelerate_distance =
-            (this->end_speed_2 - this->start_speed_2 + this->max_deceleration_doubled * this->distance) /
-            (this->max_acceleration_doubled + this->max_deceleration_doubled);
-
-        return *this;
-    }
-
-    /**
-     * @brief Decrement the distance to move by a certain value.
-     *
-     * @param value_increment The decrement value.
-     * @return A reference to the current action.
-     */
-    MoveAction& operator-=(float value_increment) override { return *this += -value_increment; }
-
 private:
     /**
      * @brief Calculate the total time to complete the action.
