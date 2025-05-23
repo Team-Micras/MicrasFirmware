@@ -24,6 +24,18 @@ void MazeGraph::add_node(const GridPose& pose) {
     this->graph.emplace(pose, Node{pose});
 }
 
+void MazeGraph::remove_node(const GridPose& pose) {
+    for (const GridPose& next_pose : this->graph.at(pose).next) {
+        if (this->graph.at(next_pose).prev.size() == 1) {
+            this->remove_node(next_pose);
+        } else {
+            this->graph.at(next_pose).prev.erase(pose);
+        }
+    }
+
+    this->graph.erase(pose);
+}
+
 void MazeGraph::add_edge(const GridPose& from, const GridPose& to) {
     if (this->graph.at(from).next.contains(to)) {
         return;
@@ -36,6 +48,10 @@ void MazeGraph::add_edge(const GridPose& from, const GridPose& to) {
 void MazeGraph::remove_edge(const GridPose& from, const GridPose& to) {
     this->graph.at(from).next.erase(to);
     this->graph.at(to).prev.erase(from);
+
+    if (this->graph.at(to).prev.empty()) {
+        this->remove_node(to);
+    }
 }
 
 void MazeGraph::process_nodes(const GridPose& start) {
@@ -71,11 +87,7 @@ void MazeGraph::add_extra_edges(const GridPose& start) {
                     if (this->graph.at(next_pose).next.size() == 1) {
                         this->remove_edge(current_pose, next_pose);
                         next_it = current_node.next.begin();
-
-                        if (this->graph.at(next_pose).prev.empty()) {
-                            this->graph.erase(next_pose);
-                            break;
-                        }
+                        break;
                     }
                 }
             }

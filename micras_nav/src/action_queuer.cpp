@@ -219,7 +219,11 @@ std::list<Action::Id>
         return {};
     }
 
-    if (relative_side == Side::UP and origin_pose.orientation == target_pose.orientation) {
+    if (relative_side == Side::UP) {
+        if (origin_pose.orientation != target_pose.orientation) {
+            return {};
+        }
+
         const float distance =
             origin_pose.position.to_vector(cell_size).distance(target_pose.position.to_vector(cell_size));
         return {{ActionType::MOVE_FORWARD, distance}};

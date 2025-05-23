@@ -60,6 +60,13 @@ public:
     void add_node(const GridPose& pose);
 
     /**
+     * @brief Remove a node from the graph.
+     *
+     * @param pose The grid pose that represents the node.
+     */
+    void remove_node(const GridPose& pose);
+
+    /**
      * @brief Add a new edge connecting two poses.
      *
      * @param from The starting node of the edge.
