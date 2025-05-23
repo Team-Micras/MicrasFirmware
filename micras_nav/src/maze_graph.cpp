@@ -194,6 +194,11 @@ float MazeGraph::get_edge_cost(const GridPose& from, const GridPose& to) const {
             total_time += TurnAction::calculate_total_time(
                 action.value, max_angular_speed, this->cost_params.max_angular_acceleration
             );
+
+            if (std::abs(action.value) == std::numbers::pi_v<float> / 4.0F) {
+                total_time -=
+                    this->cell_size * (std::numbers::sqrt2_v<float> - 1.0F) / this->cost_params.max_linear_speed;
+            }
         } else {
             total_time += MoveAction::calculate_total_time(
                 action.value, this->curve_linear_speed, this->curve_linear_speed, this->cost_params.max_linear_speed,

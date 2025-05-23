@@ -71,13 +71,6 @@ public:
      */
     float get_total_time() const { return this->total_time; };
 
-    /**
-     * @brief Set the total time it takes to perform the action.
-     *
-     * @param total_time The total time of the action in seconds.
-     */
-    void set_total_time(float total_time) { this->total_time = total_time; }
-
 protected:
     /**
      * @brief Special member functions declared as default.
