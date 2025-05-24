@@ -25,14 +25,15 @@ ActionQueuer::ActionQueuer(Config config) :
         .max_deceleration = config.exploring.max_linear_deceleration
     };
 
-    this->start = std::make_shared<MoveAction>(ActionType::START, this->cell_size - config.start_offset, move_config);
-    this->move_half = std::make_shared<MoveAction>(ActionType::MOVE_FORWARD, cell_size / 2.0F, move_config);
+    this->start =
+        std::make_shared<MoveAction>(ActionType::START, this->cell_size - config.start_offset, move_config, false);
+    this->move_half = std::make_shared<MoveAction>(ActionType::MOVE_FORWARD, cell_size / 2.0F, move_config, false);
 
     move_config.start_speed = config.exploring.max_linear_speed;
 
     this->move_forward = std::make_shared<MoveAction>(ActionType::MOVE_FORWARD, cell_size, move_config);
     this->move_to_turn = std::make_shared<MoveAction>(
-        ActionType::MOVE_FORWARD, this->cell_size / 2.0F - exploration_curve_radius, move_config
+        ActionType::MOVE_FORWARD, this->cell_size / 2.0F - exploration_curve_radius, move_config, false
     );
 
     move_config.end_speed = 0.0F;
