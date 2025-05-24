@@ -143,7 +143,7 @@ private:
     /**
      * @brief Enum for the type of calibration being performed.
      */
-    enum CalibrationType : uint8_t {
+    enum class CalibrationType : uint8_t {
         SIDE_WALLS = 0,  // Calibrate side walls and front free space detection.
         FRONT_WALL = 1,  // Calibrate front wall detection.
     };

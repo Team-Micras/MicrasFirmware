@@ -8,7 +8,6 @@
 #include <deque>
 #include <list>
 #include <memory>
-#include <unordered_map>
 
 #include "micras/nav/actions/move.hpp"
 #include "micras/nav/actions/turn.hpp"
@@ -45,12 +44,9 @@ public:
 
         float   cell_size;
         float   start_offset;
+        float   curve_safety_margin;
         Dynamic exploring;
         Dynamic solving;
-
-        float radius_45;
-        float radius_90;
-        float radius_135;
     };
 
     /**
@@ -117,6 +113,18 @@ private:
     };
 
     /**
+     * @brief Enum for the types of curves.
+     */
+    enum CurveType : uint8_t {
+        REGULAR_45 = 0,
+        REGULAR_90 = 1,
+        DIAGONAL_90 = 2,
+        REGULAR_135 = 3,
+        REGULAR_180 = 4,
+        NUMBER_OF_CURVES = 5,
+    };
+
+    /**
      * @brief Get the trim distances for a turn action.
      *
      * @param action_before Id of the action before the turn action.
@@ -124,6 +132,34 @@ private:
      * @return Pair of trim distances before and after the turn.
      */
     std::pair<float, float> get_trim_distances(const Action::Id& action_before, const Action::Id& turn_action) const;
+
+    /**
+     * @brief Get the curve parameters for a given angle and diagonal status.
+     *
+     * @param angle Angle of the curve.
+     * @param is_diagonal True if the curve is diagonal, false otherwise.
+     * @return Reference to the CurveParameters struct for the given angle and diagonal status.
+     */
+    CurveParameters& get_curve_parameters(float angle, bool is_diagonal);
+
+    /**
+     * @brief Compute the curve parameters for a given angle and diagonal status.
+     *
+     * @param angle Angle of the curve.
+     * @param is_diagonal True if the curve is diagonal, false otherwise.
+     */
+    void compute_curve_parameters(float angle, bool is_diagonal);
+
+    /**
+     * @brief Calculate the radius of the curve based on the angle, cell size, and safety margin.
+     *
+     * @param angle Angle of the curve in radians.
+     * @param cell_size Size of the maze cells.
+     * @param safety_margin Minimum distance between the robot and the wall during the curve.
+     * @param is_diagonal True if the curve is diagonal, false otherwise.
+     * @return Calculated radius of the curve.
+     */
+    static constexpr float calculate_curve_radius(float angle, float cell_size, float safety_margin, bool is_diagonal);
 
     /**
      * @brief Size of the cells in the grid.
@@ -136,14 +172,9 @@ private:
     float start_offset;
 
     /**
-     * @brief Dynamic exploring parameters.
+     * @brief Minimum distance between the robot and the wall during the curve.
      */
-    Config::Dynamic exploring_params;
-
-    /**
-     * @brief Dynamic solving parameters.
-     */
-    Config::Dynamic solving_params;
+    float curve_safety_margin;
 
     /**
      * @brief Radius of the exploration curve.
@@ -151,9 +182,24 @@ private:
     float exploration_curve_radius;
 
     /**
+     * @brief Configuration for the exploring move action during exploration.
+     */
+    MoveAction::Config exploring_move_config;
+
+    /**
+     * @brief Configuration for the turn action during exploration.
+     */
+    TurnAction::Config exploring_turn_config;
+
+    /**
+     * @brief Dynamic solving parameters.
+     */
+    Config::Dynamic solving_params;
+
+    /**
      * @brief Pre-computed curve parameters for different angles.
      */
-    std::unordered_map<float, CurveParameters> curves_parameters;
+    std::array<CurveParameters, NUMBER_OF_CURVES> curves_parameters{};
 
     /**
      * @brief Pre-built actions to use in the exploration.

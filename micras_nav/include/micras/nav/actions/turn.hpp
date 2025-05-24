@@ -17,22 +17,31 @@ namespace micras::nav {
 class TurnAction : public Action {
 public:
     /**
+     * @brief Configuration parameters for the TurnAction.
+     */
+    struct Config {
+        float max_angular_speed;
+        float linear_speed;
+        float max_angular_acceleration;
+    };
+
+    /**
      * @brief Construct a new Turn Action object.
      *
      * @param action_type The type of the action to be performed.
      * @param angle Angle to turn in radians.
-     * @param max_angular_speed Maximum angular speed in rad/s.
-     * @param linear_speed Linear speed in m/s.
-     * @param max_angular_acceleration Maximum angular acceleration in rad/s^2.
+     * @param config Dynamic parameters for the action.
      */
-    TurnAction(
-        uint8_t action_type, float angle, float max_angular_speed, float linear_speed, float max_angular_acceleration
-    ) :
-        Action{{action_type, angle}, false, calculate_total_time(angle, max_angular_speed, max_angular_acceleration)},
+    TurnAction(uint8_t action_type, float angle, const Config& config) :
+        Action{
+            {action_type, angle},
+            false,
+            calculate_total_time(angle, config.max_angular_speed, config.max_angular_acceleration)
+        },
         angle{angle},
-        max_angular_speed{max_angular_speed},
-        linear_speed{linear_speed},
-        acceleration{max_angular_acceleration} { }
+        max_angular_speed{config.max_angular_speed},
+        linear_speed{config.linear_speed},
+        acceleration{config.max_angular_acceleration} { }
 
     /**
      * @brief Get the desired speeds for the robot to complete the action.
