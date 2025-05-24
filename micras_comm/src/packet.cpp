@@ -37,10 +37,10 @@ std::vector<uint8_t> Packet::serialize() const {
 
     data.emplace_back(header_byte);
 
+    data.emplace_back(static_cast<uint8_t>(this->type));
+
     data.emplace_back(static_cast<uint8_t>(this->id >> 8));
     data.emplace_back(static_cast<uint8_t>(this->id & 0xFF));
-
-    data.emplace_back(static_cast<uint8_t>(this->type));
 
     data.emplace_back(this->payload.size() >> 8);
     data.emplace_back(this->payload.size() & 0xFF);
