@@ -5,7 +5,6 @@
 #include <cmath>
 #include <limits>
 #include <queue>
-#include "micras/nav/action_queuer.hpp"
 
 #include "micras/nav/maze_graph.hpp"
 
@@ -72,7 +71,7 @@ void MazeGraph::add_extra_edges(const GridPose& start) {
         bool skipped = false;
 
         for (auto next_it = current_node.next.begin(); next_it != current_node.next.end();) {
-            GridPose next_pose = *next_it;
+            const GridPose next_pose = *next_it;
 
             for (const GridPose& next_next_pose : this->graph.at(next_pose).next) {
                 if (current_node.next.contains(next_next_pose)) {
@@ -140,7 +139,7 @@ std::list<GridPose> MazeGraph::get_best_route(const GridPose& start, const std::
         visited.insert(current_pose);
 
         for (const GridPose& next_pose : this->graph.at(current_pose).next) {
-            float edge_cost = this->get_edge_cost(current_pose, next_pose);
+            const float edge_cost = this->get_edge_cost(current_pose, next_pose);
 
             if (distance.at(next_pose) > distance.at(current_pose) + edge_cost) {
                 previous[next_pose] = current_pose;

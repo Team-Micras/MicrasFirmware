@@ -76,30 +76,19 @@ GridPose GridPose::turned_right() const {
 }
 
 Side GridPose::get_relative_side(const GridPoint& other) const {
+    if (((this->orientation == Side::RIGHT or this->orientation == Side::LEFT) and this->position.y == other.y) or
+        ((this->orientation == Side::UP or this->orientation == Side::DOWN) and this->position.x == other.x)) {
+        return this->position.direction(other) == this->orientation ? Side::UP : Side::DOWN;
+    }
+
     switch (this->orientation) {
         case Side::RIGHT:
-            if (this->position.y == other.y) {
-                return this->position.x < other.x ? Side::UP : Side::DOWN;
-            }
-
             return this->position.y < other.y ? Side::LEFT : Side::RIGHT;
         case Side::UP:
-            if (this->position.x == other.x) {
-                return this->position.y < other.y ? Side::UP : Side::DOWN;
-            }
-
             return this->position.x > other.x ? Side::LEFT : Side::RIGHT;
         case Side::LEFT:
-            if (this->position.y == other.y) {
-                return this->position.x > other.x ? Side::UP : Side::DOWN;
-            }
-
             return this->position.y > other.y ? Side::LEFT : Side::RIGHT;
         case Side::DOWN:
-            if (this->position.x == other.x) {
-                return this->position.y > other.y ? Side::UP : Side::DOWN;
-            }
-
             return this->position.x < other.x ? Side::LEFT : Side::RIGHT;
     }
 }

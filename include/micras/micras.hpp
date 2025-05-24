@@ -134,6 +134,11 @@ public:
      */
     void load_best_route();
 
+    /**
+     * @brief Handle events from the interface.
+     */
+    void handle_events();
+
 private:
     /**
      * @brief Enum for the type of calibration being performed.
@@ -190,7 +195,7 @@ private:
     /**
      * @brief Finite state machine for the robot.
      */
-    core::FSM fsm{State::INIT};
+    core::Fsm fsm{State::INIT};
 
     /**
      * @brief Class for controlling the interface with the external world.

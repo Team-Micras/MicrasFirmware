@@ -190,6 +190,7 @@ void Micras::save_best_route() {
 void Micras::load_best_route() {
     this->maze_storage.sync("maze", this->maze);
     this->action_queuer.recompute(this->maze.get_best_route(), false);
+    this->fan.set_speed(fan_speed);
 }
 
 core::Objective Micras::get_objective() const {
@@ -214,5 +215,13 @@ bool Micras::acknowledge_event(Interface::Event event) {
 
 bool Micras::peek_event(Interface::Event event) const {
     return this->interface.peek_event(event);
+}
+
+void Micras::handle_events() {
+    if (this->interface.acknowledge_event(Interface::Event::TURN_ON_FAN)) {
+        this->fan.enable();
+    } else if (this->interface.acknowledge_event(Interface::Event::TURN_OFF_FAN)) {
+        this->fan.disable();
+    }
 }
 }  // namespace micras
