@@ -25,6 +25,7 @@ public:
         core::PidController::Config pid;
         core::WallSensorsIndex      wall_sensor_index{};
         float                       max_linear_speed{};
+        float                       max_angular_acceleration{};
         float                       post_threshold{};
         float                       cell_size{};
         float                       post_clearance{};
@@ -115,6 +116,11 @@ private:
     float max_linear_speed;
 
     /**
+     * @brief Maximum angular acceleration of the robot.
+     */
+    float max_angular_acceleration;
+
+    /**
      * @brief Derivative threshold for detecting posts.
      */
     float post_threshold;
@@ -158,6 +164,11 @@ private:
      * @brief Last error measured by the right wall sensor, used to compute the derivative of the distance sensors.
      */
     float last_right_error{};
+
+    /**
+     * @brief Last response returned by the Follow Wall.
+     */
+    float last_response{};
 
     /**
      * @brief Flag to indicate if relative pose was reset by a post.

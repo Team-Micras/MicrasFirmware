@@ -12,6 +12,7 @@ FollowWall::FollowWall(
     pid{config.pid},
     sensor_index{config.wall_sensor_index},
     max_linear_speed{config.max_linear_speed},
+    max_angular_acceleration{config.max_angular_acceleration},
     post_threshold{config.post_threshold},
     blind_pose{absolute_pose},
     cell_size{config.cell_size},
@@ -44,9 +45,12 @@ float FollowWall::compute_angular_correction(float elapsed_time, float linear_sp
         return 0.0F;
     }
 
-    const float response = this->pid.compute_response(error, elapsed_time);
+    const float response = linear_speed * this->pid.compute_response(error, elapsed_time) / this->max_linear_speed;
+    const float clamped_response =
+        core::move_towards(this->last_response, response, this->max_angular_acceleration * elapsed_time);
 
-    return response * linear_speed / this->max_linear_speed;
+    this->last_response = clamped_response;
+    return clamped_response;
 }
 
 bool FollowWall::check_posts() {
@@ -104,6 +108,7 @@ core::Observation FollowWall::get_observation() const {
 
 void FollowWall::reset() {
     this->pid.reset();
+    this->last_response = 0.0F;
     this->reset_displacement();
     this->following_left = this->wall_sensors->get_wall(this->sensor_index.left);
     this->following_right = this->wall_sensors->get_wall(this->sensor_index.right);
