@@ -49,7 +49,7 @@ std::vector<uint8_t> Packet::serialize() const {
     data.insert(data.end(), escaped_payload.begin(), escaped_payload.end());
 
     uint8_t checksum = 0;
-    for (std::size_t i = 1; i < data.size(); ++i) {
+    for (std::size_t i = 1; i < data.size(); i++) {
         checksum += data[i];
     }
     checksum %= 256;
@@ -76,11 +76,11 @@ std::vector<uint8_t> Packet::escape_payload(const std::vector<uint8_t>& payload)
 std::vector<uint8_t> Packet::unescape_payload(const std::vector<uint8_t>& escaped_payload) {
     std::vector<uint8_t> payload;
 
-    for (uint32_t i = 0; i < escaped_payload.size(); ++i) {
+    for (uint32_t i = 0; i < escaped_payload.size(); i++) {
         if (escaped_payload[i] == escape_byte) {
             if (i + 1 < escaped_payload.size()) {
                 payload.emplace_back(escaped_payload[i + 1]);
-                ++i;
+                i++;
             }
         } else {
             payload.emplace_back(escaped_payload[i]);
@@ -100,7 +100,7 @@ bool Packet::is_valid(const std::vector<uint8_t>& serialized_packet) {
     }
 
     uint8_t checksum = 0;
-    for (std::size_t i = 1; i < serialized_packet.size() - 2; ++i) {
+    for (std::size_t i = 1; i < serialized_packet.size() - 2; i++) {
         checksum += serialized_packet[i];
     }
     checksum %= 256;
