@@ -15,10 +15,5 @@
 
     "doxdocgen.file.fileOrder": [
         "file",
-    ],
-
-    "clangd.arguments": [
-        "--pretty",
-        "--compile-commands-dir=${workspaceFolder}/build/",
     ]
 }
