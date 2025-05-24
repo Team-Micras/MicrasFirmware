@@ -33,9 +33,15 @@ void PidController::reset() {
     this->error_acc = 0;
     this->prev_state = 0;
     this->last_response = 0;
+    this->first_run = true;
 }
 
 float PidController::compute_response(float state, float elapsed_time, bool save) {
+    if (first_run) {
+        this->prev_state = state;
+        this->first_run = false;
+    }
+
     const float state_change = (state - this->prev_state) / elapsed_time;
     return this->compute_response(state, elapsed_time, state_change, save);
 }

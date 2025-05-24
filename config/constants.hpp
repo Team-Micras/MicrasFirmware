@@ -24,10 +24,11 @@ constexpr float    cell_size{0.18};
 constexpr uint32_t loop_time_us{1042};
 constexpr float    wall_thickness{0.0126F};
 constexpr float    start_offset{0.04F + wall_thickness / 2.0F};
-constexpr float    exploration_speed{0.5F};
-constexpr float    max_linear_acceleration{1.0F};
-constexpr float    max_angular_acceleration{200.0F};
-constexpr float    crash_acceleration{20.0F};
+constexpr float    max_linear_acceleration{10.0F};
+constexpr float    max_linear_deceleration{15.0F};
+constexpr float    max_angular_acceleration{300.0F};
+constexpr float    crash_acceleration{35.0F};
+constexpr float    fan_speed{100.0F};
 
 constexpr core::WallSensorsIndex wall_sensors_index{
     .left_front = 0,
@@ -51,24 +52,23 @@ using Maze = TMaze<maze_width, maze_height>;
 const nav::ActionQueuer::Config action_queuer_config{
     .cell_size = cell_size,
     .start_offset = start_offset,
+    .curve_safety_margin = 0.0375F + 0.015F,
     .exploring =
         {
-            .max_linear_speed = exploration_speed,
+            .max_linear_speed = 0.4F,
             .max_linear_acceleration = max_linear_acceleration,
-            .max_linear_deceleration = max_linear_acceleration,
-            .curve_radius = cell_size / 2.0F,
+            .max_linear_deceleration = max_linear_deceleration,
             .max_centrifugal_acceleration = 2.78F,
             .max_angular_acceleration = max_angular_acceleration,
         },
     .solving =
         {
-            .max_linear_speed = exploration_speed,
+            .max_linear_speed = 3.0F,
             .max_linear_acceleration = max_linear_acceleration,
-            .max_linear_deceleration = max_linear_acceleration,
-            .curve_radius = cell_size / 2.0F,
-            .max_centrifugal_acceleration = 1.0F,
+            .max_linear_deceleration = max_linear_deceleration,
+            .max_centrifugal_acceleration = 5.0F,
             .max_angular_acceleration = max_angular_acceleration,
-        },
+        }
 };
 
 const nav::FollowWall::Config follow_wall_config{
@@ -96,6 +96,11 @@ const nav::Maze::Config maze_config{
         {(maze_width - 1) / 2, (maze_height - 1) / 2},
     }},
     .cost_margin = 1.2F,
+    .graph_config =
+        {
+            .cell_size = cell_size,
+            .cost_params = action_queuer_config.solving,
+        },
 };
 
 const nav::Odometry::Config odometry_config{

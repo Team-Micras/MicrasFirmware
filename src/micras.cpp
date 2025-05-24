@@ -97,7 +97,7 @@ bool Micras::run() {
             this->finished = false;
             this->locomotion.stop();
 
-            if (this->objective == core::Objective::EXPLORE) {
+            if (this->objective != core::Objective::SOLVE) {
                 this->maze.compute_best_route();
             }
 
@@ -127,7 +127,7 @@ bool Micras::run() {
                 next_goal = this->maze.get_next_goal(this->grid_pose, returning);
             }
 
-            this->action_queuer.push(this->grid_pose, next_goal.position);
+            this->action_queuer.push_exploring(this->grid_pose, next_goal.position);
             this->current_action = this->action_queuer.pop();
             this->grid_pose = next_goal;
         }
@@ -137,7 +137,7 @@ bool Micras::run() {
         }
     }
 
-    this->desired_speeds = this->current_action->get_speeds(this->action_pose.get());
+    this->desired_speeds = this->current_action->get_speeds(this->action_pose.get(), this->elapsed_time);
 
     if (this->current_action->allow_follow_wall()) {
         this->desired_speeds.angular =
@@ -189,7 +189,8 @@ void Micras::save_best_route() {
 
 void Micras::load_best_route() {
     this->maze_storage.sync("maze", this->maze);
-    this->action_queuer.recompute(this->maze.get_best_route());
+    this->action_queuer.recompute(this->maze.get_best_route(), false);
+    this->fan.set_speed(fan_speed);
 }
 
 core::Objective Micras::get_objective() const {
@@ -214,5 +215,13 @@ bool Micras::acknowledge_event(Interface::Event event) {
 
 bool Micras::peek_event(Interface::Event event) const {
     return this->interface.peek_event(event);
+}
+
+void Micras::handle_events() {
+    if (this->interface.acknowledge_event(Interface::Event::TURN_ON_FAN)) {
+        this->fan.enable();
+    } else if (this->interface.acknowledge_event(Interface::Event::TURN_OFF_FAN)) {
+        this->fan.disable();
+    }
 }
 }  // namespace micras

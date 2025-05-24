@@ -27,7 +27,15 @@ public:
         SOLVE = 1,
         CALIBRATE = 2,
         ERROR = 3,
-        NUMBER_OF_EVENTS = 4,
+        TURN_ON_FAN = 4,
+        TURN_OFF_FAN = 5,
+        TURN_ON_DIAGONAL = 6,
+        TURN_OFF_DIAGONAL = 7,
+        TURN_ON_BOOST = 8,
+        TURN_OFF_BOOST = 9,
+        TURN_ON_RISKY = 10,
+        TURN_OFF_RISKY = 11,
+        NUMBER_OF_EVENTS = 12,
     };
 
     /**
@@ -75,6 +83,16 @@ public:
 
 private:
     /**
+     * @brief Enum for what each dip switch pin does.
+     */
+    enum DipSwitchPins : uint8_t {
+        FAN = 0,
+        DIAGONAL = 1,
+        BOOST = 2,
+        RISKY = 3,
+    };
+
+    /**
      * @brief Addressable RGB LED object.
      */
     std::shared_ptr<proxy::TArgb<2>> argb;
@@ -103,6 +121,11 @@ private:
      * @brief Array of the listed events.
      */
     std::array<bool, Event::NUMBER_OF_EVENTS> events{};
+
+    /**
+     * @brief Array to store the last dip switch states.
+     */
+    std::array<bool, 4> dip_switch_states{};
 };
 }  // namespace micras
 

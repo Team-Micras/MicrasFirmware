@@ -6,13 +6,15 @@
 #define MICRAS_NAV_MAZE_CPP
 
 #include <cmath>
+#include <utility>
 
 #include "micras/nav/grid_pose.hpp"
 #include "micras/nav/maze.hpp"
 
 namespace micras::nav {
 template <uint8_t width, uint8_t height>
-TMaze<width, height>::TMaze(Config config) : start{config.start}, goal{config.goal}, cost_margin(config.cost_margin) {
+TMaze<width, height>::TMaze(Config config) :
+    graph(config.graph_config), start{config.start}, goal{config.goal}, cost_margin{config.cost_margin} {
     this->costmap.update_wall(this->start, false);
     this->costmap.update_wall(start.turned_right(), true);
 
@@ -71,8 +73,8 @@ void TMaze<width, height>::update_walls(const GridPose& pose, const core::Observ
 template <uint8_t width, uint8_t height>
 GridPose TMaze<width, height>::get_next_goal(const GridPose& pose, bool returning) {
     if (returning and not this->finished_discovery) {
-        this->compute_best_route();
-        const auto& next_goal = this->get_next_bfs_goal(pose, true);
+        this->compute_minimum_cost();
+        const auto& [next_goal, _] = this->get_next_bfs_goal(pose, true);
 
         if (next_goal != this->start) {
             return next_goal;
@@ -84,9 +86,14 @@ GridPose TMaze<width, height>::get_next_goal(const GridPose& pose, bool returnin
     int16_t  current_cost = max_cost;
     GridPose next_pose = {};
 
-    for (Side side :
-         {pose.turned_right().orientation, pose.turned_left().orientation, pose.orientation,
-          pose.turned_back().orientation}) {
+    auto sides_order = {
+        pose.turned_right().orientation,
+        pose.turned_left().orientation,
+        pose.orientation,
+        pose.turned_back().orientation,
+    };
+
+    for (Side side : sides_order) {
         if (this->costmap.has_wall({pose.position, side})) {
             continue;
         }
@@ -112,22 +119,64 @@ bool TMaze<width, height>::finished(const GridPoint& position, bool returning) c
 }
 
 template <uint8_t width, uint8_t height>
+void TMaze<width, height>::compute_minimum_cost() {
+    this->minimum_cost = this->get_next_bfs_goal(this->start, false).second;
+}
+
+template <uint8_t width, uint8_t height>
 void TMaze<width, height>::compute_best_route() {
-    GridPose current_pose = this->start;
-    this->best_route.clear();
-    this->best_route.emplace_back(this->start);
-
-    while (not this->goal.contains(current_pose.position)) {
-        current_pose = this->get_next_bfs_goal(current_pose, false);
-        this->best_route.emplace_back(current_pose);
-    }
-
-    this->minimum_cost = this->best_route.size();
+    this->compute_graph();
+    this->best_route = this->graph.get_best_route(this->start, this->goal);
 }
 
 template <uint8_t width, uint8_t height>
 const std::list<GridPose>& TMaze<width, height>::get_best_route() const {
     return this->best_route;
+}
+
+template <uint8_t width, uint8_t height>
+void TMaze<width, height>::compute_graph() {
+    std::queue<GridPose> queue;
+    this->graph.reset();
+
+    this->graph.add_node(this->start);
+    queue.push(this->start);
+
+    while (not queue.empty()) {
+        GridPose current_pose = queue.front();
+        queue.pop();
+
+        if (this->goal.contains(current_pose.position)) {
+            continue;
+        }
+
+        auto sides_order = {
+            current_pose.turned_right().orientation,
+            current_pose.turned_left().orientation,
+            current_pose.orientation,
+        };
+
+        for (Side side : sides_order) {
+            if (this->costmap.has_wall({current_pose.position, side}, true)) {
+                continue;
+            }
+
+            GridPose next_pose = {current_pose.position + side, side};
+
+            if (not this->was_visited(this->costmap.get_cell(next_pose.position))) {
+                continue;
+            }
+
+            if (not this->graph.has_node(next_pose)) {
+                this->graph.add_node(next_pose);
+                queue.push(next_pose);
+            }
+
+            this->graph.add_edge(current_pose, next_pose);
+        }
+    }
+
+    this->graph.process_nodes(this->start);
 }
 
 template <uint8_t width, uint8_t height>
@@ -180,32 +229,41 @@ void TMaze<width, height>::update_cell(const GridPoint& position) {
 }
 
 template <uint8_t width, uint8_t height>
-GridPose TMaze<width, height>::get_next_bfs_goal(const GridPose& pose, bool discover) const {
-    std::queue<GridPose>                        queue;
-    std::array<std::array<bool, width>, height> checked{};
-    GridPose                                    next_goal = this->start;
+std::pair<GridPose, uint16_t> TMaze<width, height>::get_next_bfs_goal(const GridPose& pose, bool discover) const {
+    std::queue<GridPose>                            queue;
+    std::array<std::array<uint16_t, width>, height> distance{};
+    std::pair<GridPose, uint16_t>                   result_pair = {this->start, 0};
 
-    checked.at(pose.position.y).at(pose.position.x) = true;
+    distance.at(pose.position.y).at(pose.position.x) = 1;
 
-    for (Side side :
-         {pose.turned_right().orientation, pose.turned_left().orientation, pose.orientation,
-          pose.turned_back().orientation}) {
+    auto sides_order = {
+        pose.turned_right().orientation,
+        pose.turned_left().orientation,
+        pose.orientation,
+        pose.turned_back().orientation,
+    };
+
+    for (Side side : sides_order) {
         if (not this->costmap.has_wall({pose.position, side})) {
-            queue.emplace(pose.position + side, side);
+            GridPoint next_position = pose.position + side;
+            queue.emplace(next_position, side);
+            distance.at(next_position.y).at(next_position.x) = 1;
         }
     }
 
     while (not queue.empty()) {
         GridPose current_pose = queue.front();
         queue.pop();
-        checked.at(current_pose.position.y).at(current_pose.position.x) = true;
 
         if ((discover and
              this->must_visit(
                  this->costmap.get_cell(current_pose.position), std::round(this->minimum_cost * this->cost_margin)
              )) or
             (not discover and this->goal.contains(current_pose.position))) {
-            next_goal = {pose.position + current_pose.orientation, current_pose.orientation};
+            result_pair = {
+                {pose.position + current_pose.orientation, current_pose.orientation},
+                distance.at(current_pose.position.y).at(current_pose.position.x)
+            };
             break;
         }
 
@@ -219,13 +277,15 @@ GridPose TMaze<width, height>::get_next_bfs_goal(const GridPose& pose, bool disc
             const GridPoint front_position = current_pose.position + side;
 
             if ((discover or this->was_visited(this->costmap.get_cell(front_position))) and
-                not checked.at(front_position.y).at(front_position.x)) {
+                distance.at(front_position.y).at(front_position.x) == 0) {
                 queue.emplace(front_position, current_pose.orientation);
+                distance.at(front_position.y).at(front_position.x) =
+                    distance.at(current_pose.position.y).at(current_pose.position.x) + 1;
             }
         }
     }
 
-    return next_goal;
+    return result_pair;
 }
 
 template <uint8_t width, uint8_t height>
