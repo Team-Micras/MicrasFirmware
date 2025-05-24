@@ -177,21 +177,6 @@ private:
     float curve_safety_margin;
 
     /**
-     * @brief Radius of the exploration curve.
-     */
-    float exploration_curve_radius;
-
-    /**
-     * @brief Configuration for the exploring move action during exploration.
-     */
-    MoveAction::Config exploring_move_config;
-
-    /**
-     * @brief Configuration for the turn action during exploration.
-     */
-    TurnAction::Config exploring_turn_config;
-
-    /**
      * @brief Dynamic solving parameters.
      */
     Config::Dynamic solving_params;
