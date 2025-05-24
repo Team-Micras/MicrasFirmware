@@ -166,7 +166,7 @@ void MazeGraph::reset() {
 }
 
 bool MazeGraph::can_skip(const GridPose& first, const GridPose& second, const GridPose& third) const {
-    auto skip_action = this->get_main_action_type(first, third);
+    ActionQueuer::ActionType skip_action = this->get_main_action_type(first, third);
 
     if (skip_action == ActionQueuer::ActionType::STOP) {
         return false;
@@ -212,12 +212,13 @@ float MazeGraph::get_edge_cost(const GridPose& from, const GridPose& to) const {
 ActionQueuer::ActionType MazeGraph::get_main_action_type(const GridPose& from, const GridPose& to) const {
     auto actions = ActionQueuer::get_actions(from, to, this->cell_size);
 
-    if (actions.empty()) {
-        return ActionQueuer::ActionType::STOP;
-    }
-
     if (actions.size() == 3) {
         return ActionQueuer::ActionType::DIAGONAL;
+    }
+
+    if (actions.empty() or (actions.front().type == ActionQueuer::ActionType::TURN and
+                            std::abs(actions.front().value) == std::numbers::pi_v<float>)) {
+        return ActionQueuer::ActionType::STOP;
     }
 
     return static_cast<ActionQueuer::ActionType>(actions.front().type);
