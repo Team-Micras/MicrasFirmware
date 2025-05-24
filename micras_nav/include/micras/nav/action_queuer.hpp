@@ -131,7 +131,7 @@ private:
      * @param turn_action Turn action to get the trim distances for.
      * @return Pair of trim distances before and after the turn.
      */
-    std::pair<float, float> get_trim_distances(const Action::Id& action_before, const Action::Id& turn_action) const;
+    std::pair<float, float> get_trim_distances(const Action::Id& action_before, const Action::Id& turn_action);
 
     /**
      * @brief Get the curve parameters for a given angle and diagonal status.
