@@ -150,7 +150,8 @@ void ActionQueuer::recompute(const std::list<GridPose>& best_route, bool add_sta
             continue;
         }
 
-        const auto& curve_parameters = this->curves_parameters.at(std::abs(action_it->value));
+        const CurveParameters& curve_parameters =
+            this->get_curve_parameters(action_it->value, std::prev(action_it)->type == ActionType::DIAGONAL);
 
         const MoveAction::Config move_config = {
             .start_speed = start_speed,
@@ -275,9 +276,10 @@ std::list<Action::Id>
 }
 
 std::pair<float, float>
-    ActionQueuer::get_trim_distances(const Action::Id& action_before, const Action::Id& turn_action) const {
-    const float turn_angle = std::abs(turn_action.value);
-    const auto& curve_parameters = this->curves_parameters.at(turn_angle);
+    ActionQueuer::get_trim_distances(const Action::Id& action_before, const Action::Id& turn_action) {
+    const float            turn_angle = std::abs(turn_action.value);
+    const CurveParameters& curve_parameters =
+        this->get_curve_parameters(turn_angle, action_before.type == ActionType::DIAGONAL);
 
     if (turn_angle == std::numbers::pi_v<float> / 4.0F) {
         const float trim_before_distance = curve_parameters.forward_displacement - curve_parameters.side_displacement;
