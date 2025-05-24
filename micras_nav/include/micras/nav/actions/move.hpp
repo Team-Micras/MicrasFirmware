@@ -16,32 +16,39 @@ namespace micras::nav {
 class MoveAction : public Action {
 public:
     /**
+     * @brief Configuration parameters for the MoveAction.
+     */
+    struct Config {
+        float start_speed;
+        float end_speed;
+        float max_speed;
+        float max_acceleration;
+        float max_deceleration;
+    };
+
+    /**
      * @brief Construct a new Move Action object.
      *
      * @param action_type The type of the action to be performed.
      * @param distance Distance to move in meters.
-     * @param start_speed Initial speed in m/s.
-     * @param end_speed Final speed in m/s.
-     * @param max_speed Maximum speed in m/s.
-     * @param max_acceleration Maximum acceleration in m/s^2.
-     * @param max_deceleration Maximum deceleration in m/s^2.
+     * @param config Dynamic parameters for the action.
      * @param follow_wall Whether the robot can follow wall while executing this action.
      */
-    MoveAction(
-        uint8_t action_type, float distance, float start_speed, float end_speed, float max_speed,
-        float max_acceleration, float max_deceleration, bool follow_wall = true
-    ) :
+    MoveAction(uint8_t action_type, float distance, const Config& config, bool follow_wall = true) :
         Action{
             {action_type, distance},
             follow_wall,
-            calculate_total_time(distance, start_speed, end_speed, max_speed, max_acceleration, max_deceleration)
+            calculate_total_time(
+                distance, config.start_speed, config.end_speed, config.max_speed, config.max_acceleration,
+                config.max_deceleration
+            )
         },
         distance(distance),
-        start_speed_2(start_speed * start_speed),
-        end_speed_2(end_speed * end_speed),
-        max_speed{max_speed},
-        max_acceleration_doubled{2.0F * max_acceleration},
-        max_deceleration_doubled{2.0F * max_deceleration},
+        start_speed_2(config.start_speed * config.start_speed),
+        end_speed_2(config.end_speed * config.end_speed),
+        max_speed{config.max_speed},
+        max_acceleration_doubled{2.0F * config.max_acceleration},
+        max_deceleration_doubled{2.0F * config.max_deceleration},
         decelerate_distance{
             (end_speed_2 - start_speed_2 + max_deceleration_doubled * distance) /
             (max_acceleration_doubled + max_deceleration_doubled)

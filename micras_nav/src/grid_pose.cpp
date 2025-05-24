@@ -89,6 +89,7 @@ Side GridPose::get_relative_side(const GridPoint& other) const {
         case Side::LEFT:
             return this->position.y > other.y ? Side::LEFT : Side::RIGHT;
         case Side::DOWN:
+        default:
             return this->position.x < other.x ? Side::LEFT : Side::RIGHT;
     }
 }
