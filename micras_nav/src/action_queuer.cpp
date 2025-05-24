@@ -33,6 +33,9 @@ ActionQueuer::ActionQueuer(Config config) :
 
     this->move_forward = std::make_shared<MoveAction>(ActionType::MOVE_FORWARD, cell_size, move_config);
     this->move_to_turn = std::make_shared<MoveAction>(
+        ActionType::MOVE_FORWARD, this->cell_size / 2.0F - exploration_curve_radius, move_config
+    );
+    this->move_from_turn = std::make_shared<MoveAction>(
         ActionType::MOVE_FORWARD, this->cell_size / 2.0F - exploration_curve_radius, move_config, false
     );
 
@@ -69,28 +72,28 @@ ActionQueuer::ActionQueuer(Config config) :
 
 void ActionQueuer::push_exploring(const GridPose& origin_pose, const GridPoint& target_position) {
     if (origin_pose.front().position == target_position) {
-        this->action_queue.emplace_back(move_forward);
+        this->action_queue.emplace_back(this->move_forward);
         return;
     }
 
     if (origin_pose.turned_left().front().position == target_position) {
-        this->action_queue.emplace_back(move_to_turn);
-        this->action_queue.emplace_back(turn_left);
-        this->action_queue.emplace_back(move_to_turn);
+        this->action_queue.emplace_back(this->move_to_turn);
+        this->action_queue.emplace_back(this->turn_left);
+        this->action_queue.emplace_back(this->move_to_turn);
         return;
     }
 
     if (origin_pose.turned_right().front().position == target_position) {
-        this->action_queue.emplace_back(move_to_turn);
-        this->action_queue.emplace_back(turn_right);
-        this->action_queue.emplace_back(move_to_turn);
+        this->action_queue.emplace_back(this->move_to_turn);
+        this->action_queue.emplace_back(this->turn_right);
+        this->action_queue.emplace_back(this->move_from_turn);
         return;
     }
 
     if (origin_pose.turned_back().front().position == target_position) {
-        this->action_queue.emplace_back(stop);
-        this->action_queue.emplace_back(turn_back);
-        this->action_queue.emplace_back(move_half);
+        this->action_queue.emplace_back(this->stop);
+        this->action_queue.emplace_back(this->turn_back);
+        this->action_queue.emplace_back(this->move_half);
         return;
     }
 }

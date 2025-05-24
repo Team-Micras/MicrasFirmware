@@ -195,6 +195,7 @@ private:
     std::shared_ptr<MoveAction> move_forward;
     std::shared_ptr<MoveAction> move_half;
     std::shared_ptr<MoveAction> move_to_turn;
+    std::shared_ptr<MoveAction> move_from_turn;
     std::shared_ptr<TurnAction> turn_left;
     std::shared_ptr<TurnAction> turn_right;
     std::shared_ptr<TurnAction> turn_back;
