@@ -147,14 +147,14 @@ private:
     bool following_right{true};
 
     /**
-     * @brief Last error measured by the left wall sensor, used to compute the derivative of the distance sensors.
+     * @brief Last reading measured by the left wall sensor, used to compute the derivative of the distance sensors.
      */
-    float last_left_error{};
+    float last_left_reading{};
 
     /**
-     * @brief Last error measured by the right wall sensor, used to compute the derivative of the distance sensors.
+     * @brief Last reading measured by the right wall sensor, used to compute the derivative of the distance sensors.
      */
-    float last_right_error{};
+    float last_right_reading{};
 
     /**
      * @brief Last response returned by the Follow Wall.

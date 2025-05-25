@@ -74,20 +74,20 @@ bool FollowWall::check_posts(float cell_advance) {
 
     bool found_posts = false;
 
-    if (-(this->wall_sensors->get_sensor_error(this->sensor_index.left) - this->last_left_error) / delta_distance >=
+    if (-(this->wall_sensors->get_reading(this->sensor_index.left) - this->last_left_reading) / delta_distance >=
         this->post_threshold) {
         this->following_left = false;
         found_posts = true;
     }
 
-    if (-(this->wall_sensors->get_sensor_error(this->sensor_index.right) - this->last_right_error) / delta_distance >=
+    if (-(this->wall_sensors->get_reading(this->sensor_index.right) - this->last_right_reading) / delta_distance >=
         this->post_threshold) {
         this->following_right = false;
         found_posts = true;
     }
 
-    this->last_left_error = this->wall_sensors->get_sensor_error(this->sensor_index.left);
-    this->last_right_error = this->wall_sensors->get_sensor_error(this->sensor_index.right);
+    this->last_left_reading = this->wall_sensors->get_reading(this->sensor_index.left);
+    this->last_right_reading = this->wall_sensors->get_reading(this->sensor_index.right);
 
     return found_posts;
 }
@@ -126,5 +126,7 @@ void FollowWall::reset() {
     this->last_response = 0.0F;
     this->following_left = false;
     this->following_right = false;
+    this->last_left_reading = 0.0F;
+    this->last_right_reading = 0.0F;
 }
 }  // namespace micras::nav
