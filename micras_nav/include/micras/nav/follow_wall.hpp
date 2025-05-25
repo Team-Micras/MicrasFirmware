@@ -28,8 +28,8 @@ public:
         float                       max_angular_acceleration{};
         float                       cell_size{};
         float                       post_threshold{};
-        float                       post_reference_start{};
-        float                       post_reference_end{};
+        float                       post_reference{};
+        float                       post_clearance{};
     };
 
     /**
@@ -119,12 +119,12 @@ private:
     /**
      * @brief Cell advance of the robot when it starts to see a post.
      */
-    float post_reference_start{};
+    float post_reference{};
 
     /**
-     * @brief Cell advance of the robot when it stops seeing a post.
+     * @brief Distance the robot should travel after seeing a post to start making observations.
      */
-    float post_reference_end{};
+    float post_clearance{};
 
     /**
      * @brief Last grid pose of the robot.
