@@ -17,38 +17,42 @@ ActionQueuer::ActionQueuer(Config config) :
     const float exploration_curve_radius = config.exploring.max_linear_speed * config.exploring.max_linear_speed /
                                            config.exploring.max_centrifugal_acceleration;
 
+    const float exploration_max_angular_speed = TurnAction::calculate_max_angular_speed(
+        std::numbers::pi_v<float> / 2.0F, exploration_curve_radius, config.exploring.max_angular_acceleration,
+        config.exploring.max_centrifugal_acceleration
+    );
+
+    const float exploration_linear_speed =
+        config.exploring.max_centrifugal_acceleration / exploration_max_angular_speed;
+
     MoveAction::Config move_config = {
         .start_speed = 0.0F,
-        .end_speed = config.exploring.max_linear_speed,
-        .max_speed = config.exploring.max_linear_speed,
+        .end_speed = exploration_linear_speed,
+        .max_speed = exploration_linear_speed,
         .max_acceleration = config.exploring.max_linear_acceleration,
         .max_deceleration = config.exploring.max_linear_deceleration
     };
 
-    this->start =
-        std::make_shared<MoveAction>(ActionType::START, this->cell_size - config.start_offset, move_config, false);
-    this->move_half = std::make_shared<MoveAction>(ActionType::MOVE_FORWARD, cell_size / 2.0F, move_config, false);
+    this->start = std::make_shared<MoveAction>(ActionType::START, this->cell_size - config.start_offset, move_config);
+    this->move_half = std::make_shared<MoveAction>(ActionType::MOVE_FORWARD, cell_size / 2.0F, move_config);
 
-    move_config.start_speed = config.exploring.max_linear_speed;
+    move_config.start_speed = exploration_linear_speed;
 
     this->move_forward = std::make_shared<MoveAction>(ActionType::MOVE_FORWARD, cell_size, move_config);
     this->move_to_turn = std::make_shared<MoveAction>(
-        ActionType::MOVE_FORWARD, this->cell_size / 2.0F - exploration_curve_radius, move_config
+        ActionType::MOVE_FORWARD, this->cell_size / 2.0F - exploration_curve_radius, move_config, false
     );
     this->move_from_turn = std::make_shared<MoveAction>(
-        ActionType::MOVE_FORWARD, this->cell_size / 2.0F - exploration_curve_radius, move_config, false
+        ActionType::MOVE_FORWARD, this->cell_size / 2.0F - exploration_curve_radius, move_config
     );
 
     move_config.end_speed = 0.0F;
 
-    this->stop = std::make_shared<MoveAction>(ActionType::STOP, cell_size / 2.0F, move_config);
+    this->stop = std::make_shared<MoveAction>(ActionType::STOP, cell_size / 2.0F, move_config, false);
 
     const TurnAction::Config turn_config = {
-        .max_angular_speed = TurnAction::calculate_max_angular_speed(
-            std::numbers::pi_v<float> / 2.0F, exploration_curve_radius, config.exploring.max_angular_acceleration,
-            config.exploring.max_centrifugal_acceleration
-        ),
-        .linear_speed = config.exploring.max_linear_speed,
+        .max_angular_speed = exploration_max_angular_speed,
+        .linear_speed = exploration_linear_speed,
         .max_angular_acceleration = config.exploring.max_angular_acceleration
     };
 
