@@ -24,8 +24,8 @@ constexpr float    cell_size{0.18};
 constexpr uint32_t loop_time_us{1042};
 constexpr float    wall_thickness{0.0126F};
 constexpr float    start_offset{0.04F + wall_thickness / 2.0F};
-constexpr float    max_linear_acceleration{10.0F};
-constexpr float    max_linear_deceleration{15.0F};
+constexpr float    max_linear_acceleration{9.0F};
+constexpr float    max_linear_deceleration{9.0F};
 constexpr float    max_angular_acceleration{300.0F};
 constexpr float    crash_acceleration{35.0F};
 constexpr float    fan_speed{100.0F};
@@ -112,8 +112,6 @@ const nav::Odometry::Config odometry_config{
 };
 
 const nav::SpeedController::Config speed_controller_config{
-    .max_linear_acceleration = max_linear_acceleration,
-    .max_angular_acceleration = max_angular_acceleration,
     .linear_pid =
         {
             .kp = 10.0F,
