@@ -83,9 +83,10 @@ const nav::FollowWall::Config follow_wall_config{
         },
     .max_linear_speed = 0.1F,
     .max_angular_acceleration = max_angular_acceleration,
-    .post_threshold = 16.5F,
     .cell_size = cell_size,
+    .post_threshold = 16.5F,
     .post_clearance = 0.2F * cell_size,
+    .post_reference = 0.5F * cell_size,
 };
 
 const nav::Maze::Config maze_config{
@@ -107,7 +108,7 @@ const nav::Maze::Config maze_config{
 const nav::Odometry::Config odometry_config{
     .linear_cutoff_frequency = 5.0F,
     .wheel_radius = 0.0112F,
-    .initial_pose = {{0.0F, 0.0F}, 0.0F},
+    .initial_pose = {{cell_size / 2.0F, start_offset}, std::numbers::pi / 2.0F},
 };
 
 const nav::SpeedController::Config speed_controller_config{

@@ -28,7 +28,7 @@ Micras::Micras() :
     maze{maze_config},
     odometry{rotary_sensor_left, rotary_sensor_right, imu, odometry_config},
     speed_controller{speed_controller_config},
-    follow_wall{wall_sensors, odometry.get_state().pose, follow_wall_config},
+    follow_wall{wall_sensors, follow_wall_config},
     interface{argb, button, buzzer, dip_switch, led},
     action_pose{odometry.get_state().pose} {
     this->fsm.add_state(std::make_unique<CalibrateState>(State::CALIBRATE, *this));
@@ -89,8 +89,8 @@ void Micras::prepare() {
 bool Micras::run() {
     this->odometry.update(this->elapsed_time);
 
-    const micras::nav::State& state = this->odometry.get_state();
-    core::Observation         observation{};
+    micras::nav::State& state = this->odometry.get_state();
+    core::Observation   observation{};
 
     if (this->current_action->finished(this->action_pose.get())) {
         if (this->finished) {
@@ -131,17 +131,12 @@ bool Micras::run() {
             this->current_action = this->action_queuer.pop();
             this->grid_pose = next_goal;
         }
-
-        if (this->current_action->allow_follow_wall()) {
-            this->follow_wall.reset();
-        }
     }
 
     this->desired_speeds = this->current_action->get_speeds(this->action_pose.get(), this->elapsed_time);
 
     if (this->current_action->allow_follow_wall()) {
-        this->desired_speeds.angular =
-            this->follow_wall.compute_angular_correction(this->elapsed_time, state.velocity.linear);
+        this->desired_speeds.angular = this->follow_wall.compute_angular_correction(this->elapsed_time, state);
     }
 
     std::tie(this->left_response, this->right_response) =

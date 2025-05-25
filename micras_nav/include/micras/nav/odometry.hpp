@@ -61,6 +61,13 @@ public:
     const State& get_state() const;
 
     /**
+     * @brief Get the state of the robot.
+     *
+     * @return Current state of the robot in space.
+     */
+    State& get_state();
+
+    /**
      * @brief Set the state of the robot.
      *
      * @param state New state of the robot.
