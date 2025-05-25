@@ -62,6 +62,10 @@ const nav::State& Odometry::get_state() const {
     return this->state;
 }
 
+nav::State& Odometry::get_state() {
+    return this->state;
+}
+
 void Odometry::set_state(const nav::State& new_state) {
     this->state = new_state;
 }

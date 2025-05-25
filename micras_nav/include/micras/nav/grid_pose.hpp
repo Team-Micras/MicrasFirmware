@@ -44,6 +44,7 @@ struct GridPoint {
     /**
      * @brief Convert the point to a grid point.
      *
+     * @param point The point to convert.
      * @param cell_size The size of the grid cells.
      * @return The grid point corresponding to the point.
      */
@@ -52,7 +53,6 @@ struct GridPoint {
     /**
      * @brief Convert a grid point to a point.
      *
-     * @param grid_point The grid point to convert.
      * @param cell_size The size of the grid cells.
      * @return The point corresponding to the grid point.
      */
