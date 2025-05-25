@@ -96,6 +96,11 @@ private:
     float wheel_radius;
 
     /**
+     * @brief Initial pose of the robot.
+     */
+    Pose initial_pose;
+
+    /**
      * @brief Last left rotary sensor position.
      */
     float left_last_position{};
