@@ -13,8 +13,8 @@ FollowWall::FollowWall(const std::shared_ptr<proxy::TWallSensors<4>>& wall_senso
     max_angular_acceleration{config.max_angular_acceleration},
     cell_size{config.cell_size},
     post_threshold{config.post_threshold},
-    post_reference_start{config.post_reference_start},
-    post_reference_end{config.post_reference_end} { }
+    post_reference{config.post_reference},
+    post_clearance{config.post_clearance} { }
 
 float FollowWall::compute_angular_correction(float elapsed_time, State& state) {
     float          cell_advance = state.pose.to_cell(this->cell_size).y;
@@ -26,8 +26,8 @@ float FollowWall::compute_angular_correction(float elapsed_time, State& state) {
 
     if (grid_pose == this->last_grid_pose) {
         if (this->check_posts(cell_advance)) {
-            clear_position_error(state, this->post_reference_end - cell_advance);
-            cell_advance = this->post_reference_end;
+            clear_position_error(state, this->post_reference - cell_advance);
+            cell_advance = this->post_reference;
         }
     } else {
         if (grid_pose != this->last_grid_pose.front()) {
@@ -38,7 +38,7 @@ float FollowWall::compute_angular_correction(float elapsed_time, State& state) {
     this->last_grid_pose = grid_pose;
     this->last_cell_advance = cell_advance;
 
-    if (cell_advance < this->post_reference_start or cell_advance > this->post_reference_end) {
+    if (std::abs(cell_advance - this->post_reference) > this->post_clearance) {
         this->following_left |= this->wall_sensors->get_wall(this->sensor_index.left);
         this->following_right |= this->wall_sensors->get_wall(this->sensor_index.right);
     }
@@ -74,14 +74,16 @@ bool FollowWall::check_posts(float cell_advance) {
 
     bool found_posts = false;
 
-    if (-(this->wall_sensors->get_reading(this->sensor_index.left) - this->last_left_reading) / delta_distance >=
-        this->post_threshold) {
+    if (this->following_left and
+        -(this->wall_sensors->get_reading(this->sensor_index.left) - this->last_left_reading) / delta_distance >=
+            this->post_threshold) {
         this->following_left = false;
         found_posts = true;
     }
 
-    if (-(this->wall_sensors->get_reading(this->sensor_index.right) - this->last_right_reading) / delta_distance >=
-        this->post_threshold) {
+    if (this->following_right and
+        -(this->wall_sensors->get_reading(this->sensor_index.right) - this->last_right_reading) / delta_distance >=
+            this->post_threshold) {
         this->following_right = false;
         found_posts = true;
     }
