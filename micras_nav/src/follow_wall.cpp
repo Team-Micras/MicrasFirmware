@@ -13,8 +13,8 @@ FollowWall::FollowWall(const std::shared_ptr<proxy::TWallSensors<4>>& wall_senso
     max_angular_acceleration{config.max_angular_acceleration},
     cell_size{config.cell_size},
     post_threshold{config.post_threshold},
-    post_clearance{config.post_clearance},
-    post_reference{config.post_reference} { }
+    post_reference_start{config.post_reference_start},
+    post_reference_end{config.post_reference_end} { }
 
 float FollowWall::compute_angular_correction(float elapsed_time, State& state) {
     float          cell_advance = state.pose.to_cell(this->cell_size).y;
@@ -26,8 +26,8 @@ float FollowWall::compute_angular_correction(float elapsed_time, State& state) {
 
     if (grid_pose == this->last_grid_pose) {
         if (this->check_posts(cell_advance)) {
-            clear_position_error(state, this->post_reference - cell_advance);
-            cell_advance = this->post_reference;
+            clear_position_error(state, this->post_reference_end - cell_advance);
+            cell_advance = this->post_reference_end;
         }
     } else {
         if (grid_pose != this->last_grid_pose.front()) {
@@ -38,7 +38,7 @@ float FollowWall::compute_angular_correction(float elapsed_time, State& state) {
     this->last_grid_pose = grid_pose;
     this->last_cell_advance = cell_advance;
 
-    if (std::abs(cell_advance - this->cell_size / 2.0F) < this->cell_size / 2.0F - this->post_clearance) {
+    if (cell_advance < this->post_reference_start or cell_advance > this->post_reference_end) {
         this->following_left |= this->wall_sensors->get_wall(this->sensor_index.left);
         this->following_right |= this->wall_sensors->get_wall(this->sensor_index.right);
     }
