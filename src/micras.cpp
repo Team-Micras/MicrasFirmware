@@ -160,13 +160,13 @@ void Micras::stop() {
 void Micras::init() {
     this->wall_sensors->turn_on();
     this->locomotion.enable();
-    this->odometry.reset();
     this->imu->calibrate();
     this->action_pose.reset_reference();
 }
 
 void Micras::reset() {
     this->grid_pose = maze_config.start;
+    this->odometry.reset();
     this->finished = false;
 }
 

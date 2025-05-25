@@ -85,8 +85,8 @@ const nav::FollowWall::Config follow_wall_config{
     .max_angular_acceleration = max_angular_acceleration,
     .cell_size = cell_size,
     .post_threshold = 16.5F,
-    .post_reference = 0.5F * cell_size,
-    .post_clearance = 0.11F,
+    .post_reference = 0.44F * cell_size,
+    .post_clearance = 0.025F,
 };
 
 const nav::Maze::Config maze_config{
