@@ -38,10 +38,13 @@ float FollowWall::compute_angular_correction(float elapsed_time, State& state) {
     this->last_grid_pose = grid_pose;
     this->last_cell_advance = cell_advance;
 
-    if (std::abs(cell_advance - this->post_reference) > this->post_clearance) {
-        this->following_left |= this->wall_sensors->get_wall(this->sensor_index.left);
-        this->following_right |= this->wall_sensors->get_wall(this->sensor_index.right);
+    if (cell_advance <= this->post_reference + this->post_clearance and
+        cell_advance >= this->post_reference - this->post_clearance / 2.0F) {
+        return 0.0F;
     }
+
+    this->following_left |= this->wall_sensors->get_wall(this->sensor_index.left);
+    this->following_right |= this->wall_sensors->get_wall(this->sensor_index.right);
 
     float error{};
 
@@ -75,21 +78,21 @@ bool FollowWall::check_posts(float cell_advance) {
     bool found_posts = false;
 
     if (this->following_left and
-        -(this->wall_sensors->get_reading(this->sensor_index.left) - this->last_left_reading) / delta_distance >=
+        -(this->wall_sensors->get_adc_reading(this->sensor_index.left) - this->last_left_reading) / delta_distance >=
             this->post_threshold) {
         this->following_left = false;
         found_posts = true;
     }
 
     if (this->following_right and
-        -(this->wall_sensors->get_reading(this->sensor_index.right) - this->last_right_reading) / delta_distance >=
+        -(this->wall_sensors->get_adc_reading(this->sensor_index.right) - this->last_right_reading) / delta_distance >=
             this->post_threshold) {
         this->following_right = false;
         found_posts = true;
     }
 
-    this->last_left_reading = this->wall_sensors->get_reading(this->sensor_index.left);
-    this->last_right_reading = this->wall_sensors->get_reading(this->sensor_index.right);
+    this->last_left_reading = this->wall_sensors->get_adc_reading(this->sensor_index.left);
+    this->last_right_reading = this->wall_sensors->get_adc_reading(this->sensor_index.right);
 
     return found_posts;
 }
