@@ -24,7 +24,6 @@ public:
     struct Config {
         core::PidController::Config pid;
         core::WallSensorsIndex      wall_sensor_index{};
-        float                       max_linear_speed{};
         float                       max_angular_acceleration{};
         float                       cell_size{};
         float                       post_threshold{};
@@ -95,11 +94,6 @@ private:
      * @brief Index of each of the wall sensors used for wall following.
      */
     core::WallSensorsIndex sensor_index;
-
-    /**
-     * @brief Maximum linear speed of the robot.
-     */
-    float max_linear_speed;
 
     /**
      * @brief Maximum angular acceleration of the robot.

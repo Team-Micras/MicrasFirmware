@@ -9,7 +9,6 @@ FollowWall::FollowWall(const std::shared_ptr<proxy::TWallSensors<4>>& wall_senso
     wall_sensors{wall_sensors},
     pid{config.pid},
     sensor_index{config.wall_sensor_index},
-    max_linear_speed{config.max_linear_speed},
     max_angular_acceleration{config.max_angular_acceleration},
     cell_size{config.cell_size},
     post_threshold{config.post_threshold},
@@ -59,8 +58,7 @@ float FollowWall::compute_angular_correction(float elapsed_time, State& state) {
         return 0.0F;
     }
 
-    const float response =
-        state.velocity.linear * this->pid.compute_response(error, elapsed_time) / this->max_linear_speed;
+    const float response = state.velocity.linear * this->pid.compute_response(error, elapsed_time);
     const float clamped_response =
         core::move_towards(this->last_response, response, this->max_angular_acceleration * elapsed_time);
 
