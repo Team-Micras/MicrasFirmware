@@ -373,7 +373,7 @@ constexpr float
     const float turn_angle = std::abs(angle);
 
     if (turn_angle == std::numbers::pi_v<float> / 4.0F) {
-        return (1.0F + std::numbers::sqrt2_v<float>)*cell_size / 2.0F;
+        return cell_size * (1.0F + std::numbers::sqrt2_v<float>) / 2.0F;
     }
 
     if (turn_angle == std::numbers::pi_v<float> / 2.0F) {
