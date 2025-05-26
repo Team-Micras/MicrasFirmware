@@ -24,9 +24,10 @@ float FollowWall::compute_angular_correction(float elapsed_time, State& state) {
     }
 
     if (grid_pose == this->last_grid_pose) {
-        if (this->check_posts(cell_advance)) {
+        if (this->check_posts(state.pose)) {
             clear_position_error(state, this->post_reference - cell_advance);
             cell_advance = this->post_reference;
+            this->pid.reset();
         }
     } else {
         if (grid_pose != this->last_grid_pose.front()) {
@@ -35,15 +36,22 @@ float FollowWall::compute_angular_correction(float elapsed_time, State& state) {
     }
 
     this->last_grid_pose = grid_pose;
-    this->last_cell_advance = cell_advance;
+    this->last_pose = state.pose;
 
     if (cell_advance <= this->post_reference + this->post_clearance and
         cell_advance >= this->post_reference - this->post_clearance / 2.0F) {
         return 0.0F;
     }
 
-    this->following_left |= this->wall_sensors->get_wall(this->sensor_index.left);
-    this->following_right |= this->wall_sensors->get_wall(this->sensor_index.right);
+    if (not this->following_left and this->wall_sensors->get_wall(this->sensor_index.left)) {
+        this->following_left = true;
+        this->pid.reset();
+    }
+
+    if (not this->following_right and this->wall_sensors->get_wall(this->sensor_index.right)) {
+        this->following_right = true;
+        this->pid.reset();
+    }
 
     float error{};
 
@@ -66,8 +74,8 @@ float FollowWall::compute_angular_correction(float elapsed_time, State& state) {
     return clamped_response;
 }
 
-bool FollowWall::check_posts(float cell_advance) {
-    const float delta_distance = cell_advance - this->last_cell_advance;
+bool FollowWall::check_posts(const Pose& pose) {
+    const float delta_distance = (pose.position - this->last_pose.position).magnitude();
 
     if (delta_distance <= 0.0F) {
         return false;
