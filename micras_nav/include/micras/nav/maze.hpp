@@ -11,9 +11,9 @@
 
 #include "micras/core/serializable.hpp"
 #include "micras/core/types.hpp"
+#include "micras/nav/action_queuer.hpp"
 #include "micras/nav/costmap.hpp"
 #include "micras/nav/grid_pose.hpp"
-#include "micras/nav/maze_graph.hpp"
 
 namespace micras::nav {
 /**
@@ -32,7 +32,7 @@ public:
         GridPose                      start{};
         std::unordered_set<GridPoint> goal;
         float                         cost_margin{};
-        MazeGraph::Config             graph_config{};
+        ActionQueuer::Config          action_queuer_config{};
     };
 
     /**
@@ -78,12 +78,7 @@ public:
      *
      * @return The best route to the goal.
      */
-    const std::list<GridPose>& get_best_route() const;
-
-    /**
-     * @brief Compute the maze graph.
-     */
-    void compute_graph();
+    const std::list<GridPoint>& get_best_route() const;
 
     /**
      * @brief Serialize the best route to the goal.
@@ -131,6 +126,8 @@ private:
      */
     std::pair<GridPose, uint16_t> get_next_bfs_goal(const GridPose& pose, bool discover) const;
 
+    float get_route_time(const std::list<GridPoint>& route);
+
     /**
      * @brief Check if the cell is a dead end.
      *
@@ -161,10 +158,7 @@ private:
      */
     Costmap<width, height, Layer::NUM_OF_LAYERS> costmap;
 
-    /**
-     * @brief Graph of the maze for computing the best route.
-     */
-    MazeGraph graph;
+    ActionQueuer action_queuer;
 
     /**
      * @brief Start pose of the robot in the maze.
@@ -194,7 +188,7 @@ private:
     /**
      * @brief Current best found route to the goal.
      */
-    std::list<GridPose> best_route;
+    std::list<GridPoint> best_route;
 };
 }  // namespace micras::nav
 

@@ -6,15 +6,18 @@
 #define MICRAS_NAV_MAZE_CPP
 
 #include <cmath>
+#include <stack>
 #include <utility>
 
-#include "micras/nav/grid_pose.hpp"
 #include "micras/nav/maze.hpp"
 
 namespace micras::nav {
 template <uint8_t width, uint8_t height>
 TMaze<width, height>::TMaze(Config config) :
-    graph(config.graph_config), start{config.start}, goal{config.goal}, cost_margin{config.cost_margin} {
+    action_queuer(config.action_queuer_config),
+    start{config.start},
+    goal{config.goal},
+    cost_margin{config.cost_margin} {
     this->costmap.update_wall(this->start, false);
     this->costmap.update_wall(start.turned_right(), true);
 
@@ -125,69 +128,68 @@ void TMaze<width, height>::compute_minimum_cost() {
 
 template <uint8_t width, uint8_t height>
 void TMaze<width, height>::compute_best_route() {
-    this->compute_graph();
-    this->best_route = this->graph.get_best_route(this->start, this->goal);
-}
+    std::list<GridPoint> current_route;
+    std::stack<GridPose> stack;
 
-template <uint8_t width, uint8_t height>
-const std::list<GridPose>& TMaze<width, height>::get_best_route() const {
-    return this->best_route;
-}
+    float best_route_time = std::numeric_limits<float>::max();
+    stack.push(this->start);
 
-template <uint8_t width, uint8_t height>
-void TMaze<width, height>::compute_graph() {
-    std::queue<GridPose> queue;
-    this->graph.reset();
+    while (not stack.empty()) {
+        GridPose prev_pose = stack.top();
+        stack.pop();
+        current_route.push_back(prev_pose.position);
+        GridPoint current_position = prev_pose.front().position;
 
-    this->graph.add_node(this->start);
-    queue.push(this->start);
+        bool dead_end = true;
 
-    while (not queue.empty()) {
-        GridPose current_pose = queue.front();
-        queue.pop();
+        for (uint8_t i = Side::RIGHT; i <= Side::DOWN; i++) {
+            if (this->goal.contains(current_position)) {
+                current_route.push_back(current_position);
+                float current_route_time = get_route_time(current_route);
 
-        if (this->goal.contains(current_pose.position)) {
-            continue;
+                if (current_route_time < best_route_time) {
+                    best_route_time = current_route_time;
+                    best_route = current_route;
+                }
+
+                break;
+            }
+
+            Side     side = static_cast<Side>(i);
+            GridPose next_pose = {current_position, side};
+
+            if (this->costmap.has_wall(next_pose, true) or
+                not this->was_visited(this->costmap.get_cell(next_pose.front().position))) {
+                continue;
+            }
+
+            if (std::find(current_route.begin(), current_route.end(), next_pose.position) == current_route.end()) {
+                stack.push(next_pose);
+                dead_end = false;
+            }
         }
 
-        auto sides_order = {
-            current_pose.turned_right().orientation,
-            current_pose.turned_left().orientation,
-            current_pose.orientation,
-        };
-
-        for (Side side : sides_order) {
-            if (this->costmap.has_wall({current_pose.position, side}, true)) {
-                continue;
-            }
-
-            GridPose next_pose = {current_pose.position + side, side};
-
-            if (not this->was_visited(this->costmap.get_cell(next_pose.position))) {
-                continue;
-            }
-
-            if (not this->graph.has_node(next_pose)) {
-                this->graph.add_node(next_pose);
-                queue.push(next_pose);
-            }
-
-            this->graph.add_edge(current_pose, next_pose);
+        if (dead_end and not stack.empty()) {
+            const GridPoint& intersection_point = stack.top().position;
+            auto intersection_it = std::find(current_route.begin(), current_route.end(), intersection_point);
+            current_route.erase(intersection_it, current_route.end());
         }
     }
+}
 
-    this->graph.process_nodes(this->start);
+template <uint8_t width, uint8_t height>
+const std::list<GridPoint>& TMaze<width, height>::get_best_route() const {
+    return this->best_route;
 }
 
 template <uint8_t width, uint8_t height>
 std::vector<uint8_t> TMaze<width, height>::serialize() const {
     std::vector<uint8_t> buffer;
-    buffer.reserve(3 * this->best_route.size());
+    buffer.reserve(2 * this->best_route.size());
 
-    for (const auto& grid_pose : this->best_route) {
-        buffer.emplace_back(grid_pose.position.x);
-        buffer.emplace_back(grid_pose.position.y);
-        buffer.emplace_back(grid_pose.orientation);
+    for (const auto& grid_point : this->best_route) {
+        buffer.emplace_back(grid_point.x);
+        buffer.emplace_back(grid_point.y);
     }
 
     return buffer;
@@ -197,10 +199,10 @@ template <uint8_t width, uint8_t height>
 void TMaze<width, height>::deserialize(const uint8_t* buffer, uint16_t size) {
     this->best_route.clear();
 
-    for (uint32_t i = 0; i < size; i += 3) {
+    for (uint32_t i = 0; i < size; i += 2) {
         this->best_route.emplace_back(
             // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-            GridPoint{buffer[i], buffer[i + 1]}, static_cast<Side>(buffer[i + 2])
+            GridPoint{buffer[i], buffer[i + 1]}
         );
     }
 }
@@ -286,6 +288,12 @@ std::pair<GridPose, uint16_t> TMaze<width, height>::get_next_bfs_goal(const Grid
     }
 
     return result_pair;
+}
+
+template <uint8_t width, uint8_t height>
+float TMaze<width, height>::get_route_time(const std::list<GridPoint>& route) {
+    this->action_queuer.recompute(route);
+    return this->action_queuer.get_total_time();
 }
 
 template <uint8_t width, uint8_t height>

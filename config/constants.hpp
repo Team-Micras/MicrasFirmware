@@ -81,7 +81,6 @@ const nav::FollowWall::Config follow_wall_config{
             .saturation = 1.0F,
             .max_integral = -1.0F,
         },
-    .max_linear_speed = 0.1F,
     .max_angular_acceleration = max_angular_acceleration,
     .cell_size = cell_size,
     .post_threshold = 16.5F,
@@ -98,11 +97,7 @@ const nav::Maze::Config maze_config{
         {(maze_width - 1) / 2, (maze_height - 1) / 2},
     }},
     .cost_margin = 1.2F,
-    .graph_config =
-        {
-            .cell_size = cell_size,
-            .cost_params = action_queuer_config.solving,
-        },
+    .action_queuer_config = action_queuer_config,
 };
 
 const nav::Odometry::Config odometry_config{

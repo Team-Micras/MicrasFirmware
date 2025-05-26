@@ -112,7 +112,7 @@ bool ActionQueuer::empty() const {
     return this->action_queue.empty();
 }
 
-void ActionQueuer::recompute(const std::list<GridPose>& best_route, bool add_start) {
+void ActionQueuer::recompute(const std::list<GridPoint>& best_route, bool add_start) {
     this->action_queue = {};
 
     if (add_start) {
@@ -125,8 +125,11 @@ void ActionQueuer::recompute(const std::list<GridPose>& best_route, bool add_sta
 
     std::list<Action::Id> actions;
 
+    Side direction = best_route.front().direction(*std::next(best_route.begin()));
+
     for (auto route_it = best_route.begin(); std::next(route_it) != best_route.end(); route_it++) {
-        actions.splice(actions.end(), get_actions(*route_it, *std::next(route_it), this->cell_size));
+        actions.push_back(get_action({*route_it, direction}, *std::next(route_it), this->cell_size));
+        direction = (*route_it).direction(*std::next(route_it));
     }
 
     for (auto action_it = actions.begin(); action_it != actions.end(); action_it++) {
@@ -210,73 +213,21 @@ float ActionQueuer::get_total_time() const {
     return total_time;
 }
 
-std::list<Action::Id>
-    ActionQueuer::get_actions(const GridPose& origin_pose, const GridPose& target_pose, float cell_size) {
-    const Side relative_side = origin_pose.get_relative_side(target_pose.position);
-
-    if (origin_pose.position == target_pose.position or relative_side == Side::DOWN) {
-        return {};
+Action::Id ActionQueuer::get_action(const GridPose& origin_pose, const GridPoint& target_point, float cell_size) {
+    if (origin_pose.front().position == target_point) {
+        const float distance = origin_pose.position.to_vector(cell_size).distance(target_point.to_vector(cell_size));
+        return {ActionType::MOVE_FORWARD, distance};
     }
 
-    if (relative_side == Side::UP) {
-        if (origin_pose.orientation != target_pose.orientation) {
-            return {};
-        }
-
-        const float distance =
-            origin_pose.position.to_vector(cell_size).distance(target_pose.position.to_vector(cell_size));
-        return {{ActionType::MOVE_FORWARD, distance}};
+    if (origin_pose.turned_left().front().position == target_point) {
+        return {ActionType::TURN, std::numbers::pi_v<float> / 2.0F};
     }
 
-    if (origin_pose.turned_left().front() == target_pose) {
-        return {{ActionType::TURN, std::numbers::pi_v<float> / 2.0F}};
+    if (origin_pose.turned_right().front().position == target_point) {
+        return {ActionType::TURN, -std::numbers::pi_v<float> / 2.0F};
     }
 
-    if (origin_pose.turned_right().front() == target_pose) {
-        return {{ActionType::TURN, -std::numbers::pi_v<float> / 2.0F}};
-    }
-
-    if (origin_pose.turned_left().front().turned_left().front() == target_pose) {
-        return {{ActionType::TURN, std::numbers::pi_v<float>}};
-    }
-
-    if (origin_pose.turned_right().front().turned_right().front() == target_pose) {
-        return {{ActionType::TURN, -std::numbers::pi_v<float>}};
-    }
-
-    const bool      keep_direction = (origin_pose.orientation == target_pose.orientation);
-    const GridPoint target_position = (keep_direction ? target_pose : target_pose.turned_back().front()).position;
-
-    if (std::abs(target_position.x - origin_pose.position.x) != std::abs(target_position.y - origin_pose.position.y) or
-        origin_pose.turned_right().get_relative_side(target_position) != Side::LEFT) {
-        return {};
-    }
-
-    if (not keep_direction and
-        target_pose.orientation != (relative_side == Side::LEFT ? origin_pose.turned_left().orientation :
-                                                                  origin_pose.turned_right().orientation)) {
-        return {};
-    }
-
-    std::list<Action::Id> actions;
-
-    float turn_angle =
-        relative_side == Side::LEFT ? std::numbers::pi_v<float> / 4.0F : -std::numbers::pi_v<float> / 4.0F;
-
-    actions.emplace_back(Action::Id{ActionType::TURN, turn_angle});
-
-    float distance = origin_pose.position.to_vector(cell_size).distance(target_position.to_vector(cell_size));
-
-    if (keep_direction) {
-        turn_angle *= -1.0F;
-    } else {
-        distance += cell_size * std::numbers::sqrt2_v<float> / 2;
-    }
-
-    actions.emplace_back(Action::Id{ActionType::DIAGONAL, distance});
-    actions.emplace_back(Action::Id{ActionType::TURN, turn_angle});
-
-    return actions;
+    return {ActionType::STOP, cell_size / 2.0F};
 }
 
 std::pair<float, float>

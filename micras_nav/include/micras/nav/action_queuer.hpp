@@ -81,7 +81,7 @@ public:
     /**
      * @brief Fill the action queue with a sequence of actions to the end.
      */
-    void recompute(const std::list<GridPose>& best_route, bool add_start = true);
+    void recompute(const std::list<GridPoint>& best_route, bool add_start = true);
 
     /**
      * @brief Get the total time to complete the actions in the queue.
@@ -98,7 +98,7 @@ public:
      * @param cell_size Size of the cells in the grid.
      * @return List of actions to perform.
      */
-    static std::list<Action::Id> get_actions(const GridPose& origin_pose, const GridPose& target_pose, float cell_size);
+    static Action::Id get_action(const GridPose& origin_pose, const GridPoint& target_point, float cell_size);
 
 private:
     /**
