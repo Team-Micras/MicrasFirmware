@@ -59,13 +59,13 @@ private:
     /**
      * @brief Check if the robot saw a post.
      *
-     * @param cell_advance The distance of the robot from the start of the cell.
+     * @param pose The current pose of the robot.
      * @return True if the robot saw a post, false otherwise.
      *
      * @details This function uses the derivative of the distance sensors readings with respect
      * to the robot's traveled distance, comparing it to a threshold to detect posts.
      */
-    bool check_posts(float cell_advance);
+    bool check_posts(const Pose& pose);
 
     /**
      * @brief Reset the PID controller and the relative pose.
@@ -126,9 +126,9 @@ private:
     GridPose last_grid_pose{};
 
     /**
-     * @brief Last cell advance of the robot.
+     * @brief Last pose of the robot.
      */
-    float last_cell_advance{};
+    Pose last_pose{};
 
     /**
      * @brief Flag to indicate if the robot is currently following the left wall.
