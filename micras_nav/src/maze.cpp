@@ -128,52 +128,48 @@ void TMaze<width, height>::compute_minimum_cost() {
 
 template <uint8_t width, uint8_t height>
 void TMaze<width, height>::compute_best_route() {
-    std::list<GridPoint> current_route;
-    std::stack<GridPose> stack;
+    std::unordered_set<GridPoint> visited;
+    std::list<GridPoint>          current_route;
 
-    float best_route_time = std::numeric_limits<float>::max();
-    stack.push(this->start);
+    visited.insert(this->start.position);
+    current_route.push_back(this->start.position);
 
-    while (not stack.empty()) {
-        GridPose prev_pose = stack.top();
-        stack.pop();
-        current_route.push_back(prev_pose.position);
-        GridPoint current_position = prev_pose.front().position;
+    this->recursive_backtracking(this->start.position, current_route, visited);
+}
 
-        bool dead_end = true;
+template <uint8_t width, uint8_t height>
+void TMaze<width, height>::recursive_backtracking(
+    const GridPoint& position, std::list<GridPoint>& route, std::unordered_set<GridPoint>& visited
+) {
+    if (this->goal.contains(position)) {
+        float current_route_time = get_route_time(route);
 
-        for (uint8_t i = Side::RIGHT; i <= Side::DOWN; i++) {
-            if (this->goal.contains(current_position)) {
-                current_route.push_back(current_position);
-                float current_route_time = get_route_time(current_route);
-
-                if (current_route_time < best_route_time) {
-                    best_route_time = current_route_time;
-                    best_route = current_route;
-                }
-
-                break;
-            }
-
-            Side     side = static_cast<Side>(i);
-            GridPose next_pose = {current_position, side};
-
-            if (this->costmap.has_wall(next_pose, true) or
-                not this->was_visited(this->costmap.get_cell(next_pose.front().position))) {
-                continue;
-            }
-
-            if (std::find(current_route.begin(), current_route.end(), next_pose.position) == current_route.end()) {
-                stack.push(next_pose);
-                dead_end = false;
-            }
+        if (current_route_time < this->best_route_time) {
+            this->best_route_time = current_route_time;
+            this->best_route = route;
         }
 
-        if (dead_end and not stack.empty()) {
-            const GridPoint& intersection_point = stack.top().position;
-            auto intersection_it = std::find(current_route.begin(), current_route.end(), intersection_point);
-            current_route.erase(intersection_it, current_route.end());
+        return;
+    }
+
+    for (uint8_t i = Side::RIGHT; i <= Side::DOWN; i++) {
+        Side side = static_cast<Side>(i);
+
+        if (this->costmap.has_wall({position, side}, true)) {
+            continue;
         }
+
+        GridPoint next_position = position + side;
+
+        if (not this->was_visited(this->costmap.get_cell(next_position)) or visited.contains(next_position)) {
+            continue;
+        }
+
+        visited.insert(next_position);
+        route.push_back(next_position);
+        this->recursive_backtracking(next_position, route, visited);
+        visited.erase(next_position);
+        route.pop_back();
     }
 }
 
