@@ -126,6 +126,10 @@ private:
      */
     std::pair<GridPose, uint16_t> get_next_bfs_goal(const GridPose& pose, bool discover) const;
 
+    void recursive_backtracking(
+        const GridPoint& position, std::list<GridPoint>& route, std::unordered_set<GridPoint>& visited
+    );
+
     float get_route_time(const std::list<GridPoint>& route);
 
     /**
@@ -189,6 +193,8 @@ private:
      * @brief Current best found route to the goal.
      */
     std::list<GridPoint> best_route;
+
+    float best_route_time{std::numeric_limits<float>::max()};
 };
 }  // namespace micras::nav
 
