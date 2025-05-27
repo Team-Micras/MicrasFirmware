@@ -125,6 +125,20 @@ private:
     };
 
     /**
+     * @brief Add diagonals to the list of actions.
+     *
+     * @param actions List of actions to add diagonals to.
+     */
+    void add_diagonals(std::list<Action::Id>& actions) const;
+
+    /**
+     * @brief Join consecutive actions of the same type.
+     *
+     * @param actions List of actions to join.
+     */
+    void join_actions(std::list<Action::Id>& actions);
+
+    /**
      * @brief Get the trim distances for a turn action.
      *
      * @param action_before Id of the action before the turn action.

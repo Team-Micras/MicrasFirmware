@@ -132,22 +132,8 @@ void ActionQueuer::recompute(const std::list<GridPoint>& best_route, bool add_st
         direction = (*route_it).direction(*std::next(route_it));
     }
 
-    for (auto action_it = actions.begin(); action_it != actions.end(); action_it++) {
-        if (action_it->type != ActionType::TURN) {
-            continue;
-        }
-
-        if (std::next(action_it)->type == ActionType::TURN) {
-            const float turn_angle = action_it->value;
-            action_it = actions.erase(action_it);
-            action_it->value += turn_angle;
-        }
-
-        auto [trim_before_distance, trim_after_distance] = this->get_trim_distances(*std::prev(action_it), *action_it);
-
-        std::prev(action_it)->value -= trim_before_distance;
-        std::next(action_it)->value -= trim_after_distance;
-    }
+    this->add_diagonals(actions);
+    this->join_actions(actions);
 
     actions.front().value -= this->start_offset;
     float start_speed = 0.0F;
@@ -228,6 +214,49 @@ Action::Id ActionQueuer::get_action(const GridPose& origin_pose, const GridPoint
     }
 
     return {ActionType::STOP, cell_size / 2.0F};
+}
+
+void ActionQueuer::add_diagonals(std::list<Action::Id>& actions) const {
+    for (auto action_it = actions.begin(); std::next(action_it) != actions.end(); action_it++) {
+        uint8_t diagonal_count = 1;
+
+        while (action_it->type == ActionType::TURN and std::next(action_it)->type == ActionType::TURN and
+               std::abs(action_it->value) == std::numbers::pi_v<float> / 2.0F and
+               action_it->value == -std::next(action_it)->value) {
+            diagonal_count++;
+            action_it = actions.erase(action_it);
+        }
+
+        if (diagonal_count == 1) {
+            continue;
+        }
+
+        action_it->value /= 2.0F;
+        const float first_angle = diagonal_count % 2 == 0 ? -action_it->value : action_it->value;
+        const float diagonal_distance = diagonal_count * this->cell_size * std::numbers::sqrt2_v<float> / 2.0F;
+        actions.insert(action_it, {{ActionType::TURN, first_angle}, {ActionType::DIAGONAL, diagonal_distance}});
+    }
+}
+
+void ActionQueuer::join_actions(std::list<Action::Id>& actions) {
+    for (auto action_it = actions.begin(); std::next(action_it) != actions.end(); action_it++) {
+        if (action_it->type != std::next(action_it)->type) {
+            continue;
+        }
+
+        const float value = action_it->value;
+        action_it = actions.erase(action_it);
+        action_it->value += value;
+
+        if (action_it->type != ActionType::TURN) {
+            continue;
+        }
+
+        auto [trim_before_distance, trim_after_distance] = this->get_trim_distances(*std::prev(action_it), *action_it);
+
+        std::prev(action_it)->value -= trim_before_distance;
+        std::next(action_it)->value -= trim_after_distance;
+    }
 }
 
 std::pair<float, float>
