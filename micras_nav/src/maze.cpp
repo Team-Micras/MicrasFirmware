@@ -152,6 +152,11 @@ void TMaze<width, height>::recursive_backtracking(
         return;
     }
 
+    if (not this->best_route.empty() and
+        route.size() + this->heuristic(position) >= this->cost_margin * this->best_route.size()) {
+        return;
+    }
+
     for (uint8_t i = Side::RIGHT; i <= Side::DOWN; i++) {
         Side side = static_cast<Side>(i);
 
@@ -171,6 +176,21 @@ void TMaze<width, height>::recursive_backtracking(
         visited.erase(next_position);
         route.pop_back();
     }
+}
+
+template <uint8_t width, uint8_t height>
+uint16_t TMaze<width, height>::heuristic(const GridPoint& position) const {
+    uint16_t minimum_distance = std::numeric_limits<uint16_t>::max();
+
+    for (const auto& goal_position : this->goal) {
+        uint16_t distance = std::abs(position.x - goal_position.x) + std::abs(position.y - goal_position.y);
+
+        if (distance < minimum_distance) {
+            minimum_distance = distance;
+        }
+    }
+
+    return minimum_distance;
 }
 
 template <uint8_t width, uint8_t height>

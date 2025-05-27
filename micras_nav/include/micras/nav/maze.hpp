@@ -130,6 +130,8 @@ private:
         const GridPoint& position, std::list<GridPoint>& route, std::unordered_set<GridPoint>& visited
     );
 
+    uint16_t heuristic(const GridPoint& position) const;
+
     float get_route_time(const std::list<GridPoint>& route);
 
     /**
