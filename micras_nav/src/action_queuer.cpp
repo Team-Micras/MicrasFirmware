@@ -239,16 +239,16 @@ void ActionQueuer::add_diagonals(std::list<Action::Id>& actions) const {
 }
 
 void ActionQueuer::join_actions(std::list<Action::Id>& actions) {
-    for (auto action_it = actions.begin(); std::next(action_it) != actions.end(); action_it++) {
-        if (action_it->type != std::next(action_it)->type) {
+    for (auto action_it = actions.begin(); std::next(action_it) != actions.end();) {
+        if (action_it->type == std::next(action_it)->type) {
+            const float value = action_it->value;
+            action_it = actions.erase(action_it);
+            action_it->value += value;
             continue;
         }
 
-        const float value = action_it->value;
-        action_it = actions.erase(action_it);
-        action_it->value += value;
-
         if (action_it->type != ActionType::TURN) {
+            action_it++;
             continue;
         }
 
@@ -256,6 +256,7 @@ void ActionQueuer::join_actions(std::list<Action::Id>& actions) {
 
         std::prev(action_it)->value -= trim_before_distance;
         std::next(action_it)->value -= trim_after_distance;
+        action_it++;
     }
 }
 
