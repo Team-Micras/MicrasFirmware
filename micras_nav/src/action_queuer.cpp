@@ -143,6 +143,10 @@ void ActionQueuer::recompute(const std::list<GridPoint>& best_route, bool add_st
             continue;
         }
 
+        if (std::prev(action_it)->value < 0.0F) {
+            std::terminate();
+        }
+
         const CurveParameters& curve_parameters =
             this->get_curve_parameters(action_it->value, std::prev(action_it)->type == ActionType::DIAGONAL);
 
@@ -153,18 +157,16 @@ void ActionQueuer::recompute(const std::list<GridPoint>& best_route, bool add_st
             .max_acceleration = this->solving_params.max_linear_acceleration,
             .max_deceleration = this->solving_params.max_linear_deceleration
         };
+        this->action_queue.emplace_back(std::make_shared<MoveAction>(
+            std::prev(action_it)->type, std::prev(action_it)->value, move_config,
+            std::prev(action_it)->type != ActionType::DIAGONAL
+        ));
 
         const TurnAction::Config turn_config = {
             .max_angular_speed = curve_parameters.max_angular_speed,
             .linear_speed = curve_parameters.linear_speed,
             .max_angular_acceleration = this->solving_params.max_angular_acceleration
         };
-
-        this->action_queue.emplace_back(std::make_shared<MoveAction>(
-            std::prev(action_it)->type, std::prev(action_it)->value, move_config,
-            std::prev(action_it)->type != ActionType::DIAGONAL
-        ));
-
         this->action_queue.emplace_back(std::make_shared<TurnAction>(action_it->type, action_it->value, turn_config));
 
         start_speed = curve_parameters.linear_speed;

@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <exception>
 
 #include "micras/nav/actions/base.hpp"
 
@@ -112,10 +113,16 @@ public:
         const float transformed_acceleration =
             std::pow(1.0F - std::cos(angle), 2.0F) * correction_factor * max_angular_acceleration;
 
-        return std::sqrt(
+        const float max_angular_speed = std::sqrt(
             (max_centripetal_acceleration * transformed_acceleration) /
             (curve_radius * transformed_acceleration - max_centripetal_acceleration)
         );
+
+        if (std::isnan(max_angular_speed)) {
+            std::terminate();
+        }
+
+        return max_angular_speed;
     }
 
     /**
