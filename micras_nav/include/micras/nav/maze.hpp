@@ -11,6 +11,7 @@
 
 #include "micras/core/serializable.hpp"
 #include "micras/core/types.hpp"
+#include "micras/nav/action_queuer.hpp"
 #include "micras/nav/costmap.hpp"
 #include "micras/nav/grid_pose.hpp"
 
@@ -24,14 +25,20 @@ namespace micras::nav {
 template <uint8_t width, uint8_t height>
 class TMaze : public core::ISerializable {
 public:
+    /**
+     * @brief Configuration structure for the maze.
+     */
     struct Config {
         GridPose                      start{};
         std::unordered_set<GridPoint> goal;
         float                         cost_margin{};
+        ActionQueuer::Config          action_queuer_config{};
     };
 
     /**
-     * @brief Construct a new Maze object.
+     * @brief Construct a new TMaze object.
+     *
+     * @param config The configuration for the maze.
      */
     explicit TMaze(Config config);
 
@@ -71,7 +78,7 @@ public:
      *
      * @return The best route to the goal.
      */
-    const std::list<GridPose>& get_best_route() const;
+    const std::list<GridPoint>& get_best_route() const;
 
     /**
      * @brief Serialize the best route to the goal.
@@ -99,6 +106,11 @@ private:
     };
 
     /**
+     * @brief Compute the minumum cost from the start to the end considering only discoverd cells.
+     */
+    void compute_minimum_cost();
+
+    /**
      * @brief Update the cell costs at the given position.
      *
      * @param position The position of the cell.
@@ -110,9 +122,17 @@ private:
      *
      * @param pose The current pose of the robot.
      * @param discover Whether the robot is discovering new cells.
-     * @return The next discovery goal for the robot.
+     * @return A pair containing the next discovery goal for the robot and the total distance.
      */
-    GridPose get_next_bfs_goal(const GridPose& pose, bool discover) const;
+    std::pair<GridPose, uint16_t> get_next_bfs_goal(const GridPose& pose, bool discover) const;
+
+    void recursive_backtracking(
+        const GridPoint& position, std::list<GridPoint>& route, std::unordered_set<GridPoint>& visited
+    );
+
+    uint16_t heuristic(const GridPoint& position) const;
+
+    float get_route_time(const std::list<GridPoint>& route);
 
     /**
      * @brief Check if the cell is a dead end.
@@ -144,6 +164,8 @@ private:
      */
     Costmap<width, height, Layer::NUM_OF_LAYERS> costmap;
 
+    ActionQueuer action_queuer;
+
     /**
      * @brief Start pose of the robot in the maze.
      */
@@ -172,7 +194,9 @@ private:
     /**
      * @brief Current best found route to the goal.
      */
-    std::list<GridPose> best_route;
+    std::list<GridPoint> best_route;
+
+    float best_route_time{std::numeric_limits<float>::max()};
 };
 }  // namespace micras::nav
 

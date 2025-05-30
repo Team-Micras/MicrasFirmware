@@ -21,6 +21,29 @@ void Interface::update() {
         this->send_event(Event::CALIBRATE);
     }
 
+    for (uint8_t i = 0; i < 4; i++) {
+        if (this->dip_switch->get_switch_state(i) == this->dip_switch_states.at(i)) {
+            continue;
+        }
+
+        this->dip_switch_states.at(i) = this->dip_switch->get_switch_state(i);
+
+        switch (i) {
+            case DipSwitchPins::FAN:
+                this->send_event(this->dip_switch_states.at(i) ? Event::TURN_ON_FAN : Event::TURN_OFF_FAN);
+                break;
+            case DipSwitchPins::DIAGONAL:
+                this->send_event(this->dip_switch_states.at(i) ? Event::TURN_ON_DIAGONAL : Event::TURN_OFF_DIAGONAL);
+                break;
+            case DipSwitchPins::BOOST:
+                this->send_event(this->dip_switch_states.at(i) ? Event::TURN_ON_BOOST : Event::TURN_OFF_BOOST);
+                break;
+            case DipSwitchPins::RISKY:
+                this->send_event(this->dip_switch_states.at(i) ? Event::TURN_ON_RISKY : Event::TURN_OFF_RISKY);
+                break;
+        }
+    }
+
     if (this->acknowledge_event(Event::ERROR)) {
         this->led->turn_on();
     }

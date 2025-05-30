@@ -95,6 +95,11 @@ private:
     float max_integral;
 
     /**
+     * @brief Flag indicating whether this is the first run of the controller.
+     */
+    bool first_run = true;
+
+    /**
      * @brief Accumulated error for integrative term.
      */
     float error_acc = 0;

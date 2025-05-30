@@ -28,20 +28,20 @@ void Button::update() {
         this->status_stopwatch.reset_ms();
     } else if (this->is_falling_edge()) {
         if (this->status_stopwatch.elapsed_time_ms() > extra_long_press_delay) {
-            this->current_status = EXTRA_LONG_PRESS;
+            this->current_status = Status::EXTRA_LONG_PRESS;
             return;
         }
 
         if (this->status_stopwatch.elapsed_time_ms() > long_press_delay) {
-            this->current_status = LONG_PRESS;
+            this->current_status = Status::LONG_PRESS;
             return;
         }
 
-        this->current_status = SHORT_PRESS;
+        this->current_status = Status::SHORT_PRESS;
         return;
     }
 
-    this->current_status = NO_PRESS;
+    this->current_status = Status::NO_PRESS;
 }
 
 bool Button::get_raw_reading() const {

@@ -26,6 +26,8 @@ public:
      * @return The id of the next state.
      */
     uint8_t execute() override {
+        this->micras.handle_events();
+
         if (this->micras.acknowledge_event(Interface::Event::EXPLORE)) {
             this->micras.set_objective(core::Objective::EXPLORE);
 

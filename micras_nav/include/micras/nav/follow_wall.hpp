@@ -24,9 +24,10 @@ public:
     struct Config {
         core::PidController::Config pid;
         core::WallSensorsIndex      wall_sensor_index{};
-        float                       max_linear_speed{};
-        float                       post_threshold{};
+        float                       max_angular_acceleration{};
         float                       cell_size{};
+        float                       post_threshold{};
+        float                       post_reference{};
         float                       post_clearance{};
     };
 
@@ -34,21 +35,18 @@ public:
      * @brief Construct a new FollowWall object.
      *
      * @param wall_sensors The wall sensors of the robot.
-     * @param absolute_pose Reference to the absolute pose of the robot.
      * @param config The configuration for the FollowWall class.
      */
-    FollowWall(
-        const std::shared_ptr<proxy::TWallSensors<4>>& wall_sensors, const Pose& absolute_pose, const Config& config
-    );
+    FollowWall(const std::shared_ptr<proxy::TWallSensors<4>>& wall_sensors, const Config& config);
 
     /**
      * @brief Calculate the desired angular speed to follow wall.
      *
      * @param elapsed_time The time elapsed since the last update.
-     * @param linear_speed Current linear speed of the robot.
+     * @param state The current state of the robot.
      * @return The desired angular speed to follow wall.
      */
-    float compute_angular_correction(float elapsed_time, float linear_speed);
+    float compute_angular_correction(float elapsed_time, State& state);
 
     /**
      * @brief Get the observation of the walls around the robot.
@@ -57,28 +55,30 @@ public:
      */
     core::Observation get_observation() const;
 
-    /**
-     * @brief Reset the PID controller and the relative pose.
-     */
-    void reset();
-
 private:
-    /**
-     * @brief Reset the displacement of the robot.
-     *
-     * @param reset_by_post Whether the reset was triggered by a post.
-     */
-    void reset_displacement(bool reset_by_post = false);
-
     /**
      * @brief Check if the robot saw a post.
      *
+     * @param pose The current pose of the robot.
      * @return True if the robot saw a post, false otherwise.
      *
      * @details This function uses the derivative of the distance sensors readings with respect
      * to the robot's traveled distance, comparing it to a threshold to detect posts.
      */
-    bool check_posts();
+    bool check_posts(const Pose& pose);
+
+    /**
+     * @brief Reset the PID controller and the relative pose.
+     */
+    void reset();
+
+    /**
+     * @brief Clear the positional error of the robot.
+     *
+     * @param state The state of the robot.
+     * @param error The error to be cleared.
+     */
+    static void clear_position_error(State& state, float error);
 
     /**
      * @brief Wall sensors of the robot.
@@ -96,24 +96,9 @@ private:
     core::WallSensorsIndex sensor_index;
 
     /**
-     * @brief Maximum linear speed of the robot.
+     * @brief Maximum angular acceleration of the robot.
      */
-    float max_linear_speed;
-
-    /**
-     * @brief Derivative threshold for detecting posts.
-     */
-    float post_threshold;
-
-    /**
-     * @brief Current pose of the robot relative to the last time it was reset.
-     */
-    RelativePose blind_pose;
-
-    /**
-     * @brief Last distance of the robot to the start point, used to compute the derivative of the distance sensors.
-     */
-    float last_blind_distance{};
+    float max_angular_acceleration;
 
     /**
      * @brief Size of the cells in the map.
@@ -121,9 +106,29 @@ private:
     float cell_size;
 
     /**
-     * @brief Margin in front of a post to stop seeing it.
+     * @brief Derivative threshold for detecting posts.
      */
-    float post_clearance;
+    float post_threshold;
+
+    /**
+     * @brief Cell advance of the robot when it starts to see a post.
+     */
+    float post_reference{};
+
+    /**
+     * @brief Distance the robot should travel after seeing a post to start making observations.
+     */
+    float post_clearance{};
+
+    /**
+     * @brief Last grid pose of the robot.
+     */
+    GridPose last_grid_pose{};
+
+    /**
+     * @brief Last pose of the robot.
+     */
+    Pose last_pose{};
 
     /**
      * @brief Flag to indicate if the robot is currently following the left wall.
@@ -136,19 +141,19 @@ private:
     bool following_right{true};
 
     /**
-     * @brief Last error measured by the left wall sensor, used to compute the derivative of the distance sensors.
+     * @brief Last reading measured by the left wall sensor, used to compute the derivative of the distance sensors.
      */
-    float last_left_error{};
+    float last_left_reading{};
 
     /**
-     * @brief Last error measured by the right wall sensor, used to compute the derivative of the distance sensors.
+     * @brief Last reading measured by the right wall sensor, used to compute the derivative of the distance sensors.
      */
-    float last_right_error{};
+    float last_right_reading{};
 
     /**
-     * @brief Flag to indicate if relative pose was reset by a post.
+     * @brief Last response returned by the Follow Wall.
      */
-    bool reset_by_post{};
+    float last_response{};
 };
 }  // namespace micras::nav
 
