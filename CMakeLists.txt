@@ -60,6 +60,7 @@ file(GLOB_RECURSE FORMAT_SOURCES CONFIGURE_DEPENDS "src/*.c*" "tests/*.c*" "micr
 file(GLOB_RECURSE FORMAT_HEADERS CONFIGURE_DEPENDS "include/*.h*" "config/*.h*" "tests/*.h*" "micras_*/include/*.h*")
 
 generate_format_target(FORMAT_SOURCES FORMAT_HEADERS)
+generate_lint_target(FORMAT_SOURCES)
 
 file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS "src/*.c*")
 file(GLOB_RECURSE PROJECT_TESTS CONFIGURE_DEPENDS "tests/src/*/*.c*")

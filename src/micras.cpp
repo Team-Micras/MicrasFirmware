@@ -31,7 +31,7 @@ Micras::Micras() :
     maze{maze_config},
     odometry{rotary_sensor_left, rotary_sensor_right, imu, odometry_config},
     speed_controller{speed_controller_config},
-    follow_wall{wall_sensors, odometry.get_state().pose, follow_wall_config},
+    follow_wall{wall_sensors, follow_wall_config},
     interface{argb, button, buzzer, dip_switch, led},
     action_pose{odometry.get_state().pose} {
     this->fsm.add_state(std::make_unique<CalibrateState>(State::CALIBRATE, *this));
@@ -82,7 +82,7 @@ bool Micras::calibrate() {
 
 void Micras::prepare() {
     if (this->objective == core::Objective::EXPLORE) {
-        this->grid_pose = this->maze.get_next_goal(this->grid_pose.position, false);
+        this->grid_pose = this->maze.get_next_goal(this->grid_pose, false);
         this->action_queuer.recompute({});
         this->current_action = this->action_queuer.pop();
     } else {
@@ -93,13 +93,18 @@ void Micras::prepare() {
 bool Micras::run() {
     this->odometry.update(this->elapsed_time);
 
-    const micras::nav::State& state = this->odometry.get_state();
-    core::Observation         observation{};
+    micras::nav::State& state = this->odometry.get_state();
+    core::Observation   observation{};
 
     if (this->current_action->finished(this->action_pose.get())) {
         if (this->finished) {
             this->finished = false;
             this->locomotion.stop();
+
+            if (this->objective != core::Objective::SOLVE) {
+                this->maze.compute_best_route();
+            }
+
             return true;
         }
 
@@ -123,28 +128,19 @@ bool Micras::run() {
                 this->finished = true;
                 next_goal = this->grid_pose.turned_back().front();
             } else {
-                if (returning) {
-                    this->maze.compute_best_route();
-                }
-
-                next_goal = this->maze.get_next_goal(this->grid_pose.position, returning);
+                next_goal = this->maze.get_next_goal(this->grid_pose, returning);
             }
 
-            this->action_queuer.push(this->grid_pose, next_goal.position);
+            this->action_queuer.push_exploring(this->grid_pose, next_goal.position);
             this->current_action = this->action_queuer.pop();
             this->grid_pose = next_goal;
         }
-
-        if (this->current_action->allow_follow_wall()) {
-            this->follow_wall.reset();
-        }
     }
 
-    this->desired_speeds = this->current_action->get_speeds(this->action_pose.get());
+    this->desired_speeds = this->current_action->get_speeds(this->action_pose.get(), this->elapsed_time);
 
     if (this->current_action->allow_follow_wall()) {
-        this->desired_speeds.angular =
-            this->follow_wall.compute_angular_correction(this->elapsed_time, state.velocity.linear);
+        this->desired_speeds.angular = this->follow_wall.compute_angular_correction(this->elapsed_time, state);
     }
 
     std::tie(this->left_response, this->right_response) =
@@ -168,14 +164,21 @@ void Micras::stop() {
 void Micras::init() {
     this->wall_sensors->turn_on();
     this->locomotion.enable();
-    this->odometry.reset();
     this->imu->calibrate();
     this->action_pose.reset_reference();
 }
 
 void Micras::reset() {
     this->grid_pose = maze_config.start;
+    this->odometry.reset();
     this->finished = false;
+}
+
+bool Micras::check_crash() const {
+    return std::hypot(
+               this->imu->get_linear_acceleration(proxy::Imu::Axis::X),
+               this->imu->get_linear_acceleration(proxy::Imu::Axis::Y)
+           ) > crash_acceleration;
 }
 
 void Micras::save_best_route() {
@@ -185,7 +188,8 @@ void Micras::save_best_route() {
 
 void Micras::load_best_route() {
     this->maze_storage.sync("maze", this->maze);
-    this->action_queuer.recompute(this->maze.get_best_route());
+    this->action_queuer.recompute(this->maze.get_best_route(), false);
+    this->fan.set_speed(fan_speed);
 }
 
 core::Objective Micras::get_objective() const {
@@ -210,5 +214,13 @@ bool Micras::acknowledge_event(Interface::Event event) {
 
 bool Micras::peek_event(Interface::Event event) const {
     return this->interface.peek_event(event);
+}
+
+void Micras::handle_events() {
+    if (this->interface.acknowledge_event(Interface::Event::TURN_ON_FAN)) {
+        this->fan.enable();
+    } else if (this->interface.acknowledge_event(Interface::Event::TURN_OFF_FAN)) {
+        this->fan.disable();
+    }
 }
 }  // namespace micras

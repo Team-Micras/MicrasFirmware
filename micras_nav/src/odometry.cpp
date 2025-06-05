@@ -3,27 +3,30 @@
  */
 
 #include <cmath>
-#include <numbers>
 
-#include "micras/core/utils.hpp"
 #include "micras/nav/odometry.hpp"
 
 namespace micras::nav {
 Odometry::Odometry(
-    const std::shared_ptr<proxy::RotarySensor>& left_rotary_sensor,
-    const std::shared_ptr<proxy::RotarySensor>& right_rotary_sensor, const std::shared_ptr<proxy::Imu>& imu,
+    const std::shared_ptr<const proxy::RotarySensor>& left_rotary_sensor,
+    const std::shared_ptr<const proxy::RotarySensor>& right_rotary_sensor, const std::shared_ptr<proxy::Imu>& imu,
     Config config
 ) :
     left_rotary_sensor{left_rotary_sensor},
     right_rotary_sensor{right_rotary_sensor},
     imu{imu},
     wheel_radius{config.wheel_radius},
+    initial_pose(config.initial_pose),
     left_last_position{left_rotary_sensor->get_position()},
     right_last_position{right_rotary_sensor->get_position()},
     linear_filter{config.linear_cutoff_frequency},
     state{config.initial_pose, {0.0F, 0.0F}} { }
 
 void Odometry::update(float elapsed_time) {
+    if (this->imu.use_count() == 1) {
+        this->imu->update();
+    }
+
     const float left_position = this->left_rotary_sensor->get_position();
     const float right_position = this->right_rotary_sensor->get_position();
 
@@ -53,10 +56,14 @@ void Odometry::update(float elapsed_time) {
 void Odometry::reset() {
     this->left_last_position = this->left_rotary_sensor->get_position();
     this->right_last_position = this->right_rotary_sensor->get_position();
-    this->state = {{{0.0F, 0.0F}, 0.0F}, {0.0F, 0.0F}};
+    this->state = {this->initial_pose, {0.0F, 0.0F}};
 }
 
 const nav::State& Odometry::get_state() const {
+    return this->state;
+}
+
+nav::State& Odometry::get_state() {
     return this->state;
 }
 

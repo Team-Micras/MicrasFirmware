@@ -8,7 +8,7 @@
 #include <cstdint>
 #include <functional>
 
-#include "micras/core/types.hpp"
+#include "micras/core/vector.hpp"
 
 namespace micras::nav {
 /**
@@ -30,20 +30,6 @@ enum Side : uint8_t {
 Side angle_to_grid(float angle);
 
 /**
- * @brief Type to store information originating from the wall sensors.
- */
-struct Information {
-    /**
-     * @brief Possible walls in the grid to be checked.
-     */
-    core::Observation left;
-    core::Observation front_left;
-    core::Observation front;
-    core::Observation front_right;
-    core::Observation right;
-};
-
-/**
  * @brief Type to store a point in the grid.
  */
 struct GridPoint {
@@ -54,6 +40,23 @@ struct GridPoint {
      * @return The direction from this point to the next one.
      */
     Side direction(const GridPoint& next) const;
+
+    /**
+     * @brief Convert the point to a grid point.
+     *
+     * @param point The point to convert.
+     * @param cell_size The size of the grid cells.
+     * @return The grid point corresponding to the point.
+     */
+    static GridPoint from_vector(const core::Vector& point, float cell_size);
+
+    /**
+     * @brief Convert a grid point to a point.
+     *
+     * @param cell_size The size of the grid cells.
+     * @return The point corresponding to the grid point.
+     */
+    core::Vector to_vector(float cell_size) const;
 
     /**
      * @brief Move in the grid in the direction of the side.
@@ -112,6 +115,14 @@ struct GridPose {
     GridPose turned_right() const;
 
     /**
+     * @brief Gets the relative side of a grid point compared to current pose.
+     *
+     * @param other The grid point to check.
+     * @return LEFT/RIGHT for left/right of pose, UP for in front, DOWN for behind.
+     */
+    Side get_relative_side(const GridPoint& other) const;
+
+    /**
      * @brief Compare two poses for equality.
      *
      * @param other The other pose to compare.
@@ -142,6 +153,20 @@ struct hash<micras::nav::GridPoint> {
     size_t operator()(const micras::nav::GridPoint& point) const noexcept {
         const size_t h1 = hash<uint8_t>{}(point.x);
         const size_t h2 = hash<uint8_t>{}(point.y);
+        return h1 ^ (h2 << 1);
+    }
+};
+
+/**
+ * @brief Hash specialization for the GridPose type.
+ *
+ * @tparam T GridPose type.
+ */
+template <>
+struct hash<micras::nav::GridPose> {
+    size_t operator()(const micras::nav::GridPose& pose) const noexcept {
+        const size_t h1 = hash<micras::nav::GridPoint>{}(pose.position);
+        const size_t h2 = hash<uint8_t>{}(pose.orientation);
         return h1 ^ (h2 << 1);
     }
 };

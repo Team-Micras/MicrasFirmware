@@ -6,7 +6,6 @@
 #define MICRAS_PROXY_DIP_SWITCH_CPP
 
 #include "micras/core/utils.hpp"
-#include "micras/hal/mcu.hpp"
 #include "micras/proxy/dip_switch.hpp"
 
 namespace micras::proxy {

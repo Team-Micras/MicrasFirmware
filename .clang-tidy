@@ -4,6 +4,7 @@ Checks:
   bugprone-*,
   -bugprone-easily-swappable-parameters,
   -bugprone-dynamic-static-initializers,
+  -bugprone-bitwise-pointer-cast,
   clang-*,
   cppcoreguidelines-*,
   -cppcoreguidelines-avoid-magic-numbers,
@@ -23,7 +24,7 @@ Checks:
   readability-*,
   -readability-duplicate-include,
   -readability-magic-numbers,
-WarningsAsErrors: '*'
+  -readability-math-missing-parentheses,
 HeaderFileExtensions:
   - ''
   - h
@@ -45,9 +46,4 @@ CheckOptions:
   misc-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic: true
   bugprone-narrowing-conversions.WarnOnIntegerToFloatingPointNarrowingConversion: false
 SystemHeaders: false
-ExtraArgsBefore:
-  - '--target=arm-none-eabi'
-  - '--sysroot=/usr/lib/arm-none-eabi/'
-  - '-I/usr/lib/arm-none-eabi/include/c++/13.2.1/'
-  - '-I/usr/lib/arm-none-eabi/include/c++/13.2.1/arm-none-eabi/'
 ...

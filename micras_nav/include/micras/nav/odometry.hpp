@@ -5,7 +5,6 @@
 #ifndef MICRAS_NAV_ODOMETRY_HPP
 #define MICRAS_NAV_ODOMETRY_HPP
 
-#include <cstdint>
 #include <memory>
 
 #include "micras/core/butterworth_filter.hpp"
@@ -37,8 +36,8 @@ public:
      * @param config Configuration for the odometry.
      */
     Odometry(
-        const std::shared_ptr<proxy::RotarySensor>& left_rotary_sensor,
-        const std::shared_ptr<proxy::RotarySensor>& right_rotary_sensor, const std::shared_ptr<proxy::Imu>& imu,
+        const std::shared_ptr<const proxy::RotarySensor>& left_rotary_sensor,
+        const std::shared_ptr<const proxy::RotarySensor>& right_rotary_sensor, const std::shared_ptr<proxy::Imu>& imu,
         Config config
     );
 
@@ -62,6 +61,13 @@ public:
     const State& get_state() const;
 
     /**
+     * @brief Get the state of the robot.
+     *
+     * @return Current state of the robot in space.
+     */
+    State& get_state();
+
+    /**
      * @brief Set the state of the robot.
      *
      * @param state New state of the robot.
@@ -72,12 +78,12 @@ private:
     /**
      * @brief Left rotary sensor.
      */
-    std::shared_ptr<proxy::RotarySensor> left_rotary_sensor;
+    std::shared_ptr<const proxy::RotarySensor> left_rotary_sensor;
 
     /**
      * @brief Right rotary sensor.
      */
-    std::shared_ptr<proxy::RotarySensor> right_rotary_sensor;
+    std::shared_ptr<const proxy::RotarySensor> right_rotary_sensor;
 
     /**
      * @brief IMU sensor.
@@ -88,6 +94,11 @@ private:
      * @brief Wheel radius.
      */
     float wheel_radius;
+
+    /**
+     * @brief Initial pose of the robot.
+     */
+    Pose initial_pose;
 
     /**
      * @brief Last left rotary sensor position.

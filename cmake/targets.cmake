@@ -84,6 +84,49 @@ function(generate_format_target)
     )
 endfunction()
 
+function(generate_lint_target)
+    foreach(FILE ${ARGV})
+        list(APPEND FILES_LIST ${${FILE}})
+    endforeach()
+
+    execute_process(
+        COMMAND ${CMAKE_CXX_COMPILER} -print-search-dirs
+        OUTPUT_VARIABLE _SEARCH_DIRS
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+
+    string(REGEX MATCH "install: ([^\n]+)/" _ ${_SEARCH_DIRS})
+    set(COMPILER_INSTALL_DIR "${CMAKE_MATCH_1}")
+    get_filename_component(COMPILER_VERSION "${COMPILER_INSTALL_DIR}" NAME)
+
+    execute_process(
+        COMMAND ${CMAKE_CXX_COMPILER} -dumpmachine
+        OUTPUT_VARIABLE TARGET_TRIPLE
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+
+    get_filename_component(_PARENT3 "${COMPILER_INSTALL_DIR}/../../../" REALPATH)
+    set(SYSROOT "${_PARENT3}/${TARGET_TRIPLE}")
+
+    set(CXX_INCLUDE_DIR      "${SYSROOT}/include/c++/${COMPILER_VERSION}")
+    set(CXX_TRIPLE_INCLUDE_DIR "${CXX_INCLUDE_DIR}/${TARGET_TRIPLE}")
+
+    set(SCRIPT_SAVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/run_clang_tidy.sh")
+    configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/run_clang_tidy.sh.in
+        ${SCRIPT_SAVE_PATH}
+        @ONLY
+    )
+
+    add_custom_target(lint
+        COMMAND ${SCRIPT_SAVE_PATH} ${FILES_LIST}
+    )
+
+    add_custom_target(lint_fix
+        COMMAND ${SCRIPT_SAVE_PATH} --fix ${FILES_LIST}
+    )
+endfunction()
+
 # Flash via st-link or jlink
 function(generate_flash_target TARGET)
     if("${TARGET}" STREQUAL "${PROJECT_NAME}")
@@ -98,9 +141,10 @@ function(generate_flash_target TARGET)
     )
 
     add_dependencies(flash${TARGET_SUFFIX} ${TARGET})
-
-    set(input_file "${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/jlink.in")
-    configure_file(${input_file} "${CMAKE_CURRENT_BINARY_DIR}/jlinkflash/.jlink-flash${TARGET_SUFFIX}")
+    configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/jlink.in
+        ${CMAKE_CURRENT_BINARY_DIR}/jlinkflash/.jlink-flash${TARGET_SUFFIX}
+    )
 
     add_custom_target(jflash${TARGET_SUFFIX}
         COMMAND echo "Flashing ${PROJECT_NAME}.hex with J-Link"
@@ -118,10 +162,10 @@ function(generate_debug_target TARGET)
     endif()
 
     set(DEBUG_FILE_NAME ${TARGET})
-
-    set(input_file "${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/launch.json.in")
-    set(output_save_file "${CMAKE_CURRENT_BINARY_DIR}/vsfiles/.vsfiles${TARGET_SUFFIX}")
-    configure_file(${input_file} ${output_save_file})
+    configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/launch.json.in
+        ${CMAKE_CURRENT_BINARY_DIR}/vsfiles/.vsfiles${TARGET_SUFFIX}
+    )
 
     add_custom_target(debug${TARGET_SUFFIX}
         COMMAND echo "Configuring VS Code files for ${TARGET}"

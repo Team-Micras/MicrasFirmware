@@ -5,8 +5,6 @@
 #ifndef MICRAS_HAL_MCU_HPP
 #define MICRAS_HAL_MCU_HPP
 
-#include <cstdint>
-
 namespace micras::hal {
 /**
  * @brief Microcontroller unit class.

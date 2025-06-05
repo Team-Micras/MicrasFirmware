@@ -11,18 +11,9 @@
 
     "editor.defaultFormatter": "xaver.clang-format",
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+    "C_Cpp.autoAddFileAssociations": false,
 
-    "[c, cpp]": {
-        "editor.formatOnSave": true
-    },
-
-    "doxdocgen.generic.dateFormat": "MM/YYYY",
     "doxdocgen.file.fileOrder": [
         "file",
-        "empty",
-        "brief",
-        "empty",
-        "date",
-        "custom"
-    ],
+    ]
 }

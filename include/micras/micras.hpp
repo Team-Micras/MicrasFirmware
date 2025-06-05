@@ -75,6 +75,13 @@ public:
     void reset();
 
     /**
+     * @brief Use the imu to check if the robot crashed.
+     *
+     * @return True if the robot crashed, false otherwise.
+     */
+    bool check_crash() const;
+
+    /**
      * @brief Get the current objective of the robot.
      *
      * @return The current objective of the robot.
@@ -128,11 +135,16 @@ public:
      */
     void load_best_route();
 
+    /**
+     * @brief Handle events from the interface.
+     */
+    void handle_events();
+
 private:
     /**
      * @brief Enum for the type of calibration being performed.
      */
-    enum CalibrationType : uint8_t {
+    enum class CalibrationType : uint8_t {
         SIDE_WALLS = 0,  // Calibrate side walls and front free space detection.
         FRONT_WALL = 1,  // Calibrate front wall detection.
     };
@@ -192,7 +204,7 @@ private:
     /**
      * @brief Finite state machine for the robot.
      */
-    core::FSM fsm{State::INIT};
+    core::Fsm fsm{State::INIT};
 
     /**
      * @brief Class for controlling the interface with the external world.

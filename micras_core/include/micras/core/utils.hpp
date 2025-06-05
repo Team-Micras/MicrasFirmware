@@ -39,7 +39,7 @@ constexpr T remap(T value, T in_min, T in_max, T out_min, T out_max) {
  */
 template <typename T>
 constexpr T move_towards(T value, T target, T step) {
-    return std::max(std::min(value + step, target), value - step);
+    return std::clamp(target, value - step, value + step);
 }
 
 /**

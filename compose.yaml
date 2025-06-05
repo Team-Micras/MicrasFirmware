@@ -5,13 +5,13 @@ services:
       target: base
 
   build:
-    command: /project/.docker/scripts/build.sh
+    command: make -C build --no-print-directory -j
     build:
       dockerfile: .docker/Dockerfile
       target: build
 
   lint:
-    command: /project/.docker/scripts/build.sh -DLINTER_MODE=ON
+    command: make -C build --no-print-directory lint
     build:
       dockerfile: .docker/Dockerfile
       target: build

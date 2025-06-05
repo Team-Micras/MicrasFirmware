@@ -27,8 +27,6 @@ public:
             float angular_acceleration;
         };
 
-        float                       max_linear_acceleration{};
-        float                       max_angular_acceleration{};
         core::PidController::Config linear_pid;
         core::PidController::Config angular_pid;
         FeedForward                 left_feed_forward{};
@@ -77,16 +75,6 @@ private:
      * @return The feed-forward parameters for a motor.
      */
     static float feed_forward(const Twist& speed, const Twist& acceleration, const Config::FeedForward& config);
-
-    /**
-     * @brief The maximum linear acceleration of the robot.
-     */
-    float max_linear_acceleration;
-
-    /**
-     * @brief The maximum angular acceleration of the robot.
-     */
-    float max_angular_acceleration;
 
     /**
      * @brief The last linear speed of the robot.
