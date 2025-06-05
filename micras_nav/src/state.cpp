@@ -39,6 +39,34 @@ core::Vector Pose::to_cell(float cell_size) const {
     return {cell_alignment, cell_advance};
 }
 
+std::vector<uint8_t> State::serialize() const {
+    std::vector<uint8_t> serial_data;
+
+    serial_data.push_back(static_cast<uint8_t>(pose.position.x));
+    serial_data.push_back(static_cast<uint8_t>(pose.position.y));
+
+    serial_data.push_back(static_cast<uint8_t>(pose.orientation));
+
+    serial_data.push_back(static_cast<uint8_t>(velocity.linear));
+    serial_data.push_back(static_cast<uint8_t>(velocity.angular));
+
+    return serial_data;
+}
+
+void State::deserialize(const uint8_t* serial_data, uint16_t size) {
+    if (size != 6) {
+        return;
+    }
+
+    pose.position.x = static_cast<float>(serial_data[0]);
+    pose.position.y = static_cast<float>(serial_data[1]);
+
+    pose.orientation = static_cast<float>(serial_data[2]);
+
+    velocity.linear = static_cast<float>(serial_data[3]);
+    velocity.angular = static_cast<float>(serial_data[4]);
+}
+
 RelativePose::RelativePose(const Pose& absolute_pose) : absolute_pose{&absolute_pose} { }
 
 Pose RelativePose::get() const {
