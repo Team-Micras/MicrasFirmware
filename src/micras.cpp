@@ -17,7 +17,7 @@ namespace micras {
 Micras::Micras() :
     logger{std::make_shared<comm::Logger>(debug_mode)},
     pool{std::make_shared<comm::SerialVariablePool>()},
-    comm_service{std::make_shared<comm::CommunicationService>(pool, logger)},
+    comm_service{comm::CommunicationService(pool, logger)},
     argb{std::make_shared<proxy::Argb>(argb_config)},
     button{std::make_shared<proxy::Button>(button_config)},
     buzzer{std::make_shared<proxy::Buzzer>(buzzer_config)},
@@ -41,16 +41,95 @@ Micras::Micras() :
     this->fsm.add_state(std::make_unique<RunState>(State::RUN, *this));
     this->fsm.add_state(std::make_unique<WaitState>(State::WAIT_FOR_RUN, *this, State::RUN));
     this->fsm.add_state(std::make_unique<WaitState>(State::WAIT_FOR_CALIBRATE, *this, State::CALIBRATE));
+
+    this->comm_service.register_communication_functions(
+        [this](const std::vector<uint8_t>& data) { this->bluetooth.send_data(data); },
+        [this]() { return this->bluetooth.get_data(); }
+    );
+
+    // add to pool
+    // Linar PID setpoint
+    this->pool->add_read_only("linear_pid_set_point", this->desired_speeds.linear);
+    // Linear speed
+    // this->pool->add_read_only("linear_speed", odometry.get_state().velocity.linear);
+
+    // Angular pid setpoint
+    this->pool->add_read_only("angular_pid_set_point", this->desired_speeds.angular);
+    // Angular speed
+    // this->pool->add_read_only("angular_speed", odometry.get_state().velocity.angular);
+
+    // Linear PID response
+    this->pool->add_read_only("linear_pid_response", this->last_pid_response.linear);
+    // Linear integrative response
+    // this->pool->add_read_only("linear_integrative_response",
+    // this->speed_controller.get_linear_integrative_response());
+
+    // Angular PID response
+    this->pool->add_read_only("angular_pid_response", this->last_pid_response.angular);
+    // Angular integrative response
+    // this->pool->add_read_only(
+    //     "angular_integrative_response", this->speed_controller.get_angular_integrative_response()
+    // );
+
+    // Left feed forward response
+    this->pool->add_read_only("left_feed_forward_response", this->left_ff);
+
+    // Right feed forward response
+    this->pool->add_read_only("right_feed_forward_response", this->right_ff);
+
+    // X offeset
+    // this->pool->add_read_only("x_offset", odometry.get_state().pose.position.x);
+
+    // y offset
+    // this->pool->add_read_only("y_offset", odometry.get_state().pose.position.y);
+
+    // Micras controller Pose:
+    this->pool->add_read_only("odometry_state", odometry.get_state());
+
+    // grid pose
+    this->pool->add_read_only("grid_pose", this->grid_pose);
+    // action pose
+    // this->pool->add_read_only("action_pose", this->action_pose);
+    // Objective (cast enum to underlying type)
+    this->pool->add_read_only("objective", reinterpret_cast<uint8_t&>(this->objective));
+    // current action
+    this->pool->add_read_only("current_action", this->current_action->get_id().type);
+
+    // Sensors
+    // wall sensors
+    this->pool->add_read_only("wall_sensors_0", this->wall_sensor_reading[wall_sensors_index.left_front]);
+    this->pool->add_read_only("wall_sensors_1", this->wall_sensor_reading[wall_sensors_index.left]);
+    this->pool->add_read_only("wall_sensors_2", this->wall_sensor_reading[wall_sensors_index.right]);
+    this->pool->add_read_only("wall_sensors_3", this->wall_sensor_reading[wall_sensors_index.right_front]);
+
+    // rotary sensors
+    this->pool->add_read_only("rotary_sensor_left", this->rotary_sensor_left_reading);
+    this->pool->add_read_only("rotary_sensor_right", this->rotary_sensor_right_reading);
+    // battery
+    // button
+    // dip switch
+
+    // loop time
+    this->pool->add_read_only("loop_time", this->elapsed_time);
 }
 
 void Micras::update() {
     this->elapsed_time = loop_stopwatch.elapsed_time_us() / 1e6F;
     loop_stopwatch.reset_us();
 
-    this->button.update();
-    this->buzzer.update();
-    this->interface.update();
+    this->last_pid_response = this->speed_controller.get_last_pid_response();
+    this->wall_sensor_reading[0] = this->wall_sensors->get_reading(wall_sensors_index.left_front);
+    this->wall_sensor_reading[1] = this->wall_sensors->get_reading(wall_sensors_index.left);
+    this->wall_sensor_reading[2] = this->wall_sensors->get_reading(wall_sensors_index.right);
+    this->wall_sensor_reading[3] = this->wall_sensors->get_reading(wall_sensors_index.right_front);
+    this->rotary_sensor_left_reading = this->rotary_sensor_left->get_position();
+    this->rotary_sensor_right_reading = this->rotary_sensor_right->get_position();
+
+    this->button->update();
+    this->buzzer->update();
     this->bluetooth.update();
+    this->interface.update();
+    this->comm_service.update();
 
     this->fan.update();
     this->imu->update();
