@@ -2,6 +2,7 @@
 #define MICRAS_COMM_PRIMITIVE_SERIAL_VARIABLE_HPP
 
 #include <cstring>
+#include <type_traits>
 #include <utility>
 
 #include "micras/comm/vars/serial_variable.hpp"
@@ -76,7 +77,9 @@ public:
         if (read_only or size != sizeof(T)) {
             return;
         }
-        std::memcpy(value_ptr, serial_data, sizeof(T));
+        if constexpr (!std::is_const_v<T>) {
+            std::memcpy(value_ptr, serial_data, sizeof(T));
+        }
     }
 
 private:
