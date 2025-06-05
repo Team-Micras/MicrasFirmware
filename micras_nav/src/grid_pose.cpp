@@ -97,4 +97,22 @@ Side GridPose::get_relative_side(const GridPoint& other) const {
 bool GridPose::operator==(const GridPose& other) const {
     return this->position == other.position and this->orientation == other.orientation;
 }
+
+std::vector<uint8_t> GridPose::serialize() const {
+    std::vector<uint8_t> serial_data;
+    serial_data.push_back(static_cast<uint8_t>(this->position.x));
+    serial_data.push_back(static_cast<uint8_t>(this->position.y));
+    serial_data.push_back(static_cast<uint8_t>(this->orientation));
+    return serial_data;
+}
+
+void GridPose::deserialize(const uint8_t* serial_data, uint16_t size) {
+    if (size != 3) {
+        return;
+    }
+    this->position.x = static_cast<uint8_t>(serial_data[0]);
+    this->position.y = static_cast<uint8_t>(serial_data[1]);
+    this->orientation = static_cast<Side>(serial_data[2]);
+}
+
 }  // namespace micras::nav
