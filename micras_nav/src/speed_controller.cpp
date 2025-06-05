@@ -50,4 +50,11 @@ void SpeedController::reset() {
     this->linear_pid.reset();
     this->angular_pid.reset();
 }
+
+Twist SpeedController::get_last_pid_response() const {
+    return {
+        .linear = this->linear_pid.get_last_response(),
+        .angular = this->angular_pid.get_last_response(),
+    };
+}
 }  // namespace micras::nav
