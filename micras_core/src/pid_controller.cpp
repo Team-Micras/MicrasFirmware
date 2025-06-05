@@ -81,4 +81,8 @@ float PidController::compute_response(float state, float elapsed_time, float sta
 
     return response;
 }
+
+float PidController::get_last_response() const {
+    return this->last_response;
+}
 }  // namespace micras::core
