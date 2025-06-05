@@ -153,11 +153,12 @@ private:
      * @brief Sensors and actuators.
      */
     ///@{
-    proxy::Battery    battery{battery_config};
-    proxy::Fan        fan{fan_config};
-    proxy::Locomotion locomotion{locomotion_config};
-    proxy::Stopwatch  loop_stopwatch{stopwatch_config};
-    proxy::Storage    maze_storage{maze_storage_config};
+    proxy::Battery         battery{battery_config};
+    proxy::Fan             fan{fan_config};
+    proxy::Locomotion      locomotion{locomotion_config};
+    proxy::Stopwatch       loop_stopwatch{stopwatch_config};
+    proxy::Storage         maze_storage{maze_storage_config};
+    proxy::BluetoothSerial bluetooth{bluetooth_config};
     // proxy::TorqueSensors torque_sensors{torque_sensors_config};
     ///@}
 
@@ -165,9 +166,9 @@ private:
      * @brief Communication service for the robot.
      */
     ///@{
-    std::shared_ptr<comm::Logger>               logger;
-    std::shared_ptr<comm::SerialVariablePool>   pool;
-    std::shared_ptr<comm::CommunicationService> comm_service;
+    std::shared_ptr<comm::Logger>             logger;
+    std::shared_ptr<comm::SerialVariablePool> pool;
+    comm::CommunicationService                comm_service;
 
     /**
      * @brief Interface proxies with the external world.
@@ -270,6 +271,11 @@ private:
      * @brief Last feed forward command to the right motor.
      */
     float right_ff{};
+
+    nav::Twist last_pid_response{0.0F, 0.0F};
+    float      wall_sensor_reading[4]{0.0F, 0.0F, 0.0F, 0.0F};
+    float      rotary_sensor_left_reading{0.0F};
+    float      rotary_sensor_right_reading{0.0F};
 };
 }  // namespace micras
 
