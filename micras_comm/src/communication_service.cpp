@@ -93,7 +93,9 @@ void CommunicationService::consume_packet(const Packet& packet) {
             break;
 
         case Packet::MessageType::SERIAL_VARIABLE_MAP_REQUEST:
-            this->send_data_func(this->pool->serialize_var_map());
+            this->send_data_func(
+                Packet(Packet::MessageType::SERIAL_VARIABLE_MAP_RESPONSE, this->pool->serialize_var_map()).serialize()
+            );
             break;
 
         case Packet::MessageType::SERIAL_VARIABLE:
