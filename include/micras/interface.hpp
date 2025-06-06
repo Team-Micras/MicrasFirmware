@@ -96,9 +96,12 @@ private:
      */
     using ConditionFunc = bool (Interface::*)() const;
 
+    /**
+     * @brief Struct for storing the event condition.
+     */
     struct EventCondition {
         Event         true_event;
-        Event         false_event;
+        Event         false_event{Event::ERROR};
         ConditionType type;
         ConditionFunc check;
     };
@@ -116,7 +119,7 @@ private:
     /**
      * @brief Array of event conditions for each event.
      */
-    std::array<EventCondition, NUMBER_OF_EVENTS> event_conditions = {
+    std::array<EventCondition, 7> event_conditions = {
         {{
              .true_event = Event::EXPLORE,
              .type = ConditionType::Trigger,
