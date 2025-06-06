@@ -68,23 +68,23 @@ void State::deserialize(const uint8_t* serial_data, uint16_t size) {
     if (size != 20) {
         return;
     }
-    std::array<uint8_t, 4> x_bytes;
+    std::array<uint8_t, 4> x_bytes{};
     std::copy(serial_data, serial_data + 4, x_bytes.begin());
     pose.position.x = std::bit_cast<float>(x_bytes);
 
-    std::array<uint8_t, 4> y_bytes;
+    std::array<uint8_t, 4> y_bytes{};
     std::copy(serial_data + 4, serial_data + 8, y_bytes.begin());
     pose.position.y = std::bit_cast<float>(y_bytes);
 
-    std::array<uint8_t, 4> orientation_bytes;
+    std::array<uint8_t, 4> orientation_bytes{};
     std::copy(serial_data + 8, serial_data + 12, orientation_bytes.begin());
     pose.orientation = std::bit_cast<float>(orientation_bytes);
 
-    std::array<uint8_t, 4> linear_bytes;
+    std::array<uint8_t, 4> linear_bytes{};
     std::copy(serial_data + 12, serial_data + 16, linear_bytes.begin());
     velocity.linear = std::bit_cast<float>(linear_bytes);
 
-    std::array<uint8_t, 4> angular_bytes;
+    std::array<uint8_t, 4> angular_bytes{};
     std::copy(serial_data + 16, serial_data + 20, angular_bytes.begin());
     velocity.angular = std::bit_cast<float>(angular_bytes);
 }
