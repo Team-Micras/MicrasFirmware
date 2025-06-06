@@ -11,24 +11,24 @@ Interface::Interface(
     const std::shared_ptr<proxy::TDipSwitch<4>>& dip_switch, const std::shared_ptr<proxy::Led>& led
 ) :
     pool{pool}, argb{argb}, button{button}, buzzer{buzzer}, dip_switch{dip_switch}, led{led} {
-    this->pool->add_write_only("Explore", this->comm_explore);
-    this->pool->add_write_only("Solve", this->comm_solve);
-    this->pool->add_write_only("Calibrate", this->comm_calibrate);
-    this->pool->add_write_only("Fan", this->comm_fan);
-    this->pool->add_write_only("Diagonal", this->comm_diagonal);
-    this->pool->add_write_only("Boost", this->comm_boost);
-    this->pool->add_write_only("Risky", this->comm_risky);
+    this->pool->add_variable("Explore", this->comm_explore, comm::SerialVariablePool::VarType::BIDIRECTIONAL);
+    this->pool->add_variable("Solve", this->comm_solve, comm::SerialVariablePool::VarType::BIDIRECTIONAL);
+    this->pool->add_variable("Calibrate", this->comm_calibrate, comm::SerialVariablePool::VarType::BIDIRECTIONAL);
+    this->pool->add_variable("Fan", this->comm_fan, comm::SerialVariablePool::VarType::BIDIRECTIONAL);
+    this->pool->add_variable("Diagonal", this->comm_diagonal, comm::SerialVariablePool::VarType::BIDIRECTIONAL);
+    this->pool->add_variable("Boost", this->comm_boost, comm::SerialVariablePool::VarType::BIDIRECTIONAL);
+    this->pool->add_variable("Risky", this->comm_risky, comm::SerialVariablePool::VarType::BIDIRECTIONAL);
 }
 
 void Interface::update() {
-    for (const auto& cond : event_conditions) {
-        bool result = (this->*cond.check)();
+    for (const auto& condition : this->event_conditions) {
+        bool result = (this->*condition.check)();
 
-        if (cond.type == ConditionType::Trigger) {
+        if (condition.type == ConditionType::Trigger) {
             if (result)
-                send_event(cond.true_event);
+                send_event(condition.true_event);
         } else {
-            send_event(result ? cond.true_event : cond.false_event);
+            send_event(result ? condition.true_event : condition.false_event);
         }
     }
 }
