@@ -8,6 +8,7 @@
 
 #include "micras/proxy/bluetooth_serial.hpp"
 
+// @TODO add max size for tx rx buffer
 namespace micras::proxy {
 BluetoothSerial::BluetoothSerial(const Config& config) : uart{config.uart} {
     this->uart.start_rx_dma(this->rx_buffer);
