@@ -15,6 +15,10 @@ void CommunicationService::update() {
         return;
     }
 
+    if (this->enable_mask.empty()) {
+        this->enable_mask.resize(this->pool->size(), true);
+    }
+
     this->update_incoming_packets();
     this->process_incomming_packets();
     this->send_debug_logs();
@@ -80,9 +84,11 @@ void CommunicationService::send_debug_logs() {
 }
 
 void CommunicationService::send_serial_variables() {
-    this->pool->for_each_read_only_variable([this](uint16_t id, ISerialVariable& variable) {
-        const Packet packet(Packet::MessageType::SERIAL_VARIABLE, id, variable.serialize());
-        this->send_data_func(packet.serialize());
+    this->pool->for_each([this](uint16_t id, ISerialVariable& variable) {
+        if (variable.is_read_only() and this->enable_mask[id]) {
+            const Packet packet(Packet::MessageType::SERIAL_VARIABLE, id, variable.serialize());
+            this->send_data_func(packet.serialize());
+        }
     });
 }
 
@@ -99,8 +105,11 @@ void CommunicationService::consume_packet(const Packet& packet) {
             break;
 
         case Packet::MessageType::SERIAL_VARIABLE:
-            this->pool->write(packet.get_id(), packet.get_payload());
+            this->pool->update_variable(packet.get_id(), packet.get_payload());
             break;
+
+        case Packet::MessageType::SERIAL_VARIABLE_CONTROL:
+            this->enable_mask[packet.get_id()] = packet.get_payload()[0] == 1;
 
         default:
             break;

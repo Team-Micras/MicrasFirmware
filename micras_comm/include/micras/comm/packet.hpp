@@ -39,6 +39,7 @@ public:
         SERIAL_VARIABLE = 0x04,
         DEBUG_LOG = 0x05,
         ERROR = 0x06,
+        SERIAL_VARIABLE_CONTROL = 0x07,
     };
 
     /**

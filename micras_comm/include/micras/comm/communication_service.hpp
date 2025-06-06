@@ -131,6 +131,11 @@ private:
      * @brief Queue for incoming packets.
      */
     std::queue<Packet> incoming_packets;
+
+    /**
+     * @brief Mask to enable or disable the transmission of serial variables.
+     */
+    std::vector<bool> enable_mask{};
 };
 }  // namespace micras::comm
 

@@ -16,6 +16,9 @@
 namespace micras::comm {
 class SerialVariablePool {
 public:
+    /**
+     * @brief Enum for the type of serial variable.
+     */
     enum class VarType : uint8_t {
         MONITORING = 0,
         BIDIRECTIONAL = 1,
@@ -61,20 +64,25 @@ public:
      * @param id ID of the variable.
      * @param data Data to write.
      */
-    void write(uint16_t id, std::vector<uint8_t> data);
+    void update_variable(uint16_t id, std::vector<uint8_t> data);
 
     /**
-     * @brief Iterate over all read-only variables in the pool and call the provided callback function.
+     * @brief Get the number of variables in the pool.
+     *
+     * @return Number of variables in the pool.
+     */
+    uint16_t size() const;
+
+    /**
+     * @brief Iterate over all variables in the pool and call the provided callback function.
      *
      * @tparam Func Type of the callback function.
-     * @param callback Callback function to call for each read-only variable.
+     * @param callback Callback function to call for each variable.
      */
     template <typename Func>
-    void for_each_read_only_variable(Func callback) {
+    void for_each(Func callback) {
         for (const auto& [id, variable] : this->variables) {
-            if (variable->is_read_only()) {
-                callback(id, *variable);
-            }
+            callback(id, *variable);
         }
     }
 
