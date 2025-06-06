@@ -16,61 +16,43 @@
 namespace micras::comm {
 class SerialVariablePool {
 public:
+    enum class VarType : uint8_t {
+        MONITORING = 0,
+        BIDIRECTIONAL = 1,
+    };
+
     /**
      * @brief Construct a new Serial Variable Pool object.
      */
     explicit SerialVariablePool();
 
     /**
-     * @brief Add a read-only primitive variable to the pool.
+     * @brief Add a primitive variable to the pool.
      *
-     * @tparam T Type of the primitive variable.
+     * @tparam Type of the primitive variable.
      * @param name Name of the variable.
      * @param data Reference to the variable.
+     * @param type Type of the variable (default is VarType::MONITORING).
      */
     template <core::Fundamental T>
-    void add_read_only(const std::string& name, T& data) {
+    void add_variable(const std::string& name, T& data, VarType type = VarType::MONITORING) {
         const uint16_t var_id = current_id++;
-        this->variables[var_id] = std::make_unique<PrimitiveSerialVariable<T>>(name, &data, true);
+        this->variables[var_id] =
+            std::make_unique<PrimitiveSerialVariable<T>>(name, &data, type == VarType::MONITORING);
     }
 
     /**
-     * @brief Add a write-only primitive variable to the pool.
+     * @brief Add a serializable variable to the pool.
      *
-     * @tparam T Type of the primitive variable.
+     * @tparam Type of the serializable variable.
      * @param name Name of the variable.
      * @param data Reference to the variable.
-     */
-    template <core::Fundamental T>
-    void add_write_only(const std::string& name, T& data) {
-        const uint16_t var_id = current_id++;
-        this->variables[var_id] = std::make_unique<PrimitiveSerialVariable<T>>(name, &data, false);
-    }
-
-    /**
-     * @brief Add a read-only serializable variable to the pool.
-     *
-     * @tparam T Type of the serializable variable.
-     * @param name Name of the variable.
-     * @param data Reference to the variable.
+     * @param type Type of the variable (default is VarType::MONITORING).
      */
     template <core::Serializable T>
-    void add_read_only(const std::string& name, T& data) {
+    void add_variable(const std::string& name, T& data, VarType type = VarType::MONITORING) {
         const uint16_t var_id = current_id++;
-        this->variables[var_id] = std::make_unique<CustomSerialVariable<T>>(name, &data, true);
-    }
-
-    /**
-     * @brief Add a write-only serializable variable to the pool.
-     *
-     * @tparam T Type of the serializable variable.
-     * @param name Name of the variable.
-     * @param data Reference to the variable.
-     */
-    template <core::Serializable T>
-    void add_write_only(const std::string& name, T& data) {
-        const uint16_t var_id = current_id++;
-        this->variables[var_id] = std::make_unique<CustomSerialVariable<T>>(name, &data, false);
+        this->variables[var_id] = std::make_unique<CustomSerialVariable<T>>(name, &data, type == VarType::MONITORING);
     }
 
     /**

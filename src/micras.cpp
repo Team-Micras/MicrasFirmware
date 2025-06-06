@@ -47,19 +47,21 @@ Micras::Micras() :
         [this]() { return this->bluetooth.get_data(); }
     );
 
-    this->pool->add_read_only("linear_pid_set_point", this->desired_speeds.linear);
-    this->pool->add_read_only("angular_pid_set_point", this->desired_speeds.angular);
-    this->pool->add_read_only("linear_pid_response", this->last_pid_response.linear);
-    this->pool->add_read_only("angular_pid_response", this->last_pid_response.angular);
-    this->pool->add_read_only("left_feed_forward_response", this->left_ff);
-    this->pool->add_read_only("right_feed_forward_response", this->right_ff);
-    this->pool->add_read_only("wall_sensors_0", this->wall_sensor_reading[wall_sensors_index.left_front]);
-    this->pool->add_read_only("wall_sensors_1", this->wall_sensor_reading[wall_sensors_index.left]);
-    this->pool->add_read_only("wall_sensors_2", this->wall_sensor_reading[wall_sensors_index.right]);
-    this->pool->add_read_only("wall_sensors_3", this->wall_sensor_reading[wall_sensors_index.right_front]);
-    this->pool->add_read_only("rotary_sensor_left", this->rotary_sensor_left_reading);
-    this->pool->add_read_only("rotary_sensor_right", this->rotary_sensor_right_reading);
-    this->pool->add_read_only("loop_time", this->elapsed_time);
+    this->pool->add_variable("linear_pid_set_point", this->desired_speeds.linear);
+    this->pool->add_variable("angular_pid_set_point", this->desired_speeds.angular);
+    this->pool->add_variable("linear_pid_response", this->last_pid_response.linear);
+    this->pool->add_variable("angular_pid_response", this->last_pid_response.angular);
+    this->pool->add_variable("left_feed_forward_response", this->left_ff);
+    this->pool->add_variable("right_feed_forward_response", this->right_ff);
+    this->pool->add_variable("wall_sensors_0", this->wall_sensor_reading[wall_sensors_index.left_front]);
+    this->pool->add_variable("wall_sensors_1", this->wall_sensor_reading[wall_sensors_index.left]);
+    this->pool->add_variable("wall_sensors_2", this->wall_sensor_reading[wall_sensors_index.right]);
+    this->pool->add_variable("wall_sensors_3", this->wall_sensor_reading[wall_sensors_index.right_front]);
+    this->pool->add_variable("rotary_sensor_left", this->rotary_sensor_left_reading);
+    this->pool->add_variable("rotary_sensor_right", this->rotary_sensor_right_reading);
+    this->pool->add_variable("loop_time", this->elapsed_time);
+    // this->pool->add_variable("odometry_state", odometry.get_state()); // @TODO implementar no app
+    // this->pool->add_variable("grid_pose", this->grid_pose); // @TODO implementar no app
 }
 
 void Micras::update() {
