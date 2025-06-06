@@ -140,6 +140,11 @@ public:
      */
     void handle_events();
 
+    /**
+     * @brief Update the monitoring variables for the robot.
+     */
+    void update_monitoring_variables();
+
 private:
     /**
      * @brief Enum for the type of calibration being performed.
