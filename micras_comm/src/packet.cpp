@@ -53,6 +53,10 @@ std::vector<uint8_t> Packet::serialize() const {
         checksum += data[i];
     }
     checksum %= 256;
+    if (checksum == header_byte or checksum == tail_byte or checksum == escape_byte) {
+        checksum += 1;
+    }
+
     data.emplace_back(checksum);
 
     data.emplace_back(tail_byte);
@@ -104,6 +108,10 @@ bool Packet::is_valid(const std::vector<uint8_t>& serialized_packet) {
         checksum += serialized_packet[i];
     }
     checksum %= 256;
+
+    if (checksum == header_byte or checksum == tail_byte or checksum == escape_byte) {
+        checksum += 1;
+    }
 
     return checksum == serialized_packet[serialized_packet.size() - 2];
 }
