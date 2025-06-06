@@ -65,6 +65,13 @@ public:
      */
     void reset();
 
+    /**
+     * @brief Get the last linear speed of the robot.
+     *
+     * @return The last linear speed.
+     */
+    Twist get_last_pid_response() const;
+
 private:
     /**
      * @brief Calculate the feed-forward term for a motor.

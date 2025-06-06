@@ -7,6 +7,7 @@
 
 #include "micras/core/vector.hpp"
 #include "micras/nav/grid_pose.hpp"
+#include "micras/core/serializable.hpp"
 
 namespace micras::nav {
 /**
@@ -58,7 +59,20 @@ struct Twist {
 /**
  * @brief Type to store the state of the robot.
  */
-struct State {
+struct State : public core::ISerializable {
+    /**
+     * @brief Default constructor.
+     */
+    State() = default;
+
+    /**
+     * @brief Constructor with pose and velocity.
+     *
+     * @param p The pose of the robot.
+     * @param v The velocity of the robot.
+     */
+    State(const Pose& p, const Twist& v) : pose(p), velocity(v) { }
+
     /**
      * @brief The pose of the robot.
      */
@@ -68,6 +82,21 @@ struct State {
      * @brief The velocity of the robot.
      */
     Twist velocity;
+
+    /**
+     * @brief Serialize the state to a vector of bytes.
+     *
+     * @return The serialized data.
+     */
+    std::vector<uint8_t> serialize() const override;
+
+    /**
+     * @brief Deserialize the state from a vector of bytes.
+     *
+     * @param serial_data The serialized data.
+     * @param size The size of the serialized data.
+     */
+    void deserialize(const uint8_t* serial_data, uint16_t size) override;
 };
 
 class RelativePose {

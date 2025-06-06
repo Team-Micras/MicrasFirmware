@@ -9,6 +9,7 @@
 #include <functional>
 
 #include "micras/core/vector.hpp"
+#include "micras/core/serializable.hpp"
 
 namespace micras::nav {
 /**
@@ -85,7 +86,20 @@ struct GridPoint {
     uint8_t y;
 };
 
-struct GridPose {
+struct GridPose : public core::ISerializable {
+    /**
+     * @brief Default constructor.
+     */
+    GridPose() = default;
+
+    /**
+     * @brief Constructor with position and orientation.
+     *
+     * @param pos The position of the pose.
+     * @param orient The orientation of the pose.
+     */
+    GridPose(const GridPoint& pos, Side orient) : position(pos), orientation(orient) { }
+
     /**
      * @brief Return the pose after moving forward.
      *
@@ -139,6 +153,21 @@ struct GridPose {
      * @brief The orientation of the pose on the grid.
      */
     Side orientation;
+
+    /**
+     * @brief Serialize the grid pose.
+     *
+     * @return Serialized data.
+     */
+    std::vector<uint8_t> serialize() const override;
+
+    /**
+     * @brief Deserialize the grid pose.
+     *
+     * @param serial_data Serialized data.
+     * @param size Size of the serialized data.
+     */
+    void deserialize(const uint8_t* serial_data, uint16_t size) override;
 };
 }  // namespace micras::nav
 

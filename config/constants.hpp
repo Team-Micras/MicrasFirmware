@@ -18,6 +18,7 @@ namespace micras {
  * Constants
  *****************************************/
 
+constexpr bool     debug_mode{false};
 constexpr uint8_t  maze_width{16};
 constexpr uint8_t  maze_height{16};
 constexpr float    cell_size{0.18};

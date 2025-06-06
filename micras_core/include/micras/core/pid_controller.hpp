@@ -63,6 +63,13 @@ public:
      */
     float compute_response(float state, float elapsed_time, float state_change, bool save = false);
 
+    /**
+     * @brief Get the last response returned by the controller.
+     *
+     * @return Last response.
+     */
+    float get_last_response() const;
+
 private:
     /**
      * @brief Proportional constant.

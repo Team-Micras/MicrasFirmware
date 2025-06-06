@@ -12,6 +12,7 @@
 #include "micras/proxy/buzzer.hpp"
 #include "micras/proxy/dip_switch.hpp"
 #include "micras/proxy/led.hpp"
+#include "micras/comm/serial_variable_pool.hpp"
 
 namespace micras {
 /**
@@ -48,9 +49,9 @@ public:
      * @param led Shared pointer to the LED object.
      */
     Interface(
-        const std::shared_ptr<proxy::TArgb<2>>& argb, const std::shared_ptr<proxy::Button>& button,
-        const std::shared_ptr<proxy::Buzzer>& buzzer, const std::shared_ptr<proxy::TDipSwitch<4>>& dip_switch,
-        const std::shared_ptr<proxy::Led>& led
+        const std::shared_ptr<comm::SerialVariablePool>& pool, const std::shared_ptr<proxy::TArgb<2>>& argb,
+        const std::shared_ptr<proxy::Button>& button, const std::shared_ptr<proxy::Buzzer>& buzzer,
+        const std::shared_ptr<proxy::TDipSwitch<4>>& dip_switch, const std::shared_ptr<proxy::Led>& led
     );
 
     /**
@@ -83,6 +84,29 @@ public:
 
 private:
     /**
+     * @brief Enum for the type of condition to check.
+     */
+    enum class ConditionType {
+        Trigger,
+        Switch
+    };
+
+    /**
+     * @brief Type for the condition function pointer.
+     */
+    using ConditionFunc = bool (Interface::*)() const;
+
+    /**
+     * @brief Struct for storing the event condition.
+     */
+    struct EventCondition {
+        Event         true_event;
+        Event         false_event{Event::ERROR};
+        ConditionType type;
+        ConditionFunc check;
+    };
+
+    /**
      * @brief Enum for what each dip switch pin does.
      */
     enum DipSwitchPins : uint8_t {
@@ -91,6 +115,72 @@ private:
         BOOST = 2,
         RISKY = 3,
     };
+
+    /**
+     * @brief Array of event conditions for each event.
+     */
+    std::array<EventCondition, 7> event_conditions = {
+        {{
+             .true_event = Event::EXPLORE,
+             .type = ConditionType::Trigger,
+             .check = &Interface::condition_explore,
+         },
+         {
+             .true_event = Event::SOLVE,
+             .type = ConditionType::Trigger,
+             .check = &Interface::condition_solve,
+         },
+         {
+             .true_event = Event::CALIBRATE,
+             .type = ConditionType::Trigger,
+             .check = &Interface::condition_calibrate,
+         },
+         {
+             .true_event = Event::TURN_ON_FAN,
+             .false_event = Event::TURN_OFF_FAN,
+             .type = ConditionType::Switch,
+             .check = &Interface::condition_fan,
+         },
+         {
+             .true_event = Event::TURN_ON_DIAGONAL,
+             .false_event = Event::TURN_OFF_DIAGONAL,
+             .type = ConditionType::Switch,
+             .check = &Interface::condition_diagonal,
+         },
+         {
+             .true_event = Event::TURN_ON_BOOST,
+             .false_event = Event::TURN_OFF_BOOST,
+             .type = ConditionType::Switch,
+             .check = &Interface::condition_boost,
+         },
+         {
+             .true_event = Event::TURN_ON_RISKY,
+             .false_event = Event::TURN_OFF_RISKY,
+             .type = ConditionType::Switch,
+             .check = &Interface::condition_risky,
+         }}
+    };
+
+    /**
+     * @brief Methods for checking the conditions for each event.
+     *
+     * @return true if the condition is met, false otherwise.
+     */
+    ///@{
+    bool condition_explore() const;
+    bool condition_solve() const;
+    bool condition_calibrate() const;
+    bool condition_fan() const;
+    bool condition_diagonal() const;
+    bool condition_boost() const;
+    bool condition_risky() const;
+
+    ///@}
+
+    /**
+     * @brief Serial variable pool for managing variables.
+     */
+    std::shared_ptr<comm::SerialVariablePool> pool;
 
     /**
      * @brief Addressable RGB LED object.
@@ -126,6 +216,19 @@ private:
      * @brief Array to store the last dip switch states.
      */
     std::array<bool, 4> dip_switch_states{};
+
+    /**
+     * @brief Variables synced with the serial variable pool.
+     */
+    ///@{
+    bool comm_explore{false};
+    bool comm_solve{false};
+    bool comm_calibrate{false};
+    bool comm_fan{false};
+    bool comm_diagonal{false};
+    bool comm_boost{false};
+    bool comm_risky{false};
+    ///@}
 };
 }  // namespace micras
 

@@ -7,18 +7,27 @@
 
 #include <cstdint>
 #include <string>
-#include <type_traits>
 #include <unordered_map>
 #include <vector>
 
+#include "micras/core/concepts.hpp"
 #include "micras/core/serializable.hpp"
 
 namespace micras::proxy {
-template <typename T>
-concept Fundamental = std::is_fundamental_v<T>;
-
 /**
  * @brief Class for storing variable and classes in the flash memory.
+ *
+ * @note Stored Data Layout
+ *
+ * | Offset | Description                       | Size (bytes) |
+ * |--------|-----------------------------------|--------------|
+ * | 0      | Start Symbol                      | 2            |
+ * | 2      | Total Size                        | 2            |
+ * | 4      | Number of Primitives              | 2            |
+ * | 6      | Number of Serializables           | 2            |
+ * | 8      | Primitive Serial Variable Map     | Variable     |
+ * | ...    | Serializable Serial Variable Map  | Variable     |
+ * | ...    | Serialized Data                   | Variable     |
  */
 class Storage {
 public:
@@ -44,7 +53,7 @@ public:
      * @param name Name of the variable.
      * @param data Reference to the variable.
      */
-    template <Fundamental T>
+    template <core::Fundamental T>
     void create(const std::string& name, const T& data) {
         this->primitives[name].ram_pointer = &data;
         this->primitives.at(name).size = sizeof(T);
@@ -65,7 +74,7 @@ public:
      * @param name Name of the variable.
      * @param data Reference to the variable.
      */
-    template <Fundamental T>
+    template <core::Fundamental T>
     void sync(const std::string& name, T& data) {
         if (this->primitives.contains(name) and this->primitives.at(name).ram_pointer == nullptr) {
             // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
@@ -113,6 +122,14 @@ private:
      * @tparam T Type of the variables.
      * @param variables Map of variables.
      * @return Serialized buffer.
+     *
+     * @note The variable map is serialized in the following format:
+     * | Offset | Description            | Size (bytes)       |
+     * |--------|------------------------|--------------------|
+     * | 0      | Name Length            | 1                  |
+     * | 1      | Name                   | Name Length        |
+     * | ...    | Buffer Address         | 2                  |
+     * | ...    | Size                   | 2                  |
      */
     template <typename T>
     static std::vector<uint8_t> serialize_var_map(const std::unordered_map<std::string, T>& variables);
