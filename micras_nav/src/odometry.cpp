@@ -3,15 +3,13 @@
  */
 
 #include <cmath>
-#include <numbers>
 
-#include "micras/core/utils.hpp"
 #include "micras/nav/odometry.hpp"
 
 namespace micras::nav {
 Odometry::Odometry(
-    const std::shared_ptr<proxy::RotarySensor>& left_rotary_sensor,
-    const std::shared_ptr<proxy::RotarySensor>& right_rotary_sensor, const std::shared_ptr<proxy::Imu>& imu,
+    const std::shared_ptr<const proxy::RotarySensor>& left_rotary_sensor,
+    const std::shared_ptr<const proxy::RotarySensor>& right_rotary_sensor, const std::shared_ptr<proxy::Imu>& imu,
     Config config
 ) :
     left_rotary_sensor{left_rotary_sensor},
@@ -24,6 +22,10 @@ Odometry::Odometry(
     state{config.initial_pose, {0.0F, 0.0F}} { }
 
 void Odometry::update(float elapsed_time) {
+    if (this->imu.use_count() == 1) {
+        this->imu->update();
+    }
+
     const float left_position = this->left_rotary_sensor->get_position();
     const float right_position = this->right_rotary_sensor->get_position();
 

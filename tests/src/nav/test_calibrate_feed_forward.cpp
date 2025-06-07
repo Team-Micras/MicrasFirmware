@@ -5,7 +5,6 @@
 #include <array>
 
 #include "constants.hpp"
-#include "micras/nav/follow_wall.hpp"
 #include "test_core.hpp"
 
 using namespace micras;  // NOLINT(google-build-using-namespace)

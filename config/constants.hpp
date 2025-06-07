@@ -6,7 +6,6 @@
 #define MICRAS_CONSTANTS_HPP
 
 #include <cstdint>
-#include <numbers>
 
 #include "micras/nav/action_queuer.hpp"
 #include "micras/nav/follow_wall.hpp"
@@ -28,6 +27,7 @@ constexpr float    start_offset{0.04F + wall_thickness / 2.0F};
 constexpr float    exploration_speed{0.5F};
 constexpr float    max_linear_acceleration{1.0F};
 constexpr float    max_angular_acceleration{200.0F};
+constexpr float    crash_acceleration{20.0F};
 
 constexpr core::WallSensorsIndex wall_sensors_index{
     .left_front = 0,
@@ -95,6 +95,7 @@ const nav::Maze::Config maze_config{
         {maze_width / 2, (maze_height - 1) / 2},
         {(maze_width - 1) / 2, (maze_height - 1) / 2},
     }},
+    .cost_margin = 1.2F,
 };
 
 const nav::Odometry::Config odometry_config{

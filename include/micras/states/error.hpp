@@ -13,15 +13,19 @@ public:
     using BaseState::BaseState;
 
     /**
+     * @brief Execute the entry function of this state.
+     */
+    void on_entry() override {
+        this->micras.stop();
+        this->micras.send_event(Interface::Event::ERROR);
+    }
+
+    /**
      * @brief Execute this state.
      *
      * @return The id of the next state.
      */
-    uint8_t execute() override {
-        this->micras.send_event(Interface::Event::ERROR);
-
-        return this->get_id();
-    }
+    uint8_t execute() override { return this->get_id(); }
 };
 }  // namespace micras
 

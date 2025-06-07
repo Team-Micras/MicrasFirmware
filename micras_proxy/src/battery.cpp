@@ -2,7 +2,6 @@
  * @file
  */
 
-#include "micras/core/utils.hpp"
 #include "micras/proxy/battery.hpp"
 
 namespace micras::proxy {
