@@ -50,6 +50,7 @@ add_subdirectory(micras_core)
 add_subdirectory(micras_hal)
 add_subdirectory(micras_proxy)
 add_subdirectory(micras_nav)
+add_subdirectory(micras_comm)
 
 ###############################################################################
 ## Input files
@@ -79,6 +80,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
     micras::nav
+    micras::comm
 )
 
 generate_hex_file(${PROJECT_NAME})
@@ -107,6 +109,7 @@ foreach(TEST_FILE ${PROJECT_TESTS})
 
     target_link_libraries(${TEST_NAME} PUBLIC
         micras::nav
+        micras::comm
     )
 
     generate_hex_file(${TEST_NAME})

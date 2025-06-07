@@ -9,6 +9,7 @@
 #include <array>
 #include <cmath>
 #include <numbers>
+#include <string_view>
 
 namespace micras::core {
 /**
@@ -135,6 +136,39 @@ constexpr float assert_half_angle(float angle) {
 constexpr bool is_near(float x, float y, float tolerance = 0.001) {
     return std::abs(x - y) <= tolerance;
 }
+
+/**
+ * @brief Get the type name of a variable as a string.
+ *
+ * @cite
+ * https://stackoverflow.com/questions/81870/is-it-possible-to-print-a-variables-type-in-standard-c/64490578#64490578
+ *
+ * @tparam T Type of the variable.
+ * @return constexpr auto Type name as a string.
+ */
+template <typename T>
+constexpr auto type_name() {
+    std::string_view name;
+    std::string_view prefix;
+    std::string_view suffix;
+#ifdef __clang__
+    name = __PRETTY_FUNCTION__;
+    prefix = "auto type_name() [T = ";
+    suffix = "]";
+#elif defined(__GNUC__)
+    name = __PRETTY_FUNCTION__;
+    prefix = "constexpr auto type_name() [with T = ";
+    suffix = "]";
+#elif defined(_MSC_VER)
+    name = __FUNCSIG__;
+    prefix = "auto __cdecl type_name<";
+    suffix = ">(void)";
+#endif
+    name.remove_prefix(prefix.size());
+    name.remove_suffix(suffix.size());
+    return name;
+}
+
 }  // namespace micras::core
 
 #endif  // MICRAS_CORE_UTILS_HPP
