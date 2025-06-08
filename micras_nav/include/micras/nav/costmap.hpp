@@ -26,7 +26,7 @@ public:
     /**
      * @brief Type to store the state of a wall.
      */
-    enum WallState : uint8_t {
+    enum class WallState : uint8_t {
         UNKNOWN = 0,
         NO_WALL = 1,
         WALL = 2,

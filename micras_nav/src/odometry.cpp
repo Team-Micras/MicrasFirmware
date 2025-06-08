@@ -16,6 +16,7 @@ Odometry::Odometry(
     right_rotary_sensor{right_rotary_sensor},
     imu{imu},
     wheel_radius{config.wheel_radius},
+    initial_pose(config.initial_pose),
     left_last_position{left_rotary_sensor->get_position()},
     right_last_position{right_rotary_sensor->get_position()},
     linear_filter{config.linear_cutoff_frequency},
@@ -55,10 +56,14 @@ void Odometry::update(float elapsed_time) {
 void Odometry::reset() {
     this->left_last_position = this->left_rotary_sensor->get_position();
     this->right_last_position = this->right_rotary_sensor->get_position();
-    this->state = {{{0.0F, 0.0F}, 0.0F}, {0.0F, 0.0F}};
+    this->state = {this->initial_pose, {0.0F, 0.0F}};
 }
 
 const nav::State& Odometry::get_state() const {
+    return this->state;
+}
+
+nav::State& Odometry::get_state() {
     return this->state;
 }
 
