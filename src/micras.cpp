@@ -15,6 +15,9 @@
 
 namespace micras {
 Micras::Micras() :
+    logger{std::make_shared<comm::Logger>(debug_mode)},
+    pool{std::make_shared<comm::SerialVariablePool>()},
+    comm_service{comm::CommunicationService(pool, logger)},
     argb{std::make_shared<proxy::Argb>(argb_config)},
     button{std::make_shared<proxy::Button>(button_config)},
     buzzer{std::make_shared<proxy::Buzzer>(buzzer_config)},
@@ -29,7 +32,7 @@ Micras::Micras() :
     odometry{rotary_sensor_left, rotary_sensor_right, imu, odometry_config},
     speed_controller{speed_controller_config},
     follow_wall{wall_sensors, follow_wall_config},
-    interface{argb, button, buzzer, dip_switch, led},
+    interface{pool, argb, button, buzzer, dip_switch, led},
     action_pose{odometry.get_state().pose} {
     this->fsm.add_state(std::make_unique<CalibrateState>(State::CALIBRATE, *this));
     this->fsm.add_state(std::make_unique<ErrorState>(State::ERROR, *this));
@@ -38,15 +41,40 @@ Micras::Micras() :
     this->fsm.add_state(std::make_unique<RunState>(State::RUN, *this));
     this->fsm.add_state(std::make_unique<WaitState>(State::WAIT_FOR_RUN, *this, State::RUN));
     this->fsm.add_state(std::make_unique<WaitState>(State::WAIT_FOR_CALIBRATE, *this, State::CALIBRATE));
+
+    this->comm_service.register_communication_functions(
+        [this](const std::vector<uint8_t>& data) { this->bluetooth.send_data(data); },
+        [this]() { return this->bluetooth.get_data(); }
+    );
+
+    this->pool->add_variable("linear_pid_set_point", this->desired_speeds.linear);
+    this->pool->add_variable("angular_pid_set_point", this->desired_speeds.angular);
+    this->pool->add_variable("linear_pid_response", this->last_pid_response.linear);
+    this->pool->add_variable("angular_pid_response", this->last_pid_response.angular);
+    this->pool->add_variable("left_feed_forward_response", this->left_ff);
+    this->pool->add_variable("right_feed_forward_response", this->right_ff);
+    this->pool->add_variable("wall_sensors_0", this->wall_sensor_reading[wall_sensors_index.left_front]);
+    this->pool->add_variable("wall_sensors_1", this->wall_sensor_reading[wall_sensors_index.left]);
+    this->pool->add_variable("wall_sensors_2", this->wall_sensor_reading[wall_sensors_index.right]);
+    this->pool->add_variable("wall_sensors_3", this->wall_sensor_reading[wall_sensors_index.right_front]);
+    this->pool->add_variable("rotary_sensor_left", this->rotary_sensor_left_reading);
+    this->pool->add_variable("rotary_sensor_right", this->rotary_sensor_right_reading);
+    this->pool->add_variable("loop_time", this->elapsed_time);
+    // this->pool->add_variable("odometry_state", odometry.get_state()); // @TODO implementar no app
+    // this->pool->add_variable("grid_pose", this->grid_pose); // @TODO implementar no app
 }
 
 void Micras::update() {
     this->elapsed_time = loop_stopwatch.elapsed_time_us() / 1e6F;
     loop_stopwatch.reset_us();
 
+    this->update_monitoring_variables();
+
     this->button->update();
     this->buzzer->update();
+    this->bluetooth.update();
     this->interface.update();
+    this->comm_service.update();
 
     this->fan.update();
     this->imu->update();
@@ -218,5 +246,15 @@ void Micras::handle_events() {
     } else if (this->interface.acknowledge_event(Interface::Event::TURN_OFF_FAN)) {
         this->fan.disable();
     }
+}
+
+void Micras::update_monitoring_variables() {
+    this->last_pid_response = this->speed_controller.get_last_pid_response();
+    this->wall_sensor_reading[0] = this->wall_sensors->get_reading(wall_sensors_index.left_front);
+    this->wall_sensor_reading[1] = this->wall_sensors->get_reading(wall_sensors_index.left);
+    this->wall_sensor_reading[2] = this->wall_sensors->get_reading(wall_sensors_index.right);
+    this->wall_sensor_reading[3] = this->wall_sensors->get_reading(wall_sensors_index.right_front);
+    this->rotary_sensor_left_reading = this->rotary_sensor_left->get_position();
+    this->rotary_sensor_right_reading = this->rotary_sensor_right->get_position();
 }
 }  // namespace micras
