@@ -59,7 +59,7 @@ public:
     /**
      * @brief Push an exploring action to the queue.
      *
-     * @param current_pose Current pose of the robot.
+     * @param origin_pose Origin pose where the action will be performed.
      * @param target_position Target position to move to.
      */
     void push_exploring(const GridPose& origin_pose, const GridPoint& target_position);
