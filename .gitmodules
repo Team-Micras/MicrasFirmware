@@ -1,4 +1,0 @@
-[submodule "micras_proxy/libs/lsm6dsv-pid"]
-	path = micras_proxy/libs/lsm6dsv-pid
-	url = https://github.com/STMicroelectronics/lsm6dsv-pid.git
-	branch = master
