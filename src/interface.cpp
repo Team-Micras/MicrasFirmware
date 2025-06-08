@@ -27,8 +27,9 @@ void Interface::update() {
         }
 
         this->dip_switch_states.at(i) = this->dip_switch->get_switch_state(i);
+        const auto dip_switch_pin = static_cast<DipSwitchPins>(i);
 
-        switch (i) {
+        switch (dip_switch_pin) {
             case DipSwitchPins::FAN:
                 this->send_event(this->dip_switch_states.at(i) ? Event::TURN_ON_FAN : Event::TURN_OFF_FAN);
                 break;
