@@ -47,21 +47,23 @@ Micras::Micras() :
         [this]() { return this->bluetooth.get_data(); }
     );
 
-    this->pool->add_variable("linear_pid_set_point", this->desired_speeds.linear);
-    this->pool->add_variable("angular_pid_set_point", this->desired_speeds.angular);
-    this->pool->add_variable("linear_pid_response", this->last_pid_response.linear);
-    this->pool->add_variable("angular_pid_response", this->last_pid_response.angular);
-    this->pool->add_variable("left_feed_forward_response", this->left_ff);
-    this->pool->add_variable("right_feed_forward_response", this->right_ff);
-    this->pool->add_variable("wall_sensors_0", this->wall_sensor_reading[wall_sensors_index.left_front]);
-    this->pool->add_variable("wall_sensors_1", this->wall_sensor_reading[wall_sensors_index.left]);
-    this->pool->add_variable("wall_sensors_2", this->wall_sensor_reading[wall_sensors_index.right]);
-    this->pool->add_variable("wall_sensors_3", this->wall_sensor_reading[wall_sensors_index.right_front]);
-    this->pool->add_variable("rotary_sensor_left", this->rotary_sensor_left_reading);
-    this->pool->add_variable("rotary_sensor_right", this->rotary_sensor_right_reading);
-    this->pool->add_variable("loop_time", this->elapsed_time);
-    // this->pool->add_variable("odometry_state", odometry.get_state()); // @TODO implementar no app
-    // this->pool->add_variable("grid_pose", this->grid_pose); // @TODO implementar no app
+    this->pool->add_variable("Desired Linear Speed", this->desired_speeds.linear);
+    this->pool->add_variable("Desired Angular Speed", this->desired_speeds.angular);
+    this->pool->add_variable("Linear PID Response", this->last_pid_response.linear);
+    this->pool->add_variable("Angular PID Response", this->last_pid_response.angular);
+    this->pool->add_variable("Left Feed Forward Response", this->left_ff);
+    this->pool->add_variable("Right Feed Forward Response", this->right_ff);
+    this->pool->add_variable("Wall Sensors 0", this->wall_sensor_reading[wall_sensors_index.left_front]);
+    this->pool->add_variable("Wall Sensors 1", this->wall_sensor_reading[wall_sensors_index.left]);
+    this->pool->add_variable("Wall Sensors 2", this->wall_sensor_reading[wall_sensors_index.right]);
+    this->pool->add_variable("Wall Sensors 3", this->wall_sensor_reading[wall_sensors_index.right_front]);
+    this->pool->add_variable("Rotary Sensor Left", this->rotary_sensor_left_reading);
+    this->pool->add_variable("Rotary Sensor Right", this->rotary_sensor_right_reading);
+    this->pool->add_variable("Loop Time", this->elapsed_time);
+    // this->pool->add_variable("Odometry State", odometry.get_state());  // @TODO implementar no app
+    // this->pool->add_variable("Grid Pose", this->grid_pose);            // @TODO implementar no app
+    this->pool->add_variable("Odometry Linear Velocity", odometry.get_state().velocity.linear);
+    this->pool->add_variable("Odometry Angular Velocity", odometry.get_state().velocity.angular);
 }
 
 void Micras::update() {
@@ -190,6 +192,7 @@ void Micras::init() {
     this->locomotion.enable();
     this->imu->calibrate();
     this->action_pose.reset_reference();
+    this->fan.set_speed(fan_speed);
 }
 
 void Micras::reset() {
@@ -213,7 +216,6 @@ void Micras::save_best_route() {
 void Micras::load_best_route() {
     this->maze_storage.sync("maze", this->maze);
     this->action_queuer.recompute(this->maze.get_best_route(), false);
-    this->fan.set_speed(fan_speed);
 }
 
 core::Objective Micras::get_objective() const {
