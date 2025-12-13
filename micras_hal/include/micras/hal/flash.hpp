@@ -83,7 +83,8 @@ private:
     /**
      * @brief Number of double words per page.
      */
-    static constexpr uint32_t double_words_per_page{FLASH_PAGE_SIZE / 8};
+    // static constexpr uint32_t double_words_per_page{FLASH_PAGE_SIZE / 8};
+    static constexpr uint32_t double_words_per_page{8};
 };
 }  // namespace micras::hal
 
