@@ -58,8 +58,8 @@ const proxy::Storage::Config maze_storage_config{
 const proxy::Led::Config led_config = {
     .gpio =
         {
-            .port = LED_RED_GPIO_Port,
-            .pin = LED_RED_Pin,
+            .port = LED_Red_GPIO_Port,
+            .pin = LED_Red_Pin,
         },
 };
 
@@ -163,8 +163,8 @@ const proxy::RotarySensor::Registers rotary_sensor_reg_config = {
 const proxy::RotarySensor::Config rotary_sensor_left_config = {
     .spi =
         {
-            .init_function = MX_SPI1_Init,
-            .handle = &hspi1,
+            .init_function = MX_SPI3_Init,
+            .handle = &hspi3,
             .cs_gpio =
                 {
                     .port = Encoder_Left_CSn_GPIO_Port,
@@ -174,8 +174,8 @@ const proxy::RotarySensor::Config rotary_sensor_left_config = {
         },
     .encoder =
         {
-            .init_function = MX_TIM2_Init,
-            .handle = &htim2,
+            .init_function = MX_TIM5_Init,
+            .handle = &htim5,
             .timer_channel = TIM_CHANNEL_ALL,
         },
     .crc =
@@ -189,8 +189,8 @@ const proxy::RotarySensor::Config rotary_sensor_left_config = {
 const proxy::RotarySensor::Config rotary_sensor_right_config = {
     .spi =
         {
-            .init_function = MX_SPI1_Init,
-            .handle = &hspi1,
+            .init_function = MX_SPI3_Init,
+            .handle = &hspi3,
             .cs_gpio =
                 {
                     .port = Encoder_Right_CSn_GPIO_Port,
@@ -200,8 +200,8 @@ const proxy::RotarySensor::Config rotary_sensor_right_config = {
         },
     .encoder =
         {
-            .init_function = MX_TIM5_Init,
-            .handle = &htim5,
+            .init_function = MX_TIM2_Init,
+            .handle = &htim2,
             .timer_channel = TIM_CHANNEL_ALL,
         },
     .crc =
@@ -233,16 +233,28 @@ const proxy::WallSensors::Config wall_sensors_config = {
         },
     .led_0_pwm =
         {
-            .init_function = MX_TIM15_Init,
-            .handle = &htim15,
+            .init_function = MX_TIM4_Init,
+            .handle = &htim4,
             .timer_channel = TIM_CHANNEL_1,
         },
     .led_1_pwm =
         {
-            .init_function = MX_TIM15_Init,
-            .handle = &htim15,
+            .init_function = MX_TIM4_Init,
+            .handle = &htim4,
             .timer_channel = TIM_CHANNEL_2,
         },
+    // .led_2_pwm =
+    //     {
+    //         .init_function = MX_TIM4_Init,
+    //         .handle = &htim4,
+    //         .timer_channel = TIM_CHANNEL_3,
+    //     },
+    // .led_3_pwm =
+    //     {
+    //         .init_function = MX_TIM4_Init,
+    //         .handle = &htim4,
+    //         .timer_channel = TIM_CHANNEL_4,
+    //     },
     .filter_cutoff = 5.0F,
     .base_readings =
         {
@@ -257,8 +269,8 @@ const proxy::WallSensors::Config wall_sensors_config = {
 const proxy::Imu::Config imu_config = {
     .spi =
         {
-            .init_function = MX_SPI1_Init,
-            .handle = &hspi1,
+            .init_function = MX_SPI3_Init,
+            .handle = &hspi3,
             .cs_gpio =
                 {
                     .port = IMU_SPI_CSn_GPIO_Port,
@@ -293,15 +305,15 @@ const proxy::Battery::Config battery_config = {
 const proxy::Fan::Config fan_config = {
     .pwm =
         {
-            .init_function = MX_TIM17_Init,
-            .handle = &htim17,
-            .timer_channel = TIM_CHANNEL_1,
+            .init_function = MX_TIM12_Init,
+            .handle = &htim12,
+            .timer_channel = TIM_CHANNEL_2,
         },
-    .direction_gpio =
-        {
-            .port = Fan_Direction_GPIO_Port,
-            .pin = Fan_Direction_Pin,
-        },
+    // .direction_gpio =
+    //     {
+    //         .port = Fan_Direction_GPIO_Port,
+    //         .pin = Fan_Direction_Pin,
+    //     },
     .enable_gpio =
         {
             .port = Fan_Enable_GPIO_Port,
@@ -323,7 +335,7 @@ const proxy::Locomotion::Config locomotion_config = {
                 {
                     .init_function = MX_TIM3_Init,
                     .handle = &htim3,
-                    .timer_channel = TIM_CHANNEL_3,
+                    .timer_channel = TIM_CHANNEL_2,
                 },
             .max_stopped_command = 0.2F,
             .deadzone = 15.0F,
@@ -332,14 +344,14 @@ const proxy::Locomotion::Config locomotion_config = {
         {
             .backwards_pwm =
                 {
-                    .init_function = MX_TIM1_Init,
-                    .handle = &htim1,
+                    .init_function = MX_TIM3_Init,
+                    .handle = &htim3,
                     .timer_channel = TIM_CHANNEL_2,
                 },
             .forward_pwm =
                 {
-                    .init_function = MX_TIM1_Init,
-                    .handle = &htim1,
+                    .init_function = MX_TIM3_Init,
+                    .handle = &htim3,
                     .timer_channel = TIM_CHANNEL_1,
                 },
             .max_stopped_command = 0.2F,

@@ -21,8 +21,8 @@ public:
      * @brief Configuration struct for the fan.
      */
     struct Config {
-        hal::Pwm::Config  pwm;
-        hal::Gpio::Config direction_gpio;
+        hal::Pwm::Config pwm;
+        // hal::Gpio::Config direction_gpio;
         hal::Gpio::Config enable_gpio;
         float             max_acceleration;
     };
@@ -85,7 +85,7 @@ private:
     /**
      * @brief GPIO object for controlling the fan rotation direction.
      */
-    hal::Gpio direction_gpio;
+    // hal::Gpio direction_gpio;
 
     /**
      * @brief GPIO handle for the fan enable pin.

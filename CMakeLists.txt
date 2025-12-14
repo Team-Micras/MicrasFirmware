@@ -19,7 +19,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 # The .ioc file used to generate the project will be PROJECT_RELEASE.ioc
 
 set(CMAKE_PROJECT_NAME micras)
-set(BOARD_VERSION "")
+set(BOARD_VERSION "v1")
 
 if(BOARD_VERSION STREQUAL "")
     set(PROJECT_RELEASE ${CMAKE_PROJECT_NAME})
