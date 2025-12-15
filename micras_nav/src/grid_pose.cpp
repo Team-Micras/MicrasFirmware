@@ -9,7 +9,7 @@
 namespace micras::nav {
 Side angle_to_grid(float angle) {
     const int32_t grid_angle = std::lround(2.0F * angle / std::numbers::pi_v<float>);
-    return static_cast<Side>(grid_angle < 0 ? 4 + (grid_angle % 4) : grid_angle % 4);
+    return static_cast<Side>(grid_angle < 0 ? (4 + (grid_angle % 4)) % 4 : grid_angle % 4);
 }
 
 Side GridPoint::direction(const GridPoint& next) const {
@@ -73,6 +73,25 @@ GridPose GridPose::turned_left() const {
 
 GridPose GridPose::turned_right() const {
     return {this->position, static_cast<Side>((this->orientation + 3) % 4)};
+}
+
+Side GridPose::get_relative_side(const GridPoint& other) const {
+    if (((this->orientation == Side::RIGHT or this->orientation == Side::LEFT) and this->position.y == other.y) or
+        ((this->orientation == Side::UP or this->orientation == Side::DOWN) and this->position.x == other.x)) {
+        return this->position.direction(other) == this->orientation ? Side::UP : Side::DOWN;
+    }
+
+    switch (this->orientation) {
+        case Side::RIGHT:
+            return this->position.y < other.y ? Side::LEFT : Side::RIGHT;
+        case Side::UP:
+            return this->position.x > other.x ? Side::LEFT : Side::RIGHT;
+        case Side::LEFT:
+            return this->position.y > other.y ? Side::LEFT : Side::RIGHT;
+        case Side::DOWN:
+        default:
+            return this->position.x < other.x ? Side::LEFT : Side::RIGHT;
+    }
 }
 
 bool GridPose::operator==(const GridPose& other) const {

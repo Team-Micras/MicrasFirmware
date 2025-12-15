@@ -20,7 +20,7 @@ struct Observation {
 /**
  * @brief Possible objectives of the robot.
  */
-enum Objective : uint8_t {
+enum class Objective : uint8_t {
     EXPLORE = 0,
     RETURN = 1,
     SOLVE = 2

@@ -5,19 +5,19 @@
 #include "micras/core/fsm.hpp"
 
 namespace micras::core {
-FSM::State::State(uint8_t id) : id{id} { }
+Fsm::State::State(uint8_t id) : id{id} { }
 
-uint8_t FSM::State::get_id() const {
+uint8_t Fsm::State::get_id() const {
     return this->id;
 }
 
-FSM::FSM(uint8_t initial_state_id) : current_state_id{initial_state_id} { }
+Fsm::Fsm(uint8_t initial_state_id) : current_state_id{initial_state_id} { }
 
-void FSM::add_state(std::unique_ptr<State> state) {
+void Fsm::add_state(std::unique_ptr<State> state) {
     this->states.emplace(state->get_id(), std::move(state));
 }
 
-void FSM::update() {
+void Fsm::update() {
     if (this->current_state_id != this->previous_state_id) {
         this->states.at(this->current_state_id)->on_entry();
     }

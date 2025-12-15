@@ -9,8 +9,6 @@
 
 namespace micras::nav {
 SpeedController::SpeedController(const Config& config) :
-    max_linear_acceleration{config.max_linear_acceleration},
-    max_angular_acceleration{config.max_angular_acceleration},
     linear_pid(config.linear_pid),
     angular_pid(config.angular_pid),
     left_feed_forward{config.left_feed_forward},
@@ -29,11 +27,9 @@ std::pair<float, float> SpeedController::compute_control_commands(
 }
 
 std::pair<float, float> SpeedController::compute_feed_forward_commands(const Twist& desired_twist, float elapsed_time) {
-    const float linear_acceleration = (desired_twist.linear - this->last_linear_speed) / elapsed_time;
-    const float angular_acceleration = (desired_twist.angular - this->last_angular_speed) / elapsed_time;
     const Twist acceleration_twist{
-        .linear = std::clamp(linear_acceleration, -this->max_linear_acceleration, this->max_linear_acceleration),
-        .angular = std::clamp(angular_acceleration, -this->max_angular_acceleration, this->max_angular_acceleration),
+        .linear = (desired_twist.linear - this->last_linear_speed) / elapsed_time,
+        .angular = (desired_twist.angular - this->last_angular_speed) / elapsed_time,
     };
 
     this->last_linear_speed = desired_twist.linear;

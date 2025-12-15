@@ -25,13 +25,7 @@ Imu::Imu(const Config& config) :
         return;
     }
 
-    lsm6dsv_reset_set(&(this->dev_ctx), LSM6DSV_RESTORE_CTRL_REGS);
-
-    lsm6dsv_reset_t rst{};
-
-    do {
-        lsm6dsv_reset_get(&(this->dev_ctx), &rst);
-    } while (rst != LSM6DSV_READY);
+    lsm6dsv_sw_por(&dev_ctx);
 
     lsm6dsv_block_data_update_set(&(this->dev_ctx), PROPERTY_ENABLE);
 

@@ -65,7 +65,7 @@ private:
     /**
      * @brief Enum for rotation direction.
      */
-    enum RotationDirection : uint8_t {
+    enum class RotationDirection : uint8_t {
         FORWARD = 0,
         BACKWARDS = 1
     };

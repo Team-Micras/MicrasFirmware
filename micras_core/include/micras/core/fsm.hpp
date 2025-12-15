@@ -10,7 +10,7 @@
 #include <unordered_map>
 
 namespace micras::core {
-class FSM {
+class Fsm {
 public:
     class State {
     public:
@@ -67,7 +67,7 @@ public:
      *
      * @param initial_state_id The id of the initial state.
      */
-    explicit FSM(uint8_t initial_state_id);
+    explicit Fsm(uint8_t initial_state_id);
 
     /**
      * @brief Add a state to the FSM.

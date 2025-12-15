@@ -9,7 +9,7 @@
 #include "micras/micras.hpp"
 
 namespace micras {
-class BaseState : public core::FSM::State {
+class BaseState : public core::Fsm::State {
 public:
     /**
      * @brief Construct a new BaseState object.
