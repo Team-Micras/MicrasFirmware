@@ -6,7 +6,7 @@ include(FetchContent)
 FetchContent_Declare(
     lsm6dsv-pid
     GIT_REPOSITORY https://github.com/STMicroelectronics/lsm6dsv-pid.git
-    GIT_TAG v3.3.0
+    GIT_TAG v5.0.1
 )
 
 FetchContent_Populate(lsm6dsv-pid)
