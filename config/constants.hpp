@@ -18,15 +18,15 @@ namespace micras {
  * Constants
  *****************************************/
 
-constexpr uint8_t  maze_width{16};
-constexpr uint8_t  maze_height{16};
+constexpr uint8_t  maze_width{4};
+constexpr uint8_t  maze_height{4};
 constexpr float    cell_size{0.18};
 constexpr uint32_t loop_time_us{1042};
-constexpr float    wall_thickness{0.0126F};
-constexpr float    start_offset{0.04F + wall_thickness / 2.0F};
+constexpr float    wall_thickness{0.0152F};
+constexpr float    start_offset{0.0285F + wall_thickness / 2.0F};
 constexpr float    max_linear_acceleration{9.0F};
 constexpr float    max_linear_deceleration{9.0F};
-constexpr float    max_angular_acceleration{300.0F};
+constexpr float    max_angular_acceleration{800.0F};
 constexpr float    crash_acceleration{35.0F};
 constexpr float    fan_speed{100.0F};
 
@@ -55,10 +55,10 @@ const nav::ActionQueuer::Config action_queuer_config{
     .curve_safety_margin = 0.0375F + 0.015F,
     .exploring =
         {
-            .max_linear_speed = 0.4F,
+            .max_linear_speed = 0.3F,
             .max_linear_acceleration = max_linear_acceleration,
             .max_linear_deceleration = max_linear_deceleration,
-            .max_centrifugal_acceleration = 2.78F,
+            .max_centrifugal_acceleration = 2.0F,
             .max_angular_acceleration = max_angular_acceleration,
         },
     .solving =
@@ -83,19 +83,14 @@ const nav::FollowWall::Config follow_wall_config{
         },
     .max_angular_acceleration = max_angular_acceleration,
     .cell_size = cell_size,
-    .post_threshold = 16.5F,
-    .post_reference = 0.44F * cell_size,
+    .post_threshold = 6.5F,
+    .post_reference = 0.066F + wall_thickness / 2.0F,
     .post_clearance = 0.025F,
 };
 
 const nav::Maze::Config maze_config{
     .start = {{0, 0}, nav::Side::UP},
-    .goal = {{
-        {maze_width / 2, maze_height / 2},
-        {(maze_width - 1) / 2, maze_height / 2},
-        {maze_width / 2, (maze_height - 1) / 2},
-        {(maze_width - 1) / 2, (maze_height - 1) / 2},
-    }},
+    .goal = {{{1, 0}}},
     .cost_margin = 1.2F,
     .action_queuer_config = action_queuer_config,
 };
@@ -109,7 +104,7 @@ const nav::Odometry::Config odometry_config{
 const nav::SpeedController::Config speed_controller_config{
     .linear_pid =
         {
-            .kp = 10.0F,
+            .kp = 15.0F,
             .ki = 1.0F,
             .kd = 0.0F,
             .setpoint = 0.0F,
@@ -118,7 +113,7 @@ const nav::SpeedController::Config speed_controller_config{
         },
     .angular_pid =
         {
-            .kp = 2.0F,
+            .kp = 5.0F,
             .ki = 1.0F,
             .kd = 0.0F,
             .setpoint = 0.0F,
@@ -127,17 +122,17 @@ const nav::SpeedController::Config speed_controller_config{
         },
     .left_feed_forward =
         {
-            .linear_speed = 12.706F,
-            .linear_acceleration = 2.796F,
-            .angular_speed = -0.971F,
-            .angular_acceleration = -0.0258F,
+            .linear_speed = 15.369F,
+            .linear_acceleration = 0.256F,
+            .angular_speed = -0.645F,
+            .angular_acceleration = -0.023F,
         },
     .right_feed_forward =
         {
-            .linear_speed = 13.319F,
-            .linear_acceleration = 2.878F,
-            .angular_speed = 0.901F,
-            .angular_acceleration = -0.0244F,
+            .linear_speed = 12.139F,
+            .linear_acceleration = 1.393F,
+            .angular_speed = 0.346F,
+            .angular_acceleration = 0.024F,
         },
 };
 }  // namespace micras

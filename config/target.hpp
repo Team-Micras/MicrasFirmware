@@ -246,10 +246,10 @@ const proxy::WallSensors::Config wall_sensors_config = {
     .filter_cutoff = 5.0F,
     .base_readings =
         {
-            0.413F,
-            0.161F,
-            0.177F,
-            0.230F,
+            0.468F,
+            0.175F,
+            0.165F,
+            0.383F,
         },
     .uncertainty = 0.5F,
 };
