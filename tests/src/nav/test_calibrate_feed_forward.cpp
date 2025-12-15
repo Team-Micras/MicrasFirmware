@@ -113,7 +113,7 @@ int main(int argc, char* argv[]) {
                     test_linear_accelerations[iterator] = current_linear_acceleration;
                 }
 
-                if (current_angular_acceleration > test_angular_accelerations[iterator]) {
+                if (std::abs(current_angular_acceleration) > std::abs(test_angular_accelerations[iterator])) {
                     test_angular_accelerations[iterator] = current_angular_acceleration;
                 }
             } else if (running_stopwatch.elapsed_time_ms() > 1000) {
