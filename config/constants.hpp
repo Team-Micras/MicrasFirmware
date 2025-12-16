@@ -74,17 +74,17 @@ const nav::ActionQueuer::Config action_queuer_config{
 const nav::FollowWall::Config follow_wall_config{
     .pid =
         {
-            .kp = 0.5F,
+            .kp = 3.5F,
             .ki = 0.0F,
             .kd = 0.0F,
             .setpoint = 0.0F,
-            .saturation = 1.0F,
+            .saturation = 5.0F,
             .max_integral = -1.0F,
         },
     .max_angular_acceleration = max_angular_acceleration,
     .cell_size = cell_size,
-    .post_threshold = 6.5F,
-    .post_reference = 0.066F + wall_thickness / 2.0F,
+    .post_threshold = 6.5 * 1000000.0F,
+    .post_reference = -10.0F,
     .post_clearance = 0.025F,
 };
 
@@ -113,7 +113,7 @@ const nav::SpeedController::Config speed_controller_config{
         },
     .angular_pid =
         {
-            .kp = 5.0F,
+            .kp = 10.0F,
             .ki = 1.0F,
             .kd = 0.0F,
             .setpoint = 0.0F,
