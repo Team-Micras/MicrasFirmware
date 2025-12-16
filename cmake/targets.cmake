@@ -162,10 +162,10 @@ function(generate_debug_target TARGET)
     endif()
 
     set(DEBUG_FILE_NAME ${TARGET})
-    configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/launch.json.in
-        ${CMAKE_CURRENT_BINARY_DIR}/vsfiles/.vsfiles${TARGET_SUFFIX}
-    )
+
+    set(input_file "${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/launch.json.in")
+    set(output_save_file "${CMAKE_CURRENT_BINARY_DIR}/vsfiles/.vsfiles${TARGET_SUFFIX}")
+    configure_file(${input_file} ${output_save_file})
 
     add_custom_target(debug${TARGET_SUFFIX}
         COMMAND echo "Configuring VS Code files for ${TARGET}"
