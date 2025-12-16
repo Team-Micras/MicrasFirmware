@@ -55,6 +55,10 @@ public:
      */
     core::Observation get_observation() const;
 
+    bool get_is_following_left() const;
+
+    bool get_is_following_right() const;
+
 private:
     /**
      * @brief Check if the robot saw a post.
@@ -138,7 +142,7 @@ private:
     /**
      * @brief Flag to indicate if the robot is currently following the right wall.
      */
-    bool following_right{true};
+    bool following_right{false};
 
     /**
      * @brief Last reading measured by the left wall sensor, used to compute the derivative of the distance sensors.

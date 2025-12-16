@@ -30,9 +30,9 @@ float FollowWall::compute_angular_correction(float elapsed_time, State& state) {
             this->pid.reset();
         }
     } else {
-        if (grid_pose != this->last_grid_pose.front()) {
-            this->reset();
-        }
+        // if (grid_pose != this->last_grid_pose.front()) {
+        //     this->reset();
+        // }
     }
 
     this->last_grid_pose = grid_pose;
@@ -139,5 +139,13 @@ void FollowWall::reset() {
     this->following_right = false;
     this->last_left_reading = 0.0F;
     this->last_right_reading = 0.0F;
+}
+
+bool FollowWall::get_is_following_left() const {
+    return this->following_left;
+}
+
+bool FollowWall::get_is_following_right() const {
+    return this->following_right;
 }
 }  // namespace micras::nav
