@@ -62,7 +62,7 @@ private:
 int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);
 
-    const proxy::Storage::Config storage_test_config = {.start_page = 0, .number_of_pages = 1};
+    const proxy::Storage::Config storage_test_config = {.start_sector = 0, .number_of_sectors = 1};
 
     proxy::Button  button{button_config};
     proxy::Argb    argb{argb_config};

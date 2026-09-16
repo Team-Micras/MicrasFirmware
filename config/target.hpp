@@ -47,8 +47,8 @@ const proxy::Stopwatch::Config stopwatch_config = {
 };
 
 const proxy::Storage::Config maze_storage_config{
-    .start_page = 2,
-    .number_of_pages = 1,
+    .start_sector = 2,
+    .number_of_sectors = 1,
 };
 
 /*****************************************

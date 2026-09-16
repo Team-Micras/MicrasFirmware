@@ -26,8 +26,8 @@ public:
      * @brief Configuration struct for the storage.
      */
     struct Config {
-        uint16_t start_page;
-        uint16_t number_of_pages;
+        uint16_t start_sector;
+        uint16_t number_of_sectors;
     };
 
     /**
@@ -67,7 +67,8 @@ public:
      */
     template <Fundamental T>
     void sync(const std::string& name, T& data) {
-        if (this->primitives.contains(name) and this->primitives.at(name).ram_pointer == nullptr) {
+        if (this->primitives.contains(name) and this->primitives.at(name).ram_pointer == nullptr and
+            this->primitives.at(name).size == sizeof(T)) {
             // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
             data = reinterpret_cast<T&>(this->buffer.at(this->primitives.at(name).buffer_address));
         }
@@ -85,8 +86,20 @@ public:
 
     /**
      * @brief Save the storage to the flash.
+     *
+     * @note This operation blocks the processor for a few seconds, so it must only be called with the robot
+     * stopped.
+     *
+     * @return True if the data was successfully written to the flash, false otherwise.
      */
-    void save();
+    bool save();
+
+    /**
+     * @brief Check if valid data was loaded from the flash.
+     *
+     * @return True if the storage was loaded from the flash, false if it started empty.
+     */
+    bool is_valid() const;
 
 private:
     /**
@@ -121,17 +134,25 @@ private:
      * @brief Deserialize a map of variables.
      *
      * @tparam T Type of the variables.
-     * @param buffer Serialized buffer.
+     * @param buffer Serialized buffer, consumed up to the end of the map.
      * @param num_vars Number of variables.
-     * @return Deserialized map of variables.
+     * @param variables Map to store the deserialized variables.
+     * @return True if the buffer contained a consistent map, false otherwise.
      */
     template <typename T>
-    static std::unordered_map<std::string, T> deserialize_var_map(std::vector<uint8_t>& buffer, uint16_t num_vars);
+    static bool deserialize_var_map(
+        std::vector<uint8_t>& buffer, uint16_t num_vars, std::unordered_map<std::string, T>& variables
+    );
 
     /**
      * @brief Start symbol to avoid reading garbage from flash.
      */
     static constexpr uint16_t start_symbol = 0xABAB;
+
+    /**
+     * @brief Number of bytes of the header stored at the beginning of the storage.
+     */
+    static constexpr uint16_t header_size = 8;
 
     /**
      * @brief Map of primitive variables.
@@ -149,14 +170,19 @@ private:
     std::vector<uint8_t> buffer;
 
     /**
-     * @brief Start page of the storage in the flash memory.
+     * @brief Start sector of the storage in the flash memory.
      */
-    uint16_t start_page;
+    uint16_t start_sector;
 
     /**
-     * @brief Maximum number of pages used by the storage in the flash memory.
+     * @brief Maximum number of sectors used by the storage in the flash memory.
      */
-    uint16_t number_of_pages;
+    uint16_t number_of_sectors;
+
+    /**
+     * @brief Whether valid data was loaded from the flash memory.
+     */
+    bool valid{};
 };
 }  // namespace micras::proxy
 
