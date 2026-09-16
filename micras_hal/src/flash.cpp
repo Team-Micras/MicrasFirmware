@@ -3,7 +3,7 @@
  */
 
 #include <bit>
-#include <stm32h7xx_hal_flash.h>
+#include <stm32h7xx_hal.h>
 
 #include "micras/hal/flash.hpp"
 
