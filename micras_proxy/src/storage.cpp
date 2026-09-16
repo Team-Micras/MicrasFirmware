@@ -10,7 +10,7 @@
 namespace micras::proxy {
 Storage::Storage(const Config& config) : start_page{config.start_page}, number_of_pages{config.number_of_pages} {
     uint64_t header{};
-    hal::Flash::read(this->start_page, 0, &header);
+    hal::Flash::read(this->start_page, 0, std::bit_cast<uint32_t*>(&header), 2);
 
     if (header >> 48 != start_symbol) {
         return;
@@ -20,8 +20,8 @@ Storage::Storage(const Config& config) : start_page{config.start_page}, number_o
     const uint16_t num_primitives = header >> 16;
     const uint16_t num_serializables = header;
 
-    this->buffer.resize(8L * total_size);
-    hal::Flash::read(this->start_page, 1, std::bit_cast<uint64_t*>(this->buffer.data()), total_size);
+    this->buffer.resize(4L * total_size);
+    hal::Flash::read(this->start_page, 1, std::bit_cast<uint32_t*>(this->buffer.data()), total_size);
 
     this->primitives = deserialize_var_map<PrimitiveVariable>(this->buffer, num_primitives);
     this->serializables = deserialize_var_map<SerializableVariable>(this->buffer, num_serializables);
@@ -81,8 +81,8 @@ void Storage::save() {
     auto serialized_primitives = serialize_var_map<PrimitiveVariable>(this->primitives);
     this->buffer.insert(this->buffer.begin(), serialized_primitives.begin(), serialized_primitives.end());
 
-    this->buffer.insert(this->buffer.end(), (8 - (this->buffer.size() % 8)) % 8, 0);
-    const uint16_t total_size = this->buffer.size() / 8;
+    this->buffer.insert(this->buffer.end(), (4 - (this->buffer.size() % 4)) % 4, 0);
+    const uint16_t total_size = this->buffer.size() / 4;
 
     this->buffer.emplace_back(this->serializables.size());
     this->buffer.emplace_back(this->serializables.size() >> 8);
@@ -94,7 +94,7 @@ void Storage::save() {
     this->buffer.emplace_back(start_symbol);
     this->buffer.emplace_back(start_symbol >> 8);
 
-    hal::Flash::write(this->start_page, 0, std::bit_cast<uint64_t*>(buffer.data()), buffer.size() / 8);
+    hal::Flash::write(this->start_page, 0, std::bit_cast<uint32_t*>(buffer.data()), this->buffer.size() / 4);
 }
 
 template <typename T>
