@@ -45,7 +45,13 @@ project(${CMAKE_PROJECT_NAME} C CXX ASM)
 include(cmake/utilities.cmake)
 include(cmake/targets.cmake)
 
+# Workaround for STM32CubeMX 6.14 Cmake bug
+add_library(cube_app OBJECT)
+set(CUBE_PROJECT_NAME ${CMAKE_PROJECT_NAME})
+set(CMAKE_PROJECT_NAME cube_app)
 add_subdirectory(cube/cmake/stm32cubemx)
+set(CMAKE_PROJECT_NAME ${CUBE_PROJECT_NAME})
+
 add_subdirectory(micras_core)
 add_subdirectory(micras_hal)
 add_subdirectory(micras_proxy)
