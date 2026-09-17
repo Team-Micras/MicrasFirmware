@@ -19,6 +19,8 @@ void SystemClock_Config();
 
 namespace micras::hal {
 void Mcu::init() {
+    SCB_EnableICache();
+
     HAL_Init();
 
     SystemClock_Config();
