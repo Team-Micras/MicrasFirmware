@@ -6,13 +6,15 @@ add_custom_target(helpme
     COMMAND cat ${CMAKE_CURRENT_BINARY_DIR}/helpme
 )
 
+# Written at configure time, since echo in a shell command strips the backslashes of the WSL path
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/cube_script.txt"
+    "config load ${CUBE_SOURCE_DIR}/${PROJECT_RELEASE}.ioc\n"
+    "project generate\n"
+    "exit\n"
+)
+
 add_custom_target(cube
     COMMAND echo "Generating cube files..."
-
-    COMMAND echo "config load ${CUBE_SOURCE_DIR}/${PROJECT_RELEASE}.ioc" > ${CMAKE_CURRENT_BINARY_DIR}/cube_script.txt
-    COMMAND echo "project generate" >> ${CMAKE_CURRENT_BINARY_DIR}/cube_script.txt
-    COMMAND echo "exit" >> ${CMAKE_CURRENT_BINARY_DIR}/cube_script.txt
-
     COMMAND ${CUBE_CMD} -q ${CMAKE_CURRENT_BINARY_DIR}/cube_script.txt
 )
 
