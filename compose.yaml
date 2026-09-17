@@ -1,9 +1,4 @@
 services:
-  base:
-    build:
-      dockerfile: .docker/Dockerfile
-      target: base
-
   build:
     command: make -C build --no-print-directory -j
     build:
@@ -26,7 +21,7 @@ services:
     command: bash
     build:
       dockerfile: .docker/Dockerfile
-      target: base
+      target: dev
     privileged: True
     environment:
       - DISPLAY=${DISPLAY}
