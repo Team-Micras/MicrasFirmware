@@ -12,8 +12,7 @@ namespace micras::proxy {
 template <uint8_t num_of_sensors>
 TWallSensors<num_of_sensors>::TWallSensors(const Config& config) :
     adc{config.adc},
-    led_0_pwm{config.led_0_pwm},
-    led_1_pwm{config.led_1_pwm},
+    led_pwms{core::make_array<hal::Pwm>(config.led_pwms)},
     filters{core::make_array<core::ButterworthFilter, num_of_sensors>(config.filter_cutoff)},
     base_readings{config.base_readings},
     uncertainty{config.uncertainty} {
@@ -23,14 +22,16 @@ TWallSensors<num_of_sensors>::TWallSensors(const Config& config) :
 
 template <uint8_t num_of_sensors>
 void TWallSensors<num_of_sensors>::turn_on() {
-    this->led_0_pwm.set_duty_cycle(50.0F);
-    this->led_1_pwm.set_duty_cycle(50.0F);
+    for (auto& led_pwm : this->led_pwms) {
+        led_pwm.set_duty_cycle(50.0F);
+    }
 }
 
 template <uint8_t num_of_sensors>
 void TWallSensors<num_of_sensors>::turn_off() {
-    this->led_0_pwm.set_duty_cycle(0.0F);
-    this->led_1_pwm.set_duty_cycle(0.0F);
+    for (auto& led_pwm : this->led_pwms) {
+        led_pwm.set_duty_cycle(0.0F);
+    }
 }
 
 template <uint8_t num_of_sensors>

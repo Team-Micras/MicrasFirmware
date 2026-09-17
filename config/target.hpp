@@ -231,30 +231,28 @@ const proxy::WallSensors::Config wall_sensors_config = {
             .handle = &hadc1,
             .max_reading = 4095,
         },
-    .led_0_pwm =
+    .led_pwms = {{
         {
             .init_function = MX_TIM4_Init,
             .handle = &htim4,
             .timer_channel = TIM_CHANNEL_1,
         },
-    .led_1_pwm =
         {
             .init_function = MX_TIM4_Init,
             .handle = &htim4,
             .timer_channel = TIM_CHANNEL_2,
         },
-    // .led_2_pwm =
-    //     {
-    //         .init_function = MX_TIM4_Init,
-    //         .handle = &htim4,
-    //         .timer_channel = TIM_CHANNEL_3,
-    //     },
-    // .led_3_pwm =
-    //     {
-    //         .init_function = MX_TIM4_Init,
-    //         .handle = &htim4,
-    //         .timer_channel = TIM_CHANNEL_4,
-    //     },
+        {
+            .init_function = MX_TIM4_Init,
+            .handle = &htim4,
+            .timer_channel = TIM_CHANNEL_3,
+        },
+        {
+            .init_function = MX_TIM4_Init,
+            .handle = &htim4,
+            .timer_channel = TIM_CHANNEL_4,
+        },
+    }},
     .filter_cutoff = 5.0F,
     .base_readings =
         {
