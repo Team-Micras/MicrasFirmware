@@ -216,7 +216,7 @@ The project can be built without entering a container by running the following c
 docker compose run build
 ```
 
-This also works for formatting (`docker compose run format`) and linting (`docker compose run lint`).
+This also works for formatting (`docker compose run check-format`) and linting (`docker compose run lint`).
 
 ### 🧑‍💻 Development
 
