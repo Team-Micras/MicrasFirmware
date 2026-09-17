@@ -34,7 +34,6 @@ int main(int argc, char* argv[]) {
     proxy::Button     button{button_config};
     proxy::Argb       argb{argb_config};
     proxy::Locomotion locomotion{locomotion_config};
-    proxy::Led        led{led_config};
 
     auto imu{std::make_shared<proxy::Imu>(imu_config)};
     auto wall_sensors{std::make_shared<proxy::WallSensors>(wall_sensors_config)};
