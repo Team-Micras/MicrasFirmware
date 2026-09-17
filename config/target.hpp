@@ -229,7 +229,7 @@ const proxy::WallSensors::Config wall_sensors_config = {
         {
             .init_function = MX_ADC1_Init,
             .handle = &hadc1,
-            .max_reading = 4095,
+            .max_reading = 65535,
         },
     .led_pwms = {{
         {
