@@ -108,8 +108,8 @@ const proxy::DipSwitch::Config dip_switch_config = {
 const proxy::Buzzer::Config buzzer_config = {
     .pwm =
         {
-            .init_function = MX_TIM4_Init,
-            .handle = &htim4,
+            .init_function = MX_TIM15_Init,
+            .handle = &htim15,
             .timer_channel = TIM_CHANNEL_1,
         },
 };
@@ -344,14 +344,14 @@ const proxy::Locomotion::Config locomotion_config = {
         {
             .backwards_pwm =
                 {
-                    .init_function = MX_TIM3_Init,
-                    .handle = &htim3,
+                    .init_function = MX_TIM1_Init,
+                    .handle = &htim1,
                     .timer_channel = TIM_CHANNEL_2,
                 },
             .forward_pwm =
                 {
-                    .init_function = MX_TIM3_Init,
-                    .handle = &htim3,
+                    .init_function = MX_TIM1_Init,
+                    .handle = &htim1,
                     .timer_channel = TIM_CHANNEL_1,
                 },
             .max_stopped_command = 0.2F,
