@@ -65,7 +65,7 @@ jobs:
           tags: micras:build
 
       - name: 🎨 Check code formatting
-        run: docker run --rm micras:build .docker/scripts/check_format.sh
+        run: docker run --rm micras:build make -C build --no-print-directory format_check
 
       - name: 🔨 Build project
         run: docker run --rm micras:build make -C build --no-print-directory -j

@@ -38,7 +38,7 @@ NTF Classic Micromouse project with an STM32 microcontroller
 
 ## 📁 Folder structure
 
-- **.docker/** - Docker build and format scripts for CI/CD.
+- **.docker/** - Docker build files for CI/CD.
 - **.github/** - GitHub Actions workflow files.
 - **.vscode/** - Visual Studio Code configuration files.
 - **cmake/** - Functions to include in the main CMake.
@@ -183,6 +183,8 @@ In order to format the project, run the following command in the `build` folder:
 ```bash
 make format
 ```
+
+To only check if the files are formatted, without changing them, run `make format_check`.
 
 ### 🚨 Linter
 

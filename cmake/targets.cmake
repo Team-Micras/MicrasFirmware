@@ -84,6 +84,10 @@ function(generate_format_target)
     add_custom_target(format
         COMMAND clang-format -style=file -i ${FILES_LIST} --verbose
     )
+
+    add_custom_target(format_check
+        COMMAND clang-format -style=file --dry-run --Werror ${FILES_LIST}
+    )
 endfunction()
 
 function(generate_lint_target)

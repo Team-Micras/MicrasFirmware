@@ -17,7 +17,7 @@ services:
       target: build
 
   check-format:
-    command: /project/.docker/scripts/check_format.sh
+    command: make -C build --no-print-directory format_check
     build:
       dockerfile: .docker/Dockerfile
       target: build
