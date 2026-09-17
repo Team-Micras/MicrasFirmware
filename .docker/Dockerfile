@@ -1,7 +1,7 @@
 ##################################
 # Base image for Micras Firmware #
 ##################################
-FROM thunderatz/stm32cubemx:6.13.0-g4 AS base
+FROM thunderatz/stm32cubemx:6.18.1-h7 AS base
 
 RUN apt-get update -y > /dev/null && \
     apt-get upgrade -y > /dev/null && \
@@ -19,7 +19,7 @@ COPY ./cube/*.ioc /project/cube/
 ENV CUBE_CMD=${CUBE_PATH}/STM32CubeMX
 
 ENV DISPLAY=:10
-ARG PROJECT_NAME=micras
+ARG PROJECT_NAME=micras_v1
 
 RUN Xvfb :10 -ac & \
     echo "config load /project/cube/${PROJECT_NAME}.ioc\nproject generate\nexit\n" > .cube && \
