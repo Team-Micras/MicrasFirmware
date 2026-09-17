@@ -14,6 +14,8 @@ AdcDma::AdcDma(const Config& config) : max_reading{config.max_reading}, handle{c
     HAL_ADCEx_Calibration_Start(this->handle, ADC_CALIB_OFFSET, ADC_SINGLE_ENDED);
 #elif defined(STM32G4)
     HAL_ADCEx_Calibration_Start(this->handle, ADC_SINGLE_ENDED);
+#else
+    #error "ADC calibration is only supported for STM32H7 and STM32G4 platforms."
 #endif
 }
 
