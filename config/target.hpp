@@ -217,7 +217,7 @@ const proxy::TorqueSensors::Config torque_sensors_config = {
         {
             .init_function = MX_ADC2_Init,
             .handle = &hadc2,
-            .max_reading = 4095,
+            .max_reading = 65535,
         },
     .shunt_resistor = 0.04F * 20,
     .max_torque = 10.0F,
