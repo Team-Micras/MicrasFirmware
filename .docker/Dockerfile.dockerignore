@@ -1,0 +1,20 @@
+# BuildKit only reads ignore files at the context root or next to the Dockerfile with this name
+.git/
+.github/
+.vscode/
+.cache/
+.idea/
+build/
+docs/
+cube/*
+!cube/*.ioc
+
+.devcontainer.json
+.gitignore
+.gitmodules
+Doxyfile
+LICENSE
+
+*.yaml
+*.md
+*.iml

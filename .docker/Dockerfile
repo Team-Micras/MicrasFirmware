@@ -5,41 +5,40 @@
 ##################################
 FROM thunderatz/stm32cubemx:6.18.1-h7 AS base
 
-RUN apt-get update -y > /dev/null && \
-    apt-get upgrade -y > /dev/null && \
-    apt-get install -y \
-    gcc-arm-none-eabi \
-    make \
-    cmake \
-    clang-tidy \
-    clang-format  > /dev/null\
-    && apt-get clean > /dev/null
-
-WORKDIR /project
-COPY ./cube/*.ioc /project/cube/
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        clang-format \
+        clang-tidy \
+        cmake \
+        gcc-arm-none-eabi \
+        libnewlib-arm-none-eabi \
+        libstdc++-arm-none-eabi-newlib \
+        make && \
+    rm -rf /var/lib/apt/lists/*
 
 ENV CUBE_CMD=${CUBE_PATH}/STM32CubeMX
 
-ENV DISPLAY=:10
+WORKDIR /project
+COPY cube/*.ioc cube/
+
 ARG PROJECT_NAME=micras_v1
 
 # Without network, CubeMX skips its online update check, which can hang the project generation
-RUN --network=none Xvfb :10 -ac & \
-    echo "config load /project/cube/${PROJECT_NAME}.ioc\nproject generate\nexit\n" > .cube && \
-    $CUBE_CMD -q /project/.cube && \
-    rm .cube && \
-    pkill -f Xvfb
+RUN --network=none <<EOT
+    set -e
+    printf 'config load /project/cube/%s.ioc\nproject generate\nexit\n' "${PROJECT_NAME}" > /tmp/cube_script
+    xvfb-run --auto-servernum "${CUBE_CMD}" -q /tmp/cube_script
+    rm /tmp/cube_script
+    test -f cube/cmake/stm32cubemx/CMakeLists.txt || { echo "STM32CubeMX failed to generate the project" >&2; exit 1; }
+EOT
 
-RUN rm /tmp/.X10-lock
-
-RUN echo "trap 'chown -R ubuntu /project' EXIT" >> "/root/.bashrc"
+RUN echo "trap 'chown -R ubuntu /project' EXIT" >> /root/.bashrc
 
 ###################################
 # Build image for Micras Firmware #
 ###################################
 FROM base AS build
 
-COPY . /project
+COPY . .
 
-RUN mkdir -p build && \
-    cmake -B build -DBUILD_TYPE=Release
+RUN cmake -B build -DBUILD_TYPE=Release
