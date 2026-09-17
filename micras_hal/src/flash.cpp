@@ -32,7 +32,9 @@ static constexpr uint32_t align_size(uint32_t size) {
 }
 
 FlashWord::FlashWord(std::span<const uint8_t> data) {
-    if (data.size() >= size and std::bit_cast<uintptr_t>(data.data()) % alignof(uint32_t) == 0) {
+    const auto data_address = std::bit_cast<uintptr_t>(data.data());
+
+    if (data.size() >= size and data_address % alignof(uint32_t) == 0) {
         this->source = std::bit_cast<const uint32_t*>(data.data());
         return;
     }
