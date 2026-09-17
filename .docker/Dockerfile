@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1
+
 ##################################
 # Base image for Micras Firmware #
 ##################################
@@ -21,7 +23,8 @@ ENV CUBE_CMD=${CUBE_PATH}/STM32CubeMX
 ENV DISPLAY=:10
 ARG PROJECT_NAME=micras_v1
 
-RUN Xvfb :10 -ac & \
+# Without network, CubeMX skips its online update check, which can hang the project generation
+RUN --network=none Xvfb :10 -ac & \
     echo "config load /project/cube/${PROJECT_NAME}.ioc\nproject generate\nexit\n" > .cube && \
     $CUBE_CMD -q /project/.cube && \
     rm .cube && \
