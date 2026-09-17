@@ -22,7 +22,7 @@ ERRORS=$(
         done
 
         wait
-    } | grep -v ' warnings generated\.$' | awk '!seen[$0]++'
+    } | grep -Ev '[0-9]+ warnings? generated\.$' | awk '!seen[$0]++'
 )
 
 if [[ -n "$ERRORS" ]]; then
