@@ -49,6 +49,12 @@ function(generate_hex_file TARGET)
     _generate_file(${TARGET} "hex" "ihex")
 endfunction()
 
+# This function makes the linker emit a map file named after the target, instead of the
+# single fixed name the CubeMX toolchain file would otherwise use for every executable.
+function(generate_map_file TARGET)
+    target_link_options(${TARGET} PRIVATE "-Wl,-Map=$<TARGET_FILE_BASE_NAME:${TARGET}>.map")
+endfunction()
+
 function(generate_helpme_text)
     configure_file(
         ${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/helpme.in
@@ -56,9 +62,19 @@ function(generate_helpme_text)
     )
 endfunction()
 
-function(generate_vscode_tasks_json)
+# The file is rendered into the build directory at configure time and only copied into the
+# source tree by the `vscode` target, so that configuring never writes to the source directory.
+function(generate_vscode_target)
+    set(TASKS_SAVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/vsfiles/tasks.json")
+
     configure_file(
         ${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/tasks.json.in
-        ${CMAKE_CURRENT_SOURCE_DIR}/.vscode/tasks.json
+        ${TASKS_SAVE_PATH}
+    )
+
+    add_custom_target(vscode
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_SOURCE_DIR}/.vscode
+        COMMAND ${CMAKE_COMMAND} -E copy ${TASKS_SAVE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/.vscode/tasks.json
+        COMMENT "Writing .vscode/tasks.json"
     )
 endfunction()
