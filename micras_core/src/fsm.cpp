@@ -2,6 +2,9 @@
  * @file
  */
 
+#include <cstdint>
+#include <memory>
+#include <utility>
 #include "micras/core/fsm.hpp"
 
 namespace micras::core {

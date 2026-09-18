@@ -5,7 +5,7 @@
 # Check if CMake build type is correctly configured
 if(NOT (BUILD_TYPE STREQUAL "Release"        OR BUILD_TYPE STREQUAL "Debug" OR
         BUILD_TYPE STREQUAL "RelWithDebInfo" OR BUILD_TYPE STREQUAL "MinSizeRel"))
-    set(BUILD_TYPE "RelWithDebInfo")
+    set(BUILD_TYPE "Release")
 endif()
 
 set(CMAKE_BUILD_TYPE ${BUILD_TYPE})

@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 3.22...4.4)
 ###############################################################################
 
 set(CMAKE_C_STANDARD 17)
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -48,9 +48,19 @@ set(CMAKE_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 # It is removed here so that generate_map_file() can give each target its own.
 string(REGEX REPLACE " *-Wl,-Map=[^ ]*" "" CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
 
+# The toolchain file ships -O0 -g3 for Debug and -Os -g0 for Release. Debug information is not
+# loaded onto the target, so it costs no flash and is kept in every configuration, which is what
+# makes a crash from a competition run symbolisable. Debug uses -Og instead of -O0 so that the
+# robot still runs fast enough to be worth debugging.
+set(CMAKE_C_FLAGS_DEBUG     "-Og -g3")
+set(CMAKE_CXX_FLAGS_DEBUG   "-Og -g3")
+set(CMAKE_C_FLAGS_RELEASE   "-Os -g3")
+set(CMAKE_CXX_FLAGS_RELEASE "-Os -g3")
+
 project(${CMAKE_PROJECT_NAME} C CXX ASM)
 
 include(cmake/utilities.cmake)
+include(cmake/warnings.cmake)
 include(cmake/targets.cmake)
 
 # Workaround for the STM32CubeMX CMake generator writing into ${CMAKE_PROJECT_NAME}
@@ -94,6 +104,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     micras::nav
+    micras::warnings
 )
 
 generate_map_file(${PROJECT_NAME})
@@ -123,6 +134,7 @@ foreach(TEST_FILE ${PROJECT_TESTS})
 
     target_link_libraries(${TEST_NAME} PRIVATE
         micras::nav
+        micras::warnings
     )
 
     generate_map_file(${TEST_NAME})

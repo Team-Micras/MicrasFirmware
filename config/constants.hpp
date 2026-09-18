@@ -20,7 +20,7 @@ namespace micras {
 
 constexpr uint8_t  maze_width{16};
 constexpr uint8_t  maze_height{16};
-constexpr float    cell_size{0.18};
+constexpr float    cell_size{0.18F};
 constexpr uint32_t loop_time_us{1042};
 constexpr float    wall_thickness{0.0126F};
 constexpr float    start_offset{0.04F + wall_thickness / 2.0F};
@@ -61,14 +61,13 @@ const nav::ActionQueuer::Config action_queuer_config{
             .max_centrifugal_acceleration = 2.78F,
             .max_angular_acceleration = max_angular_acceleration,
         },
-    .solving =
-        {
-            .max_linear_speed = 3.0F,
-            .max_linear_acceleration = max_linear_acceleration,
-            .max_linear_deceleration = max_linear_deceleration,
-            .max_centrifugal_acceleration = 5.0F,
-            .max_angular_acceleration = max_angular_acceleration,
-        }
+    .solving = {
+        .max_linear_speed = 3.0F,
+        .max_linear_acceleration = max_linear_acceleration,
+        .max_linear_deceleration = max_linear_deceleration,
+        .max_centrifugal_acceleration = 5.0F,
+        .max_angular_acceleration = max_angular_acceleration,
+    }
 };
 
 const nav::FollowWall::Config follow_wall_config{
@@ -103,7 +102,7 @@ const nav::Maze::Config maze_config{
 const nav::Odometry::Config odometry_config{
     .linear_cutoff_frequency = 5.0F,
     .wheel_radius = 0.0112F,
-    .initial_pose = {{cell_size / 2.0F, start_offset}, std::numbers::pi / 2.0F},
+    .initial_pose = {{cell_size / 2.0F, start_offset}, std::numbers::pi_v<float> / 2.0F},
 };
 
 const nav::SpeedController::Config speed_controller_config{
@@ -132,13 +131,12 @@ const nav::SpeedController::Config speed_controller_config{
             .angular_speed = -0.971F,
             .angular_acceleration = -0.0258F,
         },
-    .right_feed_forward =
-        {
-            .linear_speed = 13.319F,
-            .linear_acceleration = 2.878F,
-            .angular_speed = 0.901F,
-            .angular_acceleration = -0.0244F,
-        },
+    .right_feed_forward = {
+        .linear_speed = 13.319F,
+        .linear_acceleration = 2.878F,
+        .angular_speed = 0.901F,
+        .angular_acceleration = -0.0244F,
+    },
 };
 }  // namespace micras
 

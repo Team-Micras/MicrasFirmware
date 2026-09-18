@@ -2,7 +2,14 @@
  * @file
  */
 
+#include <cstdint>
+#include <memory>
 #include "micras/interface.hpp"
+#include "micras/proxy/argb.hpp"
+#include "micras/proxy/button.hpp"
+#include "micras/proxy/buzzer.hpp"
+#include "micras/proxy/dip_switch.hpp"
+#include "micras/proxy/led.hpp"
 
 namespace micras {
 Interface::Interface(

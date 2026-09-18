@@ -2,7 +2,13 @@
  * @file
  */
 
+#include <memory>
+#include "micras/core/types.hpp"
+#include "micras/core/utils.hpp"
 #include "micras/nav/follow_wall.hpp"
+#include "micras/nav/grid_pose.hpp"
+#include "micras/nav/state.hpp"
+#include "micras/proxy/wall_sensors.hpp"
 
 namespace micras::nav {
 FollowWall::FollowWall(const std::shared_ptr<proxy::TWallSensors<4>>& wall_sensors, const Config& config) :

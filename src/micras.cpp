@@ -2,9 +2,18 @@
  * @file
  */
 
+#include <cmath>
+#include <memory>
 #include <tuple>
 
+#include "constants.hpp"
+#include "micras/core/types.hpp"
 #include "micras/micras.hpp"
+#include "micras/proxy/button.hpp"
+#include "micras/proxy/buzzer.hpp"
+#include "micras/proxy/imu.hpp"
+#include "micras/proxy/led.hpp"
+#include "micras/proxy/rotary_sensor.hpp"
 #include "micras/states/calibrate.hpp"
 #include "micras/states/error.hpp"
 #include "micras/states/idle.hpp"

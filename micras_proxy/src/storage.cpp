@@ -4,9 +4,14 @@
 
 #include <algorithm>
 #include <bit>
+#include <cstddef>
+#include <cstdint>
 #include <span>
+#include <string>
+#include <unordered_map>
 #include <vector>
 
+#include "micras/core/serializable.hpp"
 #include "micras/hal/flash.hpp"
 #include "micras/proxy/storage.hpp"
 

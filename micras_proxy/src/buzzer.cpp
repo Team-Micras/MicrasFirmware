@@ -2,6 +2,7 @@
  * @file
  */
 
+#include <cstdint>
 #include "micras/proxy/buzzer.hpp"
 
 namespace micras::proxy {

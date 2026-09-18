@@ -3,6 +3,8 @@
  */
 
 #include <bit>
+#include <cstdint>
+#include <span>
 
 #include "micras/hal/adc_dma.hpp"
 
@@ -10,9 +12,9 @@ namespace micras::hal {
 AdcDma::AdcDma(const Config& config) : max_reading{config.max_reading}, handle{config.handle} {
     config.init_function();
 
-#if defined(STM32H7)
+#ifdef STM32H7
     HAL_ADCEx_Calibration_Start(this->handle, ADC_CALIB_OFFSET, ADC_SINGLE_ENDED);
-#elif defined(STM32G4)
+#elifdef STM32G4
     HAL_ADCEx_Calibration_Start(this->handle, ADC_SINGLE_ENDED);
 #else
     #error "ADC calibration is only supported for STM32H7 and STM32G4 platforms."

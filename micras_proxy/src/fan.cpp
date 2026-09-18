@@ -52,7 +52,7 @@ void Fan::stop() {
     this->pwm.set_duty_cycle(0.0F);
 }
 
-void Fan::set_direction(RotationDirection direction) {
+void Fan::set_direction([[maybe_unused]] RotationDirection direction) {
     // this->direction_gpio.write(static_cast<bool>(direction));
 }
 }  // namespace micras::proxy

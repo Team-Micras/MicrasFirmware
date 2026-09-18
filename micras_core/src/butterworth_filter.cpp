@@ -3,6 +3,7 @@
  */
 
 #include <cmath>
+#include <cstdint>
 #include <numbers>
 
 #include "micras/core/butterworth_filter.hpp"

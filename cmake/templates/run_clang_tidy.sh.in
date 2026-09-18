@@ -1,31 +1,40 @@
 #!/bin/bash
 
-FIX_FLAG=""
+# Positional arguments are the source files to check; they are passed to run-clang-tidy as
+# path regexes matched against the entries of the compilation database.
 
-if [[ "$1" == "--fix" ]]; then
-    FIX_FLAG="--fix"
+RUN_FLAGS=()
+
+if [[ "${1:-}" == "--fix" ]]; then
+    RUN_FLAGS+=(-fix -format)
     shift
 fi
 
+if [[ -t 1 ]]; then
+    RUN_FLAGS+=(-use-color)
+fi
+
+# Unknown check names are silently ignored during a normal run, so the configuration is
+# validated explicitly to keep it from rotting across clang-tidy versions.
+clang-tidy --verify-config || exit 1
+
 echo "Running clang-tidy on all source files..."
 
-ERRORS=$(
-    {
-        for file in "$@"; do
-            {
-                clang-tidy $FIX_FLAG --use-color --quiet --warnings-as-errors="*" \
-                --extra-arg-before="--sysroot=@SYSROOT@/" \
-                --extra-arg-before="-I@CXX_INCLUDE_DIR@/" \
-                --extra-arg-before="-I@CXX_TRIPLE_INCLUDE_DIR@/" \
-                -p @CMAKE_CURRENT_BINARY_DIR@ "$file" 2>&1
-            } &
-        done
+# run-clang-tidy bounds the number of concurrent clang-tidy processes, unlike a plain
+# background job per file, and serializes the fixes it applies to shared headers.
+# The filtered lines are the echoed clang-tidy invocations and the per-file diagnostic
+# counters, which include the warnings suppressed in the Cube headers and are always noise.
+# Real diagnostics name their own file, so nothing useful is hidden.
+run-clang-tidy \
+    "${RUN_FLAGS[@]}" \
+    -quiet \
+    -j "$(nproc)" \
+    -warnings-as-errors="*" \
+    -p @CMAKE_CURRENT_BINARY_DIR@ \
+    -extra-arg-before=-Wno-unknown-warning-option \
+    -extra-arg-before=--sysroot=@SYSROOT@/ \
+    -extra-arg-before=-I@CXX_INCLUDE_DIR@/ \
+    -extra-arg-before=-I@CXX_TRIPLE_INCLUDE_DIR@/ \
+    "$@" 2>&1 | grep -Ev '^(\[[0-9]+/[0-9]+\]|[0-9]+ (warning|error)s? generated\.|clang-tidy(-[0-9.]+)? )'
 
-        wait
-    } | grep -Ev '[0-9]+ warnings? generated\.$' | awk '!seen[$0]++'
-)
-
-if [[ -n "$ERRORS" ]]; then
-    echo -e "\n$ERRORS\033[0m"
-    exit 1
-fi
+exit "${PIPESTATUS[0]}"

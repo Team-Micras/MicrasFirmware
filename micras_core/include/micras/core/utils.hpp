@@ -132,7 +132,7 @@ constexpr float assert_half_angle(float angle) {
  * @param tolerance Tolerance.
  * @return True if the numbers are near each other, false otherwise.
  */
-constexpr bool is_near(float x, float y, float tolerance = 0.001) {
+constexpr bool is_near(float x, float y, float tolerance = 0.001F) {
     return std::abs(x - y) <= tolerance;
 }
 }  // namespace micras::core

@@ -3,8 +3,18 @@
  */
 
 #include <array>
+#include <cstdint>
+#include <cstdlib>
+#include <memory>
 
 #include "constants.hpp"
+#include "micras/nav/odometry.hpp"
+#include "micras/proxy/button.hpp"
+#include "micras/proxy/imu.hpp"
+#include "micras/proxy/locomotion.hpp"
+#include "micras/proxy/rotary_sensor.hpp"
+#include "micras/proxy/stopwatch.hpp"
+#include "target.hpp"
 #include "test_core.hpp"
 
 using namespace micras;  // NOLINT(google-build-using-namespace)
@@ -109,6 +119,7 @@ int main(int argc, char* argv[]) {
                 last_linear_speed = state.velocity.linear;
                 last_angular_speed = state.velocity.angular;
 
+                // NOLINTNEXTLINE(readability-use-std-min-max) std::max cannot bind volatile
                 if (current_linear_acceleration > test_linear_accelerations[iterator]) {
                     test_linear_accelerations[iterator] = current_linear_acceleration;
                 }

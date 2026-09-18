@@ -2,10 +2,11 @@
  * @file
  */
 
-#include <algorithm>
 #include <cmath>
+#include <utility>
 
 #include "micras/nav/speed_controller.hpp"
+#include "micras/nav/state.hpp"
 
 namespace micras::nav {
 SpeedController::SpeedController(const Config& config) :

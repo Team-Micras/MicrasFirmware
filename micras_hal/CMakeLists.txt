@@ -20,6 +20,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 target_link_libraries(${PROJECT_NAME} PRIVATE
     cube_app
     STM32_Drivers
+    micras::warnings
 )
 
 target_link_libraries(${PROJECT_NAME} PUBLIC

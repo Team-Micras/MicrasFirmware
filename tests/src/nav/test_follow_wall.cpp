@@ -2,12 +2,19 @@
  * @file
  */
 
-#include <tuple>
+#include <memory>
 
 #include "constants.hpp"
 #include "micras/nav/follow_wall.hpp"
 #include "micras/nav/odometry.hpp"
 #include "micras/nav/speed_controller.hpp"
+#include "micras/nav/state.hpp"
+#include "micras/proxy/button.hpp"
+#include "micras/proxy/imu.hpp"
+#include "micras/proxy/locomotion.hpp"
+#include "micras/proxy/rotary_sensor.hpp"
+#include "micras/proxy/stopwatch.hpp"
+#include "target.hpp"
 #include "test_core.hpp"
 
 using namespace micras;  // NOLINT(google-build-using-namespace)

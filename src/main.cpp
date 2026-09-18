@@ -6,9 +6,10 @@
 
 #include "micras/hal/mcu.hpp"
 #include "micras/micras.hpp"
+#include "target.hpp"
 
 // NOLINTNEXTLINE(readability-function-cognitive-complexity)
-void signal_handler(int signal) {
+static void signal_handler(int signal) {
     if (signal == SIGABRT) {
         HAL_GPIO_WritePin(micras::led_config.gpio.port, micras::led_config.gpio.pin, GPIO_PinState::GPIO_PIN_SET);
 

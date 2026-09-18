@@ -3,10 +3,19 @@
  */
 
 #include <cmath>
+#include <cstdint>
+#include <exception>
 #include <iterator>
+#include <list>
+#include <memory>
 #include <numbers>
+#include <utility>
 
 #include "micras/nav/action_queuer.hpp"
+#include "micras/nav/actions/base.hpp"
+#include "micras/nav/actions/move.hpp"
+#include "micras/nav/actions/turn.hpp"
+#include "micras/nav/grid_pose.hpp"
 
 namespace micras::nav {
 ActionQueuer::ActionQueuer(Config config) :
@@ -157,10 +166,12 @@ void ActionQueuer::recompute(const std::list<GridPoint>& best_route, bool add_st
             .max_acceleration = this->solving_params.max_linear_acceleration,
             .max_deceleration = this->solving_params.max_linear_deceleration
         };
-        this->action_queue.emplace_back(std::make_shared<MoveAction>(
-            std::prev(action_it)->type, std::prev(action_it)->value, move_config,
-            std::prev(action_it)->type != ActionType::DIAGONAL
-        ));
+        this->action_queue.emplace_back(
+            std::make_shared<MoveAction>(
+                std::prev(action_it)->type, std::prev(action_it)->value, move_config,
+                std::prev(action_it)->type != ActionType::DIAGONAL
+            )
+        );
 
         const TurnAction::Config turn_config = {
             .max_angular_speed = curve_parameters.max_angular_speed,

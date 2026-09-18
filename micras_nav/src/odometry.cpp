@@ -3,8 +3,11 @@
  */
 
 #include <cmath>
+#include <memory>
 
 #include "micras/nav/odometry.hpp"
+#include "micras/proxy/imu.hpp"
+#include "micras/proxy/rotary_sensor.hpp"
 
 namespace micras::nav {
 Odometry::Odometry(

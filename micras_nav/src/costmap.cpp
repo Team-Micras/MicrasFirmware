@@ -6,9 +6,11 @@
 #define MICRAS_NAV_COSTMAP_CPP
 
 #include <cmath>
+#include <cstdint>
 #include <queue>
 
 #include "micras/nav/costmap.hpp"
+#include "micras/nav/grid_pose.hpp"
 
 namespace micras::nav {
 template <uint8_t width, uint8_t height, uint8_t layers>
@@ -71,7 +73,7 @@ void Costmap<width, height, layers>::recompute(const GridPoint& reference, uint8
             continue;
         }
 
-        uint16_t old_cost = this->get_cost(current_position, layer);
+        int16_t old_cost = this->get_cost(current_position, layer);
         this->update_cost(current_position, layer, lowest_cost + 1);
 
         for (uint8_t i = Side::RIGHT; i <= Side::DOWN; i++) {

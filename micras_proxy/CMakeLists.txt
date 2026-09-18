@@ -9,7 +9,7 @@ FetchContent_Declare(
     GIT_TAG v5.1.1
 )
 
-FetchContent_Populate(lsm6dsv-pid)
+FetchContent_MakeAvailable(lsm6dsv-pid)
 file(GLOB_RECURSE LIB_SOURCES CONFIGURE_DEPENDS "${lsm6dsv-pid_SOURCE_DIR}/*.c")
 
 # Remove warnings from libraries sources
@@ -33,4 +33,8 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
     micras::hal
+)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    micras::warnings
 )

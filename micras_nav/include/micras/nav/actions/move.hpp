@@ -5,6 +5,7 @@
 #ifndef MICRAS_NAV_MOVE_ACTION_HPP
 #define MICRAS_NAV_MOVE_ACTION_HPP
 
+#include <algorithm>
 #include <cmath>
 
 #include "micras/nav/actions/base.hpp"

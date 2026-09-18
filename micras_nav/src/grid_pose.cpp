@@ -3,7 +3,10 @@
  */
 
 #include <cmath>
+#include <cstdint>
+#include <numbers>
 
+#include "micras/core/vector.hpp"
 #include "micras/nav/grid_pose.hpp"
 
 namespace micras::nav {

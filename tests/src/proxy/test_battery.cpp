@@ -2,6 +2,9 @@
  * @file
  */
 
+#include "micras/proxy/battery.hpp"
+#include "micras/proxy/stopwatch.hpp"
+#include "target.hpp"
 #include "test_core.hpp"
 
 using namespace micras;  // NOLINT(google-build-using-namespace)

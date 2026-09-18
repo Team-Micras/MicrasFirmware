@@ -2,8 +2,11 @@
  * @file
  */
 
+#include <array>
 #include <cmath>
+#include <cstdint>
 
+#include "lsm6dsv_reg.h"
 #include "micras/proxy/imu.hpp"
 #include "micras/proxy/stopwatch.hpp"
 

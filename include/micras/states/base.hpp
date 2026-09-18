@@ -17,7 +17,7 @@ public:
      * @param id The id of the state.
      * @param micras The Micras object.
      */
-    BaseState(uint8_t id, Micras& micras) : State(id), micras{micras} {};
+    BaseState(uint8_t id, Micras& micras) : State(id), micras{micras} { };
 
     /**
      * @brief Do nothing by default.

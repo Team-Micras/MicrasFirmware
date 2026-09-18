@@ -4,6 +4,8 @@
 
 #include <cmath>
 
+#include "micras/core/vector.hpp"
+#include "micras/nav/grid_pose.hpp"
 #include "micras/nav/state.hpp"
 
 namespace micras::nav {

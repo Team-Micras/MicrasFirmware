@@ -6,6 +6,7 @@
 #define MICRAS_PROXY_STORAGE_HPP
 
 #include <cstdint>
+#include <cstring>
 #include <string>
 #include <type_traits>
 #include <unordered_map>
@@ -69,8 +70,7 @@ public:
     void sync(const std::string& name, T& data) {
         if (this->primitives.contains(name) and this->primitives.at(name).ram_pointer == nullptr and
             this->primitives.at(name).size == sizeof(T)) {
-            // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-            data = reinterpret_cast<T&>(this->buffer.at(this->primitives.at(name).buffer_address));
+            std::memcpy(&data, &this->buffer.at(this->primitives.at(name).buffer_address), sizeof(T));
         }
 
         this->create<T>(name, data);

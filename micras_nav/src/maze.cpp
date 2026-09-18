@@ -5,10 +5,20 @@
 #ifndef MICRAS_NAV_MAZE_CPP
 #define MICRAS_NAV_MAZE_CPP
 
+#include <algorithm>
+#include <array>
 #include <cmath>
-#include <stack>
+#include <cstdint>
+#include <limits>
+#include <list>
+#include <queue>
+#include <unordered_set>
 #include <utility>
+#include <vector>
 
+#include "micras/core/types.hpp"
+#include "micras/nav/costmap.hpp"
+#include "micras/nav/grid_pose.hpp"
 #include "micras/nav/maze.hpp"
 
 namespace micras::nav {
@@ -123,7 +133,7 @@ bool TMaze<width, height>::finished(const GridPoint& position, bool returning) c
 
 template <uint8_t width, uint8_t height>
 void TMaze<width, height>::compute_minimum_cost() {
-    this->minimum_cost = this->get_next_bfs_goal(this->start, false).second;
+    this->minimum_cost = static_cast<int16_t>(this->get_next_bfs_goal(this->start, false).second);
 }
 
 template <uint8_t width, uint8_t height>
@@ -166,7 +176,8 @@ void TMaze<width, height>::recursive_backtracking(
 
         GridPoint next_position = position + side;
 
-        if (not this->was_visited(this->costmap.get_cell(next_position)) or visited.contains(next_position)) {
+        if (not TMaze<width, height>::was_visited(this->costmap.get_cell(next_position)) or
+            visited.contains(next_position)) {
             continue;
         }
 
@@ -183,11 +194,9 @@ uint16_t TMaze<width, height>::heuristic(const GridPoint& position) const {
     uint16_t minimum_distance = std::numeric_limits<uint16_t>::max();
 
     for (const auto& goal_position : this->goal) {
-        uint16_t distance = std::abs(position.x - goal_position.x) + std::abs(position.y - goal_position.y);
+        const uint16_t distance = std::abs(position.x - goal_position.x) + std::abs(position.y - goal_position.y);
 
-        if (distance < minimum_distance) {
-            minimum_distance = distance;
-        }
+        minimum_distance = std::min(distance, minimum_distance);
     }
 
     return minimum_distance;
@@ -235,7 +244,7 @@ void TMaze<width, height>::update_cell(const GridPoint& position) {
 
     GridPoint dead_end_position = position;
 
-    while (this->is_dead_end(this->costmap.get_cell(dead_end_position))) {
+    while (TMaze<width, height>::is_dead_end(this->costmap.get_cell(dead_end_position))) {
         for (Side side : {Side::UP, Side::DOWN, Side::LEFT, Side::RIGHT}) {
             if (not this->costmap.has_wall({dead_end_position, side}, true)) {
                 this->costmap.add_virtual_wall({dead_end_position, side});
@@ -273,10 +282,10 @@ std::pair<GridPose, uint16_t> TMaze<width, height>::get_next_bfs_goal(const Grid
         GridPose current_pose = queue.front();
         queue.pop();
 
-        if ((discover and
-             this->must_visit(
-                 this->costmap.get_cell(current_pose.position), std::round(this->minimum_cost * this->cost_margin)
-             )) or
+        if ((discover and TMaze<width, height>::must_visit(
+                              this->costmap.get_cell(current_pose.position),
+                              static_cast<int16_t>(std::round(this->minimum_cost * this->cost_margin))
+                          )) or
             (not discover and this->goal.contains(current_pose.position))) {
             result_pair = {
                 {pose.position + current_pose.orientation, current_pose.orientation},
@@ -294,7 +303,7 @@ std::pair<GridPose, uint16_t> TMaze<width, height>::get_next_bfs_goal(const Grid
 
             const GridPoint front_position = current_pose.position + side;
 
-            if ((discover or this->was_visited(this->costmap.get_cell(front_position))) and
+            if ((discover or TMaze<width, height>::was_visited(this->costmap.get_cell(front_position))) and
                 distance.at(front_position.y).at(front_position.x) == 0) {
                 queue.emplace(front_position, current_pose.orientation);
                 distance.at(front_position.y).at(front_position.x) =

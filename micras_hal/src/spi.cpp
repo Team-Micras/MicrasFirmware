@@ -2,6 +2,8 @@
  * @file
  */
 
+#include <cstdint>
+#include <span>
 #include "micras/hal/spi.hpp"
 
 namespace micras::hal {

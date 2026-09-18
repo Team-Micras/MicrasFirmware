@@ -22,7 +22,7 @@ public:
 /**
  * @brief Number of 32 bit words inside a flash word.
  */
-#if defined(FLASH_NB_32BITWORD_IN_FLASHWORD)
+#ifdef FLASH_NB_32BITWORD_IN_FLASHWORD
     static constexpr uint32_t words{FLASH_NB_32BITWORD_IN_FLASHWORD};
 #else
     static constexpr uint32_t words{sizeof(uint64_t) / sizeof(uint32_t)};

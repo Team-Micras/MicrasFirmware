@@ -2,6 +2,7 @@
  * @file
  */
 
+#include <cstdint>
 #include <limits>
 
 #include "micras/proxy/stopwatch.hpp"

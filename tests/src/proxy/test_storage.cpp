@@ -2,12 +2,22 @@
  * @file
  */
 
+#include <array>
+#include <bit>
+#include <cstdint>
+#include <vector>
+#include "micras/core/serializable.hpp"
+#include "micras/proxy/button.hpp"
+#include "micras/proxy/stopwatch.hpp"
+#include "micras/proxy/storage.hpp"
+#include "target.hpp"
 #include "test_core.hpp"
 
 using namespace micras;  // NOLINT(google-build-using-namespace)
 
 static constexpr uint32_t time_interval{500};
 
+namespace {
 class TestSerializable : public core::ISerializable {
 public:
     explicit TestSerializable(bool empty = false) {
@@ -42,8 +52,9 @@ public:
     void deserialize(const uint8_t* buffer, uint16_t size) override {
         // NOLINTBEGIN(cppcoreguidelines-pro-bounds-pointer-arithmetic)
         for (uint32_t i = 0; i < this->test_array.size(); i++) {
-            this->test_array.at(i) =
-                (buffer[i * 4L] << 24) | (buffer[i * 4L + 1L] << 16) | (buffer[i * 4L + 2L] << 8) | buffer[i * 4L + 3L];
+            this->test_array.at(i) = (static_cast<uint32_t>(buffer[i * 4L]) << 24) |
+                                     (static_cast<uint32_t>(buffer[i * 4L + 1L]) << 16) |
+                                     (static_cast<uint32_t>(buffer[i * 4L + 2L]) << 8) | buffer[i * 4L + 3L];
         }
 
         this->test_string = std::string{std::bit_cast<const char*>(buffer + 40), size - 40U};
@@ -58,6 +69,7 @@ private:
     std::array<uint32_t, 10> test_array{};
     std::string              test_string;
 };
+}  // namespace
 
 int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);

@@ -4,7 +4,10 @@
 
 #include <algorithm>
 #include <bit>
-#include <stm32h7xx_hal.h>
+#include <cstddef>
+#include <cstdint>
+#include <span>
+#include <stm32h7xx_hal.h>  // NOLINT(misc-include-cleaner)
 
 #include "micras/hal/flash.hpp"
 
