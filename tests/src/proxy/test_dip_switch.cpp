@@ -18,7 +18,7 @@ int main(int argc, char* argv[]) {
     proxy::Argb::Color color{};
 
     TestCore::loop([&dip_switch, &argb, &color]() {
-        color = {0, 0, 0};
+        color = {.red = 0, .green = 0, .blue = 0};
         test_dip_switch_value = dip_switch.get_switches_value();
 
         if (dip_switch.get_switch_state(0)) {

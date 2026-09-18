@@ -13,7 +13,7 @@ int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);
 
     proxy::Argb        argb{argb_config};
-    proxy::Argb::Color color{255, 0, 0};
+    proxy::Argb::Color color{.red = 255, .green = 0, .blue = 0};
 
     TestCore::loop([&argb, &color]() {
         for (uint8_t i = 1; i > 0; i++) {

@@ -10,7 +10,9 @@
 
 namespace micras::nav {
 GridPose Pose::to_grid(float cell_size) const {
-    return {GridPoint::from_vector(this->position, cell_size), angle_to_grid(this->orientation)};
+    return {
+        .position = GridPoint::from_vector(this->position, cell_size), .orientation = angle_to_grid(this->orientation)
+    };
 };
 
 core::Vector Pose::to_cell(float cell_size) const {
@@ -38,15 +40,15 @@ core::Vector Pose::to_cell(float cell_size) const {
             break;
     }
 
-    return {cell_alignment, cell_advance};
+    return {.x = cell_alignment, .y = cell_advance};
 }
 
 RelativePose::RelativePose(const Pose& absolute_pose) : absolute_pose{&absolute_pose} { }
 
 Pose RelativePose::get() const {
     return {
-        this->absolute_pose->position - this->reference_pose.position,
-        this->absolute_pose->orientation - this->reference_pose.orientation
+        .position = this->absolute_pose->position - this->reference_pose.position,
+        .orientation = this->absolute_pose->orientation - this->reference_pose.orientation
     };
 }
 

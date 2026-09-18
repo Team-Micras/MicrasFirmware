@@ -35,7 +35,7 @@ public:
      */
     TurnAction(uint8_t action_type, float angle, const Config& config) :
         Action{
-            {action_type, angle},
+            {.type = action_type, .value = angle},
             false,
             calculate_total_time(angle, config.max_angular_speed, config.max_angular_acceleration)
         },

@@ -87,6 +87,7 @@ const nav::FollowWall::Config follow_wall_config{
     .post_clearance = 0.025F,
 };
 
+// NOLINTBEGIN(modernize-use-designated-initializers) the nested points and poses read better positionally
 const nav::Maze::Config maze_config{
     .start = {{0, 0}, nav::Side::UP},
     .goal = {{
@@ -104,6 +105,7 @@ const nav::Odometry::Config odometry_config{
     .wheel_radius = 0.0112F,
     .initial_pose = {{cell_size / 2.0F, start_offset}, std::numbers::pi_v<float> / 2.0F},
 };
+// NOLINTEND(modernize-use-designated-initializers)
 
 const nav::SpeedController::Config speed_controller_config{
     .linear_pid =

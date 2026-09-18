@@ -37,7 +37,7 @@ public:
      */
     MoveAction(uint8_t action_type, float distance, const Config& config, bool follow_wall = true) :
         Action{
-            {action_type, distance},
+            {.type = action_type, .value = distance},
             follow_wall,
             calculate_total_time(
                 distance, config.start_speed, config.end_speed, config.max_speed, config.max_acceleration,
