@@ -15,6 +15,11 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
+# From GCC 14 on, CMake scans every C++20 or later source for module imports, which puts
+# -fmodules-ts and a module mapper into the compilation database and makes clang-tidy reject
+# every file. No target here declares a module, so the scan is only overhead.
+set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
+
 ###############################################################################
 ## Project Configuration
 ###############################################################################
