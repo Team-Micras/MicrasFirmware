@@ -42,22 +42,28 @@ ActionQueuer::ActionQueuer(Config config) :
         .max_deceleration = config.exploring.max_linear_deceleration
     };
 
-    this->start = std::make_shared<MoveAction>(ActionType::START, this->cell_size - config.start_offset, move_config);
-    this->move_half = std::make_shared<MoveAction>(ActionType::MOVE_FORWARD, cell_size / 2.0F, move_config);
+    this->start = std::make_shared<MoveAction>(
+        std::to_underlying(ActionType::START), this->cell_size - config.start_offset, move_config
+    );
+    this->move_half =
+        std::make_shared<MoveAction>(std::to_underlying(ActionType::MOVE_FORWARD), cell_size / 2.0F, move_config);
 
     move_config.start_speed = exploration_linear_speed;
 
-    this->move_forward = std::make_shared<MoveAction>(ActionType::MOVE_FORWARD, cell_size, move_config);
+    this->move_forward =
+        std::make_shared<MoveAction>(std::to_underlying(ActionType::MOVE_FORWARD), cell_size, move_config);
     this->move_to_turn = std::make_shared<MoveAction>(
-        ActionType::MOVE_FORWARD, this->cell_size / 2.0F - exploration_curve_radius, move_config, false
+        std::to_underlying(ActionType::MOVE_FORWARD), this->cell_size / 2.0F - exploration_curve_radius, move_config,
+        false
     );
     this->move_from_turn = std::make_shared<MoveAction>(
-        ActionType::MOVE_FORWARD, this->cell_size / 2.0F - exploration_curve_radius, move_config
+        std::to_underlying(ActionType::MOVE_FORWARD), this->cell_size / 2.0F - exploration_curve_radius, move_config
     );
 
     move_config.end_speed = 0.0F;
 
-    this->stop = std::make_shared<MoveAction>(ActionType::STOP, cell_size / 2.0F, move_config, false);
+    this->stop =
+        std::make_shared<MoveAction>(std::to_underlying(ActionType::STOP), cell_size / 2.0F, move_config, false);
 
     const TurnAction::Config turn_config = {
         .max_angular_speed = exploration_max_angular_speed,
@@ -65,8 +71,12 @@ ActionQueuer::ActionQueuer(Config config) :
         .max_angular_acceleration = config.exploring.max_angular_acceleration
     };
 
-    this->turn_left = std::make_shared<TurnAction>(ActionType::TURN, std::numbers::pi_v<float> / 2.0F, turn_config);
-    this->turn_right = std::make_shared<TurnAction>(ActionType::TURN, -std::numbers::pi_v<float> / 2.0F, turn_config);
+    this->turn_left = std::make_shared<TurnAction>(
+        std::to_underlying(ActionType::TURN), std::numbers::pi_v<float> / 2.0F, turn_config
+    );
+    this->turn_right = std::make_shared<TurnAction>(
+        std::to_underlying(ActionType::TURN), -std::numbers::pi_v<float> / 2.0F, turn_config
+    );
 
     const TurnAction::Config turn_back_config = {
         .max_angular_speed = config.exploring.max_angular_acceleration * 0.01F,
@@ -74,7 +84,8 @@ ActionQueuer::ActionQueuer(Config config) :
         .max_angular_acceleration = config.exploring.max_angular_acceleration
     };
 
-    this->turn_back = std::make_shared<TurnAction>(ActionType::SPIN, std::numbers::pi_v<float>, turn_back_config);
+    this->turn_back =
+        std::make_shared<TurnAction>(std::to_underlying(ActionType::SPIN), std::numbers::pi_v<float>, turn_back_config);
 
     this->compute_curve_parameters(std::numbers::pi_v<float> / 4.0F, false);
     this->compute_curve_parameters(std::numbers::pi_v<float> / 2.0F, false);
@@ -137,7 +148,9 @@ void ActionQueuer::recompute(const std::list<GridPoint>& best_route, bool add_st
     Side direction = best_route.front().direction(*std::next(best_route.begin()));
 
     for (auto route_it = best_route.begin(); std::next(route_it) != best_route.end(); route_it++) {
-        actions.push_back(get_action({*route_it, direction}, *std::next(route_it), this->cell_size));
+        actions.push_back(
+            get_action({.position = *route_it, .orientation = direction}, *std::next(route_it), this->cell_size)
+        );
         direction = (*route_it).direction(*std::next(route_it));
     }
 
@@ -148,7 +161,7 @@ void ActionQueuer::recompute(const std::list<GridPoint>& best_route, bool add_st
     float start_speed = 0.0F;
 
     for (auto action_it = std::next(actions.begin()); action_it != actions.end(); action_it++) {
-        if (action_it->type != ActionType::TURN) {
+        if (action_it->type != std::to_underlying(ActionType::TURN)) {
             continue;
         }
 
@@ -156,8 +169,9 @@ void ActionQueuer::recompute(const std::list<GridPoint>& best_route, bool add_st
             std::terminate();
         }
 
-        const CurveParameters& curve_parameters =
-            this->get_curve_parameters(action_it->value, std::prev(action_it)->type == ActionType::DIAGONAL);
+        const CurveParameters& curve_parameters = this->get_curve_parameters(
+            action_it->value, std::prev(action_it)->type == std::to_underlying(ActionType::DIAGONAL)
+        );
 
         const MoveAction::Config move_config = {
             .start_speed = start_speed,
@@ -169,7 +183,7 @@ void ActionQueuer::recompute(const std::list<GridPoint>& best_route, bool add_st
         this->action_queue.emplace_back(
             std::make_shared<MoveAction>(
                 std::prev(action_it)->type, std::prev(action_it)->value, move_config,
-                std::prev(action_it)->type != ActionType::DIAGONAL
+                std::prev(action_it)->type != std::to_underlying(ActionType::DIAGONAL)
             )
         );
 
@@ -191,13 +205,15 @@ void ActionQueuer::recompute(const std::list<GridPoint>& best_route, bool add_st
         .max_deceleration = this->solving_params.max_linear_deceleration
     };
 
-    if (actions.back().type == ActionType::MOVE_FORWARD) {
+    if (actions.back().type == std::to_underlying(ActionType::MOVE_FORWARD)) {
         this->action_queue.emplace_back(
-            std::make_shared<MoveAction>(ActionType::STOP, actions.back().value + this->cell_size / 2.0F, stop_config)
+            std::make_shared<MoveAction>(
+                std::to_underlying(ActionType::STOP), actions.back().value + this->cell_size / 2.0F, stop_config
+            )
         );
     } else {
         this->action_queue.emplace_back(
-            std::make_shared<MoveAction>(ActionType::STOP, this->cell_size / 2.0F, stop_config)
+            std::make_shared<MoveAction>(std::to_underlying(ActionType::STOP), this->cell_size / 2.0F, stop_config)
         );
     }
 }
@@ -215,25 +231,26 @@ float ActionQueuer::get_total_time() const {
 Action::Id ActionQueuer::get_action(const GridPose& origin_pose, const GridPoint& target_point, float cell_size) {
     if (origin_pose.front().position == target_point) {
         const float distance = origin_pose.position.to_vector(cell_size).distance(target_point.to_vector(cell_size));
-        return {ActionType::MOVE_FORWARD, distance};
+        return {.type = std::to_underlying(ActionType::MOVE_FORWARD), .value = distance};
     }
 
     if (origin_pose.turned_left().front().position == target_point) {
-        return {ActionType::TURN, std::numbers::pi_v<float> / 2.0F};
+        return {.type = std::to_underlying(ActionType::TURN), .value = std::numbers::pi_v<float> / 2.0F};
     }
 
     if (origin_pose.turned_right().front().position == target_point) {
-        return {ActionType::TURN, -std::numbers::pi_v<float> / 2.0F};
+        return {.type = std::to_underlying(ActionType::TURN), .value = -std::numbers::pi_v<float> / 2.0F};
     }
 
-    return {ActionType::STOP, cell_size / 2.0F};
+    return {.type = std::to_underlying(ActionType::STOP), .value = cell_size / 2.0F};
 }
 
 void ActionQueuer::add_diagonals(std::list<Action::Id>& actions) const {
     for (auto action_it = actions.begin(); std::next(action_it) != actions.end(); action_it++) {
         uint8_t diagonal_count = 1;
 
-        while (action_it->type == ActionType::TURN and std::next(action_it)->type == ActionType::TURN and
+        while (action_it->type == std::to_underlying(ActionType::TURN) and
+               std::next(action_it)->type == std::to_underlying(ActionType::TURN) and
                std::abs(action_it->value) == std::numbers::pi_v<float> / 2.0F and
                action_it->value == -std::next(action_it)->value) {
             diagonal_count++;
@@ -247,7 +264,10 @@ void ActionQueuer::add_diagonals(std::list<Action::Id>& actions) const {
         action_it->value /= 2.0F;
         const float first_angle = diagonal_count % 2 == 0 ? -action_it->value : action_it->value;
         const float diagonal_distance = diagonal_count * this->cell_size * std::numbers::sqrt2_v<float> / 2.0F;
-        actions.insert(action_it, {{ActionType::TURN, first_angle}, {ActionType::DIAGONAL, diagonal_distance}});
+        actions.insert(
+            action_it, {{.type = std::to_underlying(ActionType::TURN), .value = first_angle},
+                        {.type = std::to_underlying(ActionType::DIAGONAL), .value = diagonal_distance}}
+        );
     }
 }
 
@@ -260,7 +280,7 @@ void ActionQueuer::join_actions(std::list<Action::Id>& actions) {
             continue;
         }
 
-        if (action_it->type != ActionType::TURN) {
+        if (action_it->type != std::to_underlying(ActionType::TURN)) {
             action_it++;
             continue;
         }
@@ -277,7 +297,7 @@ std::pair<float, float>
     ActionQueuer::get_trim_distances(const Action::Id& action_before, const Action::Id& turn_action) {
     const float            turn_angle = std::abs(turn_action.value);
     const CurveParameters& curve_parameters =
-        this->get_curve_parameters(turn_angle, action_before.type == ActionType::DIAGONAL);
+        this->get_curve_parameters(turn_angle, action_before.type == std::to_underlying(ActionType::DIAGONAL));
 
     if (turn_angle == std::numbers::pi_v<float> / 4.0F) {
         const float trim_before_distance = curve_parameters.forward_displacement - curve_parameters.side_displacement;
@@ -290,7 +310,7 @@ std::pair<float, float>
         float trim_before_distance = curve_parameters.forward_displacement;
         float trim_after_distance = curve_parameters.side_displacement;
 
-        if (action_before.type != ActionType::DIAGONAL) {
+        if (action_before.type != std::to_underlying(ActionType::DIAGONAL)) {
             trim_before_distance -= this->cell_size / 2.0F;
             trim_after_distance -= this->cell_size / 2.0F;
         }
@@ -302,7 +322,7 @@ std::pair<float, float>
         float trim_before_distance = curve_parameters.forward_displacement + curve_parameters.side_displacement;
         float trim_after_distance = std::numbers::sqrt2_v<float> * curve_parameters.side_displacement;
 
-        if (action_before.type == ActionType::DIAGONAL) {
+        if (action_before.type == std::to_underlying(ActionType::DIAGONAL)) {
             trim_before_distance -= this->cell_size * std::numbers::sqrt2_v<float> / 2.0F;
             trim_after_distance -= this->cell_size;
         } else {
@@ -326,19 +346,19 @@ ActionQueuer::CurveParameters& ActionQueuer::get_curve_parameters(float angle, b
     const float turn_angle = std::abs(angle);
 
     if (turn_angle == std::numbers::pi_v<float> / 4.0F) {
-        return this->curves_parameters[CurveType::REGULAR_45];
+        return std::get<std::to_underlying(CurveType::REGULAR_45)>(this->curves_parameters);
     }
 
     if (turn_angle == std::numbers::pi_v<float> / 2.0F) {
-        return is_diagonal ? this->curves_parameters[CurveType::DIAGONAL_90] :
-                             this->curves_parameters[CurveType::REGULAR_90];
+        return is_diagonal ? std::get<std::to_underlying(CurveType::DIAGONAL_90)>(this->curves_parameters) :
+                             std::get<std::to_underlying(CurveType::REGULAR_90)>(this->curves_parameters);
     }
 
     if (turn_angle == 3.0F * std::numbers::pi_v<float> / 4.0F) {
-        return this->curves_parameters[CurveType::REGULAR_135];
+        return std::get<std::to_underlying(CurveType::REGULAR_135)>(this->curves_parameters);
     }
 
-    return this->curves_parameters[CurveType::REGULAR_180];
+    return std::get<std::to_underlying(CurveType::REGULAR_180)>(this->curves_parameters);
 }
 
 void ActionQueuer::compute_curve_parameters(float angle, bool is_diagonal) {

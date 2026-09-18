@@ -4,6 +4,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <utility>
 #include "micras/interface.hpp"
 #include "micras/proxy/argb.hpp"
 #include "micras/proxy/button.hpp"
@@ -58,12 +59,12 @@ void Interface::update() {
 }
 
 void Interface::send_event(Event event) {
-    this->events.at(event) = true;
+    this->events.at(std::to_underlying(event)) = true;
 }
 
 bool Interface::acknowledge_event(Event event) {
-    if (this->events.at(event)) {
-        this->events.at(event) = false;
+    if (this->events.at(std::to_underlying(event))) {
+        this->events.at(std::to_underlying(event)) = false;
         return true;
     }
 
@@ -71,6 +72,6 @@ bool Interface::acknowledge_event(Event event) {
 }
 
 bool Interface::peek_event(Event event) const {
-    return this->events.at(event);
+    return this->events.at(std::to_underlying(event));
 }
 }  // namespace micras

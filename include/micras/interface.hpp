@@ -6,6 +6,7 @@
 #define MICRAS_INTERFACE_HPP
 
 #include <memory>
+#include <utility>
 
 #include "micras/proxy/argb.hpp"
 #include "micras/proxy/button.hpp"
@@ -22,7 +23,7 @@ public:
     /**
      * @brief Enum for the events that can be sent to the interface.
      */
-    enum Event : uint8_t {
+    enum class Event : uint8_t {
         EXPLORE = 0,
         SOLVE = 1,
         CALIBRATE = 2,
@@ -85,7 +86,7 @@ private:
     /**
      * @brief Enum for what each dip switch pin does.
      */
-    enum DipSwitchPins : uint8_t {
+    enum class DipSwitchPins : uint8_t {
         FAN = 0,
         DIAGONAL = 1,
         BOOST = 2,
@@ -120,7 +121,7 @@ private:
     /**
      * @brief Array of the listed events.
      */
-    std::array<bool, Event::NUMBER_OF_EVENTS> events{};
+    std::array<bool, std::to_underlying(Event::NUMBER_OF_EVENTS)> events{};
 
     /**
      * @brief Array to store the last dip switch states.

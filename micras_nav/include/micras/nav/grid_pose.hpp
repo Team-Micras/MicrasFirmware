@@ -5,8 +5,10 @@
 #ifndef MICRAS_NAV_GRID_POSE_HPP
 #define MICRAS_NAV_GRID_POSE_HPP
 
+#include <array>
 #include <cstdint>
 #include <functional>
+#include <utility>
 
 #include "micras/core/vector.hpp"
 
@@ -14,12 +16,17 @@ namespace micras::nav {
 /**
  * @brief Possible sides in the grid.
  */
-enum Side : uint8_t {
+enum class Side : uint8_t {
     RIGHT = 0,
     UP = 1,
     LEFT = 2,
     DOWN = 3
 };
+
+/**
+ * @brief All the sides in the grid, in order, for iteration.
+ */
+constexpr std::array<Side, 4> all_sides{Side::RIGHT, Side::UP, Side::LEFT, Side::DOWN};
 
 /**
  * @brief Convert an angle in radians to a Grid side.
@@ -166,7 +173,7 @@ template <>
 struct hash<micras::nav::GridPose> {
     size_t operator()(const micras::nav::GridPose& pose) const noexcept {
         const size_t h1 = hash<micras::nav::GridPoint>{}(pose.position);
-        const size_t h2 = hash<uint8_t>{}(pose.orientation);
+        const size_t h2 = hash<uint8_t>{}(std::to_underlying(pose.orientation));
         return h1 ^ (h2 << 1);
     }
 };

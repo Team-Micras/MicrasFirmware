@@ -23,7 +23,7 @@
 
 namespace micras::nav {
 template <uint8_t width, uint8_t height>
-TMaze<width, height>::TMaze(Config config) :
+TMaze<width, height>::TMaze(const Config& config) :
     action_queuer(config.action_queuer_config),
     start{config.start},
     goal{config.goal},
@@ -49,15 +49,15 @@ TMaze<width, height>::TMaze(Config config) :
     }
 
     for (const auto& position : this->goal) {
-        this->costmap.update_cost(position, Layer::EXPLORE, 0);
+        this->costmap.update_cost(position, std::to_underlying(Layer::EXPLORE), 0);
     }
 
     for (const auto& position : this->goal) {
-        this->costmap.compute(position, Layer::EXPLORE);
+        this->costmap.compute(position, std::to_underlying(Layer::EXPLORE));
     }
 
-    this->costmap.update_cost(this->start.position, Layer::RETURN, 0);
-    this->costmap.compute(this->start.position, Layer::RETURN);
+    this->costmap.update_cost(this->start.position, std::to_underlying(Layer::RETURN), 0);
+    this->costmap.compute(this->start.position, std::to_underlying(Layer::RETURN));
 }
 
 template <uint8_t width, uint8_t height>
@@ -114,7 +114,10 @@ GridPose TMaze<width, height>::get_next_goal(const GridPose& pose, bool returnin
         GridPoint     front_position = pose.position + side;
         const int16_t flip_cost = pose.turned_back().orientation == side ? 1 : 0;
         const int16_t front_cost =
-            this->costmap.get_cost(front_position, returning ? Layer::RETURN : Layer::EXPLORE) + flip_cost;
+            this->costmap.get_cost(
+                front_position, returning ? std::to_underlying(Layer::RETURN) : std::to_underlying(Layer::EXPLORE)
+            ) +
+            flip_cost;
 
         if (front_cost < current_cost) {
             current_cost = front_cost;
@@ -167,9 +170,7 @@ void TMaze<width, height>::recursive_backtracking(
         return;
     }
 
-    for (uint8_t i = Side::RIGHT; i <= Side::DOWN; i++) {
-        Side side = static_cast<Side>(i);
-
+    for (const Side side : all_sides) {
         if (this->costmap.has_wall({position, side}, true)) {
             continue;
         }
@@ -227,7 +228,7 @@ void TMaze<width, height>::deserialize(const uint8_t* buffer, uint16_t size) {
     for (uint32_t i = 0; i < size; i += 2) {
         this->best_route.emplace_back(
             // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-            GridPoint{buffer[i], buffer[i + 1]}
+            GridPoint{.x = buffer[i], .y = buffer[i + 1]}
         );
     }
 }
@@ -235,11 +236,11 @@ void TMaze<width, height>::deserialize(const uint8_t* buffer, uint16_t size) {
 template <uint8_t width, uint8_t height>
 void TMaze<width, height>::update_cell(const GridPoint& position) {
     if (not this->goal.contains(position)) {
-        this->costmap.recompute(position, Layer::EXPLORE);
+        this->costmap.recompute(position, std::to_underlying(Layer::EXPLORE));
     }
 
     if (position != this->start.position) {
-        this->costmap.recompute(position, Layer::RETURN);
+        this->costmap.recompute(position, std::to_underlying(Layer::RETURN));
     }
 
     GridPoint dead_end_position = position;
@@ -294,9 +295,7 @@ std::pair<GridPose, uint16_t> TMaze<width, height>::get_next_bfs_goal(const Grid
             break;
         }
 
-        for (uint8_t i = Side::RIGHT; i <= Side::DOWN; i++) {
-            Side side = static_cast<Side>(i);
-
+        for (const Side side : all_sides) {
             if (this->costmap.has_wall({current_pose.position, side})) {
                 continue;
             }
@@ -322,12 +321,14 @@ float TMaze<width, height>::get_route_time(const std::list<GridPoint>& route) {
 }
 
 template <uint8_t width, uint8_t height>
-bool TMaze<width, height>::is_dead_end(const Costmap<width, height, Layer::NUM_OF_LAYERS>::Cell& cell) {
+bool TMaze<width, height>::is_dead_end(
+    const Costmap<width, height, std::to_underlying(Layer::NUM_OF_LAYERS)>::Cell& cell
+) {
     uint8_t wall_count = 0;
 
     for (const auto& wall : cell.walls) {
-        if (wall == Costmap<width, height, Layer::NUM_OF_LAYERS>::WallState::WALL or
-            wall == Costmap<width, height, Layer::NUM_OF_LAYERS>::WallState::VIRTUAL) {
+        if (wall == Costmap<width, height, std::to_underlying(Layer::NUM_OF_LAYERS)>::WallState::WALL or
+            wall == Costmap<width, height, std::to_underlying(Layer::NUM_OF_LAYERS)>::WallState::VIRTUAL) {
             wall_count++;
         }
     }
@@ -336,20 +337,28 @@ bool TMaze<width, height>::is_dead_end(const Costmap<width, height, Layer::NUM_O
 }
 
 template <uint8_t width, uint8_t height>
-bool TMaze<width, height>::was_visited(const Costmap<width, height, Layer::NUM_OF_LAYERS>::Cell& cell) {
+bool TMaze<width, height>::was_visited(
+    const Costmap<width, height, std::to_underlying(Layer::NUM_OF_LAYERS)>::Cell& cell
+) {
     return not(
-        cell.walls[Side::UP] == Costmap<width, height, Layer::NUM_OF_LAYERS>::WallState::UNKNOWN or
-        cell.walls[Side::DOWN] == Costmap<width, height, Layer::NUM_OF_LAYERS>::WallState::UNKNOWN or
-        cell.walls[Side::LEFT] == Costmap<width, height, Layer::NUM_OF_LAYERS>::WallState::UNKNOWN or
-        cell.walls[Side::RIGHT] == Costmap<width, height, Layer::NUM_OF_LAYERS>::WallState::UNKNOWN
+        cell.walls[std::to_underlying(Side::UP)] ==
+            Costmap<width, height, std::to_underlying(Layer::NUM_OF_LAYERS)>::WallState::UNKNOWN or
+        cell.walls[std::to_underlying(Side::DOWN)] ==
+            Costmap<width, height, std::to_underlying(Layer::NUM_OF_LAYERS)>::WallState::UNKNOWN or
+        cell.walls[std::to_underlying(Side::LEFT)] ==
+            Costmap<width, height, std::to_underlying(Layer::NUM_OF_LAYERS)>::WallState::UNKNOWN or
+        cell.walls[std::to_underlying(Side::RIGHT)] ==
+            Costmap<width, height, std::to_underlying(Layer::NUM_OF_LAYERS)>::WallState::UNKNOWN
     );
 }
 
 template <uint8_t width, uint8_t height>
 bool TMaze<width, height>::must_visit(
-    const Costmap<width, height, Layer::NUM_OF_LAYERS>::Cell& cell, int16_t cost_threshold
+    const Costmap<width, height, std::to_underlying(Layer::NUM_OF_LAYERS)>::Cell& cell, int16_t cost_threshold
 ) {
-    return not was_visited(cell) and (cell.costs[Layer::EXPLORE] + cell.costs[Layer::RETURN] <= cost_threshold);
+    return not was_visited(cell) and
+           (cell.costs[std::to_underlying(Layer::EXPLORE)] + cell.costs[std::to_underlying(Layer::RETURN)] <=
+            cost_threshold);
 }
 }  // namespace micras::nav
 

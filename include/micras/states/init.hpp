@@ -5,6 +5,8 @@
 #ifndef INIT_STATE_HPP
 #define INIT_STATE_HPP
 
+#include <utility>
+
 #include "micras/states/base.hpp"
 
 namespace micras {
@@ -19,10 +21,10 @@ public:
      */
     uint8_t execute() override {
         if (not this->micras.check_initialization()) {
-            return Micras::State::ERROR;
+            return std::to_underlying(Micras::State::ERROR);
         }
 
-        return Micras::State::IDLE;
+        return std::to_underlying(Micras::State::IDLE);
     }
 };
 }  // namespace micras

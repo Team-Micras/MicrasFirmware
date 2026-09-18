@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <list>
 #include <unordered_set>
+#include <utility>
 
 #include "micras/core/serializable.hpp"
 #include "micras/core/types.hpp"
@@ -40,7 +41,7 @@ public:
      *
      * @param config The configuration for the maze.
      */
-    explicit TMaze(Config config);
+    explicit TMaze(const Config& config);
 
     /**
      * @brief Update the maze walls with the current pose and new information.
@@ -99,7 +100,7 @@ private:
     /**
      * @brief The layers of the costmap.
      */
-    enum Layer : uint8_t {
+    enum class Layer : uint8_t {
         EXPLORE = 0,
         RETURN = 1,
         NUM_OF_LAYERS = 2,
@@ -140,7 +141,7 @@ private:
      * @param cell The cell to check.
      * @return True if the cell is a dead end, false otherwise.
      */
-    static bool is_dead_end(const Costmap<width, height, Layer::NUM_OF_LAYERS>::Cell& cell);
+    static bool is_dead_end(const Costmap<width, height, std::to_underlying(Layer::NUM_OF_LAYERS)>::Cell& cell);
 
     /**
      * @brief Check if the cell was visited.
@@ -148,7 +149,7 @@ private:
      * @param cell The cell to check.
      * @return True if the cell was visited, false otherwise.
      */
-    static bool was_visited(const Costmap<width, height, Layer::NUM_OF_LAYERS>::Cell& cell);
+    static bool was_visited(const Costmap<width, height, std::to_underlying(Layer::NUM_OF_LAYERS)>::Cell& cell);
 
     /**
      * @brief Check if the cell must be visited.
@@ -157,12 +158,14 @@ private:
      * @param cost_threshold The cost threshold for the cell.
      * @return True if the cell must be visited, false otherwise.
      */
-    static bool must_visit(const Costmap<width, height, Layer::NUM_OF_LAYERS>::Cell& cell, int16_t cost_threshold);
+    static bool must_visit(
+        const Costmap<width, height, std::to_underlying(Layer::NUM_OF_LAYERS)>::Cell& cell, int16_t cost_threshold
+    );
 
     /**
      * @brief Layered costmap for the maze.
      */
-    Costmap<width, height, Layer::NUM_OF_LAYERS> costmap;
+    Costmap<width, height, std::to_underlying(Layer::NUM_OF_LAYERS)> costmap;
 
     ActionQueuer action_queuer;
 

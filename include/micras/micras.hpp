@@ -5,6 +5,8 @@
 #ifndef MICRAS_HPP
 #define MICRAS_HPP
 
+#include <utility>
+
 #include "constants.hpp"
 #include "micras/core/fsm.hpp"
 #include "micras/interface.hpp"
@@ -19,7 +21,7 @@ public:
     /**
      * @brief Enum for the current status of the robot.
      */
-    enum State : uint8_t {
+    enum class State : uint8_t {
         INIT = 0,                // Initialization of the robot.
         IDLE = 1,                // Waiting for the user to start the robot.
         WAIT_FOR_RUN = 2,        // Timer for entering the RUN state.
@@ -195,7 +197,7 @@ private:
     /**
      * @brief Finite state machine for the robot.
      */
-    core::Fsm fsm{State::INIT};
+    core::Fsm fsm{std::to_underlying(State::INIT)};
 
     /**
      * @brief Class for controlling the interface with the external world.

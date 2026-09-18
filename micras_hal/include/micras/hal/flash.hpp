@@ -82,7 +82,7 @@ public:
     /**
      * @brief Enum for the status of a flash memory operation.
      */
-    enum Status : uint8_t {
+    enum class Status : uint8_t {
         OK = 0,
         MISALIGNED = 1,
         OUT_OF_BOUNDS = 2,

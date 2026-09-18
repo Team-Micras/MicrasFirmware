@@ -8,6 +8,7 @@
 #include <deque>
 #include <list>
 #include <memory>
+#include <utility>
 
 #include "micras/nav/actions/move.hpp"
 #include "micras/nav/actions/turn.hpp"
@@ -21,7 +22,7 @@ public:
     /**
      * @brief Enum for the exploration action types.
      */
-    enum ActionType : uint8_t {
+    enum class ActionType : uint8_t {
         STOP = 0,
         START = 1,
         MOVE_FORWARD = 2,
@@ -115,7 +116,7 @@ private:
     /**
      * @brief Enum for the types of curves.
      */
-    enum CurveType : uint8_t {
+    enum class CurveType : uint8_t {
         REGULAR_45 = 0,
         REGULAR_90 = 1,
         DIAGONAL_90 = 2,
@@ -198,7 +199,7 @@ private:
     /**
      * @brief Pre-computed curve parameters for different angles.
      */
-    std::array<CurveParameters, NUMBER_OF_CURVES> curves_parameters{};
+    std::array<CurveParameters, std::to_underlying(CurveType::NUMBER_OF_CURVES)> curves_parameters{};
 
     /**
      * @brief Pre-built actions to use in the exploration.

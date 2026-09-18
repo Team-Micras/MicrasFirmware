@@ -5,6 +5,8 @@
 #ifndef CALIBRATE_STATE_HPP
 #define CALIBRATE_STATE_HPP
 
+#include <utility>
+
 #include "micras/states/base.hpp"
 
 namespace micras {
@@ -24,10 +26,10 @@ public:
      */
     uint8_t execute() override {
         if (this->micras.calibrate()) {
-            return Micras::State::IDLE;
+            return std::to_underlying(Micras::State::IDLE);
         }
 
-        return Micras::State::WAIT_FOR_CALIBRATE;
+        return std::to_underlying(Micras::State::WAIT_FOR_CALIBRATE);
     }
 };
 }  // namespace micras
