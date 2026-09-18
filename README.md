@@ -62,12 +62,6 @@ To build the project, it is first necessary to install some dependencies:
 sudo apt install cmake make gcc-arm-none-eabi
 ```
 
-Then, initialize the library submodules:
-
-```bash
-git submodule update --init --recursive
-```
-
 The [STM32CubeMX](https://www.st.com/en/development-tools/stm32cubemx.html) program is also required. After the installation is completed, it is necessary to set the `CUBE_CMD` environment variable to the path of the STM32CubeMX executable or add it to the `PATH`.
 
 Start the build process by creating a build folder inside the project root:
