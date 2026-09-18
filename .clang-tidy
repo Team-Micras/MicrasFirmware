@@ -2,11 +2,7 @@
 # llvm-include-order enforces LLVM's own ordering, which contradicts the project's
 # .clang-format rules; clang-format is the single authority on include order here.
 #
-# The last six entries are suspended pending review/stage-1-decisions-round-3.md R3-02.
-# cppcoreguidelines-use-enum-class (43 sites) is an API change; the other three produce
-# fixes that do not compile on this codebase, so they need to be applied by hand.
-#
-# The group before them disables checks for constructs this project cannot contain. They match
+# The trailing group disables checks for constructs this project cannot contain. They match
 # nothing, so they only cost time scanning the standard library and the Cube headers:
 #   string_view, coroutines, Objective-C, GoogleTest, the LLVM internal APIs, std::bind,
 #   iostreams, std::auto_ptr and std::random_shuffle (both removed in C++17), and printf.
@@ -51,12 +47,6 @@ Checks:
   -modernize-replace-random-shuffle,
   -modernize-use-std-print,
   -clang-analyzer-core.FixedAddressDereference,
-  -cppcoreguidelines-use-enum-class,
-  -modernize-use-designated-initializers,
-  -cppcoreguidelines-use-default-member-init,
-  -modernize-use-default-member-init,
-  -performance-unnecessary-value-param,
-  -cppcoreguidelines-pro-bounds-avoid-unchecked-container-access,
 HeaderFileExtensions:
   - ''
   - h
