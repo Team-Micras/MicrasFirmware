@@ -68,7 +68,7 @@ constexpr T transition(T value, T start, T end, T resistance) {
 template <typename T, size_t N, typename C>
 constexpr std::array<T, N> make_array(const std::array<C, N>& parameters) {
     return [&]<std::size_t... I>(std::index_sequence<I...>) -> std::array<T, N> {
-        return {T{parameters[I]}...};
+        return {T{std::get<I>(parameters)}...};
     }(std::make_index_sequence<N>());
 }
 

@@ -62,33 +62,33 @@ void Imu::update() {
 
     if (all_sources.drdy_xl) {
         lsm6dsv_acceleration_raw_get(&dev_ctx, raw_data.data());
-        this->linear_acceleration[0] = raw_data[0] * xl_factor;
-        this->linear_acceleration[1] = raw_data[1] * xl_factor;
-        this->linear_acceleration[2] = raw_data[2] * xl_factor;
+        std::get<0>(this->linear_acceleration) = std::get<0>(raw_data) * xl_factor;
+        std::get<1>(this->linear_acceleration) = std::get<1>(raw_data) * xl_factor;
+        std::get<2>(this->linear_acceleration) = std::get<2>(raw_data) * xl_factor;
     }
 
     if (all_sources.drdy_gy) {
         lsm6dsv_angular_rate_raw_get(&dev_ctx, raw_data.data());
-        this->angular_velocity[0] = raw_data[0] * gy_factor;
-        this->angular_velocity[1] = raw_data[1] * gy_factor;
-        this->angular_velocity[2] = raw_data[2] * gy_factor;
+        std::get<0>(this->angular_velocity) = std::get<0>(raw_data) * gy_factor;
+        std::get<1>(this->angular_velocity) = std::get<1>(raw_data) * gy_factor;
+        std::get<2>(this->angular_velocity) = std::get<2>(raw_data) * gy_factor;
     }
 
     if (not this->calibrated) {
-        this->calibration_filter.update(this->angular_velocity[2]);
+        this->calibration_filter.update(std::get<2>(this->angular_velocity));
     }
 }
 
 float Imu::get_angular_velocity(Axis axis) const {
     switch (axis) {
         case Axis::X:
-            return this->angular_velocity[0];
+            return std::get<0>(this->angular_velocity);
 
         case Axis::Y:
-            return this->angular_velocity[1];
+            return std::get<1>(this->angular_velocity);
 
         case Axis::Z:
-            return this->angular_velocity[2] - this->calibration_filter.get_last();
+            return std::get<2>(this->angular_velocity) - this->calibration_filter.get_last();
 
         default:
             return 0.0F;
@@ -98,13 +98,13 @@ float Imu::get_angular_velocity(Axis axis) const {
 float Imu::get_linear_acceleration(Axis axis) const {
     switch (axis) {
         case Axis::X:
-            return this->linear_acceleration[0];
+            return std::get<0>(this->linear_acceleration);
 
         case Axis::Y:
-            return this->linear_acceleration[1];
+            return std::get<1>(this->linear_acceleration);
 
         case Axis::Z:
-            return this->linear_acceleration[2];
+            return std::get<2>(this->linear_acceleration);
 
         default:
             return 0.0F;

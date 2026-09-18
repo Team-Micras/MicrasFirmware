@@ -2,6 +2,7 @@
  * @file
  */
 
+#include <array>
 #include <cmath>
 #include <cstdint>
 #include <numbers>
@@ -22,18 +23,18 @@ ButterworthFilter::ButterworthFilter(float cutoff_frequency, float sampling_freq
     const float a1 = 2 - 8 / relative_frequency_2;
     const float a2 = 1 - 2 * std::numbers::sqrt2_v<float> / relative_frequency + 4 / relative_frequency_2;
 
-    this->a_array[0] = a2 / a0;
-    this->a_array[1] = a1 / a0;
+    std::get<0>(this->a_array) = a2 / a0;
+    std::get<1>(this->a_array) = a1 / a0;
 
-    this->b_array[0] = b2 / a0;
-    this->b_array[1] = b1 / a0;
-    this->b_array[2] = b0 / a0;
+    std::get<0>(this->b_array) = b2 / a0;
+    std::get<1>(this->b_array) = b1 / a0;
+    std::get<2>(this->b_array) = b0 / a0;
 }
 
 float ButterworthFilter::update(float x0) {
-    this->x_array[0] = this->x_array[1];
-    this->x_array[1] = this->x_array[2];
-    this->x_array[2] = x0;
+    std::get<0>(this->x_array) = std::get<1>(this->x_array);
+    std::get<1>(this->x_array) = std::get<2>(this->x_array);
+    std::get<2>(this->x_array) = x0;
 
     float x_b_dot = 0;
 
@@ -49,13 +50,13 @@ float ButterworthFilter::update(float x0) {
 
     const float y0 = x_b_dot - y_a_dot;
 
-    this->y_array[0] = this->y_array[1];
-    this->y_array[1] = y0;
+    std::get<0>(this->y_array) = std::get<1>(this->y_array);
+    std::get<1>(this->y_array) = y0;
 
     return y0;
 }
 
 float ButterworthFilter::get_last() const {
-    return this->y_array[1];
+    return std::get<1>(this->y_array);
 }
 }  // namespace micras::core
