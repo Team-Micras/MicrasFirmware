@@ -3,10 +3,12 @@
 ARG CUBEMX_IMAGE=thunderatz/stm32cubemx:6.18.1-h7
 
 ARG TOOLCHAIN_PACKAGES="\
+    ca-certificates \
     clang-format \
     clang-tidy \
     cmake \
     gcc-arm-none-eabi \
+    git \
     libnewlib-arm-none-eabi \
     libstdc++-arm-none-eabi-newlib \
     make"
