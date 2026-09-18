@@ -62,6 +62,7 @@ project(${CMAKE_PROJECT_NAME} C CXX ASM)
 include(cmake/utilities.cmake)
 include(cmake/warnings.cmake)
 include(cmake/targets.cmake)
+include(cmake/docs.cmake)
 
 # Workaround for the STM32CubeMX CMake generator writing into ${CMAKE_PROJECT_NAME}
 # instead of a target of its own (present since 6.14, still present in 6.18.1)

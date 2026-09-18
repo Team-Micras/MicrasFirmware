@@ -58,12 +58,6 @@ add_custom_target(rebuild_all
     COMMAND ${CMAKE_MAKE_PROGRAM}
 )
 
-add_custom_target(docs
-    COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR} && doxygen Doxyfile
-    COMMAND yes Q | make -C ${CMAKE_CURRENT_SOURCE_DIR}/docs/latex || true
-    COMMAND mv ${CMAKE_CURRENT_SOURCE_DIR}/docs/latex/refman.pdf ${CMAKE_CURRENT_SOURCE_DIR}/docs/
-    COMMAND rm -rf ${CMAKE_CURRENT_SOURCE_DIR}/docs/latex
-)
 
 function(generate_test_all_target)
     foreach(FILE ${ARGV})
