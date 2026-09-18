@@ -54,10 +54,7 @@ else()
         set(CUBE_CMD "${CUBE_DEFAULT_PATH}/${CUBE_PROGRAM}")
 
         if(NOT EXISTS ${CUBE_CMD})
-            message(FATAL_ERROR
-                "STM32CubeMX program not found at expected path: ${CUBE_CMD}\n"
-                "Define the CUBE_CMD environment variable or add the binary folder to the PATH"
-            )
+            message(STATUS "STM32CubeMX not found at ${CUBE_CMD}, cube files can't be generated")
         endif()
     endif()
 endif()
@@ -119,6 +116,13 @@ file(GLOB_RECURSE CUBE_SOURCES_CHECK "${CMAKE_CURRENT_SOURCE_DIR}/cube/**/*.c")
 list(LENGTH CUBE_SOURCES_CHECK CUBE_LENGTH)
 
 if(CUBE_LENGTH EQUAL 0)
+    if(NOT EXISTS ${CUBE_CMD})
+        message(FATAL_ERROR
+            "Cube directory is empty and STM32CubeMX program was not found at: ${CUBE_CMD}\n"
+            "Define the CUBE_CMD environment variable or add the binary folder to the PATH"
+        )
+    endif()
+
     message(STATUS "Cube directory is empty. Generating cube files...")
     file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/cube_script.txt"
         "config load ${CUBE_SOURCE_DIR}/${PROJECT_RELEASE}.ioc\n"

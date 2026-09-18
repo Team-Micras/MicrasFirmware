@@ -1,9 +1,4 @@
 services:
-  base:
-    build:
-      dockerfile: .docker/Dockerfile
-      target: base
-
   build:
     command: make -C build --no-print-directory -j
     build:
@@ -17,7 +12,7 @@ services:
       target: build
 
   check-format:
-    command: /project/.docker/scripts/check_format.sh
+    command: make -C build --no-print-directory format_check
     build:
       dockerfile: .docker/Dockerfile
       target: build
@@ -26,7 +21,7 @@ services:
     command: bash
     build:
       dockerfile: .docker/Dockerfile
-      target: base
+      target: dev
     privileged: True
     environment:
       - DISPLAY=${DISPLAY}

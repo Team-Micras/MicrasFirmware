@@ -6,13 +6,15 @@ add_custom_target(helpme
     COMMAND cat ${CMAKE_CURRENT_BINARY_DIR}/helpme
 )
 
+# Written at configure time, since echo in a shell command strips the backslashes of the WSL path
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/cube_script.txt"
+    "config load ${CUBE_SOURCE_DIR}/${PROJECT_RELEASE}.ioc\n"
+    "project generate\n"
+    "exit\n"
+)
+
 add_custom_target(cube
     COMMAND echo "Generating cube files..."
-
-    COMMAND echo "config load ${CUBE_SOURCE_DIR}/${PROJECT_RELEASE}.ioc" > ${CMAKE_CURRENT_BINARY_DIR}/cube_script.txt
-    COMMAND echo "project generate" >> ${CMAKE_CURRENT_BINARY_DIR}/cube_script.txt
-    COMMAND echo "exit" >> ${CMAKE_CURRENT_BINARY_DIR}/cube_script.txt
-
     COMMAND ${CUBE_CMD} -q ${CMAKE_CURRENT_BINARY_DIR}/cube_script.txt
 )
 
@@ -81,6 +83,10 @@ function(generate_format_target)
 
     add_custom_target(format
         COMMAND clang-format -style=file -i ${FILES_LIST} --verbose
+    )
+
+    add_custom_target(format_check
+        COMMAND clang-format -style=file --dry-run --Werror ${FILES_LIST}
     )
 endfunction()
 
@@ -162,10 +168,10 @@ function(generate_debug_target TARGET)
     endif()
 
     set(DEBUG_FILE_NAME ${TARGET})
-    configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/launch.json.in
-        ${CMAKE_CURRENT_BINARY_DIR}/vsfiles/.vsfiles${TARGET_SUFFIX}
-    )
+
+    set(input_file "${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/launch.json.in")
+    set(output_save_file "${CMAKE_CURRENT_BINARY_DIR}/vsfiles/.vsfiles${TARGET_SUFFIX}")
+    configure_file(${input_file} ${output_save_file})
 
     add_custom_target(debug${TARGET_SUFFIX}
         COMMAND echo "Configuring VS Code files for ${TARGET}"

@@ -58,6 +58,20 @@ public:
     core::Observation get_observation() const;
 
     /**
+     * @brief Check if the robot is currently following the left wall.
+     *
+     * @return True if following the left wall, false otherwise.
+     */
+    bool get_is_following_left() const;
+
+    /**
+     * @brief Check if the robot is currently following the right wall.
+     *
+     * @return True if following the right wall, false otherwise.
+     */
+    bool get_is_following_right() const;
+
+    /**
      * @brief Reset the PID controller and the relative pose.
      */
     void reset();

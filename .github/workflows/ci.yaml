@@ -3,67 +3,87 @@ name: Build lint and check formatting
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
-    branches:
-      - main
+    branches: [main]
   push:
-    branches:
-      - main
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build:
+  check:
+    name: 🗃️ Check if already verified
     runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
+    outputs:
+      verified: ${{ steps.cache.outputs.cache-hit }}
+      key: ${{ steps.cache.outputs.cache-primary-key }}
     steps:
       - name: 🔀 Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           submodules: recursive
 
-      - name: 🗃️ Check cache
+      - name: 🗃️ Look up verified sources
         id: cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
-            path: .docker/Dockerfile
-            key: ${{ hashFiles('.github/*', 'cmake/*', '**/*.cpp', '**/*.hpp', '**/*.ioc', '.clang*', 'CMakeLists.txt', '.docker/*') }}
-            lookup-only: true
+          path: .docker/Dockerfile
+          key: verified-${{ hashFiles('.github/workflows/**', '.docker/**', 'cmake/**', 'CMakeLists.txt', '.clang-*', 'cube/*.ioc', 'config/**', 'include/**', 'src/**', 'tests/**', 'micras_*/**') }}
+          lookup-only: true
 
-      - name: 🔧 Set up Docker Buildx
-        if: steps.cache.outputs.cache-hit != 'true'
-        uses: docker/setup-buildx-action@v3
+  build:
+    name: 🔨 Build lint and check formatting
+    runs-on: ubuntu-latest
+    needs: check
+    if: needs.check.outputs.verified != 'true'
+    timeout-minutes: 30
+    steps:
+      - name: 🔀 Checkout
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - name: 🗃️ Restore generated cube files
+        id: cube
+        uses: actions/cache/restore@v6
+        with:
+          path: cube
+          key: cube-${{ hashFiles('cube/*.ioc', '.docker/Dockerfile') }}
+
+      - name: ⚙️ Generate cube files
+        if: steps.cube.outputs.cache-hit != 'true'
+        run: docker build --file .docker/Dockerfile --target generated --output type=local,dest=cube .
+
+      - name: 🗃️ Save generated cube files
+        if: steps.cube.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: cube
+          key: ${{ steps.cube.outputs.cache-primary-key }}
 
       - name: 🐋 Build Docker image
-        if: steps.cache.outputs.cache-hit != 'true'
-        timeout-minutes: 10
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: .docker/Dockerfile
-          target: build
-          load: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          no-cache-filters: build
-          tags: project:build
+        run: docker build --file .docker/Dockerfile --build-context generated=cube --target build --tag micras:build .
 
       - name: 🎨 Check code formatting
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: docker run --rm project:build /bin/bash /project/.docker/scripts/check_format.sh
+        run: docker run --rm micras:build make -C build --no-print-directory format_check
 
       - name: 🔨 Build project
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: docker run --rm project:build make -C build --no-print-directory -j
+        run: docker run --rm micras:build make -C build --no-print-directory -j
 
       - name: 🧪 Build tests
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: docker run --rm project:build make -C build --no-print-directory -j test_all
+        run: docker run --rm micras:build make -C build --no-print-directory -j test_all
 
       - name: 🚨 Lint project
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: docker run --rm project:build  make -C build --no-print-directory -j lint
+        run: docker run --rm micras:build make -C build --no-print-directory -j lint
 
-      - name: 🗃️ Save cache
-        if: steps.cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
+      - name: 🗃️ Save verified sources
+        uses: actions/cache/save@v6
         with:
-            path: .docker/Dockerfile
-            key: ${{ steps.cache.outputs.cache-primary-key }}
+          path: .docker/Dockerfile
+          key: ${{ needs.check.outputs.key }}

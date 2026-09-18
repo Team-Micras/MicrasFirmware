@@ -10,34 +10,22 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: 🔀 Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           submodules: recursive
 
-      - name: 🔧 Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
       - name: 🐋 Build Docker image
-        timeout-minutes: 10
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: .docker/Dockerfile
-          target: build
-          load: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          no-cache-filters: build
-          tags: project:build
+        run: docker build --file .docker/Dockerfile --target build --tag micras:build .
 
       - name: 🔨 Build project
         run: |
-          docker run --name release project:build make -C build --no-print-directory -j
+          docker run --name release micras:build make -C build --no-print-directory -j
           docker cp release:/project/build/ output/
 
       - name: ⬆️ Upload binaries
-        run: gh release upload ${{ github.event.release.tag_name }} output/*.hex output/*.elf
+        run: gh release upload "${{ github.event.release.tag_name }}" output/*.hex output/*.elf --clobber
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ github.token }}

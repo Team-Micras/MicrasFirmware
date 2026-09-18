@@ -38,7 +38,7 @@ NTF Classic Micromouse project with an STM32 microcontroller
 
 ## 📁 Folder structure
 
-- **.docker/** - Docker build and format scripts for CI/CD.
+- **.docker/** - Docker build files for CI/CD.
 - **.github/** - GitHub Actions workflow files.
 - **.vscode/** - Visual Studio Code configuration files.
 - **cmake/** - Functions to include in the main CMake.
@@ -184,6 +184,8 @@ In order to format the project, run the following command in the `build` folder:
 make format
 ```
 
+To only check if the files are formatted, without changing them, run `make format_check`.
+
 ### 🚨 Linter
 
 The project uses a linter in order to follow the best code practices. The linter used is `clang-tidy`, there is a `.clang-tidy` with the linting rules for the project. To install it on Ubuntu, run the following command on the terminal:
@@ -216,7 +218,7 @@ The project can be built without entering a container by running the following c
 docker compose run build
 ```
 
-This also works for formatting (`docker compose run format`) and linting (`docker compose run lint`).
+This also works for formatting (`docker compose run check-format`) and linting (`docker compose run lint`).
 
 ### 🧑‍💻 Development
 

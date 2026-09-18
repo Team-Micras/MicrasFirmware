@@ -1,15 +1,11 @@
 project(micras_hal)
 
 get_target_property(CUBE_INCLUDE_DIRECTORIES stm32cubemx INTERFACE_INCLUDE_DIRECTORIES)
-get_target_property(CUBE_SOURCES stm32cubemx INTERFACE_SOURCES)
 get_target_property(CUBE_COMPILE_DEFINITIONS stm32cubemx INTERFACE_COMPILE_DEFINITIONS)
 
 # Remove warnings from Cube sources
-set_source_files_properties(
-    ${CUBE_SOURCES}
-    PROPERTIES
-    COMPILE_FLAGS "-w"
-)
+target_compile_options(cube_app PRIVATE -w)
+target_compile_options(STM32_Drivers PRIVATE -w)
 
 file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS "src/*.c*")
 
@@ -22,7 +18,8 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
-    stm32cubemx
+    cube_app
+    STM32_Drivers
 )
 
 target_link_libraries(${PROJECT_NAME} PUBLIC

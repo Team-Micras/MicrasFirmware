@@ -8,7 +8,7 @@
 namespace micras::proxy {
 Fan::Fan(const Config& config) :
     pwm{config.pwm},
-    direction_gpio{config.direction_gpio},
+    // direction_gpio{config.direction_gpio},
     enable_gpio{config.enable_gpio},
     max_acceleration{config.max_acceleration} {
     this->stop();
@@ -53,6 +53,6 @@ void Fan::stop() {
 }
 
 void Fan::set_direction(RotationDirection direction) {
-    this->direction_gpio.write(static_cast<bool>(direction));
+    // this->direction_gpio.write(static_cast<bool>(direction));
 }
 }  // namespace micras::proxy

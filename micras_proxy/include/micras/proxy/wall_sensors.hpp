@@ -23,12 +23,11 @@ public:
      * @brief Configuration struct for wall sensors.
      */
     struct Config {
-        hal::AdcDma::Config               adc;
-        hal::Pwm::Config                  led_0_pwm;
-        hal::Pwm::Config                  led_1_pwm;
-        float                             filter_cutoff;
-        std::array<float, num_of_sensors> base_readings;
-        float                             uncertainty;
+        hal::AdcDma::Config                          adc;
+        std::array<hal::Pwm::Config, num_of_sensors> led_pwms;
+        float                                        filter_cutoff;
+        std::array<float, num_of_sensors>            base_readings;
+        float                                        uncertainty;
     };
 
     /**
@@ -98,14 +97,9 @@ private:
     hal::AdcDma adc;
 
     /**
-     * @brief PWM handle for the even infrared LEDs.
+     * @brief PWM handles for the infrared LEDs, one for each sensor.
      */
-    hal::Pwm led_0_pwm;
-
-    /**
-     * @brief PWM handle for the odd infrared LEDs.
-     */
-    hal::Pwm led_1_pwm;
+    std::array<hal::Pwm, num_of_sensors> led_pwms;
 
     /**
      * @brief Buffer to store the ADC values.

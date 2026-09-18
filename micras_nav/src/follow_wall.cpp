@@ -114,4 +114,12 @@ void FollowWall::reset_displacement(bool reset_by_post) {
     this->last_blind_distance = 0.0F;
     this->reset_by_post = reset_by_post;
 }
+
+bool FollowWall::get_is_following_left() const {
+    return this->following_left;
+}
+
+bool FollowWall::get_is_following_right() const {
+    return this->following_right;
+}
 }  // namespace micras::nav

@@ -17,22 +17,16 @@ Imu::Imu(const Config& config) :
     xl_factor{mg_to_mps2 * (0.061F * (1 << static_cast<uint8_t>(config.accelerometer_scale)))} {
     this->dev_ctx.read_reg = platform_read;
     this->dev_ctx.write_reg = platform_write;
+    this->dev_ctx.mdelay = proxy::Stopwatch::sleep_ms;
     this->dev_ctx.handle = &this->spi;
 
-    proxy::Stopwatch::sleep_ms(100);
+    proxy::Stopwatch::sleep_ms(10);
 
     if (not this->check_whoami()) {
         return;
     }
 
-    lsm6dsv_reset_set(&(this->dev_ctx), LSM6DSV_RESTORE_CTRL_REGS);
-
-    lsm6dsv_reset_t rst{};
-
-    do {
-        lsm6dsv_reset_get(&(this->dev_ctx), &rst);
-    } while (rst != LSM6DSV_READY);
-
+    lsm6dsv_sw_por(&(this->dev_ctx));
     lsm6dsv_block_data_update_set(&(this->dev_ctx), PROPERTY_ENABLE);
 
     lsm6dsv_gy_data_rate_set(&(this->dev_ctx), config.gyroscope_data_rate);
