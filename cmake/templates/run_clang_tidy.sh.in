@@ -35,6 +35,6 @@ run-clang-tidy \
     -extra-arg-before=--sysroot=@SYSROOT@/ \
     -extra-arg-before=-I@CXX_INCLUDE_DIR@/ \
     -extra-arg-before=-I@CXX_TRIPLE_INCLUDE_DIR@/ \
-    "$@" 2>&1 | grep -Ev '^(\[[0-9]+/[0-9]+\]|[0-9]+ (warning|error)s? generated\.|clang-tidy(-[0-9.]+)? )'
+    "$@" 2>&1 | grep -Ev '^(\[ *[0-9]+/[0-9]+\]|[0-9]+ (warning|error)s? generated\.|clang-tidy(-[0-9.]+)? )'
 
 exit "${PIPESTATUS[0]}"
