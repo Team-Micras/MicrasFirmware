@@ -8,6 +8,7 @@ NTF Classic Micromouse project with an STM32 microcontroller
 </div>
 
 <div align="center">
+  <a href="https://github.com/Team-Micras/MicrasFirmware/actions/workflows/ci.yaml"><img alt="CI status" src="https://github.com/Team-Micras/MicrasFirmware/actions/workflows/ci.yaml/badge.svg" height="30"></a>
   <a href="https://cplusplus.com/"><img alt="Made with C++" src="https://img.shields.io/badge/made_with-c%2B%2B-blue?style=for-the-badge&labelColor=ef4041&color=c1282d" height="30"></a>
   <a href="https://www.st.com/en/development-tools/stm32cubemx.html"><img alt="Uses STM32CubeMX" src="https://img.shields.io/badge/uses-stm32cubemx-blue?style=for-the-badge&labelColor=38c1d0&color=45a4b8&link=https%3A%2F%2Fwww.st.com%2Fen%2Fdevelopment-tools%2Fstm32cubemx.html" height="30"></a>
   <a href="https://en.wikipedia.org/wiki/Embedded_system"><img alt="Built for Embedded Devices" src="https://img.shields.io/badge/built_for-embedded_devices-blue?style=for-the-badge&labelColor=adec37&color=27a744&link=https%3A%2F%2Fen.wikipedia.org%2Fwiki%2FEmbedded_system" height="30"></a>
@@ -44,12 +45,15 @@ NTF Classic Micromouse project with an STM32 microcontroller
 - **cmake/** - Functions to include in the main CMake.
 - **config/** - Target and constants configuration values.
 - **cube/** - STM32CubeMX configuration and build files.
+- **docs/** - Generated documentation output, not tracked by Git.
 - **include/** - Header files for class definitions.
+- **micras_\*/** - Project packages, see [Packages](#️-packages).
 - **src/** - Source file for class implementations and executables.
 - **tests/** - Executable test files.
 
 ## 📦️ Packages
 
+- [micras_core](./micras_core/) - Hardware independent building blocks, such as controllers, filters and the state machine.
 - [micras_hal](./micras_hal/) - Wrapper to the STM32 HAL, implementing the needed functionalities in C++ classes.
 - [micras_proxy](./micras_proxy/) - Intermediate abstraction layer for the hardware components.
 - [micras_nav](./micras_nav/) - Mapping, planning and control algorithms to navigate inside a maze.
@@ -59,7 +63,7 @@ NTF Classic Micromouse project with an STM32 microcontroller
 To build the project, it is first necessary to install some dependencies:
 
 ```bash
-sudo apt install cmake make gcc-arm-none-eabi
+sudo apt install cmake make gcc-arm-none-eabi libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib
 ```
 
 The [STM32CubeMX](https://www.st.com/en/development-tools/stm32cubemx.html) program is also required. After the installation is completed, it is necessary to set the `CUBE_CMD` environment variable to the path of the STM32CubeMX executable or add it to the `PATH`.
@@ -74,6 +78,13 @@ And then generating the build commands:
 
 ```bash
 cmake ..
+```
+
+The board revision to build for is selected with the `BOARD_VERSION` variable, which must match
+one of the `cube/micras_<version>.ioc` files. It defaults to `v1`:
+
+```bash
+cmake .. -DBOARD_VERSION=v0
 ```
 
 The project can then be compiled by running:
@@ -231,18 +242,28 @@ If Visual Studio Code is being used, it is possible to use the [Dev Containers](
 The project is documented using Doxygen. In Ubuntu, it is possible to install it with the following command:
 
 ```bash
-sudo apt install doxygen graphviz texlive-latex-extra texlive-fonts-extra
+sudo apt install doxygen graphviz texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended
 ```
 
 For other operating systems, you can see download options on the [official Doxygen page](https://www.doxygen.nl/download.html).
 
-To generate the pdf documentation at the **docs/** folder, run the following command inside the [**build**](./build/) folder:
+The HTML documentation is published to GitHub Pages on every push to `main`. To generate it
+locally, run the following command inside the **build** folder. The output is written to the
+**docs/** folder, which is not tracked by Git:
 
 ```bash
 make docs
 ```
 
-The configuration is in the file [Doxyfile](./Doxyfile).
+That also writes the LaTeX sources. To turn them into `docs/refman.pdf`, which additionally
+requires a LaTeX distribution, run:
+
+```bash
+make docs_pdf
+```
+
+The configuration is in the file [Doxyfile](./Doxyfile), and the HTML theme is
+[doxygen-awesome-css](https://github.com/jothepro/doxygen-awesome-css), fetched by CMake.
 
 ## 🛠️ Windows Development Environment
 

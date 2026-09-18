@@ -9,8 +9,16 @@
     "files.eol": "\n",
     "files.encoding": "utf8",
 
-    "editor.defaultFormatter": "xaver.clang-format",
-    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+    "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd",
+
+    // clangd owns IntelliSense; cpptools is kept only for its debugging integration.
+    // --query-driver lets clangd ask the cross compiler for its own system include paths,
+    // instead of having them hardcoded for one toolchain version.
+    "clangd.arguments": [
+        "--query-driver=/usr/bin/arm-none-eabi-*",
+        "--header-insertion=never",
+    ],
+    "C_Cpp.intelliSenseEngine": "disabled",
     "C_Cpp.autoAddFileAssociations": false,
 
     "doxdocgen.file.fileOrder": [
