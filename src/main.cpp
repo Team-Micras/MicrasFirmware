@@ -31,12 +31,9 @@ void signal_handler(int signal) {
 
         __HAL_TIM_SET_COMPARE(micras::fan_config.pwm.handle, micras::fan_config.pwm.timer_channel, 0);
 
-        __HAL_TIM_SET_COMPARE(
-            micras::wall_sensors_config.led_0_pwm.handle, micras::wall_sensors_config.led_0_pwm.timer_channel, 0
-        );
-        __HAL_TIM_SET_COMPARE(
-            micras::wall_sensors_config.led_1_pwm.handle, micras::wall_sensors_config.led_1_pwm.timer_channel, 0
-        );
+        for (const auto& led_pwm : micras::wall_sensors_config.led_pwms) {
+            __HAL_TIM_SET_COMPARE(led_pwm.handle, led_pwm.timer_channel, 0);
+        }
 
         __HAL_TIM_SET_COMPARE(micras::buzzer_config.pwm.handle, micras::buzzer_config.pwm.timer_channel, 0);
     }

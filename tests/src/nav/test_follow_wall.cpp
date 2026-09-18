@@ -43,7 +43,7 @@ int main(int argc, char* argv[]) {
         std::make_shared<proxy::RotarySensor>(rotary_sensor_right_config), imu, odometry_config
     };
 
-    nav::FollowWall      follow_wall{wall_sensors, odometry.get_state().pose, follow_wall_config};
+    nav::FollowWall      follow_wall{wall_sensors, follow_wall_config};
     nav::SpeedController speed_controller{speed_controller_config};
 
     if (not imu->was_initialized()) {
@@ -74,7 +74,7 @@ int main(int argc, char* argv[]) {
         wall_sensors->update();
         odometry.update(elapsed_time);
 
-        const nav::State& state = odometry.get_state();
+        nav::State& state = odometry.get_state();
 
         test_position_x = state.pose.position.x;
         test_position_y = state.pose.position.y;
@@ -121,7 +121,7 @@ int main(int argc, char* argv[]) {
         //     return;
         // }
 
-        const float angular_correction = follow_wall.compute_angular_correction(elapsed_time, state.velocity.linear);
+        const float angular_correction = follow_wall.compute_angular_correction(elapsed_time, state);
         test_angular_correction = angular_correction;
 
         const nav::Twist desired_speeds{
