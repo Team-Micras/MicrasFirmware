@@ -58,6 +58,31 @@ NTF Classic Micromouse project with an STM32 microcontroller
 - [micras_proxy](./micras_proxy/) - Intermediate abstraction layer for the hardware components.
 - [micras_nav](./micras_nav/) - Mapping, planning and control algorithms to navigate inside a maze.
 
+Each one is a library in its own right, and they depend downwards only: `micras_nav` on
+`micras_proxy`, that on `micras_hal`, that on `micras_core`. None of them names a file or a symbol
+that STM32CubeMX generates for a particular project, so the generated tree is reached only from
+`config/targets/`, where the handles and the initialization functions of a board are written down
+and handed to the packages through their configuration structs.
+
+The one name `micras_hal` uses from outside itself is `stm32cubemx`, the interface target the
+STM32CubeMX CMake generator writes for every project, carrying the CMSIS and vendor HAL include
+directories and the device macros. Any generated project already has it, so another project reuses
+the packages by adding their sources and linking the layer it wants:
+
+```cmake
+add_subdirectory(micras_core)
+add_subdirectory(micras_hal)
+add_subdirectory(micras_proxy)
+add_subdirectory(micras_nav)
+
+target_link_libraries(your_target PRIVATE micras::nav)
+```
+
+Everything else travels through the targets: the include directories, the C++ standard the sources
+need, and the vendor HAL headers. `FetchContent_MakeAvailable` works the same way, and is the
+sensible option for a cross compiled target, where a prebuilt archive is only usable by a project
+whose architecture flags match exactly.
+
 ## 🔨 Building
 
 To build the project, it is first necessary to install some dependencies:

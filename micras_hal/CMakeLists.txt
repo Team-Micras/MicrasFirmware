@@ -6,24 +6,19 @@ add_library(${PROJECT_NAME} STATIC
     ${PROJECT_SOURCES}
 )
 
+add_library(micras::hal ALIAS ${PROJECT_NAME})
+
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_23)
+
 target_include_directories(${PROJECT_NAME} PUBLIC
     include
 )
 
-# The object libraries have to be linked directly, since CMake only adds an object library's
-# files to the targets that name it, never through an interface target
-target_link_libraries(${PROJECT_NAME} PRIVATE
-    ${MICRAS_CUBE_OBJECT_LIBRARIES}
-    micras::warnings
-)
-
+# stm32cubemx is the interface target STM32CubeMX generates, carrying the CMSIS and vendor HAL
+# include directories and the device macros. It is the only name this package uses from outside
+# itself, the generator writes it for every project and every family, and linking it publicly is
+# what puts those headers on everything that includes these ones.
 target_link_libraries(${PROJECT_NAME} PUBLIC
     micras::core
-    micras::cube
-)
-
-add_library(micras_hal_whole_archive INTERFACE)
-add_library(micras::hal ALIAS micras_hal_whole_archive)
-target_link_libraries(micras_hal_whole_archive INTERFACE
-    "-Wl,--whole-archive" ${PROJECT_NAME} "-Wl,--no-whole-archive"
+    stm32cubemx
 )

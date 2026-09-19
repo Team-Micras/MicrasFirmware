@@ -174,3 +174,34 @@ function(generate_debug_target TARGET)
 
     add_dependencies(debug${TARGET_SUFFIX} ${TARGET})
 endfunction()
+
+# Create one executable per test source, each excluded from the default build
+function(generate_test_targets TEST_FILES)
+    foreach(TEST_FILE ${${TEST_FILES}})
+        get_filename_component(TEST_NAME ${TEST_FILE} NAME_WLE)
+
+        add_executable(${TEST_NAME} EXCLUDE_FROM_ALL
+            ${TEST_FILE}
+        )
+
+        target_include_directories(${TEST_NAME} PRIVATE
+            tests/include
+            config
+            ${MICRAS_TARGET_DIRECTORY}
+        )
+
+        target_link_libraries(${TEST_NAME} PRIVATE
+            micras::nav
+            ${MICRAS_CUBE_OBJECT_LIBRARIES}
+        )
+
+        micras_apply_warnings(${TEST_NAME})
+
+        generate_map_file(${TEST_NAME})
+        generate_hex_file(${TEST_NAME})
+        print_size_of_target(${TEST_NAME})
+
+        generate_debug_target(${TEST_NAME})
+        generate_flash_target(${TEST_NAME})
+    endforeach()
+endfunction()
