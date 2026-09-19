@@ -6,7 +6,8 @@
 #define MICRAS_HAL_PWM_HPP
 
 #include <cstdint>
-#include <tim.h>
+
+#include <main.h>
 
 namespace micras::hal {
 /**

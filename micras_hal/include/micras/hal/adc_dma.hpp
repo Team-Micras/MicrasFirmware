@@ -5,8 +5,8 @@
 #ifndef MICRAS_HAL_ADC_DMA_HPP
 #define MICRAS_HAL_ADC_DMA_HPP
 
-#include <adc.h>
 #include <cstdint>
+#include <main.h>
 #include <span>
 
 namespace micras::hal {

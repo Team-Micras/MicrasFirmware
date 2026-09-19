@@ -7,8 +7,8 @@
 
 #include <cstdint>
 #include <span>
-#include <spi.h>
 
+#include <main.h>
 #include "micras/hal/gpio.hpp"
 
 namespace micras::hal {

@@ -3,32 +3,14 @@
  */
 
 #include <algorithm>
-#include <crc.h>
 #include <cstdint>
-#include <dma.h>
-#include <gpio.h>
 #include <span>
 
+#include <main.h>
 #include "micras/hal/gpio.hpp"
 #include "micras/hal/mcu.hpp"
 #include "micras/hal/pwm.hpp"
 #include "micras/hal/timer.hpp"
-
-extern "C" {
-/**
- * @brief Initialize System Clock.
- *
- * @note  Defined by cube.
- */
-void SystemClock_Config();
-
-/**
- * @brief Initialize the kernel clocks of the peripherals that do not run from an APB clock.
- *
- * @note  Defined by cube.
- */
-void PeriphCommonClock_Config();
-}
 
 namespace micras::hal {
 /**
@@ -73,19 +55,22 @@ static constexpr uint32_t watchdog_max_reload{0xFFF};
  */
 static constexpr uint32_t watchdog_timeout_us{1000};
 
-void Mcu::init() {
+void Mcu::init(const Config& config) {
     SCB_EnableICache();
 
     HAL_Init();
 
-    SystemClock_Config();
-    PeriphCommonClock_Config();
+    config.clock_init();
+
+    if (config.peripheral_clock_init != nullptr) {
+        config.peripheral_clock_init();
+    }
 
     Timer::init();
 
-    MX_GPIO_Init();
-    MX_DMA_Init();
-    MX_CRC_Init();
+    for (const InitFunction init_function : config.peripheral_inits) {
+        init_function();
+    }
 }
 
 void Mcu::emergency_stop(std::span<const Pwm::Config> pwm_outputs, std::span<const Gpio::Config> enable_gpios) {

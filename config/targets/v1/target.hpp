@@ -5,12 +5,20 @@
 #ifndef MICRAS_TARGET_HPP
 #define MICRAS_TARGET_HPP
 
+#include <adc.h>
 #include <array>
+#include <crc.h>
+#include <dma.h>
+#include <fmac.h>
+#include <gpio.h>
 #include <main.h>
+#include <spi.h>
+#include <tim.h>
 
 #include "constants.hpp"
 #include "micras/hal/fmac.hpp"
 #include "micras/hal/gpio.hpp"
+#include "micras/hal/mcu.hpp"
 #include "micras/hal/pwm.hpp"
 #include "micras/proxy/argb.hpp"
 #include "micras/proxy/battery.hpp"
@@ -26,6 +34,22 @@
 #include "micras/proxy/storage.hpp"
 #include "micras/proxy/torque_sensors.hpp"
 #include "micras/proxy/wall_sensors.hpp"
+
+extern "C" {
+/**
+ * @brief Configure the clock tree of the microcontroller.
+ *
+ * @note Defined by the generated main.c, which declares it nowhere a consumer can include.
+ */
+void SystemClock_Config();
+
+/**
+ * @brief Configure the kernel clocks of the peripherals that do not run from a bus clock.
+ *
+ * @note Defined by the generated main.c, which declares it nowhere a consumer can include.
+ */
+void PeriphCommonClock_Config();
+}
 
 /**
  * @brief Configuration of the Micras v1 mainboard, built around an STM32H725RGV.
@@ -83,6 +107,24 @@ const proxy::Storage::Config maze_storage_config{
 const hal::Fmac::Config fmac_config{
     .init_function = MX_FMAC_Init,
     .handle = &hfmac,
+};
+
+/**
+ * @brief Initialization functions of the peripherals that no proxy owns.
+ *
+ * @note Everything else is initialized by the wrapper that holds it, through the init_function of
+ * its own configuration below.
+ */
+const std::array<hal::Mcu::InitFunction, 3> mcu_peripheral_inits{{
+    MX_GPIO_Init,
+    MX_DMA_Init,
+    MX_CRC_Init,
+}};
+
+const hal::Mcu::Config mcu_config{
+    .clock_init = SystemClock_Config,
+    .peripheral_clock_init = PeriphCommonClock_Config,
+    .peripheral_inits = mcu_peripheral_inits,
 };
 
 /*****************************************

@@ -61,9 +61,13 @@ ImplementationFileExtensions:
 HeaderFilterRegex: '(include|config)/.*\.hpp$'
 FormatStyle: file
 CheckOptions:
-  # The CubeMX HAL module headers are not standalone; they require stm32h7xx_hal.h to have
-  # pulled in stm32h7xx_hal_def.h first, so include-cleaner must not suggest or remove them
-  misc-include-cleaner.IgnoreHeaders: 'stm32.*;core_cm.*;cmsis.*;system_stm32.*;lsm6dsv.*'
+  # The vendor HAL module headers are not standalone; they require stm32<family>xx_hal.h to have
+  # pulled in stm32<family>xx_hal_def.h first, so include-cleaner must not suggest or remove them.
+  # This is why micras_hal includes the generated main.h, which reaches the right one for the
+  # family it was generated for, instead of naming a module header of its own. main.h is on the
+  # list for the same reason: every symbol behind it resolves to a header already listed here, so
+  # nothing is credited to main.h and it would otherwise be reported as unused.
+  misc-include-cleaner.IgnoreHeaders: 'stm32.*;core_cm.*;cmsis.*;system_stm32.*;lsm6dsv.*;main\.h'
   readability-identifier-length.MinimumVariableNameLength: 2
   readability-identifier-length.IgnoredVariableNames: ^[nxyz]$
   readability-identifier-length.MinimumParameterNameLength: 2

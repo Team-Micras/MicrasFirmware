@@ -20,6 +20,8 @@
  *   direction pin;
  * - hal::Mcu::init to stop calling SCB_EnableICache unconditionally, which does not exist on a
  *   Cortex-M4;
+ * - an hal::Mcu::Config naming the generated initialization functions of this board, since the
+ *   package no longer calls them by name;
  * - the pin labels of the v0 STM32CubeMX project, which spells the red LED LED_RED where this
  *   spells it LED_Red;
  * - a check of the mappings themselves, since the two boards swap the encoder timers and both

@@ -31,7 +31,7 @@ static void signal_handler(int signal) {
 int main() {
     std::signal(SIGABRT, signal_handler);
 
-    micras::hal::Mcu::init();
+    micras::hal::Mcu::init(micras::mcu_config);
     micras::Micras micras;
 
     while (true) {

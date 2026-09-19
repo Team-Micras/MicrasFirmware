@@ -18,14 +18,40 @@ namespace micras::hal {
 class Mcu {
 public:
     /**
+     * @brief Signature of the initialization function of a peripheral.
+     */
+    using InitFunction = void (*)();
+
+    /**
+     * @brief Configuration struct for the microcontroller.
+     *
+     * @note The initialization functions are taken rather than named, so that this package refers
+     * to no symbol the application generates. The two clock functions are separate fields because
+     * the order matters: the clock tree has to be running before the timebase is resolved from the
+     * core clock frequency, and before any peripheral is initialized.
+     */
+    struct Config {
+        InitFunction                  clock_init;
+        InitFunction                  peripheral_clock_init;
+        std::span<const InitFunction> peripheral_inits;
+    };
+
+    /**
      * @brief Deleted constructor for static class.
      */
     Mcu() = delete;
 
     /**
-     * @brief Initialize MCU and some peripherals.
+     * @brief Initialize the microcontroller, the timebase and the peripherals that no wrapper owns.
+     *
+     * @note Every peripheral held by a wrapper is initialized by that wrapper instead, through the
+     * initialization function of its own configuration, so peripheral_inits carries only what is
+     * left over: the pin configuration, the DMA controllers and anything else without an owner.
+     *
+     * @param config Initialization functions of the board, which may leave peripheral_clock_init
+     * null on a part where every peripheral runs from a bus clock.
      */
-    static void init();
+    static void init(const Config& config);
 
     /**
      * @brief Silence every actuator as directly as possible.

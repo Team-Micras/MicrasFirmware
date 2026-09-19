@@ -6,7 +6,6 @@
 #define MICRAS_HAL_TIMER_HPP
 
 #include <cstdint>
-#include <main.h>
 
 namespace micras::hal {
 /**

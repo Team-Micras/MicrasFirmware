@@ -5,8 +5,8 @@
 #ifndef MICRAS_HAL_CRC_HPP
 #define MICRAS_HAL_CRC_HPP
 
-#include <crc.h>
 #include <cstdint>
+#include <main.h>
 #include <span>
 
 namespace micras::hal {

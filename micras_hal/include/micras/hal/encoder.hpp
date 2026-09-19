@@ -5,7 +5,7 @@
 #ifndef MICRAS_HAL_ENCODER_HPP
 #define MICRAS_HAL_ENCODER_HPP
 
-#include <tim.h>
+#include <main.h>
 
 namespace micras::hal {
 /**

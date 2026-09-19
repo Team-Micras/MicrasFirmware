@@ -7,8 +7,9 @@
 
 #include <array>
 #include <cstdint>
-#include <fmac.h>
 #include <span>
+
+#include <main.h>
 
 namespace micras::hal {
 /**

@@ -7,7 +7,8 @@
 
 #include <cstdint>
 #include <span>
-#include <tim.h>
+
+#include <main.h>
 
 namespace micras::hal {
 /**
