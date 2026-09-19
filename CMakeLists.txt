@@ -28,13 +28,17 @@ set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
 set(CMAKE_PROJECT_NAME micras)
 set(BOARD_VERSION "v1" CACHE STRING "Micras board revision")
-set_property(CACHE BOARD_VERSION PROPERTY STRINGS "v0" "v1")
+set_property(CACHE BOARD_VERSION PROPERTY STRINGS "v1")
 
 if(BOARD_VERSION STREQUAL "")
     set(PROJECT_RELEASE ${CMAKE_PROJECT_NAME})
 else()
     set(PROJECT_RELEASE "${CMAKE_PROJECT_NAME}_${BOARD_VERSION}")
 endif()
+
+# The board layer lives in config/targets/<version>.hpp and is selected by the same variable that
+# selects the STM32CubeMX project, so that the two can never describe different boards.
+set(MICRAS_TARGET_HEADER "targets/${BOARD_VERSION}.hpp")
 
 ###############################################################################
 ## Toolchain Configuration
@@ -57,10 +61,32 @@ string(REGEX REPLACE " *-Wl,-Map=[^ ]*" "" CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_L
 # loaded onto the target, so it costs no flash and is kept in every configuration, which is what
 # makes a crash from a competition run symbolisable. Debug uses -Og instead of -O0 so that the
 # robot still runs fast enough to be worth debugging.
+#
+# Release optimises for speed, not size: the image uses a small fraction of the 1 MiB flash, so
+# size is the one resource in surplus. -fno-math-errno is what turns sqrtf and hypotf into FPU
+# instructions, since GCC must otherwise preserve the errno side effect, and -ffp-contract=fast
+# fuses multiply-adds into VFMA. -ffast-math is deliberately absent: the controllers rely on
+# well defined behaviour around zero, and a stray NaN becoming undefined behaviour is the worst
+# possible failure mode for a robot.
+#
+# RelWithDebInfo is Release without -flto, for when a debugger has to make sense of the image;
+# MinSizeRel keeps the size oriented flags for a build that has to fit somewhere smaller.
+set(MICRAS_MATH_FLAGS "-fno-math-errno -ffp-contract=fast")
+
 set(CMAKE_C_FLAGS_DEBUG     "-Og -g3")
 set(CMAKE_CXX_FLAGS_DEBUG   "-Og -g3")
-set(CMAKE_C_FLAGS_RELEASE   "-Os -g3")
-set(CMAKE_CXX_FLAGS_RELEASE "-Os -g3")
+set(CMAKE_C_FLAGS_RELEASE   "-O2 -g3 -flto ${MICRAS_MATH_FLAGS}")
+set(CMAKE_CXX_FLAGS_RELEASE "-O2 -g3 -flto ${MICRAS_MATH_FLAGS}")
+set(CMAKE_C_FLAGS_RELWITHDEBINFO     "-O2 -g3 ${MICRAS_MATH_FLAGS}")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO   "-O2 -g3 ${MICRAS_MATH_FLAGS}")
+set(CMAKE_C_FLAGS_MINSIZEREL   "-Os -g3 -flto ${MICRAS_MATH_FLAGS}")
+set(CMAKE_CXX_FLAGS_MINSIZEREL "-Os -g3 -flto ${MICRAS_MATH_FLAGS}")
+
+# The link step needs the same optimisation level as the compile step for -flto to take effect,
+# and the whole archive wrapping around micras_hal requires the linker plugin to see the LTO
+# objects, which the gcc driver arranges as long as the flag is on the link line too.
+set(CMAKE_EXE_LINKER_FLAGS_RELEASE     "-O2 -flto")
+set(CMAKE_EXE_LINKER_FLAGS_MINSIZEREL  "-Os -flto")
 
 project(${CMAKE_PROJECT_NAME} C CXX ASM)
 
@@ -76,6 +102,34 @@ set(CUBE_PROJECT_NAME ${CMAKE_PROJECT_NAME})
 set(CMAKE_PROJECT_NAME cube_app)
 add_subdirectory(cube/cmake/stm32cubemx)
 set(CMAKE_PROJECT_NAME ${CUBE_PROJECT_NAME})
+
+###############################################################################
+## Generated tree interface
+###############################################################################
+
+# Everything micras_hal needs from the generated CubeMX tree, named here rather than inside the
+# package, so that micras_hal names no target it does not own and another project can satisfy the
+# dependency by providing the same two names.
+#
+# The headers and the device macros travel as an interface target, propagated to every consumer
+# because config/ and micras_proxy also include main.h. The generated objects cannot: CMake adds
+# an object library's files only to the targets that link it *directly*, so routing them through
+# an interface target would silently drop them from libmicras_hal.a.
+get_target_property(CUBE_INCLUDE_DIRECTORIES stm32cubemx INTERFACE_INCLUDE_DIRECTORIES)
+get_target_property(CUBE_COMPILE_DEFINITIONS stm32cubemx INTERFACE_COMPILE_DEFINITIONS)
+
+add_library(micras_cube INTERFACE)
+add_library(micras::cube ALIAS micras_cube)
+
+target_include_directories(micras_cube SYSTEM INTERFACE ${CUBE_INCLUDE_DIRECTORIES})
+target_compile_definitions(micras_cube INTERFACE ${CUBE_COMPILE_DEFINITIONS})
+
+set(MICRAS_CUBE_OBJECT_LIBRARIES cube_app STM32_Drivers)
+
+# The generated sources are not ours to warn about
+foreach(CUBE_OBJECT_LIBRARY ${MICRAS_CUBE_OBJECT_LIBRARIES})
+    target_compile_options(${CUBE_OBJECT_LIBRARY} PRIVATE -w)
+endforeach()
 
 add_subdirectory(micras_core)
 add_subdirectory(micras_hal)
@@ -108,6 +162,10 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     config
 )
 
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+    MICRAS_TARGET_HEADER="${MICRAS_TARGET_HEADER}"
+)
+
 target_link_libraries(${PROJECT_NAME} PRIVATE
     micras::nav
     micras::warnings
@@ -136,6 +194,10 @@ foreach(TEST_FILE ${PROJECT_TESTS})
     target_include_directories(${TEST_NAME} PRIVATE
         tests/include
         config
+    )
+
+    target_compile_definitions(${TEST_NAME} PRIVATE
+        MICRAS_TARGET_HEADER="${MICRAS_TARGET_HEADER}"
     )
 
     target_link_libraries(${TEST_NAME} PRIVATE
