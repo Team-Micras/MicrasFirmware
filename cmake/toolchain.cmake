@@ -21,13 +21,23 @@ set(MICRAS_MATH_FLAGS "-fno-math-errno -ffp-contract=fast")
 
 set(CMAKE_C_FLAGS_DEBUG     "-Og -g3")
 set(CMAKE_CXX_FLAGS_DEBUG   "-Og -g3")
-set(CMAKE_C_FLAGS_RELEASE   "-O2 -g3 -flto ${MICRAS_MATH_FLAGS}")
-set(CMAKE_CXX_FLAGS_RELEASE "-O2 -g3 -flto ${MICRAS_MATH_FLAGS}")
+set(CMAKE_C_FLAGS_RELEASE   "-O2 -g3 ${MICRAS_MATH_FLAGS}")
+set(CMAKE_CXX_FLAGS_RELEASE "-O2 -g3 ${MICRAS_MATH_FLAGS}")
 set(CMAKE_C_FLAGS_RELWITHDEBINFO     "-O2 -g3 ${MICRAS_MATH_FLAGS}")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO   "-O2 -g3 ${MICRAS_MATH_FLAGS}")
-set(CMAKE_C_FLAGS_MINSIZEREL   "-Os -g3 -flto ${MICRAS_MATH_FLAGS}")
-set(CMAKE_CXX_FLAGS_MINSIZEREL "-Os -g3 -flto ${MICRAS_MATH_FLAGS}")
+set(CMAKE_C_FLAGS_MINSIZEREL   "-Os -g3 ${MICRAS_MATH_FLAGS}")
+set(CMAKE_CXX_FLAGS_MINSIZEREL "-Os -g3 ${MICRAS_MATH_FLAGS}")
 
-# -flto only takes effect when the link step carries the same optimisation level as the compile step
-set(CMAKE_EXE_LINKER_FLAGS_RELEASE     "-O2 -flto")
-set(CMAKE_EXE_LINKER_FLAGS_MINSIZEREL  "-Os -flto")
+# Link time optimisation is requested through CMake rather than by putting -flto in the flags
+# above, because a static library of bytecode objects is only usable if its symbol index was
+# written by an archiver that can read them. CMake switches the archiver to gcc-ar and gcc-ranlib,
+# which pass the plugin, when the property is what asks for the optimisation. Plain ar silently
+# writes an index with none of the LTO symbols in it, and the link then fails to find perfectly
+# ordinary functions.
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE    TRUE)
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_MINSIZEREL TRUE)
+
+# The optimisation level has to be on the link line too, since that is where the bytecode is
+# finally compiled
+set(CMAKE_EXE_LINKER_FLAGS_RELEASE     "-O2")
+set(CMAKE_EXE_LINKER_FLAGS_MINSIZEREL  "-Os")
