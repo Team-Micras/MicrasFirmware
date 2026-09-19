@@ -36,9 +36,11 @@ else()
     set(PROJECT_RELEASE "${CMAKE_PROJECT_NAME}_${BOARD_VERSION}")
 endif()
 
-# The board layer lives in config/targets/<version>.hpp and is selected by the same variable that
-# selects the STM32CubeMX project, so that the two can never describe different boards.
-set(MICRAS_TARGET_HEADER "targets/${BOARD_VERSION}.hpp")
+# The board layer lives in config/targets/<version>/target.hpp and is selected by the same variable
+# that selects the STM32CubeMX project, so that the two can never describe different boards. The
+# selection is made by putting one board's directory on the include path, so that "target.hpp"
+# resolves to it and nothing has to name the board.
+set(MICRAS_TARGET_DIRECTORY "config/targets/${BOARD_VERSION}")
 
 ###############################################################################
 ## Toolchain Configuration
@@ -160,10 +162,7 @@ add_executable(${PROJECT_NAME}
 target_include_directories(${PROJECT_NAME} PRIVATE
     include
     config
-)
-
-target_compile_definitions(${PROJECT_NAME} PRIVATE
-    MICRAS_TARGET_HEADER="${MICRAS_TARGET_HEADER}"
+    ${MICRAS_TARGET_DIRECTORY}
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
@@ -194,10 +193,7 @@ foreach(TEST_FILE ${PROJECT_TESTS})
     target_include_directories(${TEST_NAME} PRIVATE
         tests/include
         config
-    )
-
-    target_compile_definitions(${TEST_NAME} PRIVATE
-        MICRAS_TARGET_HEADER="${MICRAS_TARGET_HEADER}"
+        ${MICRAS_TARGET_DIRECTORY}
     )
 
     target_link_libraries(${TEST_NAME} PRIVATE

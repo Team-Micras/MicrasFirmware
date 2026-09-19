@@ -2,8 +2,8 @@
  * @file
  */
 
-#ifndef MICRAS_TARGETS_V1_HPP
-#define MICRAS_TARGETS_V1_HPP
+#ifndef MICRAS_TARGET_HPP
+#define MICRAS_TARGET_HPP
 
 #include <array>
 #include <main.h>
@@ -29,6 +29,11 @@
 
 /**
  * @brief Configuration of the Micras v1 mainboard, built around an STM32H725RGV.
+ *
+ * @note Everything that names a pin, a peripheral handle or a component of the board lives here, so
+ * that supporting another board, or reusing the packages in another project, is a matter of adding
+ * one directory under config/targets. The build puts the selected board's directory on the include
+ * path, so that every include of "target.hpp" resolves to it without naming the board.
  */
 namespace micras {
 /*****************************************
@@ -457,4 +462,4 @@ const std::array<hal::Gpio::Config, 2> emergency_gpio_configs{{
 ///@}
 }  // namespace micras
 
-#endif  // MICRAS_TARGETS_V1_HPP
+#endif  // MICRAS_TARGET_HPP

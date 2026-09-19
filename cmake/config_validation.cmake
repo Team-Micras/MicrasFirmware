@@ -7,16 +7,16 @@
 # The v0 board is a different microcontroller, its STM32CubeMX project and its config/targets/v0.hpp
 # are kept as a record, and neither has been buildable for a long time. Accepting it here would
 # produce a binary for the wrong part while telling every flashing tool otherwise.
-if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/config/${MICRAS_TARGET_HEADER}")
+if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${MICRAS_TARGET_DIRECTORY}/target.hpp")
     message(FATAL_ERROR
-        "No board layer at config/${MICRAS_TARGET_HEADER} for BOARD_VERSION=${BOARD_VERSION}"
+        "No board layer at ${MICRAS_TARGET_DIRECTORY}/target.hpp for BOARD_VERSION=${BOARD_VERSION}"
     )
 endif()
 
 if(NOT BOARD_VERSION STREQUAL "v1")
     message(FATAL_ERROR
         "BOARD_VERSION=${BOARD_VERSION} is not buildable.\n"
-        "Only v1 is supported; see the warning at the top of config/${MICRAS_TARGET_HEADER}"
+        "Only v1 is supported; see the warning at the top of ${MICRAS_TARGET_DIRECTORY}/target.hpp"
     )
 endif()
 

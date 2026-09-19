@@ -2,8 +2,8 @@
  * @file
  */
 
-#ifndef MICRAS_TARGETS_V0_HPP
-#define MICRAS_TARGETS_V0_HPP
+#ifndef MICRAS_TARGET_HPP
+#define MICRAS_TARGET_HPP
 
 /**
  * @brief Configuration of the Micras v0 mainboard, built around an STM32G474RET6.
@@ -371,4 +371,4 @@ const proxy::Locomotion::Config locomotion_config = {
 };
 }  // namespace micras
 
-#endif  // MICRAS_TARGETS_V0_HPP
+#endif  // MICRAS_TARGET_HPP
