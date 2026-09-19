@@ -3,38 +3,31 @@
  */
 
 #include <cstdint>
-#include <memory>
 #include <utility>
 #include "micras/interface.hpp"
-#include "micras/proxy/argb.hpp"
 #include "micras/proxy/button.hpp"
-#include "micras/proxy/buzzer.hpp"
 #include "micras/proxy/dip_switch.hpp"
 #include "micras/proxy/led.hpp"
 
 namespace micras {
-Interface::Interface(
-    const std::shared_ptr<proxy::TArgb<2>>& Argb, const std::shared_ptr<proxy::Button>& button,
-    const std::shared_ptr<proxy::Buzzer>& buzzer, const std::shared_ptr<proxy::TDipSwitch<4>>& dip_switch,
-    const std::shared_ptr<proxy::Led>& led
-) :
-    argb{Argb}, button{button}, buzzer{buzzer}, dip_switch{dip_switch}, led{led} { }
+Interface::Interface(const proxy::Button& button, const proxy::TDipSwitch<4>& dip_switch, proxy::Led& led) :
+    button{button}, dip_switch{dip_switch}, led{led} { }
 
 void Interface::update() {
-    if (this->button->get_status() == proxy::Button::Status::SHORT_PRESS) {
+    if (this->button.get_status() == proxy::Button::Status::SHORT_PRESS) {
         this->send_event(Event::EXPLORE);
-    } else if (this->button->get_status() == proxy::Button::Status::LONG_PRESS) {
+    } else if (this->button.get_status() == proxy::Button::Status::LONG_PRESS) {
         this->send_event(Event::SOLVE);
-    } else if (this->button->get_status() == proxy::Button::Status::EXTRA_LONG_PRESS) {
+    } else if (this->button.get_status() == proxy::Button::Status::EXTRA_LONG_PRESS) {
         this->send_event(Event::CALIBRATE);
     }
 
     for (uint8_t i = 0; i < 4; i++) {
-        if (this->dip_switch->get_switch_state(i) == this->dip_switch_states.at(i)) {
+        if (this->dip_switch.get_switch_state(i) == this->dip_switch_states.at(i)) {
             continue;
         }
 
-        this->dip_switch_states.at(i) = this->dip_switch->get_switch_state(i);
+        this->dip_switch_states.at(i) = this->dip_switch.get_switch_state(i);
         const auto dip_switch_pin = static_cast<DipSwitchPins>(i);
 
         switch (dip_switch_pin) {
@@ -54,7 +47,7 @@ void Interface::update() {
     }
 
     if (this->acknowledge_event(Event::ERROR)) {
-        this->led->turn_on();
+        this->led.turn_on();
     }
 }
 

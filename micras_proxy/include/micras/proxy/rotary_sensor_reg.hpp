@@ -43,7 +43,7 @@ struct Registers {
             uint8_t Dia2_en : 1;
         };
 
-        Fields  Fields;
+        Fields  fields;
         uint8_t raw;
     };
 

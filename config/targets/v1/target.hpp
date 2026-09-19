@@ -5,23 +5,60 @@
 #ifndef MICRAS_TARGET_HPP
 #define MICRAS_TARGET_HPP
 
+#include <adc.h>
+#include <array>
+#include <crc.h>
+#include <dma.h>
+#include <fmac.h>
+#include <gpio.h>
 #include <main.h>
+#include <spi.h>
+#include <tim.h>
 
+#include "constants.hpp"
+#include "micras/hal/fmac.hpp"
+#include "micras/hal/gpio.hpp"
+#include "micras/hal/mcu.hpp"
+#include "micras/hal/pwm.hpp"
 #include "micras/proxy/argb.hpp"
 #include "micras/proxy/battery.hpp"
 #include "micras/proxy/button.hpp"
 #include "micras/proxy/buzzer.hpp"
 #include "micras/proxy/dip_switch.hpp"
 #include "micras/proxy/fan.hpp"
+#include "micras/proxy/fmac_filter.hpp"
 #include "micras/proxy/imu.hpp"
 #include "micras/proxy/led.hpp"
 #include "micras/proxy/locomotion.hpp"
 #include "micras/proxy/rotary_sensor.hpp"
-#include "micras/proxy/stopwatch.hpp"
 #include "micras/proxy/storage.hpp"
 #include "micras/proxy/torque_sensors.hpp"
 #include "micras/proxy/wall_sensors.hpp"
 
+extern "C" {
+/**
+ * @brief Configure the clock tree of the microcontroller.
+ *
+ * @note Defined by the generated main.c, which declares it nowhere a consumer can include.
+ */
+void SystemClock_Config();
+
+/**
+ * @brief Configure the kernel clocks of the peripherals that do not run from a bus clock.
+ *
+ * @note Defined by the generated main.c, which declares it nowhere a consumer can include.
+ */
+void PeriphCommonClock_Config();
+}
+
+/**
+ * @brief Configuration of the Micras v1 mainboard, built around an STM32H725RGV.
+ *
+ * @note Everything that names a pin, a peripheral handle or a component of the board lives here, so
+ * that supporting another board, or reusing the packages in another project, is a matter of adding
+ * one directory under config/targets. The build puts the selected board's directory on the include
+ * path, so that every include of "target.hpp" resolves to it without naming the board.
+ */
 namespace micras {
 /*****************************************
  * Template Instantiations
@@ -35,19 +72,59 @@ using WallSensors = TWallSensors<4>;
 }  // namespace proxy
 
 /*****************************************
- * Internal
+ * Board properties
  *****************************************/
 
-const proxy::Stopwatch::Config stopwatch_config = {
-    .timer = {
-        .init_function = MX_TIM6_Init,
-        .handle = &htim6,
-    },
-};
+/**
+ * @brief Analog supply of the microcontroller, which is also the ADC reference.
+ *
+ * @note The package has no separate reference pin, so every analog reading is relative to this.
+ */
+constexpr float adc_reference_voltage{3.3F};
+
+/**
+ * @brief SPI modes of the devices sharing SPI3.
+ *
+ * @note The inertial measurement unit wants mode 3 and the magnetic encoders want mode 1, so the
+ * mode belongs to the device and the bus is reconfigured when the selected device changes.
+ */
+///@{
+constexpr uint32_t imu_clock_polarity{SPI_POLARITY_HIGH};
+constexpr uint32_t imu_clock_phase{SPI_PHASE_2EDGE};
+constexpr uint32_t rotary_sensor_clock_polarity{SPI_POLARITY_LOW};
+constexpr uint32_t rotary_sensor_clock_phase{SPI_PHASE_2EDGE};
+///@}
+
+/*****************************************
+ * Internal
+ *****************************************/
 
 const proxy::Storage::Config maze_storage_config{
     .start_sector = 2,
     .number_of_sectors = 1,
+};
+
+const hal::Fmac::Config fmac_config{
+    .init_function = MX_FMAC_Init,
+    .handle = &hfmac,
+};
+
+/**
+ * @brief Initialization functions of the peripherals that no proxy owns.
+ *
+ * @note Everything else is initialized by the wrapper that holds it, through the init_function of
+ * its own configuration below.
+ */
+const std::array<hal::Mcu::InitFunction, 3> mcu_peripheral_inits{{
+    MX_GPIO_Init,
+    MX_DMA_Init,
+    MX_CRC_Init,
+}};
+
+const hal::Mcu::Config mcu_config{
+    .clock_init = SystemClock_Config,
+    .peripheral_clock_init = PeriphCommonClock_Config,
+    .peripheral_inits = mcu_peripheral_inits,
 };
 
 /*****************************************
@@ -100,7 +177,10 @@ const proxy::DipSwitch::Config dip_switch_config = {
             .port = Switch_3_GPIO_Port,
             .pin = Switch_3_Pin,
         },
-    }}
+    }},
+    // The common side of the switch package is grounded and every pin has an internal pull up, so
+    // a closed switch reads low
+    .active_low = true,
 };
 
 const proxy::Buzzer::Config buzzer_config = {
@@ -115,6 +195,13 @@ const proxy::Buzzer::Config buzzer_config = {
  * Sensors
  *****************************************/
 
+/**
+ * @brief Configuration written to the volatile registers of the magnetic encoders.
+ *
+ * @note ABIRES selects the pulses per revolution of the quadrature output. The proxy reads this
+ * field back after writing it and derives its scale factor from what the sensor reports, so this
+ * value cannot silently disagree with the odometry.
+ */
 const proxy::RotarySensor::Registers rotary_sensor_reg_config = {
     .disable = {{
         .UVW_off = 1,
@@ -168,6 +255,8 @@ const proxy::RotarySensor::Config rotary_sensor_left_config = {
                     .pin = Encoder_Left_CSn_Pin,
                 },
             .timeout = 2,
+            .clock_polarity = rotary_sensor_clock_polarity,
+            .clock_phase = rotary_sensor_clock_phase,
         },
     .encoder =
         {
@@ -179,7 +268,6 @@ const proxy::RotarySensor::Config rotary_sensor_left_config = {
         {
             .handle = &hcrc,
         },
-    .resolution = 4096,
     .registers = rotary_sensor_reg_config,
 };
 
@@ -194,6 +282,8 @@ const proxy::RotarySensor::Config rotary_sensor_right_config = {
                     .pin = Encoder_Right_CSn_Pin,
                 },
             .timeout = 2,
+            .clock_polarity = rotary_sensor_clock_polarity,
+            .clock_phase = rotary_sensor_clock_phase,
         },
     .encoder =
         {
@@ -205,7 +295,6 @@ const proxy::RotarySensor::Config rotary_sensor_right_config = {
         {
             .handle = &hcrc,
         },
-    .resolution = 4096,
     .registers = rotary_sensor_reg_config,
 };
 
@@ -215,10 +304,18 @@ const proxy::TorqueSensors::Config torque_sensors_config = {
             .init_function = MX_ADC2_Init,
             .handle = &hadc2,
             .max_reading = 65535,
+            .reference_voltage = adc_reference_voltage,
         },
+    // 40 mOhm shunts into current sense amplifiers of gain 20
     .shunt_resistor = 0.04F * 20,
-    .max_torque = 10.0F,
-    .filter_cutoff = 10.0F,
+    // Full scale current times the torque constant of the motor. The torque constant has not been
+    // measured on these motors, so this is an order of magnitude estimate for a coreless
+    // micromouse motor and wants a bench calibration before nav relies on the value.
+    .max_torque = 0.01F,
+    .filter = {
+        .cutoff_frequency = torque_filter_cutoff,
+        .sampling_frequency = loop_frequency,
+    },
 };
 
 const proxy::WallSensors::Config wall_sensors_config = {
@@ -227,6 +324,7 @@ const proxy::WallSensors::Config wall_sensors_config = {
             .init_function = MX_ADC1_Init,
             .handle = &hadc1,
             .max_reading = 65535,
+            .reference_voltage = adc_reference_voltage,
         },
     .led_pwms = {{
         {
@@ -250,7 +348,11 @@ const proxy::WallSensors::Config wall_sensors_config = {
             .timer_channel = TIM_CHANNEL_4,
         },
     }},
-    .filter_cutoff = 5.0F,
+    .filter =
+        {
+            .cutoff_frequency = sensor_filter_cutoff,
+            .sampling_frequency = loop_frequency,
+        },
     .base_readings =
         {
             0.413F,
@@ -272,14 +374,19 @@ const proxy::Imu::Config imu_config = {
                     .pin = IMU_SPI_CSn_Pin,
                 },
             .timeout = 2,
+            .clock_polarity = imu_clock_polarity,
+            .clock_phase = imu_clock_phase,
         },
     .gyroscope_data_rate = LSM6DSV_ODR_AT_960Hz,
     .accelerometer_data_rate = LSM6DSV_ODR_AT_960Hz,
-    .orientation_data_rate = LSM6DSV_SFLP_480Hz,
     .gyroscope_scale = LSM6DSV_4000dps,
     .accelerometer_scale = LSM6DSV_8g,
     .gyroscope_filter = LSM6DSV_GY_ULTRA_LIGHT,
-    .accelerometer_filter = LSM6DSV_XL_MEDIUM
+    .accelerometer_filter = LSM6DSV_XL_MEDIUM,
+    .calibration_filter = {
+        .cutoff_frequency = sensor_filter_cutoff,
+        .sampling_frequency = loop_frequency,
+    },
 };
 
 const proxy::Battery::Config battery_config = {
@@ -288,15 +395,28 @@ const proxy::Battery::Config battery_config = {
             .init_function = MX_ADC3_Init,
             .handle = &hadc3,
             .max_reading = 4095,
+            .reference_voltage = adc_reference_voltage,
         },
-    .voltage_divider = 3.0F,
-    .filter_cutoff = 5.0F,
+    // The internal channel of this family taps the battery pin through a divider by four, which is
+    // what makes a three cell pack measurable against a 3.3 V reference. A board that brought the
+    // pack to a normal ADC input would put its real resistor ratio here instead.
+    .voltage_divider = 4.0F,
+    .filter = {
+        .cutoff_frequency = sensor_filter_cutoff,
+        .sampling_frequency = loop_frequency,
+    },
 };
 
 /*****************************************
  * Actuators
  *****************************************/
 
+/**
+ * @brief Configuration of the fan driver.
+ *
+ * @note The driver has its outputs paralleled and its phase input strapped high on this board, so
+ * there is no direction pin.
+ */
 const proxy::Fan::Config fan_config = {
     .pwm =
         {
@@ -304,11 +424,6 @@ const proxy::Fan::Config fan_config = {
             .handle = &htim12,
             .timer_channel = TIM_CHANNEL_2,
         },
-    // .direction_gpio =
-    //     {
-    //         .port = Fan_Direction_GPIO_Port,
-    //         .pin = Fan_Direction_Pin,
-    //     },
     .enable_gpio =
         {
             .port = Fan_Enable_GPIO_Port,
@@ -357,6 +472,36 @@ const proxy::Locomotion::Config locomotion_config = {
         .pin = Motors_Enable_Pin,
     },
 };
+
+/*****************************************
+ * Emergency stop
+ *****************************************/
+
+/**
+ * @brief Every PWM output and driver enable pin, for the shutdown path.
+ *
+ * @note Built from the configurations above rather than written out again, so that a timer or a pin
+ * that moves cannot leave the emergency stop pointing at the old one.
+ */
+///@{
+const std::array<hal::Pwm::Config, 10> emergency_pwm_configs{{
+    locomotion_config.left_motor.forward_pwm,
+    locomotion_config.left_motor.backwards_pwm,
+    locomotion_config.right_motor.forward_pwm,
+    locomotion_config.right_motor.backwards_pwm,
+    fan_config.pwm,
+    buzzer_config.pwm,
+    std::get<0>(wall_sensors_config.led_pwms),
+    std::get<1>(wall_sensors_config.led_pwms),
+    std::get<2>(wall_sensors_config.led_pwms),
+    std::get<3>(wall_sensors_config.led_pwms),
+}};
+
+const std::array<hal::Gpio::Config, 2> emergency_gpio_configs{{
+    locomotion_config.enable_gpio,
+    fan_config.enable_gpio,
+}};
+///@}
 }  // namespace micras
 
-#endif  //  MICRAS_TARGET_HPP
+#endif  // MICRAS_TARGET_HPP

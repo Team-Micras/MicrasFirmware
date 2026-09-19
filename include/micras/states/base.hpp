@@ -11,7 +11,7 @@
 #include "micras/micras.hpp"
 
 namespace micras {
-class BaseState : public core::Fsm::State {
+class BaseState : public core::FsmState {
 public:
     /**
      * @brief Construct a new BaseState object.
@@ -19,7 +19,7 @@ public:
      * @param id The id of the state.
      * @param micras The Micras object.
      */
-    BaseState(Micras::State id, Micras& micras) : State(std::to_underlying(id)), micras{micras} { };
+    BaseState(Micras::State id, Micras& micras) : FsmState(std::to_underlying(id)), micras{micras} { };
 
     /**
      * @brief Do nothing by default.

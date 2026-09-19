@@ -30,6 +30,43 @@ constexpr float    max_angular_acceleration{300.0F};
 constexpr float    crash_acceleration{35.0F};
 constexpr float    fan_speed{100.0F};
 
+/**
+ * @brief Rate at which the control loop runs, and therefore the rate at which every filter driven
+ * by it is sampled.
+ *
+ * @note Derived from the loop period rather than written twice: a filter designed for a sampling
+ * rate it is not sampled at is a filter with the wrong cutoff.
+ */
+constexpr float loop_frequency{1.0e6F / static_cast<float>(loop_time_us)};
+
+/**
+ * @brief Time without a control loop iteration that resets the microcontroller.
+ *
+ * @note A reset brings the driver enable pins and the PWM outputs back to their reset state, which
+ * makes the watchdog the shutdown path for a hang or a fault handler that never returns.
+ */
+constexpr uint32_t watchdog_timeout_ms{10 * loop_time_us / 1000};
+
+/**
+ * @brief Watchdog timeout used around a flash erase.
+ *
+ * @note Erasing a sector stalls the core for around 2 s, and up to 4 s in the worst case, since the
+ * flash cannot be read while it is being erased. The robot is stopped whenever this happens.
+ */
+constexpr uint32_t flash_watchdog_timeout_ms{8000};
+
+/**
+ * @brief Cutoff frequencies of the sensor filters, in hertz.
+ *
+ * @note These are the cutoffs the firmware was actually running before the sampling rate and the
+ * bilinear prewarping were corrected, so that fixing the mathematics changed no behavior on the
+ * bench. They were never tuned against a working robot and are a starting point, not a result.
+ */
+///@{
+constexpr float sensor_filter_cutoff{7.64F};
+constexpr float torque_filter_cutoff{15.27F};
+///@}
+
 constexpr core::WallSensorsIndex wall_sensors_index{
     .left_front = 0,
     .left = 1,
@@ -101,7 +138,11 @@ const nav::Maze::Config maze_config{
 };
 
 const nav::Odometry::Config odometry_config{
-    .linear_cutoff_frequency = 5.0F,
+    .linear_filter =
+        {
+            .cutoff_frequency = sensor_filter_cutoff,
+            .sampling_frequency = loop_frequency,
+        },
     .wheel_radius = 0.0112F,
     .initial_pose = {{cell_size / 2.0F, start_offset}, std::numbers::pi_v<float> / 2.0F},
 };

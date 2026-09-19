@@ -26,11 +26,11 @@ public:
         hal::Spi::Config                spi;
         lsm6dsv_data_rate_t             gyroscope_data_rate;
         lsm6dsv_data_rate_t             accelerometer_data_rate;
-        lsm6dsv_sflp_data_rate_t        orientation_data_rate;
         lsm6dsv_gy_full_scale_t         gyroscope_scale;
         lsm6dsv_xl_full_scale_t         accelerometer_scale;
         lsm6dsv_filt_gy_lp1_bandwidth_t gyroscope_filter;
         lsm6dsv_filt_xl_lp2_bandwidth_t accelerometer_filter;
+        core::ButterworthFilter::Config calibration_filter;
     };
 
     /**
@@ -151,7 +151,7 @@ private:
     /**
      * @brief Gyroscope Butterworth filter for the calibration.
      */
-    core::ButterworthFilter calibration_filter{5.0F};
+    core::ButterworthFilter calibration_filter;
 
     /**
      * @brief Flag to check if the IMU was calibrated.
