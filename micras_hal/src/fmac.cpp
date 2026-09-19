@@ -38,8 +38,6 @@ bool Fmac::configure_iir(std::span<const int16_t> feed_forward, std::span<const 
         // NOLINTEND(cppcoreguidelines-pro-type-const-cast)
         .InputAccess = FMAC_BUFFER_ACCESS_POLLING,
         .OutputAccess = FMAC_BUFFER_ACCESS_POLLING,
-        // Saturate instead of wrapping, so that a transient beyond the q1.15 range degrades the
-        // output rather than inverting it
         .Clip = FMAC_CLIP_ENABLED,
         .Filter = FMAC_FUNC_IIR_DIRECT_FORM_1,
         .P = static_cast<uint8_t>(feed_forward.size()),

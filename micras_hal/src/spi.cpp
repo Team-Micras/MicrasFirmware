@@ -15,8 +15,6 @@ Spi::Spi(const Config& config) :
     timeout{config.timeout},
     clock_polarity{config.clock_polarity},
     clock_phase{config.clock_phase} {
-    // Deassert before the bus exists, so that a device is never left selected by the reset state
-    // of its chip select pin
     this->unselect_device();
 
     if (this->handle->State == HAL_SPI_STATE_RESET) {

@@ -92,6 +92,10 @@ public:
 
     /**
      * @brief Run the FSM current state to compute the next state.
+     *
+     * @note Aborts when the current state id has no state behind it, which can only be a
+     * programming error, and running the abort handler beats dispatching through a null pointer
+     * with the motors turning.
      */
     void update();
 

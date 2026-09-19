@@ -22,8 +22,6 @@ TTorqueSensors<num_of_sensors>::TTorqueSensors(const Config& config) :
 
 template <uint8_t num_of_sensors>
 void TTorqueSensors<num_of_sensors>::calibrate() {
-    // The filter is fed already offset readings, so the new baseline is the accumulated offset plus
-    // whatever is left, which is what makes a second call a refinement instead of a reset
     for (uint8_t i = 0; i < num_of_sensors; i++) {
         this->base_reading.at(i) += this->filters.at(i).get_last();
     }

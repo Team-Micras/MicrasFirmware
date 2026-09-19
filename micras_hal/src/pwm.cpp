@@ -31,8 +31,6 @@ static uint32_t get_timer_clock_frequency(const TIM_TypeDef* instance) {
 }
 
 Pwm::Pwm(const Config& config) : handle{config.handle}, channel{config.timer_channel} {
-    // Several channels of the same timer are separate Pwm objects sharing one init function, and
-    // re-running it would regenerate an update event on a timer that is already counting
     if (this->handle->State == HAL_TIM_STATE_RESET) {
         config.init_function();
     }
@@ -42,9 +40,6 @@ Pwm::Pwm(const Config& config) : handle{config.handle}, channel{config.timer_cha
 }
 
 void Pwm::set_duty_cycle(float duty_cycle) {
-    // Adding a half and truncating is exactly round half up for a duty cycle that is never
-    // negative, and it avoids the libm call std::lround would make in a path that runs five times
-    // per control loop
     const float scaled = duty_cycle * static_cast<float>(__HAL_TIM_GET_AUTORELOAD(this->handle) + 1) * 0.01F;
 
     // NOLINTNEXTLINE(bugprone-incorrect-roundings)

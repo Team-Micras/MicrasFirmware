@@ -26,8 +26,6 @@ uint32_t Stopwatch::elapsed_time_ms() const {
 }
 
 uint32_t Stopwatch::elapsed_time_us() const {
-    // The subtraction happens in cycles, before the conversion, so that the wrap of the cycle
-    // counter needs no special case
     return hal::Timer::to_microseconds(hal::Timer::get_counter() - this->counter_cycles);
 }
 

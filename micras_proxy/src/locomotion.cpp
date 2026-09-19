@@ -31,8 +31,6 @@ void Locomotion::set_command(float linear, float angular) {
     float left_command = linear - angular;
     float right_command = linear + angular;
 
-    // Both wheels are scaled by the same factor, so that saturation preserves the commanded ratio
-    // and therefore the turn radius
     const float peak = std::max(std::abs(left_command), std::abs(right_command));
 
     if (peak > 100.0F) {

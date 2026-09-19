@@ -36,14 +36,12 @@ float Fan::update() {
 
     this->acceleration_stopwatch.reset_ms();
 
-    // The driver has no direction control on this board, so a negative speed can only mean off
     this->pwm.set_duty_cycle(std::max(this->current_speed, 0.0F));
 
     return this->current_speed;
 }
 
 void Fan::stop() {
-    // The target has to go with it, or the next update ramps the fan straight back up
     this->target_speed = 0.0F;
     this->current_speed = 0.0F;
     this->pwm.set_duty_cycle(0.0F);

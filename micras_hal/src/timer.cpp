@@ -17,7 +17,6 @@ uint32_t Timer::cycles_per_microsecond{1};
 void Timer::init() {
     CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
 
-    // Some Cortex-M7 implementations gate the debug registers behind a software lock
     if ((DWT->LSR & ITM_LSR_Present_Msk) != 0 and (DWT->LSR & ITM_LSR_Access_Msk) != 0) {
         DWT->LAR = software_lock_key;
     }

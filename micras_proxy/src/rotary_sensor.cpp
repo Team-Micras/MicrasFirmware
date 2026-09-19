@@ -29,8 +29,6 @@ RotarySensor::RotarySensor(const Config& config) : spi{config.spi}, encoder{conf
         return;
     }
 
-    // The scale comes from what the sensor reports, not from what was written to it, so a
-    // configuration write that silently failed cannot turn into a wrongly scaled odometry
     this->resolution = read_back.value();
     this->initialized = true;
 }
@@ -59,8 +57,6 @@ std::array<uint8_t, RotarySensor::frame_size> RotarySensor::serialize(uint32_t r
         static_cast<uint8_t>(raw),
     };
 
-    // The sensor defines the CRC over the two most significant bytes of the frame, which are the
-    // first two on the wire and the last two in memory on a little endian core
     std::get<2>(bytes) = static_cast<uint8_t>(this->crc.calculate({bytes.data(), frame_size - 1}) ^ 0xFF);
 
     return bytes;
@@ -88,8 +84,6 @@ std::optional<uint16_t> RotarySensor::read_register(uint16_t address) {
     const CommandFrame                    command{{.crc = 0, .address = address, .rw = 1, .do_not_care = 0}};
     const std::array<uint8_t, frame_size> command_bytes = this->serialize(command.raw);
 
-    // The sensor answers a command in the frame that follows it, so the command is sent twice: the
-    // first transfer carries it and the second clocks the answer out while repeating it
     if (not this->exchange_frame(command_bytes).has_value()) {
         return std::nullopt;
     }

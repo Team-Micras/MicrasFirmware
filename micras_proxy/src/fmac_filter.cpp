@@ -22,7 +22,6 @@ FmacFilter::FmacFilter(const Config& config) : fmac{config.fmac} {
         representable &= to_fixed_point(coefficients.feed_forward.at(i), this->feed_forward.at(i));
     }
 
-    // The accelerator adds the feedback contribution where the filter relation subtracts it
     for (std::size_t i = 0; i < coefficients.feedback.size(); i++) {
         representable &= to_fixed_point(-coefficients.feedback.at(i), this->feedback.at(i));
     }
@@ -65,7 +64,6 @@ bool FmacFilter::to_fixed_point(float value, int16_t& result) {
 
     result = static_cast<int16_t>(std::lround(scaled));
 
-    // A coefficient that rounds to zero is not a small coefficient, it is a missing one
     return result != 0 or value == 0.0F;
 }
 }  // namespace micras::proxy

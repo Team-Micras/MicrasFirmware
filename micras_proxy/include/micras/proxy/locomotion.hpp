@@ -53,6 +53,9 @@ public:
     /**
      * @brief Set the linear and angular commands of the robot.
      *
+     * @note Both wheels are scaled by the same factor when a command saturates, so the commanded
+     * ratio, and with it the turn radius, survives the saturation.
+     *
      * @param linear Linear command of the robot.
      * @param angular Angular command of the robot.
      */

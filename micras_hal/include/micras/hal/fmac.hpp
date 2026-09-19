@@ -39,7 +39,9 @@ public:
      * @brief Configure the accelerator as an infinite impulse response filter in direct form 1.
      *
      * @param feed_forward Coefficients applied to the input samples, most recent first, in q1.15.
-     * @param feedback Coefficients applied to the previous outputs, most recent first, in q1.15.
+     * @param feedback Coefficients applied to the previous outputs, most recent first, in q1.15,
+     * with the sign the accelerator expects, since it adds their contribution where the filter
+     * relation subtracts it.
      * @return True if the filter was configured and started, false otherwise.
      */
     bool configure_iir(std::span<const int16_t> feed_forward, std::span<const int16_t> feedback);

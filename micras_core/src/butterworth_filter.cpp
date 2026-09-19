@@ -11,11 +11,6 @@
 
 namespace micras::core {
 ButterworthFilter::Coefficients ButterworthFilter::compute_coefficients(const Config& config) {
-    // The bilinear transform maps the analog prototype 1 / (s^2 + sqrt(2) s + 1) onto the unit
-    // circle by substituting s = warp (1 - z^-1) / (1 + z^-1), with warp chosen so the cutoff lands
-    // exactly where it was asked for, which is cot(pi * cutoff / sampling). The cotangent is the
-    // prewarping, and leaving it out is what would turn the cutoff into an angular frequency and
-    // put the real one a factor of 2 pi too low.
     const float warp = 1.0F / std::tan(std::numbers::pi_v<float> * config.cutoff_frequency / config.sampling_frequency);
     const float warp_2 = warp * warp;
 

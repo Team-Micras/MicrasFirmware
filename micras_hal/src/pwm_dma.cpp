@@ -34,7 +34,6 @@ void PwmDma::stop_dma() {
 }
 
 uint32_t PwmDma::get_compare(float duty_cycle) const {
-    // Same expression as Pwm::set_duty_cycle, so that the two helpers cannot disagree
     const float scaled = duty_cycle * static_cast<float>(__HAL_TIM_GET_AUTORELOAD(this->handle) + 1) * 0.01F;
 
     // NOLINTNEXTLINE(bugprone-incorrect-roundings)

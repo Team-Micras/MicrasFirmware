@@ -99,8 +99,6 @@ void Mcu::emergency_stop(std::span<const Pwm::Config> pwm_outputs, std::span<con
 }
 
 void Mcu::set_watchdog_timeout(uint32_t timeout_ms) {
-    // The smallest prescaler that still fits the requested timeout in the 12 bit reload register
-    // gives the finest resolution
     uint32_t prescaler = 0;
     uint32_t ticks = timeout_ms * LSI_VALUE / (watchdog_min_divider * 1000);
 

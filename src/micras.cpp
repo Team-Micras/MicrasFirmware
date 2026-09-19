@@ -59,7 +59,6 @@ void Micras::update() {
 
     this->fsm.update();
 
-    // Measured before the wait, so it is the time the body actually took rather than the period
     this->worst_loop_time_us = std::max(this->worst_loop_time_us, this->loop_stopwatch.elapsed_time_us());
 
     while (this->loop_stopwatch.elapsed_time_us() < loop_time_us) { }
@@ -186,8 +185,6 @@ bool Micras::check_crash() const {
 }
 
 void Micras::save_best_route() {
-    // Erasing a flash sector stalls the core for seconds, far beyond the control loop budget the
-    // watchdog is set for, so the window is widened for as long as the write takes
     hal::Mcu::set_watchdog_timeout(flash_watchdog_timeout_ms);
 
     this->maze_storage.create("maze", this->maze);

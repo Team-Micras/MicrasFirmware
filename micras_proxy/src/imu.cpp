@@ -59,9 +59,6 @@ bool Imu::check_whoami() {
 void Imu::update() {
     std::array<int16_t, 3> raw_data{};
 
-    // Only the two data ready flags are of interest here, and STATUS_REG carries both in one
-    // transaction, where lsm6dsv_all_sources_get walks the FIFO, the embedded function bank and the
-    // sensor hub and writes four registers back on the way
     lsm6dsv_data_ready_t data_ready{};
     lsm6dsv_flag_data_ready_get(&this->dev_ctx, &data_ready);
 

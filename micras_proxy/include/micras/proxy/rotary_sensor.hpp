@@ -99,6 +99,10 @@ public:
     /**
      * @brief Read a register from the rotary sensor.
      *
+     * @note The sensor answers a command in the frame that follows it, so the command is sent
+     * twice: the first transfer carries it and the second clocks the answer out while repeating
+     * it.
+     *
      * @param address Address of the register.
      * @return The register value, or nothing if a transfer failed or a frame was rejected.
      */
@@ -131,6 +135,9 @@ private:
 
     /**
      * @brief Serialize a frame into the wire order of the sensor, filling in its CRC.
+     *
+     * @note The sensor defines the CRC over the two most significant bytes of the frame, which
+     * are the first two on the wire and the last two in memory on a little endian core.
      *
      * @param raw The 24 bit frame, without a valid CRC.
      * @return The frame as three bytes, most significant first, with the CRC in the last one.

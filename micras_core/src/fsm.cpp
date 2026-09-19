@@ -24,9 +24,6 @@ void TFsm<num_of_states>::add_state(std::unique_ptr<FsmState> state) {
 template <uint8_t num_of_states>
 void TFsm<num_of_states>::update() {
     if (this->current_state_id >= num_of_states or this->states.at(this->current_state_id) == nullptr) {
-        // An id with no state behind it can only be a programming error. Aborting runs the
-        // emergency stop handler, which is a far better outcome than dispatching through a null
-        // pointer with the motors running.
         std::abort();
     }
 
