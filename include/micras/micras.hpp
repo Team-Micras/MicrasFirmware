@@ -156,10 +156,8 @@ private:
     /**
      * @brief Sensors and actuators.
      *
-     * @note Every proxy is owned here, by value, for the whole lifetime of the program. The objects
-     * that use them borrow them by reference, which is why none of this is behind a smart pointer:
-     * an ownership model the program does not use is a cost paid on every access and a question the
-     * reader has to answer every time.
+     * @note Every proxy is owned here, by value, for the whole lifetime of the program, and the
+     * objects that use them borrow them by reference.
      */
     ///@{
     proxy::Battery       battery{battery_config};

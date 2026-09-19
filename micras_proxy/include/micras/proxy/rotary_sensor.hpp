@@ -29,7 +29,7 @@ public:
      *
      * @note There is no resolution field: the pulses per revolution are whatever the ABIRES field
      * of the sensor says after configuration, so the scale factor is read back from the hardware
-     * instead of being asserted here. Two numbers that have to agree are one number too many.
+     * instead of being asserted here.
      */
     struct Config {
         hal::Spi::Config     spi;

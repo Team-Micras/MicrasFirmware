@@ -35,9 +35,8 @@ set(MICRAS_WARNING_OPTIONS
     $<$<COMPILE_LANGUAGE:CXX>:-Wuseless-cast>
 )
 
-# Applied per target rather than through CMAKE_CXX_FLAGS, so that the generated sources are never
-# compiled with them, and as options rather than through a target, so that no package ends up
-# carrying a build policy of ours in its interface
+# Applied per target, so that the generated sources are never compiled with them, and as options
+# rather than through a target, which a static library would carry in its interface
 function(micras_apply_warnings)
     foreach(TARGET_NAME ${ARGN})
         target_compile_options(${TARGET_NAME} PRIVATE ${MICRAS_WARNING_OPTIONS})

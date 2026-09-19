@@ -76,9 +76,9 @@ using WallSensors = TWallSensors<4>;
  *****************************************/
 
 /**
- * @brief Analogue supply of the microcontroller, which is also the ADC reference.
+ * @brief Analog supply of the microcontroller, which is also the ADC reference.
  *
- * @note The package has no separate reference pin, so every analogue reading is relative to this.
+ * @note The package has no separate reference pin, so every analog reading is relative to this.
  */
 constexpr float adc_reference_voltage{3.3F};
 

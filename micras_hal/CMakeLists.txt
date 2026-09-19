@@ -15,9 +15,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 )
 
 # stm32cubemx is the interface target STM32CubeMX generates, carrying the CMSIS and vendor HAL
-# include directories and the device macros. It is the only name this package uses from outside
-# itself, the generator writes it for every project and every family, and linking it publicly is
-# what puts those headers on everything that includes these ones.
+# include directories and the device macros. The public headers name them, so it propagates.
 target_link_libraries(${PROJECT_NAME} PUBLIC
     micras::core
     stm32cubemx

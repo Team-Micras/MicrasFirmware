@@ -111,15 +111,15 @@ private:
     /**
      * @brief Buffer to store the ADC values, holding one emitter on and one emitter off scan.
      *
-     * @details The emitter PWM timer is centre aligned and triggers the ADC on its update event, so
+     * @details The emitter PWM timer is center aligned and triggers the ADC on its update event, so
      * the conversion sequence runs twice per emitter period: once at the underflow, while the
      * emitters are on, and once at the overflow, while they are off. Two consecutive scans
      * therefore fill the two halves of this buffer with a matching pair, and the difference between
-     * the halves is the reflected signal with the ambient light cancelled. Taking the absolute
+     * the halves is the reflected signal with the ambient light canceled. Taking the absolute
      * value makes the result independent of which half currently holds which phase.
      *
      * @note This depends on the ADC scanning exactly num_of_sensors channels, on the emitter timer
-     * being centre aligned with its trigger on the update event, and on a scan fitting inside half
+     * being center aligned with its trigger on the update event, and on a scan fitting inside half
      * an emitter period. The first of those is checked by the constructor; the other two live in the
      * peripheral configuration.
      */

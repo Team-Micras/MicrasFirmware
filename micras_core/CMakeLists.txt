@@ -8,8 +8,7 @@ add_library(${PROJECT_NAME} STATIC
 
 add_library(micras::core ALIAS ${PROJECT_NAME})
 
-# C++23 is a requirement of the sources, not a preference of whoever is building, so it is declared
-# here and propagated
+# A requirement of the sources rather than a preference of whoever is building, so it propagates
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_23)
 
 target_include_directories(${PROJECT_NAME} PUBLIC

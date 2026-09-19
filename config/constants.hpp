@@ -59,7 +59,7 @@ constexpr uint32_t flash_watchdog_timeout_ms{8000};
  * @brief Cutoff frequencies of the sensor filters, in hertz.
  *
  * @note These are the cutoffs the firmware was actually running before the sampling rate and the
- * bilinear prewarping were corrected, so that fixing the mathematics changed no behaviour on the
+ * bilinear prewarping were corrected, so that fixing the mathematics changed no behavior on the
  * bench. They were never tuned against a working robot and are a starting point, not a result.
  */
 ///@{

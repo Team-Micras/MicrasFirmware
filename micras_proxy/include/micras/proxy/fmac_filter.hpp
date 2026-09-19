@@ -20,12 +20,12 @@ namespace micras::proxy {
  * idea, and none of them is a property of this class:
  *
  * - The accelerator works in q1.15, so every coefficient has to fall inside [-1, 1) and be large
- *   enough not to quantise to zero. A second order Butterworth has a feed forward coefficient of
+ *   enough not to quantize to zero. A second order Butterworth has a feed forward coefficient of
  *   roughly (fc / fs)^2 / 4, so at a cutoff far below the sampling rate the coefficients underflow.
  *   At a 960 Hz sampling rate the useful range starts around a 100 Hz cutoff, well above the 5 Hz
  *   and 10 Hz cutoffs the sensors of this robot use. was_initialized reports that refusal instead
  *   of filtering with silently truncated coefficients.
- * - Samples and results are q1.15 too, so the input has to be normalised to [-1, 1). That suits a
+ * - Samples and results are q1.15 too, so the input has to be normalized to [-1, 1). That suits a
  *   ratiometric reading such as an ADC fraction, and not a physical quantity such as a rate in
  *   radians per second.
  * - The accelerator holds one filter configuration at a time. Several instances cannot run
@@ -52,7 +52,7 @@ public:
     /**
      * @brief Produce a new value from measured data.
      *
-     * @param x0 Last measure, normalised to the range [-1, 1).
+     * @param x0 Last measure, normalized to the range [-1, 1).
      * @return Filtered value, or zero if the coefficients could not be represented.
      */
     float update(float x0);
@@ -87,7 +87,7 @@ private:
      *
      * @param value Coefficient to convert.
      * @param result Converted coefficient.
-     * @return True if the coefficient is inside the representable range and does not quantise to
+     * @return True if the coefficient is inside the representable range and does not quantize to
      * zero, false otherwise.
      */
     static bool to_fixed_point(float value, int16_t& result);

@@ -42,7 +42,7 @@ public:
      * @brief Construct a new Interface object.
      *
      * @note The proxies are borrowed, not owned: they live in the Micras object for the whole
-     * program, which is why they are references and not pointers of any kind.
+     * program, so they are taken by reference.
      *
      * @param button The button object.
      * @param dip_switch The DIP switch object.

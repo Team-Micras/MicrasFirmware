@@ -15,9 +15,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
-# From GCC 14 on, CMake scans every C++20 or later source for module imports, which puts
-# -fmodules-ts and a module mapper into the compilation database and makes clang-tidy reject
-# every file. No target here declares a module, so the scan is only overhead.
+# No target declares a module, and the scan puts -fmodules-ts and a module mapper into the
+# compilation database, which makes clang-tidy reject every file
 set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
 ###############################################################################
@@ -37,8 +36,8 @@ else()
 endif()
 
 # One board's directory goes on the include path, so that "target.hpp" resolves to it and nothing
-# has to name the board. BOARD_VERSION selects the board layer and the STM32CubeMX project
-# together, so the two can never describe different boards.
+# has to name the board. The same variable selects the STM32CubeMX project, so the two always
+# describe the same board.
 set(MICRAS_TARGET_DIRECTORY "config/targets/${BOARD_VERSION}")
 
 set(LAUNCH_JSON_PATH "${CMAKE_CURRENT_SOURCE_DIR}/.vscode/launch.json")

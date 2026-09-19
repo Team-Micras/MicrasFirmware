@@ -73,8 +73,8 @@ public:
     /**
      * @brief Check if the ADC was calibrated and started successfully.
      *
-     * @note This is the flag that would have made a missing kernel clock visible instead of turning
-     * every analogue reading into a silent zero.
+     * @note A failed calibration or start leaves the DMA buffer at zero, which reads exactly like
+     * a real measurement, so this is the only way to tell one from the other.
      *
      * @return True if the initialization was successful, false otherwise.
      */
