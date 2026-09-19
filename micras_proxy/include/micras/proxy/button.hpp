@@ -19,7 +19,7 @@ public:
     /**
      * @brief Enum for button status.
      */
-    enum Status : uint8_t {
+    enum class Status : uint8_t {
         NO_PRESS = 0,
         SHORT_PRESS = 1,
         LONG_PRESS = 2,
@@ -29,7 +29,7 @@ public:
     /**
      * @brief Enum for button pull resistor.
      */
-    enum PullResistor : uint8_t {
+    enum class PullResistor : uint8_t {
         PULL_UP = 0,
         PULL_DOWN = 1,
     };
@@ -145,7 +145,7 @@ private:
     /**
      * @brief Current status of the button.
      */
-    Status current_status{NO_PRESS};
+    Status current_status{Status::NO_PRESS};
 };
 }  // namespace micras::proxy
 

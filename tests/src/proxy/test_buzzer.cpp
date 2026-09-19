@@ -3,7 +3,11 @@
  */
 
 #include <array>
+#include <cstdint>
 
+#include "micras/proxy/button.hpp"
+#include "micras/proxy/buzzer.hpp"
+#include "target.hpp"
 #include "test_core.hpp"
 
 using namespace micras;  // NOLINT(google-build-using-namespace)

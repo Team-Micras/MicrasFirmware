@@ -5,7 +5,10 @@
 #ifndef MICRAS_PROXY_TORQUE_SENSORS_CPP
 #define MICRAS_PROXY_TORQUE_SENSORS_CPP
 
+#include <cstdint>
+#include "micras/core/butterworth_filter.hpp"
 #include "micras/core/utils.hpp"
+#include "micras/hal/adc_dma.hpp"
 #include "micras/proxy/torque_sensors.hpp"
 
 namespace micras::proxy {

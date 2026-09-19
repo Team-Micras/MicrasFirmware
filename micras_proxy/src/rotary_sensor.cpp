@@ -3,6 +3,7 @@
  */
 
 #include <bit>
+#include <cstdint>
 #include <numbers>
 
 #include "micras/proxy/rotary_sensor.hpp"

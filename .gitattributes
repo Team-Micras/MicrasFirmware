@@ -1,0 +1,18 @@
+# Every text file is stored with LF in the repository and checked out with LF, whatever platform
+# wrote it.
+#
+# The file this exists for is cube/*.ioc. STM32CubeMX writes its project file with the line endings
+# of the platform it runs on, CRLF from a Windows install and LF from the Linux container the CI
+# uses, so without normalisation the same regeneration shows up as a whole file rewrite depending on
+# who ran it, burying the handful of settings that actually changed.
+* text=auto eol=lf
+
+# Everything tracked today is text, so these only matter the day someone adds an image or a
+# firmware blob and git has to be told not to rewrite it
+*.png binary
+*.jpg binary
+*.pdf binary
+*.ico binary
+*.bin binary
+*.elf binary
+*.hex binary

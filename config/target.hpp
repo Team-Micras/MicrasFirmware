@@ -39,11 +39,10 @@ using WallSensors = TWallSensors<4>;
  *****************************************/
 
 const proxy::Stopwatch::Config stopwatch_config = {
-    .timer =
-        {
-            .init_function = MX_TIM6_Init,
-            .handle = &htim6,
-        },
+    .timer = {
+        .init_function = MX_TIM6_Init,
+        .handle = &htim6,
+    },
 };
 
 const proxy::Storage::Config maze_storage_config{
@@ -56,11 +55,10 @@ const proxy::Storage::Config maze_storage_config{
  *****************************************/
 
 const proxy::Led::Config led_config = {
-    .gpio =
-        {
-            .port = LED_Red_GPIO_Port,
-            .pin = LED_Red_Pin,
-        },
+    .gpio = {
+        .port = LED_Red_GPIO_Port,
+        .pin = LED_Red_Pin,
+    },
 };
 
 const proxy::Argb::Config argb_config = {
@@ -106,12 +104,11 @@ const proxy::DipSwitch::Config dip_switch_config = {
 };
 
 const proxy::Buzzer::Config buzzer_config = {
-    .pwm =
-        {
-            .init_function = MX_TIM15_Init,
-            .handle = &htim15,
-            .timer_channel = TIM_CHANNEL_1,
-        },
+    .pwm = {
+        .init_function = MX_TIM15_Init,
+        .handle = &htim15,
+        .timer_channel = TIM_CHANNEL_1,
+    },
 };
 
 /*****************************************
@@ -355,11 +352,10 @@ const proxy::Locomotion::Config locomotion_config = {
             .max_stopped_command = 0.2F,
             .deadzone = 15.0F,
         },
-    .enable_gpio =
-        {
-            .port = Motors_Enable_GPIO_Port,
-            .pin = Motors_Enable_Pin,
-        },
+    .enable_gpio = {
+        .port = Motors_Enable_GPIO_Port,
+        .pin = Motors_Enable_Pin,
+    },
 };
 }  // namespace micras
 

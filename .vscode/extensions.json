@@ -15,7 +15,7 @@
         "ms-vscode.cmake-tools",
         "seatonjiang.gitmoji-vscode",
         "mhutchie.git-graph",
-        "xaver.clang-format",
+        "llvm-vs-code-extensions.vscode-clangd",
     ],
 
     // List of extensions recommended by VS Code that should not be recommended for users of this workspace.

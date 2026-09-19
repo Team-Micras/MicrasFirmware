@@ -5,7 +5,9 @@
 #ifndef MICRAS_PROXY_DIP_SWITCH_CPP
 #define MICRAS_PROXY_DIP_SWITCH_CPP
 
+#include <cstdint>
 #include "micras/core/utils.hpp"
+#include "micras/hal/gpio.hpp"
 #include "micras/proxy/dip_switch.hpp"
 
 namespace micras::proxy {

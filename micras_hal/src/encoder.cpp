@@ -3,6 +3,7 @@
  */
 
 #include <bit>
+#include <cstdint>
 
 #include "micras/hal/encoder.hpp"
 

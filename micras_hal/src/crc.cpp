@@ -2,6 +2,7 @@
  * @file
  */
 
+#include <cstdint>
 #include "micras/hal/crc.hpp"
 
 namespace micras::hal {

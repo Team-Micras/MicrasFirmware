@@ -38,7 +38,7 @@ constexpr T remap(T value, T in_min, T in_max, T out_min, T out_max) {
  */
 template <typename T>
 constexpr T move_towards(T value, T target, T step) {
-    return std::max(std::min(value + step, target), value - step);
+    return std::clamp(target, value - step, value + step);
 }
 
 /**
@@ -68,7 +68,7 @@ constexpr T transition(T value, T start, T end, T resistance) {
 template <typename T, size_t N, typename C>
 constexpr std::array<T, N> make_array(const std::array<C, N>& parameters) {
     return [&]<std::size_t... I>(std::index_sequence<I...>) -> std::array<T, N> {
-        return {T{parameters[I]}...};
+        return {T{std::get<I>(parameters)}...};
     }(std::make_index_sequence<N>());
 }
 
@@ -132,7 +132,7 @@ constexpr float assert_half_angle(float angle) {
  * @param tolerance Tolerance.
  * @return True if the numbers are near each other, false otherwise.
  */
-constexpr bool is_near(float x, float y, float tolerance = 0.001) {
+constexpr bool is_near(float x, float y, float tolerance = 0.001F) {
     return std::abs(x - y) <= tolerance;
 }
 }  // namespace micras::core

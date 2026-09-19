@@ -4,6 +4,8 @@
 
 #include <bit>
 #include <cmath>
+#include <cstdint>
+#include <span>
 
 #include "micras/hal/pwm_dma.hpp"
 
@@ -29,7 +31,7 @@ void PwmDma::stop_dma() {
 }
 
 uint32_t PwmDma::get_compare(float duty_cycle) const {
-    return std::lround((duty_cycle * (__HAL_TIM_GET_AUTORELOAD(this->handle) + 1) / 100) - 1);
+    return static_cast<uint32_t>(std::lround((duty_cycle * (__HAL_TIM_GET_AUTORELOAD(this->handle) + 1) / 100) - 1));
 }
 
 bool PwmDma::is_busy() {

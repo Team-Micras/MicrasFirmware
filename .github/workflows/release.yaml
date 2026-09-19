@@ -5,17 +5,23 @@ on:
     types: [published]
 
 permissions:
-  contents: write
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.release.tag_name }}
+  cancel-in-progress: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
     steps:
       - name: 🔀 Checkout
         uses: actions/checkout@v7
-        with:
-          submodules: recursive
 
       - name: 🐋 Build Docker image
         run: docker build --file .docker/Dockerfile --target build --tag micras:build .
@@ -24,6 +30,11 @@ jobs:
         run: |
           docker run --name release micras:build make -C build --no-print-directory -j
           docker cp release:/project/build/ output/
+
+      - name: 🔏 Attest build provenance
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-path: 'output/*.hex,output/*.elf'
 
       - name: ⬆️ Upload binaries
         run: gh release upload "${{ github.event.release.tag_name }}" output/*.hex output/*.elf --clobber

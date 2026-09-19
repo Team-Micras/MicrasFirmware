@@ -154,7 +154,7 @@ private:
     /**
      * @brief Data buffer to send to the addressable RGB LED.
      */
-    std::array<uint16_t, num_of_leds * bits_per_led + reset_length> buffer{};
+    std::array<uint16_t, static_cast<std::size_t>(num_of_leds) * bits_per_led + reset_length> buffer{};
 };
 }  // namespace micras::proxy
 

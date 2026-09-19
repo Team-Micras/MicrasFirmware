@@ -22,7 +22,7 @@ public:
 /**
  * @brief Number of 32 bit words inside a flash word.
  */
-#if defined(FLASH_NB_32BITWORD_IN_FLASHWORD)
+#ifdef FLASH_NB_32BITWORD_IN_FLASHWORD
     static constexpr uint32_t words{FLASH_NB_32BITWORD_IN_FLASHWORD};
 #else
     static constexpr uint32_t words{sizeof(uint64_t) / sizeof(uint32_t)};
@@ -82,7 +82,7 @@ public:
     /**
      * @brief Enum for the status of a flash memory operation.
      */
-    enum Status : uint8_t {
+    enum class Status : uint8_t {
         OK = 0,
         MISALIGNED = 1,
         OUT_OF_BOUNDS = 2,

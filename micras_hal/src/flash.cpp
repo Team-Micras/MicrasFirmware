@@ -4,7 +4,10 @@
 
 #include <algorithm>
 #include <bit>
-#include <stm32h7xx_hal.h>
+#include <cstddef>
+#include <cstdint>
+#include <span>
+#include <stm32h7xx_hal.h>  // NOLINT(misc-include-cleaner)
 
 #include "micras/hal/flash.hpp"
 
@@ -73,18 +76,18 @@ std::span<const uint8_t> Flash::read(uint16_t sector, uint32_t sector_address, u
 
 Flash::Status Flash::write(uint32_t address, std::span<const uint8_t> data) {
     if (address % FlashWord::size != 0) {
-        return MISALIGNED;
+        return Status::MISALIGNED;
     }
 
     if (address > total_size or align_size(data.size()) > total_size - address) {
-        return OUT_OF_BOUNDS;
+        return Status::OUT_OF_BOUNDS;
     }
 
     if (HAL_FLASH_Unlock() != HAL_OK) {
-        return ERROR;
+        return Status::ERROR;
     }
 
-    Status status = OK;
+    Status status = Status::OK;
 
     for (uint32_t offset = 0; offset < data.size(); offset += FlashWord::size) {
         const FlashWord word{data.subspan(offset)};
@@ -92,7 +95,7 @@ Flash::Status Flash::write(uint32_t address, std::span<const uint8_t> data) {
         if (HAL_FLASH_Program(
                 FLASH_TYPEPROGRAM_FLASHWORD, base_address + address + offset, std::bit_cast<uint32_t>(word.data())
             ) != HAL_OK) {
-            status = ERROR;
+            status = Status::ERROR;
             break;
         }
     }
@@ -104,7 +107,7 @@ Flash::Status Flash::write(uint32_t address, std::span<const uint8_t> data) {
 
 Flash::Status Flash::write(uint16_t sector, uint32_t sector_address, std::span<const uint8_t> data) {
     if (sector >= total_sectors or sector_address > sector_size) {
-        return OUT_OF_BOUNDS;
+        return Status::OUT_OF_BOUNDS;
     }
 
     return write(sector * sector_size + sector_address, data);
@@ -112,7 +115,7 @@ Flash::Status Flash::write(uint16_t sector, uint32_t sector_address, std::span<c
 
 Flash::Status Flash::erase_sectors(uint16_t start_sector, uint16_t number_of_sectors) {
     if (start_sector >= total_sectors or number_of_sectors > total_sectors - start_sector) {
-        return OUT_OF_BOUNDS;
+        return Status::OUT_OF_BOUNDS;
     }
 
     FLASH_EraseInitTypeDef erase_struct = {
@@ -124,7 +127,7 @@ Flash::Status Flash::erase_sectors(uint16_t start_sector, uint16_t number_of_sec
     };
 
     if (HAL_FLASH_Unlock() != HAL_OK) {
-        return ERROR;
+        return Status::ERROR;
     }
 
     pFlash.ErrorCode = HAL_FLASH_ERROR_NONE;
@@ -136,9 +139,9 @@ Flash::Status Flash::erase_sectors(uint16_t start_sector, uint16_t number_of_sec
     HAL_FLASH_Lock();
 
     if (hal_status != HAL_OK or sector_error != 0xFFFFFFFFU) {
-        return ERROR;
+        return Status::ERROR;
     }
 
-    return OK;
+    return Status::OK;
 }
 }  // namespace micras::hal

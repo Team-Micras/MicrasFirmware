@@ -5,11 +5,13 @@
 #ifndef BASE_STATE_HPP
 #define BASE_STATE_HPP
 
+#include <utility>
+
 #include "micras/core/fsm.hpp"
 #include "micras/micras.hpp"
 
 namespace micras {
-class BaseState : public core::FSM::State {
+class BaseState : public core::Fsm::State {
 public:
     /**
      * @brief Construct a new BaseState object.
@@ -17,7 +19,7 @@ public:
      * @param id The id of the state.
      * @param micras The Micras object.
      */
-    BaseState(uint8_t id, Micras& micras) : State(id), micras{micras} {};
+    BaseState(Micras::State id, Micras& micras) : State(std::to_underlying(id)), micras{micras} { };
 
     /**
      * @brief Do nothing by default.

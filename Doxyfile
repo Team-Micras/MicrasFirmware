@@ -1,26 +1,40 @@
 PROJECT_NAME           = "Micras Firmware"
+PROJECT_NUMBER         = $(MICRAS_VERSION)
+PROJECT_BRIEF          = "NTF Classic Micromouse firmware for STM32H7"
 OUTPUT_DIRECTORY       = docs/
 DISTRIBUTE_GROUP_DOC   = YES
 NUM_PROC_THREADS       = 0
+DOT_NUM_THREADS        = 0
+WARN_IF_UNDOC_ENUM_VAL = YES
 EXTRACT_PRIVATE        = YES
 EXTRACT_PRIV_VIRTUAL   = YES
 EXTRACT_STATIC         = YES
 CASE_SENSE_NAMES       = YES
 SHOW_INCLUDE_FILES     = NO
+SHOW_HEADERFILE        = NO
+INPUT                  = config/ \
+                         include/ \
+                         src/ \
+                         micras_core/ \
+                         micras_hal/ \
+                         micras_proxy/ \
+                         micras_nav/
 RECURSIVE              = YES
-EXCLUDE                = "tests/" \
-                         "cube/" \
-                         "build/"
-EXCLUDE_PATTERNS       = "*/libs/*"
-INPUT_FILTER           = "sed -e 's/#include <.*>/ /'"
 VERBATIM_HEADERS       = NO
-GENERATE_HTML          = NO
+GENERATE_HTML          = YES
+GENERATE_TREEVIEW      = YES
+DISABLE_INDEX          = NO
+FULL_SIDEBAR           = NO
+HTML_COLORSTYLE        = AUTO_DARK
+HTML_EXTRA_STYLESHEET  = $(DOXYGEN_AWESOME_DIR)/doxygen-awesome.css \
+                         $(DOXYGEN_AWESOME_DIR)/doxygen-awesome-sidebar-only.css
 UML_LOOK               = YES
 UML_LIMIT_NUM_FIELDS   = 50
 DOT_WRAP_THRESHOLD     = 100
 TEMPLATE_RELATIONS     = YES
+INCLUDE_GRAPH          = NO
+INCLUDED_BY_GRAPH      = NO
 CALL_GRAPH             = YES
 CALLER_GRAPH           = YES
 DOT_GRAPH_MAX_NODES    = 100
 MAX_DOT_GRAPH_DEPTH    = 1
-DOT_MULTI_TARGETS      = YES

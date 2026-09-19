@@ -3,8 +3,11 @@
  */
 
 #include <cmath>
+#include <memory>
 
 #include "micras/nav/odometry.hpp"
+#include "micras/proxy/imu.hpp"
+#include "micras/proxy/rotary_sensor.hpp"
 
 namespace micras::nav {
 Odometry::Odometry(
@@ -16,10 +19,11 @@ Odometry::Odometry(
     right_rotary_sensor{right_rotary_sensor},
     imu{imu},
     wheel_radius{config.wheel_radius},
+    initial_pose(config.initial_pose),
     left_last_position{left_rotary_sensor->get_position()},
     right_last_position{right_rotary_sensor->get_position()},
     linear_filter{config.linear_cutoff_frequency},
-    state{config.initial_pose, {0.0F, 0.0F}} { }
+    state{.pose = config.initial_pose, .velocity = {.linear = 0.0F, .angular = 0.0F}} { }
 
 void Odometry::update(float elapsed_time) {
     if (this->imu.use_count() == 1) {
@@ -55,10 +59,14 @@ void Odometry::update(float elapsed_time) {
 void Odometry::reset() {
     this->left_last_position = this->left_rotary_sensor->get_position();
     this->right_last_position = this->right_rotary_sensor->get_position();
-    this->state = {{{0.0F, 0.0F}, 0.0F}, {0.0F, 0.0F}};
+    this->state = {.pose = this->initial_pose, .velocity = {.linear = 0.0F, .angular = 0.0F}};
 }
 
 const nav::State& Odometry::get_state() const {
+    return this->state;
+}
+
+nav::State& Odometry::get_state() {
     return this->state;
 }
 

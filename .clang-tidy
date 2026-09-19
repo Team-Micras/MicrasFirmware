@@ -1,4 +1,13 @@
 ---
+# llvm-include-order enforces LLVM's own ordering, which contradicts the project's
+# .clang-format rules; clang-format is the single authority on include order here.
+#
+# The trailing group disables checks for constructs this project cannot contain. They match
+# nothing, so they only cost time scanning the standard library and the Cube headers:
+#   string_view, coroutines, Objective-C, GoogleTest, the LLVM internal APIs, std::bind,
+#   iostreams, std::auto_ptr and std::random_shuffle (both removed in C++17), and printf.
+# It also drops clang-analyzer-core.FixedAddressDereference, which every memory mapped
+# peripheral access looks like by construction.
 Checks:
   -*,
   bugprone-*,
@@ -14,8 +23,8 @@ Checks:
   google-*,
   llvm-*,
   -llvm-header-guard,
+  -llvm-include-order,
   misc-*,
-  -misc-include-cleaner,
   -misc-use-anonymous-namespace,
   modernize-*,
   -modernize-use-nodiscard,
@@ -25,6 +34,19 @@ Checks:
   -readability-duplicate-include,
   -readability-magic-numbers,
   -readability-math-missing-parentheses,
+  -bugprone-stringview-nullptr,
+  -cppcoreguidelines-no-suspend-with-lock,
+  -google-objc-*,
+  -google-upgrade-googletest-case,
+  -llvm-prefer-isa-or-dyn-cast-in-conditionals,
+  -llvm-prefer-register-over-unsigned,
+  -llvm-twine-local,
+  -modernize-avoid-bind,
+  -modernize-deprecated-ios-base-aliases,
+  -modernize-replace-auto-ptr,
+  -modernize-replace-random-shuffle,
+  -modernize-use-std-print,
+  -clang-analyzer-core.FixedAddressDereference,
 HeaderFileExtensions:
   - ''
   - h
@@ -36,9 +58,12 @@ ImplementationFileExtensions:
   - cc
   - cpp
   - cxx
-HeaderFilterRegex: '(include|config)/.*.hpp'
-FormatStyle: none
+HeaderFilterRegex: '(include|config)/.*\.hpp$'
+FormatStyle: file
 CheckOptions:
+  # The CubeMX HAL module headers are not standalone; they require stm32h7xx_hal.h to have
+  # pulled in stm32h7xx_hal_def.h first, so include-cleaner must not suggest or remove them
+  misc-include-cleaner.IgnoreHeaders: 'stm32.*;core_cm.*;cmsis.*;system_stm32.*;lsm6dsv.*'
   readability-identifier-length.MinimumVariableNameLength: 2
   readability-identifier-length.IgnoredVariableNames: ^[nxyz]$
   readability-identifier-length.MinimumParameterNameLength: 2

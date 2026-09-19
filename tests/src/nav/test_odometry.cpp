@@ -2,8 +2,13 @@
  * @file
  */
 
+#include <memory>
 #include "constants.hpp"
 #include "micras/nav/odometry.hpp"
+#include "micras/proxy/imu.hpp"
+#include "micras/proxy/rotary_sensor.hpp"
+#include "micras/proxy/stopwatch.hpp"
+#include "target.hpp"
 #include "test_core.hpp"
 
 using namespace micras;  // NOLINT(google-build-using-namespace)

@@ -19,6 +19,7 @@ jobs:
   check:
     name: 🗃️ Check if already verified
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     if: github.event_name != 'pull_request' || !github.event.pull_request.draft
     outputs:
       verified: ${{ steps.cache.outputs.cache-hit }}
@@ -26,8 +27,6 @@ jobs:
     steps:
       - name: 🔀 Checkout
         uses: actions/checkout@v7
-        with:
-          submodules: recursive
 
       - name: 🗃️ Look up verified sources
         id: cache
@@ -46,8 +45,6 @@ jobs:
     steps:
       - name: 🔀 Checkout
         uses: actions/checkout@v7
-        with:
-          submodules: recursive
 
       - name: 🗃️ Restore generated cube files
         id: cube
@@ -70,17 +67,29 @@ jobs:
       - name: 🐋 Build Docker image
         run: docker build --file .docker/Dockerfile --build-context generated=cube --target build --tag micras:build .
 
+      # A single long lived container is used for every step below, so that the libraries
+      # are compiled once instead of once per `docker run`.
+      - name: 📦 Start build container
+        run: docker run --detach --name micras micras:build sleep infinity
+
       - name: 🎨 Check code formatting
-        run: docker run --rm micras:build make -C build --no-print-directory format_check
+        run: docker exec micras make -C build --no-print-directory format_check
 
       - name: 🔨 Build project
-        run: docker run --rm micras:build make -C build --no-print-directory -j
+        run: docker exec micras make -C build --no-print-directory -j
 
       - name: 🧪 Build tests
-        run: docker run --rm micras:build make -C build --no-print-directory -j test_all
+        run: docker exec micras make -C build --no-print-directory -j test_all
 
       - name: 🚨 Lint project
-        run: docker run --rm micras:build make -C build --no-print-directory -j lint
+        run: docker exec micras make -C build --no-print-directory lint
+
+      - name: 📝 Build documentation
+        run: docker exec micras make -C build --no-print-directory docs
+
+      - name: 🧹 Stop build container
+        if: always()
+        run: docker rm --force micras
 
       - name: 🗃️ Save verified sources
         uses: actions/cache/save@v6

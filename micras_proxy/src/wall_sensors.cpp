@@ -5,7 +5,10 @@
 #ifndef MICRAS_PROXY_WALL_SENSORS_CPP
 #define MICRAS_PROXY_WALL_SENSORS_CPP
 
+#include <cstdint>
+#include "micras/core/butterworth_filter.hpp"
 #include "micras/core/utils.hpp"
+#include "micras/hal/pwm.hpp"
 #include "micras/proxy/wall_sensors.hpp"
 
 namespace micras::proxy {
@@ -54,7 +57,8 @@ float TWallSensors<num_of_sensors>::get_reading(uint8_t sensor_index) const {
 
 template <uint8_t num_of_sensors>
 float TWallSensors<num_of_sensors>::get_adc_reading(uint8_t sensor_index) const {
-    return static_cast<float>(std::abs(this->buffer.at(sensor_index) - this->buffer.at(sensor_index + num_of_sensors))
+    return static_cast<float>(
+               std::abs(this->buffer.at(sensor_index) - this->buffer.at(sensor_index + num_of_sensors))
            ) /
            this->adc.get_max_reading();
 }

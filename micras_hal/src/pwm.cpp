@@ -4,6 +4,7 @@
 
 #include <bit>
 #include <cmath>
+#include <cstdint>
 
 #include "micras/hal/pwm.hpp"
 
@@ -37,7 +38,8 @@ Pwm::Pwm(const Config& config) : handle{config.handle}, channel{config.timer_cha
 }
 
 void Pwm::set_duty_cycle(float duty_cycle) {
-    const uint32_t compare = std::lround((duty_cycle * (__HAL_TIM_GET_AUTORELOAD(this->handle) + 1) / 100.0F));
+    const auto compare =
+        static_cast<uint32_t>(std::lround(duty_cycle * (__HAL_TIM_GET_AUTORELOAD(this->handle) + 1) / 100.0F));
     __HAL_TIM_SET_COMPARE(this->handle, this->channel, compare);
 }
 

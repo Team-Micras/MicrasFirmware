@@ -5,6 +5,8 @@
 #ifndef WAIT_STATE_HPP
 #define WAIT_STATE_HPP
 
+#include <utility>
+
 #include "micras/states/base.hpp"
 
 namespace micras {
@@ -18,8 +20,8 @@ public:
      * @param next_state_id The id of the state to go after ending the wait.
      * @param wait_time_ms The time to wait in milliseconds.
      */
-    WaitState(uint8_t id, Micras& micras, uint8_t next_state_id, uint16_t wait_time_ms = 3000) :
-        BaseState{id, micras}, next_state_id{next_state_id}, wait_time_ms{wait_time_ms} { }
+    WaitState(Micras::State id, Micras& micras, Micras::State next_state_id, uint16_t wait_time_ms = 3000) :
+        BaseState{id, micras}, next_state_id{std::to_underlying(next_state_id)}, wait_time_ms{wait_time_ms} { }
 
     /**
      * @brief Execute the entry function of this state.
