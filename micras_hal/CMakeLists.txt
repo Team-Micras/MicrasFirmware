@@ -1,12 +1,5 @@
 project(micras_hal)
 
-get_target_property(CUBE_INCLUDE_DIRECTORIES stm32cubemx INTERFACE_INCLUDE_DIRECTORIES)
-get_target_property(CUBE_COMPILE_DEFINITIONS stm32cubemx INTERFACE_COMPILE_DEFINITIONS)
-
-# Remove warnings from Cube sources
-target_compile_options(cube_app PRIVATE -w)
-target_compile_options(STM32_Drivers PRIVATE -w)
-
 file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS "src/*.c*")
 
 add_library(${PROJECT_NAME} STATIC
@@ -17,22 +10,16 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     include
 )
 
+# The object libraries have to be linked directly, since CMake only adds an object library's
+# files to the targets that name it, never through an interface target
 target_link_libraries(${PROJECT_NAME} PRIVATE
-    cube_app
-    STM32_Drivers
+    ${MICRAS_CUBE_OBJECT_LIBRARIES}
     micras::warnings
 )
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
     micras::core
-)
-
-target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
-    ${CUBE_INCLUDE_DIRECTORIES}
-)
-
-target_compile_definitions(${PROJECT_NAME} PUBLIC
-    ${CUBE_COMPILE_DEFINITIONS}
+    micras::cube
 )
 
 add_library(micras_hal_whole_archive INTERFACE)

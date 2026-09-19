@@ -3,7 +3,6 @@
  */
 
 #include <bit>
-#include <cmath>
 #include <cstdint>
 
 #include "micras/hal/pwm.hpp"
@@ -32,14 +31,25 @@ static uint32_t get_timer_clock_frequency(const TIM_TypeDef* instance) {
 }
 
 Pwm::Pwm(const Config& config) : handle{config.handle}, channel{config.timer_channel} {
-    config.init_function();
-    HAL_TIM_PWM_Start(this->handle, this->channel);
+    // Several channels of the same timer are separate Pwm objects sharing one init function, and
+    // re-running it would regenerate an update event on a timer that is already counting
+    if (this->handle->State == HAL_TIM_STATE_RESET) {
+        config.init_function();
+    }
+
+    this->initialized = HAL_TIM_PWM_Start(this->handle, this->channel) == HAL_OK;
     __HAL_TIM_SET_COMPARE(this->handle, this->channel, 0);
 }
 
 void Pwm::set_duty_cycle(float duty_cycle) {
-    const auto compare =
-        static_cast<uint32_t>(std::lround(duty_cycle * (__HAL_TIM_GET_AUTORELOAD(this->handle) + 1) / 100.0F));
+    // Adding a half and truncating is exactly round half up for a duty cycle that is never
+    // negative, and it avoids the libm call std::lround would make in a path that runs five times
+    // per control loop
+    const float scaled = duty_cycle * static_cast<float>(__HAL_TIM_GET_AUTORELOAD(this->handle) + 1) * 0.01F;
+
+    // NOLINTNEXTLINE(bugprone-incorrect-roundings)
+    const auto compare = static_cast<uint32_t>(scaled + 0.5F);
+
     __HAL_TIM_SET_COMPARE(this->handle, this->channel, compare);
 }
 
@@ -50,5 +60,9 @@ void Pwm::set_frequency(uint32_t frequency) {
     const uint32_t autoreload = base_freq / ((prescaler + 1) * frequency) - 1;
     __HAL_TIM_SET_AUTORELOAD(this->handle, autoreload);
     __HAL_TIM_SET_COUNTER(this->handle, 0);
+}
+
+bool Pwm::was_initialized() const {
+    return this->initialized;
 }
 }  // namespace micras::hal

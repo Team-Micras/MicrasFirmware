@@ -3,30 +3,44 @@
  */
 
 #include <cstdint>
+
 #include "micras/hal/timer.hpp"
 
 namespace micras::hal {
-Timer::Timer(const Config& config) : handle{config.handle} {
-    config.init_function();
+/**
+ * @brief Key that unlocks write access to the debug components on the Cortex-M7.
+ */
+static constexpr uint32_t software_lock_key{0xC5ACCE55};
 
-    const uint32_t base_freq = HAL_RCC_GetPCLK1Freq();
-    const uint32_t prescaler = this->handle->Instance->PSC;
+uint32_t Timer::cycles_per_microsecond{1};
 
-    if (base_freq / (prescaler + 1) == 1000000) {
-        this->enable_microseconds = true;
-        HAL_TIM_Base_Start(this->handle);
+void Timer::init() {
+    CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+
+    // Some Cortex-M7 implementations gate the debug registers behind a software lock
+    if ((DWT->LSR & ITM_LSR_Present_Msk) != 0 and (DWT->LSR & ITM_LSR_Access_Msk) != 0) {
+        DWT->LAR = software_lock_key;
     }
+
+    DWT->CYCCNT = 0;
+    DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+
+    cycles_per_microsecond = SystemCoreClock / 1000000;
+}
+
+uint32_t Timer::get_counter() {
+    return DWT->CYCCNT;
 }
 
 uint32_t Timer::get_counter_ms() {
     return HAL_GetTick();
 }
 
-uint32_t Timer::get_counter_us() const {
-    if (this->enable_microseconds) {
-        return __HAL_TIM_GET_COUNTER(this->handle);
-    }
+uint32_t Timer::to_microseconds(uint32_t cycles) {
+    return cycles / cycles_per_microsecond;
+}
 
-    return 1000 * HAL_GetTick();
+uint32_t Timer::to_cycles(uint32_t microseconds) {
+    return microseconds * cycles_per_microsecond;
 }
 }  // namespace micras::hal

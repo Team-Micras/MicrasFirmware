@@ -36,6 +36,13 @@ public:
      */
     int32_t get_counter() const;
 
+    /**
+     * @brief Check if the encoder was successfully started.
+     *
+     * @return True if the initialization was successful, false otherwise.
+     */
+    bool was_initialized() const;
+
 private:
     /**
      * @brief Timer handle.
@@ -46,6 +53,11 @@ private:
      * @brief Start value of the timer counter.
      */
     uint32_t start_count;
+
+    /**
+     * @brief Flag to check if the encoder was started.
+     */
+    bool initialized{};
 };
 }  // namespace micras::hal
 

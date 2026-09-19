@@ -6,6 +6,8 @@
 #define MICRAS_HAL_CRC_HPP
 
 #include <crc.h>
+#include <cstdint>
+#include <span>
 
 namespace micras::hal {
 /**
@@ -28,13 +30,15 @@ public:
     explicit Crc(const Config& config);
 
     /**
-     * @brief Calculate the CRC value.
+     * @brief Calculate the CRC value over a buffer of bytes.
      *
-     * @param data Data to calculate the CRC.
-     * @param size Size of the buffer.
+     * @note The polynomial, width and initial value come from the peripheral configuration, and the
+     * calculation unit is reset to that initial value on every call.
+     *
+     * @param data Data to calculate the CRC over.
      * @return CRC value.
      */
-    uint32_t calculate(uint32_t data[], uint32_t size);  // NOLINT(*-avoid-c-arrays)
+    uint32_t calculate(std::span<const uint8_t> data);
 
 private:
     /**

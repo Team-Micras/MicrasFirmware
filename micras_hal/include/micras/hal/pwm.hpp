@@ -50,6 +50,13 @@ public:
      */
     void set_frequency(uint32_t frequency);
 
+    /**
+     * @brief Check if the PWM was successfully started.
+     *
+     * @return True if the initialization was successful, false otherwise.
+     */
+    bool was_initialized() const;
+
 private:
     /**
      * @brief Timer handle.
@@ -60,6 +67,11 @@ private:
      * @brief Channel number of the timer.
      */
     uint32_t channel;
+
+    /**
+     * @brief Flag to check if the PWM was started.
+     */
+    bool initialized{};
 };
 }  // namespace micras::hal
 
