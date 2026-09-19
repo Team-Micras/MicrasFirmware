@@ -63,6 +63,13 @@ public:
      */
     void stop();
 
+    /**
+     * @brief Check if both motors were successfully initialized.
+     *
+     * @return True if the initialization was successful, false otherwise.
+     */
+    bool was_initialized() const;
+
 private:
     /**
      * @brief Left motor of the robot.

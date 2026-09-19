@@ -71,6 +71,11 @@ void TArgb<num_of_leds>::encode_color(const Color& color, uint8_t index) {
         this->buffer.at(i) = ((data >> j) & 1) == 1 ? this->high_bit : this->low_bit;
     }
 }
+
+template <uint8_t num_of_leds>
+bool TArgb<num_of_leds>::was_initialized() const {
+    return this->pwm.was_initialized();
+}
 }  // namespace micras::proxy
 
 #endif  // MICRAS_PROXY_ARGB_CPP

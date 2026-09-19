@@ -2,6 +2,7 @@
  * @file
  */
 
+#include <algorithm>
 #include <cmath>
 
 #include "micras/proxy/locomotion.hpp"
@@ -30,14 +31,14 @@ void Locomotion::set_command(float linear, float angular) {
     float left_command = linear - angular;
     float right_command = linear + angular;
 
-    if (std::abs(left_command) > 100.0F) {
-        left_command *= 100.0F / std::abs(left_command);
-        right_command *= 100.0F / std::abs(left_command);
-    }
+    // Both wheels are scaled by the same factor, so that saturation preserves the commanded ratio
+    // and therefore the turn radius
+    const float peak = std::max(std::abs(left_command), std::abs(right_command));
 
-    if (std::abs(right_command) > 100.0F) {
-        left_command *= 100.0F / std::abs(right_command);
-        right_command *= 100.0F / std::abs(right_command);
+    if (peak > 100.0F) {
+        const float scale = 100.0F / peak;
+        left_command *= scale;
+        right_command *= scale;
     }
 
     this->set_wheel_command(left_command, right_command);
@@ -45,5 +46,9 @@ void Locomotion::set_command(float linear, float angular) {
 
 void Locomotion::stop() {
     this->set_wheel_command(0.0F, 0.0F);
+}
+
+bool Locomotion::was_initialized() const {
+    return this->left_motor.was_initialized() and this->right_motor.was_initialized();
 }
 }  // namespace micras::proxy

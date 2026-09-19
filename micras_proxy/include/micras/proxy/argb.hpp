@@ -107,6 +107,13 @@ public:
      */
     void update();
 
+    /**
+     * @brief Check if the PWM was successfully initialized.
+     *
+     * @return True if the initialization was successful, false otherwise.
+     */
+    bool was_initialized() const;
+
 private:
     /**
      * @brief Encode a color into the data buffer.

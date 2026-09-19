@@ -6,32 +6,33 @@
 #define MICRAS_PROXY_TORQUE_SENSORS_CPP
 
 #include <cstdint>
+
 #include "micras/core/butterworth_filter.hpp"
 #include "micras/core/utils.hpp"
-#include "micras/hal/adc_dma.hpp"
 #include "micras/proxy/torque_sensors.hpp"
 
 namespace micras::proxy {
 template <uint8_t num_of_sensors>
 TTorqueSensors<num_of_sensors>::TTorqueSensors(const Config& config) :
     adc{config.adc},
-    max_current{hal::AdcDma::reference_voltage / config.shunt_resistor},
+    max_current{config.adc.reference_voltage / config.shunt_resistor},
     max_torque{config.max_torque},
-    filters{core::make_array<core::ButterworthFilter, num_of_sensors>(config.filter_cutoff)} {
-    this->adc.start_dma(this->buffer);
-}
+    filters{core::make_array<core::ButterworthFilter, num_of_sensors>(config.filter)},
+    initialized{this->adc.start_dma(this->buffer) and this->adc.was_initialized()} { }
 
 template <uint8_t num_of_sensors>
 void TTorqueSensors<num_of_sensors>::calibrate() {
+    // The filter is fed already offset readings, so the new baseline is the accumulated offset plus
+    // whatever is left, which is what makes a second call a refinement instead of a reset
     for (uint8_t i = 0; i < num_of_sensors; i++) {
-        this->base_reading[i] = this->filters[i].get_last();
+        this->base_reading.at(i) += this->filters.at(i).get_last();
     }
 }
 
 template <uint8_t num_of_sensors>
 void TTorqueSensors<num_of_sensors>::update() {
     for (uint8_t i = 0; i < num_of_sensors; i++) {
-        this->filters[i].update(this->get_adc_reading(i));
+        this->filters.at(i).update(this->get_adc_reading(i));
     }
 }
 
@@ -53,13 +54,17 @@ float TTorqueSensors<num_of_sensors>::get_current(uint8_t sensor_index) const {
 template <uint8_t num_of_sensors>
 float TTorqueSensors<num_of_sensors>::get_current_raw(uint8_t sensor_index) const {
     return this->get_adc_reading(sensor_index) * this->max_current;
-    ;
 }
 
 template <uint8_t num_of_sensors>
 float TTorqueSensors<num_of_sensors>::get_adc_reading(uint8_t sensor_index) const {
     return static_cast<float>(this->buffer.at(sensor_index)) / this->adc.get_max_reading() -
            this->base_reading.at(sensor_index);
+}
+
+template <uint8_t num_of_sensors>
+bool TTorqueSensors<num_of_sensors>::was_initialized() const {
+    return this->initialized;
 }
 }  // namespace micras::proxy
 

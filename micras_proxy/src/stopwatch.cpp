@@ -3,50 +3,44 @@
  */
 
 #include <cstdint>
-#include <limits>
 
+#include "micras/hal/timer.hpp"
 #include "micras/proxy/stopwatch.hpp"
 
 namespace micras::proxy {
 Stopwatch::Stopwatch() {
     this->reset_ms();
-}
-
-Stopwatch::Stopwatch(const Config& config) : timer{config.timer} {
     this->reset_us();
 }
 
 void Stopwatch::reset_ms() {
-    this->counter = hal::Timer::get_counter_ms();
+    this->counter_ms = hal::Timer::get_counter_ms();
 }
 
 void Stopwatch::reset_us() {
-    this->counter = this->timer.get_counter_us();
+    this->counter_cycles = hal::Timer::get_counter();
 }
 
 uint32_t Stopwatch::elapsed_time_ms() const {
-    return hal::Timer::get_counter_ms() - this->counter;
+    return hal::Timer::get_counter_ms() - this->counter_ms;
 }
 
 uint32_t Stopwatch::elapsed_time_us() const {
-    const uint32_t counter = this->timer.get_counter_us();
-
-    if (counter < this->counter) {
-        return std::numeric_limits<uint16_t>::max() - this->counter + counter;
-    }
-
-    return counter - this->counter;
+    // The subtraction happens in cycles, before the conversion, so that the wrap of the cycle
+    // counter needs no special case
+    return hal::Timer::to_microseconds(hal::Timer::get_counter() - this->counter_cycles);
 }
 
 void Stopwatch::sleep_ms(uint32_t time) {
-    const uint32_t start = HAL_GetTick();
+    const uint32_t start = hal::Timer::get_counter_ms();
 
-    while (HAL_GetTick() - start < time) { }
+    while (hal::Timer::get_counter_ms() - start < time) { }
 }
 
-void Stopwatch::sleep_us(uint32_t time) const {
-    const uint32_t start = this->timer.get_counter_us();
+void Stopwatch::sleep_us(uint32_t time) {
+    const uint32_t start = hal::Timer::get_counter();
+    const uint32_t cycles = hal::Timer::to_cycles(time);
 
-    while (this->timer.get_counter_us() - start < time) { }
+    while (hal::Timer::get_counter() - start < cycles) { }
 }
 }  // namespace micras::proxy

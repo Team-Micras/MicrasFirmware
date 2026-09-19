@@ -25,7 +25,7 @@ public:
     struct Config {
         hal::AdcDma::Config                          adc;
         std::array<hal::Pwm::Config, num_of_sensors> led_pwms;
-        float                                        filter_cutoff;
+        core::ButterworthFilter::Config              filter;
         std::array<float, num_of_sensors>            base_readings;
         float                                        uncertainty;
     };
@@ -90,6 +90,13 @@ public:
      */
     void calibrate_sensor(uint8_t sensor_index);
 
+    /**
+     * @brief Check if the ADC was initialized and its scan matches the buffer layout.
+     *
+     * @return True if the initialization was successful, false otherwise.
+     */
+    bool was_initialized() const;
+
 private:
     /**
      * @brief ADC DMA handle.
@@ -102,7 +109,19 @@ private:
     std::array<hal::Pwm, num_of_sensors> led_pwms;
 
     /**
-     * @brief Buffer to store the ADC values.
+     * @brief Buffer to store the ADC values, holding one emitter on and one emitter off scan.
+     *
+     * @details The emitter PWM timer is centre aligned and triggers the ADC on its update event, so
+     * the conversion sequence runs twice per emitter period: once at the underflow, while the
+     * emitters are on, and once at the overflow, while they are off. Two consecutive scans
+     * therefore fill the two halves of this buffer with a matching pair, and the difference between
+     * the halves is the reflected signal with the ambient light cancelled. Taking the absolute
+     * value makes the result independent of which half currently holds which phase.
+     *
+     * @note This depends on the ADC scanning exactly num_of_sensors channels, on the emitter timer
+     * being centre aligned with its trigger on the update event, and on a scan fitting inside half
+     * an emitter period. The first of those is checked by the constructor; the other two live in the
+     * peripheral configuration.
      */
     std::array<uint16_t, 2 * num_of_sensors> buffer;
 
@@ -120,6 +139,11 @@ private:
      * @brief Ratio of the base reading to still consider as seeing a wall.
      */
     float uncertainty;
+
+    /**
+     * @brief Flag to check if the ADC was initialized.
+     */
+    bool initialized{};
 };
 }  // namespace micras::proxy
 
