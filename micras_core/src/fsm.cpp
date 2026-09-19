@@ -2,32 +2,45 @@
  * @file
  */
 
+#ifndef MICRAS_CORE_FSM_CPP
+#define MICRAS_CORE_FSM_CPP
+
 #include <cstdint>
+#include <cstdlib>
 #include <memory>
 #include <utility>
+
 #include "micras/core/fsm.hpp"
 
 namespace micras::core {
-Fsm::State::State(uint8_t id) : id{id} { }
+template <uint8_t num_of_states>
+TFsm<num_of_states>::TFsm(uint8_t initial_state_id) : current_state_id{initial_state_id} { }
 
-uint8_t Fsm::State::get_id() const {
-    return this->id;
+template <uint8_t num_of_states>
+void TFsm<num_of_states>::add_state(std::unique_ptr<FsmState> state) {
+    this->states.at(state->get_id()) = std::move(state);
 }
 
-Fsm::Fsm(uint8_t initial_state_id) : current_state_id{initial_state_id} { }
-
-void Fsm::add_state(std::unique_ptr<State> state) {
-    this->states.emplace(state->get_id(), std::move(state));
-}
-
-void Fsm::update() {
-    if (this->current_state_id != this->previous_state_id) {
-        this->states.at(this->current_state_id)->on_entry();
+template <uint8_t num_of_states>
+void TFsm<num_of_states>::update() {
+    if (this->current_state_id >= num_of_states or this->states.at(this->current_state_id) == nullptr) {
+        // An id with no state behind it can only be a programming error. Aborting runs the
+        // emergency stop handler, which is a far better outcome than dispatching through a null
+        // pointer with the motors running.
+        std::abort();
     }
 
-    const uint8_t next_state = this->states.at(this->current_state_id)->execute();
+    FsmState& state = *this->states.at(this->current_state_id);
+
+    if (this->current_state_id != this->previous_state_id) {
+        state.on_entry();
+    }
+
+    const uint8_t next_state_id = state.execute();
 
     this->previous_state_id = this->current_state_id;
-    this->current_state_id = next_state;
+    this->current_state_id = next_state_id;
 }
 }  // namespace micras::core
+
+#endif  // MICRAS_CORE_FSM_CPP

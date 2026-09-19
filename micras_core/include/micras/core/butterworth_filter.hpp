@@ -33,12 +33,50 @@ namespace micras::core {
 class ButterworthFilter {
 public:
     /**
+     * @brief Order of the filter.
+     */
+    static constexpr uint8_t filter_order{2};
+
+    /**
+     * @brief Configuration struct for the filter.
+     *
+     * @note Both frequencies are in hertz, and the cutoff is the -3 dB point of the resulting
+     * discrete filter, exactly, at any ratio up to Nyquist.
+     *
+     * @note The sampling frequency has no default on purpose: the discrete coefficients depend on
+     * the ratio of the cutoff to the sampling frequency, so a filter that assumes the wrong rate is
+     * silently a filter with the wrong cutoff.
+     */
+    struct Config {
+        float cutoff_frequency;
+        float sampling_frequency;
+    };
+
+    /**
+     * @brief Coefficients of the discrete transfer function.
+     *
+     * @note Written in the natural order, most recent sample first, for the relation
+     * y[k] = sum(feed_forward[i] * x[k - i]) - sum(feedback[j] * y[k - 1 - j]).
+     */
+    struct Coefficients {
+        std::array<float, filter_order + 1> feed_forward;
+        std::array<float, filter_order>     feedback;
+    };
+
+    /**
+     * @brief Compute the discrete coefficients of the filter.
+     *
+     * @param config Cutoff and sampling frequencies in Hz.
+     * @return Coefficients of the discrete transfer function.
+     */
+    static Coefficients compute_coefficients(const Config& config);
+
+    /**
      * @brief Construct a new Butterworth Second Order filter object.
      *
-     * @param cutoff_frequency Low-pass cutoff frequency in Hz.
-     * @param sampling_frequency Sampling frequency in Hz.
+     * @param config Cutoff and sampling frequencies in Hz.
      */
-    explicit ButterworthFilter(float cutoff_frequency, float sampling_frequency = 100.0F);
+    explicit ButterworthFilter(const Config& config);
 
     /**
      * @brief Produce a new value from measured data.
@@ -57,11 +95,6 @@ public:
 
 private:
     /**
-     * @brief Order of the filter.
-     */
-    static constexpr uint8_t filter_order{2};
-
-    /**
      * @brief Last input values of the filter.
      */
     std::array<float, filter_order + 1> x_array{};
@@ -72,12 +105,12 @@ private:
     std::array<float, filter_order> y_array{};
 
     /**
-     * @brief Coefficients of the filter related to the output value.
+     * @brief Coefficients of the filter related to the output value, oldest first.
      */
     std::array<float, filter_order> a_array{};
 
     /**
-     * @brief Coefficients of the filter related to the input value.
+     * @brief Coefficients of the filter related to the input value, oldest first.
      */
     std::array<float, filter_order + 1> b_array{};
 };

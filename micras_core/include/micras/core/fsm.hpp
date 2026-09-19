@@ -5,76 +5,90 @@
 #ifndef MICRAS_CORE_FSM_HPP
 #define MICRAS_CORE_FSM_HPP
 
+#include <array>
 #include <cstdint>
 #include <memory>
-#include <unordered_map>
 
 namespace micras::core {
-class Fsm {
+/**
+ * @brief A single state of a finite state machine.
+ */
+class FsmState {
 public:
-    class State {
-    public:
-        /**
-         * @brief Destroy the State object.
-         */
-        virtual ~State() = default;
-
-        /**
-         * @brief Execute the entry function of this state.
-         */
-        virtual void on_entry() = 0;
-
-        /**
-         * @brief Execute this state.
-         *
-         * @return The id of the next state.
-         */
-        virtual uint8_t execute() = 0;
-
-        /**
-         * @brief Get the id object of the state.
-         *
-         * @return The id of the state.
-         */
-        uint8_t get_id() const;
-
-        /**
-         * @brief The id of the state that is not valid.
-         */
-        static constexpr uint8_t invalid_id{0xFF};
-
-    protected:
-        /**
-         * @brief Special member functions declared as default.
-         */
-        ///@{
-        explicit State(uint8_t id);
-        State(const State&) = default;
-        State(State&&) = default;
-        State& operator=(const State&) = default;
-        State& operator=(State&&) = default;
-        ///@}
-
-    private:
-        /**
-         * @brief Fixed id of the state.
-         */
-        uint8_t id;
-    };
+    /**
+     * @brief Destroy the FsmState object.
+     */
+    virtual ~FsmState() = default;
 
     /**
-     * @brief Construct a new FSM object.
+     * @brief Execute the entry function of this state.
+     */
+    virtual void on_entry() = 0;
+
+    /**
+     * @brief Execute this state.
+     *
+     * @return The id of the next state.
+     */
+    virtual uint8_t execute() = 0;
+
+    /**
+     * @brief Get the id object of the state.
+     *
+     * @return The id of the state.
+     */
+    uint8_t get_id() const { return this->id; }
+
+    /**
+     * @brief The id of the state that is not valid.
+     */
+    static constexpr uint8_t invalid_id{0xFF};
+
+protected:
+    /**
+     * @brief Special member functions declared as default.
+     */
+    ///@{
+    explicit FsmState(uint8_t id) : id{id} { }
+
+    FsmState(const FsmState&) = default;
+    FsmState(FsmState&&) = default;
+    FsmState& operator=(const FsmState&) = default;
+    FsmState& operator=(FsmState&&) = default;
+    ///@}
+
+private:
+    /**
+     * @brief Fixed id of the state.
+     */
+    uint8_t id;
+};
+
+/**
+ * @brief Finite state machine over a dense set of state ids.
+ *
+ * @note The states are stored in an array indexed by their own id, so running the machine costs an
+ * array access rather than a hash lookup. That only works because the ids are a dense enumeration
+ * from zero, which the number of states asserts.
+ *
+ * @tparam num_of_states Number of states, and therefore one past the largest valid id.
+ */
+template <uint8_t num_of_states>
+class TFsm {
+public:
+    /**
+     * @brief Construct a new TFsm object.
      *
      * @param initial_state_id The id of the initial state.
      */
-    explicit Fsm(uint8_t initial_state_id);
+    explicit TFsm(uint8_t initial_state_id);
 
     /**
-     * @brief Add a state to the FSM.
+     * @brief Add a state to the FSM, taking ownership of it.
      *
      * @param state The state to be added.
      */
-    void add_state(std::unique_ptr<State> state);
+    void add_state(std::unique_ptr<FsmState> state);
 
     /**
      * @brief Run the FSM current state to compute the next state.
@@ -83,9 +97,9 @@ public:
 
 private:
     /**
-     * @brief Map of ids to states.
+     * @brief States of the machine, indexed by their id.
      */
-    std::unordered_map<uint8_t, std::unique_ptr<State>> states;
+    std::array<std::unique_ptr<FsmState>, num_of_states> states{};
 
     /**
      * @brief Id of the state currently running.
@@ -95,8 +109,10 @@ private:
     /**
      * @brief Id of the last executed state.
      */
-    uint8_t previous_state_id{State::invalid_id};
+    uint8_t previous_state_id{FsmState::invalid_id};
 };
 }  // namespace micras::core
+
+#include "../src/fsm.cpp"  // NOLINT(bugprone-suspicious-include, misc-header-include-cycle)
 
 #endif  // MICRAS_CORE_FSM_HPP
