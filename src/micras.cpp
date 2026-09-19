@@ -2,44 +2,36 @@
  * @file
  */
 
+#include <algorithm>
 #include <cmath>
 #include <memory>
 #include <tuple>
 
 #include "constants.hpp"
 #include "micras/core/types.hpp"
+#include "micras/hal/mcu.hpp"
 #include "micras/micras.hpp"
 #include "micras/proxy/button.hpp"
 #include "micras/proxy/buzzer.hpp"
 #include "micras/proxy/imu.hpp"
-#include "micras/proxy/led.hpp"
-#include "micras/proxy/rotary_sensor.hpp"
 #include "micras/states/calibrate.hpp"
 #include "micras/states/error.hpp"
 #include "micras/states/idle.hpp"
 #include "micras/states/init.hpp"
 #include "micras/states/run.hpp"
 #include "micras/states/wait.hpp"
-#include "target.hpp"
 
 namespace micras {
 Micras::Micras() :
-    argb{std::make_shared<proxy::Argb>(argb_config)},
-    button{std::make_shared<proxy::Button>(button_config)},
-    buzzer{std::make_shared<proxy::Buzzer>(buzzer_config)},
-    dip_switch{std::make_shared<proxy::DipSwitch>(dip_switch_config)},
-    led{std::make_shared<proxy::Led>(led_config)},
-    imu{std::make_shared<proxy::Imu>(imu_config)},
-    rotary_sensor_left{std::make_shared<proxy::RotarySensor>(rotary_sensor_left_config)},
-    rotary_sensor_right{std::make_shared<proxy::RotarySensor>(rotary_sensor_right_config)},
-    wall_sensors{std::make_shared<proxy::WallSensors>(wall_sensors_config)},
     action_queuer{action_queuer_config},
     maze{maze_config},
     odometry{rotary_sensor_left, rotary_sensor_right, imu, odometry_config},
     speed_controller{speed_controller_config},
     follow_wall{wall_sensors, follow_wall_config},
-    interface{argb, button, buzzer, dip_switch, led},
+    interface{button, dip_switch, led},
     action_pose{odometry.get_state().pose} {
+    hal::Mcu::set_watchdog_timeout(watchdog_timeout_ms);
+
     this->fsm.add_state(std::make_unique<CalibrateState>(State::CALIBRATE, *this));
     this->fsm.add_state(std::make_unique<ErrorState>(State::ERROR, *this));
     this->fsm.add_state(std::make_unique<IdleState>(State::IDLE, *this));
@@ -50,35 +42,42 @@ Micras::Micras() :
 }
 
 void Micras::update() {
-    this->elapsed_time = loop_stopwatch.elapsed_time_us() / 1e6F;
-    loop_stopwatch.reset_us();
+    this->elapsed_time = static_cast<float>(this->loop_stopwatch.elapsed_time_us()) / 1e6F;
+    this->loop_stopwatch.reset_us();
 
-    this->button->update();
-    this->buzzer->update();
+    hal::Mcu::refresh_watchdog();
+
+    this->button.update();
+    this->buzzer.update();
     this->interface.update();
 
+    this->battery.update();
     this->fan.update();
-    this->imu->update();
-    this->wall_sensors->update();
+    this->imu.update();
+    this->torque_sensors.update();
+    this->wall_sensors.update();
 
     this->fsm.update();
 
-    while (loop_stopwatch.elapsed_time_us() < loop_time_us) { }
+    // Measured before the wait, so it is the time the body actually took rather than the period
+    this->worst_loop_time_us = std::max(this->worst_loop_time_us, this->loop_stopwatch.elapsed_time_us());
+
+    while (this->loop_stopwatch.elapsed_time_us() < loop_time_us) { }
 }
 
 bool Micras::calibrate() {
     switch (this->calibration_type) {
         case CalibrationType::SIDE_WALLS:
-            this->wall_sensors->calibrate_sensor(wall_sensors_index.left);
-            this->wall_sensors->calibrate_sensor(wall_sensors_index.right);
+            this->wall_sensors.calibrate_sensor(wall_sensors_index.left);
+            this->wall_sensors.calibrate_sensor(wall_sensors_index.right);
             this->calibration_type = CalibrationType::FRONT_WALL;
             return false;
 
         case CalibrationType::FRONT_WALL:
-            this->wall_sensors->calibrate_sensor(wall_sensors_index.left_front);
-            this->wall_sensors->calibrate_sensor(wall_sensors_index.right_front);
+            this->wall_sensors.calibrate_sensor(wall_sensors_index.left_front);
+            this->wall_sensors.calibrate_sensor(wall_sensors_index.right_front);
             this->calibration_type = CalibrationType::SIDE_WALLS;
-            this->wall_sensors->turn_off();
+            this->wall_sensors.turn_off();
             return true;
     }
 
@@ -160,16 +159,16 @@ bool Micras::run() {
 }
 
 void Micras::stop() {
-    this->wall_sensors->turn_off();
+    this->wall_sensors.turn_off();
     this->locomotion.stop();
     this->locomotion.disable();
     this->fan.stop();
 }
 
 void Micras::init() {
-    this->wall_sensors->turn_on();
+    this->wall_sensors.turn_on();
     this->locomotion.enable();
-    this->imu->calibrate();
+    this->imu.calibrate();
     this->action_pose.reset_reference();
 }
 
@@ -181,14 +180,20 @@ void Micras::reset() {
 
 bool Micras::check_crash() const {
     return std::hypot(
-               this->imu->get_linear_acceleration(proxy::Imu::Axis::X),
-               this->imu->get_linear_acceleration(proxy::Imu::Axis::Y)
+               this->imu.get_linear_acceleration(proxy::Imu::Axis::X),
+               this->imu.get_linear_acceleration(proxy::Imu::Axis::Y)
            ) > crash_acceleration;
 }
 
 void Micras::save_best_route() {
+    // Erasing a flash sector stalls the core for seconds, far beyond the control loop budget the
+    // watchdog is set for, so the window is widened for as long as the write takes
+    hal::Mcu::set_watchdog_timeout(flash_watchdog_timeout_ms);
+
     this->maze_storage.create("maze", this->maze);
     this->maze_storage.save();
+
+    hal::Mcu::set_watchdog_timeout(watchdog_timeout_ms);
 }
 
 void Micras::load_best_route() {
@@ -206,7 +211,7 @@ void Micras::set_objective(core::Objective objective) {
 }
 
 bool Micras::check_initialization() const {
-    return this->imu->was_initialized();
+    return this->imu.was_initialized();
 }
 
 void Micras::send_event(Interface::Event event) {

@@ -5,7 +5,6 @@
 #include <array>
 #include <cstdint>
 #include <cstdlib>
-#include <memory>
 
 #include "constants.hpp"
 #include "micras/nav/odometry.hpp"
@@ -39,19 +38,18 @@ static volatile float test_angular_accelerations[commands.size()] = {};
 int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);
 
-    proxy::Stopwatch            loop_stopwatch{stopwatch_config};
-    proxy::Stopwatch            running_stopwatch{};
-    proxy::Button               button{button_config};
-    proxy::Locomotion           locomotion{locomotion_config};
-    proxy::Argb                 argb{argb_config};
-    std::shared_ptr<proxy::Imu> imu{std::make_shared<proxy::Imu>(imu_config)};
+    proxy::Stopwatch          loop_stopwatch;
+    proxy::Stopwatch          running_stopwatch{};
+    proxy::Button             button{button_config};
+    proxy::Locomotion         locomotion{locomotion_config};
+    proxy::Argb               argb{argb_config};
+    proxy::Imu                imu{imu_config};
+    const proxy::RotarySensor rotary_sensor_left{rotary_sensor_left_config};
+    const proxy::RotarySensor rotary_sensor_right{rotary_sensor_right_config};
 
-    nav::Odometry odometry{
-        std::make_shared<proxy::RotarySensor>(rotary_sensor_left_config),
-        std::make_shared<proxy::RotarySensor>(rotary_sensor_right_config), imu, odometry_config
-    };
+    nav::Odometry odometry{rotary_sensor_left, rotary_sensor_right, imu, odometry_config};
 
-    if (not imu->was_initialized()) {
+    if (not imu.was_initialized()) {
         argb.set_color(proxy::Argb::Colors::red);
         return -1;
     }
@@ -76,7 +74,7 @@ int main(int argc, char* argv[]) {
         const float elapsed_time = loop_stopwatch.elapsed_time_us() / 1000000.0F;
         loop_stopwatch.reset_us();
 
-        imu->update();
+        imu.update();
         odometry.update(elapsed_time);
         button.update();
         const auto& state = odometry.get_state();
@@ -94,7 +92,7 @@ int main(int argc, char* argv[]) {
         }
 
         if (waiting and running_stopwatch.elapsed_time_ms() > 2000) {
-            imu->calibrate();
+            imu.calibrate();
             locomotion.set_wheel_command(
                 commands.at(iterator) * left_multiplier.at(test_type),
                 commands.at(iterator) * right_multiplier.at(test_type)

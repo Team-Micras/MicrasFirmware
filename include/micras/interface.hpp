@@ -5,12 +5,11 @@
 #ifndef MICRAS_INTERFACE_HPP
 #define MICRAS_INTERFACE_HPP
 
-#include <memory>
+#include <array>
+#include <cstdint>
 #include <utility>
 
-#include "micras/proxy/argb.hpp"
 #include "micras/proxy/button.hpp"
-#include "micras/proxy/buzzer.hpp"
 #include "micras/proxy/dip_switch.hpp"
 #include "micras/proxy/led.hpp"
 
@@ -42,17 +41,14 @@ public:
     /**
      * @brief Construct a new Interface object.
      *
-     * @param argb Shared pointer to the addressable RGB LED object.
-     * @param button Shared pointer to the button object.
-     * @param buzzer Shared pointer to the buzzer object.
-     * @param dip_switch Shared pointer to the DIP switch object.
-     * @param led Shared pointer to the LED object.
+     * @note The proxies are borrowed, not owned: they live in the Micras object for the whole
+     * program, which is why they are references and not pointers of any kind.
+     *
+     * @param button The button object.
+     * @param dip_switch The DIP switch object.
+     * @param led The LED object.
      */
-    Interface(
-        const std::shared_ptr<proxy::TArgb<2>>& argb, const std::shared_ptr<proxy::Button>& button,
-        const std::shared_ptr<proxy::Buzzer>& buzzer, const std::shared_ptr<proxy::TDipSwitch<4>>& dip_switch,
-        const std::shared_ptr<proxy::Led>& led
-    );
+    Interface(const proxy::Button& button, const proxy::TDipSwitch<4>& dip_switch, proxy::Led& led);
 
     /**
      * @brief Update the interface.
@@ -93,30 +89,22 @@ private:
         RISKY = 3,
     };
 
-    /**
-     * @brief Addressable RGB LED object.
-     */
-    std::shared_ptr<proxy::TArgb<2>> argb;
-
+    // NOLINTBEGIN(*-avoid-const-or-ref-data-members) borrowed for the lifetime of the robot
     /**
      * @brief Button object.
      */
-    std::shared_ptr<proxy::Button> button;
-
-    /**
-     * @brief Buzzer object.
-     */
-    std::shared_ptr<proxy::Buzzer> buzzer;
+    const proxy::Button& button;
 
     /**
      * @brief Dip switch object.
      */
-    std::shared_ptr<proxy::TDipSwitch<4>> dip_switch;
+    const proxy::TDipSwitch<4>& dip_switch;
 
     /**
      * @brief LED object.
      */
-    std::shared_ptr<proxy::Led> led;
+    proxy::Led& led;
+    // NOLINTEND(*-avoid-const-or-ref-data-members)
 
     /**
      * @brief Array of the listed events.

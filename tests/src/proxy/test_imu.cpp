@@ -20,7 +20,7 @@ int main(int argc, char* argv[]) {
 
     proxy::Imu       imu{imu_config};
     proxy::Argb      argb{argb_config};
-    proxy::Stopwatch stopwatch{stopwatch_config};
+    proxy::Stopwatch stopwatch;
 
     proxy::Stopwatch::sleep_ms(2);
 
