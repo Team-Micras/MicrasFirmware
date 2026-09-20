@@ -5,35 +5,49 @@
 #ifndef MICRAS_NAV_MAZE_HPP
 #define MICRAS_NAV_MAZE_HPP
 
+#include <array>
 #include <cstdint>
-#include <list>
-#include <unordered_set>
-#include <utility>
+#include <optional>
+#include <span>
+#include <vector>
 
 #include "micras/core/serializable.hpp"
-#include "micras/core/types.hpp"
-#include "micras/nav/action_queuer.hpp"
-#include "micras/nav/costmap.hpp"
 #include "micras/nav/grid_pose.hpp"
 
 namespace micras::nav {
 /**
- * @brief Class for storing the robot information about the maze.
+ * @brief What is known about a wall.
+ */
+enum class WallState : uint8_t {
+    UNKNOWN = 0,
+    NO_WALL = 1,
+    WALL = 2,
+};
+
+/**
+ * @brief Map of the walls of the maze, with the flood fill that guides the search.
  *
- * @tparam width The width of the maze.
- * @tparam height The height of the maze.
+ * @tparam width The width of the maze in cells.
+ * @tparam height The height of the maze in cells.
  */
 template <uint8_t width, uint8_t height>
 class TMaze : public core::ISerializable {
 public:
     /**
-     * @brief Configuration structure for the maze.
+     * @brief Cost of a cell that cannot reach any target.
      */
+    static constexpr uint16_t unreachable{0xFFFF};
+
+    /**
+     * @brief Configuration struct for the maze.
+     *
+     * @note The goal is borrowed, so it has to outlive the maze, which a constant of the
+     * configuration does.
+     */
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init) no defaults, so that a missing field is a warning
     struct Config {
-        GridPose                      start{};
-        std::unordered_set<GridPoint> goal;
-        float                         cost_margin{};
-        ActionQueuer::Config          action_queuer_config{};
+        GridPose                   start;
+        std::span<const GridPoint> goal;
     };
 
     /**
@@ -44,52 +58,133 @@ public:
     explicit TMaze(const Config& config);
 
     /**
-     * @brief Update the maze walls with the current pose and new information.
+     * @brief Forget every wall that was observed, keeping what the rules guarantee.
      *
-     * @param pose The pose of the robot.
-     * @param observation The observation from the wall sensors.
+     * @note The rules give the border, the walls around the start cell and the absence of walls
+     * between the cells of the goal.
      */
-    void update_walls(const GridPose& pose, const core::Observation& observation);
+    void reset();
 
     /**
-     * @brief Return the next point the robot should go based on the costmap.
+     * @brief Check if a cell is inside the maze.
      *
-     * @param position The current position of the robot.
-     * @param returning Whether the robot is returning to the start position.
-     * @return The next point the robot should go.
+     * @param position The position of the cell.
+     * @return True if the cell exists.
      */
-    GridPose get_next_goal(const GridPose& pose, bool returning);
+    static constexpr bool contains(const GridPoint& position) { return position.x < width and position.y < height; }
 
     /**
-     * @brief Check whether the robot has finished the maze.
+     * @brief Get what is known about the wall ahead of a pose.
      *
-     * @param position The current position of the robot.
-     * @param returning Whether the robot is returning to the start position.
-     * @return True if the robot has finished the maze, false otherwise.
+     * @param pose The cell and the side of it.
+     * @return The state of the wall, which is a wall for anything outside of the maze.
      */
-    bool finished(const GridPoint& position, bool returning) const;
+    WallState get_wall(const GridPose& pose) const;
 
     /**
-     * @brief Calculate the best route to the goal using the current costmap.
+     * @brief Record the observation of a wall that was unknown.
+     *
+     * @note A wall is decided once: an observation of a wall that is already known changes nothing.
+     *
+     * @param pose The cell and the side of it.
+     * @param present Whether there is a wall.
+     * @return True if the map changed.
      */
-    void compute_best_route();
+    bool set_wall(const GridPose& pose, bool present);
 
     /**
-     * @brief Return the best route to the goal.
+     * @brief Check if the robot cannot go through, as far as it is known.
      *
-     * @return The best route to the goal.
+     * @param pose The cell and the side of it.
+     * @return True if there is a wall.
      */
-    const std::list<GridPoint>& get_best_route() const;
+    bool is_blocked(const GridPose& pose) const;
 
     /**
-     * @brief Serialize the best route to the goal.
+     * @brief Check if the robot might go through, which is what the search assumes.
      *
-     * @return The serialized data.
+     * @param pose The cell and the side of it.
+     * @return True unless a wall was seen.
+     */
+    bool is_possibly_open(const GridPose& pose) const;
+
+    /**
+     * @brief Check if the robot can go through for certain, which is what a fast run requires.
+     *
+     * @param pose The cell and the side of it.
+     * @return True if the absence of a wall was seen.
+     */
+    bool is_known_open(const GridPose& pose) const;
+
+    /**
+     * @brief Check if a cell belongs to the goal.
+     *
+     * @param position The position of the cell.
+     * @return True if the cell is part of the goal.
+     */
+    bool is_goal(const GridPoint& position) const;
+
+    /**
+     * @brief Get the pose the robot starts from.
+     *
+     * @return The start cell and the direction the robot faces in it.
+     */
+    const GridPose& get_start() const;
+
+    /**
+     * @brief Get the cells of the goal.
+     *
+     * @return The cells of the goal.
+     */
+    std::span<const GridPoint> get_goal() const;
+
+    /**
+     * @brief Get a number that changes every time a wall is recorded.
+     *
+     * @return The number of changes since the map was last reset.
+     */
+    uint32_t get_revision() const;
+
+    /**
+     * @brief Compute the number of cells from every cell to the nearest target.
+     *
+     * @note Walls that were not seen count as absent. The whole maze is flooded again on every
+     * call, from a queue with room for every cell, so the cost is bounded and nothing is allocated.
+     *
+     * @param targets The cells with a cost of zero.
+     */
+    void flood(std::span<const GridPoint> targets);
+
+    /**
+     * @brief Get the number of cells from a cell to the nearest target of the last flood.
+     *
+     * @param position The position of the cell.
+     * @return The cost of the cell, or unreachable.
+     */
+    uint16_t get_cost(const GridPoint& position) const;
+
+    /**
+     * @brief Get the neighbor to move to in order to approach the targets of the last flood.
+     *
+     * @note Going straight is preferred to turning and turning to going back, among the neighbors
+     * that are equally close.
+     *
+     * @param pose The current cell and the direction the robot faces.
+     * @return The neighbor and the direction to reach it, or nothing if no target can be reached.
+     */
+    std::optional<GridPose> get_next(const GridPose& pose) const;
+
+    /**
+     * @brief Serialize the walls of the maze.
+     *
+     * @return The version, the size of the maze and the state of every wall.
      */
     std::vector<uint8_t> serialize() const override;
 
     /**
-     * @brief Deserialize the best route to the goal.
+     * @brief Load the walls of the maze.
+     *
+     * @note A record of another version or size is ignored.
      *
      * @param buffer The serialized data.
      * @param size The size of the serialized data.
@@ -98,111 +193,60 @@ public:
 
 private:
     /**
-     * @brief The layers of the costmap.
+     * @brief Version of the serialized format.
      */
-    enum class Layer : uint8_t {
-        EXPLORE = 0,
-        RETURN = 1,
-        NUM_OF_LAYERS = 2,
-    };
+    static constexpr uint8_t format_version{1};
 
     /**
-     * @brief Compute the minumum cost from the start to the end considering only discoverd cells.
+     * @brief Number of bytes of the serialized walls, at two bits for each of two sides of a cell.
      */
-    void compute_minimum_cost();
+    static constexpr uint16_t walls_size{(width * height + 1) / 2};
 
     /**
-     * @brief Update the cell costs at the given position.
+     * @brief Number of bytes of the header of the serialized format.
+     */
+    static constexpr uint16_t header_size{3};
+
+    /**
+     * @brief Write the state of a wall on both of the cells it belongs to.
      *
-     * @param position The position of the cell.
+     * @param pose The cell and the side of it.
+     * @param state The state of the wall.
      */
-    void update_cell(const GridPoint& position);
+    void write_wall(const GridPose& pose, WallState state);
 
     /**
-     * @brief Get the next goal for the robot using a BFS algorithm.
-     *
-     * @param pose The current pose of the robot.
-     * @param discover Whether the robot is discovering new cells.
-     * @return A pair containing the next discovery goal for the robot and the total distance.
+     * @brief State of the walls of every cell, indexed by row, column and side.
      */
-    std::pair<GridPose, uint16_t> get_next_bfs_goal(const GridPose& pose, bool discover) const;
-
-    void recursive_backtracking(
-        const GridPoint& position, std::list<GridPoint>& route, std::unordered_set<GridPoint>& visited
-    );
-
-    uint16_t heuristic(const GridPoint& position) const;
-
-    float get_route_time(const std::list<GridPoint>& route);
+    std::array<std::array<std::array<WallState, 4>, width>, height> walls{};
 
     /**
-     * @brief Check if the cell is a dead end.
-     *
-     * @param cell The cell to check.
-     * @return True if the cell is a dead end, false otherwise.
+     * @brief Number of cells from every cell to the nearest target of the last flood.
      */
-    static bool is_dead_end(const Costmap<width, height, std::to_underlying(Layer::NUM_OF_LAYERS)>::Cell& cell);
+    std::array<std::array<uint16_t, width>, height> costs{};
 
     /**
-     * @brief Check if the cell was visited.
-     *
-     * @param cell The cell to check.
-     * @return True if the cell was visited, false otherwise.
+     * @brief Queue of the flood fill, with room for every cell.
      */
-    static bool was_visited(const Costmap<width, height, std::to_underlying(Layer::NUM_OF_LAYERS)>::Cell& cell);
+    std::array<GridPoint, static_cast<std::size_t>(width) * height> queue{};
 
     /**
-     * @brief Check if the cell must be visited.
-     *
-     * @param cell The cell to check.
-     * @param cost_threshold The cost threshold for the cell.
-     * @return True if the cell must be visited, false otherwise.
-     */
-    static bool must_visit(
-        const Costmap<width, height, std::to_underlying(Layer::NUM_OF_LAYERS)>::Cell& cell, int16_t cost_threshold
-    );
-
-    /**
-     * @brief Layered costmap for the maze.
-     */
-    Costmap<width, height, std::to_underlying(Layer::NUM_OF_LAYERS)> costmap;
-
-    ActionQueuer action_queuer;
-
-    /**
-     * @brief Start pose of the robot in the maze.
+     * @brief Pose the robot starts from.
      */
     GridPose start;
 
     /**
-     * @brief Goal points in the maze.
+     * @brief Cells of the goal.
      */
-    std::unordered_set<GridPoint> goal;
+    std::span<const GridPoint> goal;
 
     /**
-     * @brief Cost margin above the minimum cost that the robot should explore.
+     * @brief Number of walls recorded since the last reset.
      */
-    float cost_margin;
-
-    /**
-     * @brief Minimum cost of path to the goal containing only visited cells.
-     */
-    int16_t minimum_cost{};
-
-    /**
-     * @brief Flag indicating whether the robot has finished discovering the cells of the maze.
-     */
-    bool finished_discovery{false};
-
-    /**
-     * @brief Current best found route to the goal.
-     */
-    std::list<GridPoint> best_route;
-
-    float best_route_time{std::numeric_limits<float>::max()};
+    uint32_t revision{};
 };
 }  // namespace micras::nav
 
-#include "../src/maze.cpp"  // NOLINT(bugprone-suspicious-include, misc-header-include-cycle)
+#include "micras/nav/impl/maze.tpp"  // IWYU pragma: export
 
 #endif  // MICRAS_NAV_MAZE_HPP

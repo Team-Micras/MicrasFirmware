@@ -7,7 +7,6 @@
 
 #include <array>
 #include <cstdint>
-#include <memory>
 
 namespace micras::core {
 /**
@@ -84,11 +83,14 @@ public:
     explicit TFsm(uint8_t initial_state_id);
 
     /**
-     * @brief Add a state to the FSM, taking ownership of it.
+     * @brief Add a state to the FSM.
+     *
+     * @note The state is borrowed, not owned: whoever owns the machine holds its states by value,
+     * next to it, so that nothing is allocated and they live exactly as long as the machine does.
      *
      * @param state The state to be added.
      */
-    void add_state(std::unique_ptr<FsmState> state);
+    void add_state(FsmState& state);
 
     /**
      * @brief Run the FSM current state to compute the next state.
@@ -110,7 +112,7 @@ private:
     /**
      * @brief States of the machine, indexed by their id.
      */
-    std::array<std::unique_ptr<FsmState>, num_of_states> states{};
+    std::array<FsmState*, num_of_states> states{};
 
     /**
      * @brief Id of the state currently running.

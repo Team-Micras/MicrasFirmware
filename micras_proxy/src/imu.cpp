@@ -17,8 +17,7 @@ Imu::Imu(const Config& config) :
         mdps_to_radps * 4.375F *
         (1 << (config.gyroscope_scale == LSM6DSV_4000dps ? 5 : static_cast<uint8_t>(config.gyroscope_scale)))
     },
-    xl_factor{mg_to_mps2 * (0.061F * (1 << static_cast<uint8_t>(config.accelerometer_scale)))},
-    calibration_filter{config.calibration_filter} {
+    xl_factor{mg_to_mps2 * (0.061F * (1 << static_cast<uint8_t>(config.accelerometer_scale)))} {
     this->dev_ctx.read_reg = platform_read;
     this->dev_ctx.write_reg = platform_write;
     this->dev_ctx.mdelay = proxy::Stopwatch::sleep_ms;
@@ -97,10 +96,6 @@ void Imu::read_response() {
     }
 
     this->fresh = true;
-
-    if (not this->calibrated) {
-        this->calibration_filter.update(std::get<2>(this->angular_velocity));
-    }
 }
 
 bool Imu::is_new() const {
@@ -116,7 +111,7 @@ float Imu::get_angular_velocity(Axis axis) const {
             return std::get<1>(this->angular_velocity);
 
         case Axis::Z:
-            return std::get<2>(this->angular_velocity) - this->calibration_filter.get_last();
+            return std::get<2>(this->angular_velocity);
 
         default:
             return 0.0F;
@@ -164,10 +159,6 @@ int32_t Imu::platform_write(void* handle, uint8_t reg, const uint8_t* bufp, uint
     spi->unselect_device();
 
     return transferred ? 0 : -1;
-}
-
-void Imu::calibrate() {
-    this->calibrated = true;
 }
 
 bool Imu::was_initialized() const {

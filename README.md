@@ -20,6 +20,7 @@ NTF Classic Micromouse project with an STM32 microcontroller
 - [📑 Summary](#-summary)
 - [📁 Folder structure](#-folder-structure)
 - [📦️ Packages](#️-packages)
+- [🐭 Operating the robot](#-operating-the-robot)
 - [🔨 Building](#-building)
 - [🚀 Running](#-running)
 - [🧪 Testing](#-testing)
@@ -58,11 +59,17 @@ NTF Classic Micromouse project with an STM32 microcontroller
 - [micras_proxy](./micras_proxy/) - Intermediate abstraction layer for the hardware components.
 - [micras_nav](./micras_nav/) - Mapping, planning and control algorithms to navigate inside a maze.
 
-Each one is a library in its own right, and they depend downwards only: `micras_nav` on
-`micras_proxy`, that on `micras_hal`, that on `micras_core`. None of them names a file or a symbol
-that STM32CubeMX generates for a particular project, so the generated tree is reached only from
-`config/targets/`, where the handles and the initialization functions of a board are written down
-and handed to the packages through their configuration structs.
+Each one is a library in its own right, and they depend downwards only: `micras_proxy` on
+`micras_hal` and that on `micras_core`, while `micras_nav` depends on `micras_core` alone. The
+navigation takes plain measurements in and gives a plain motor command out, so it cannot reach the
+hardware and builds on anything with a C++23 compiler, which is how it is simulated and tested on a
+computer. The application in `src/` is the only place where the proxies and the navigation meet.
+
+None of the packages names a file or a symbol that STM32CubeMX generates for a particular project,
+so the generated tree is reached only from `config/targets/`, where the handles and the
+initialization functions of a board are written down and handed to the packages through their
+configuration structs. The same directory holds `robot.hpp`, the physical description of the robot
+that every speed, turn, gain and sensing window of the navigation is computed from.
 
 The one name `micras_hal` uses from outside itself is `stm32cubemx`, the interface target the
 STM32CubeMX CMake generator writes for every project, carrying the CMSIS and vendor HAL include
@@ -75,13 +82,38 @@ add_subdirectory(micras_hal)
 add_subdirectory(micras_proxy)
 add_subdirectory(micras_nav)
 
-target_link_libraries(your_target PRIVATE micras::nav)
+target_link_libraries(your_target PRIVATE micras::nav micras::proxy)
 ```
 
 Everything else travels through the targets: the include directories, the C++ standard the sources
 need, and the vendor HAL headers. `FetchContent_MakeAvailable` works the same way, and is the
 sensible option for a cross compiled target, where a prebuilt archive is only usable by a project
 whose architecture flags match exactly.
+
+## 🐭 Operating the robot
+
+The button starts everything, and the four switches choose how.
+
+| Button press | What happens |
+| --- | --- |
+| Short | Search run: the robot explores until it reaches the goal, saves the maze, and then keeps exploring on the way back until the maze proves that the fastest route is known. It parks where a run starts from and saves the maze again. |
+| Long | Fast run: the maze is loaded, the fastest route for the current switches is planned, and the robot runs it. |
+| Extra long | Maintenance procedure, chosen by the switches as listed below. |
+
+| Switch | Fast run | Extra long press, with the other two of these three off |
+| --- | --- | --- |
+| Fan | The fan runs, and its downforce is counted on. | The fan is not part of the choice. |
+| Diagonal | The route may use diagonals. | Drive identification: the robot drives forward and back by less than a meter, then turns to each side, and fits the constants of its drive train. |
+| Boost | A larger share of the available traction is used. | Gyroscope scale calibration: facing a wall, the robot turns five times in place and compares what the gyroscope integrated with what the wall says. |
+| Risky | The turns designed with the smaller safety margin are used. | |
+
+With none of those three on, an extra long press calibrates the wall sensors in two steps: first
+the side sensors, with the robot centered between two walls, and after a pause the front sensors,
+with the robot centered in a cell facing a wall.
+
+The results of the maintenance procedures are not stored. They are published in the `monitor_*`
+variables of `src/micras.cpp`, to be read with a variable monitor and typed into
+`config/targets/<board>/robot.hpp` and `target.hpp`.
 
 ## 🔨 Building
 

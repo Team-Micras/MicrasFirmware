@@ -10,8 +10,10 @@
 using namespace micras;  // NOLINT(google-build-using-namespace)
 
 // NOLINTBEGIN(*-avoid-c-arrays, cppcoreguidelines-avoid-non-const-global-variables)
-static volatile float test_reading[4];
-static volatile float test_adc_reading[4];
+static volatile float test_distance[4];
+static volatile float test_slow_distance[4];
+static volatile float test_intensity[4];
+static volatile bool  test_valid[4];
 
 // NOLINTEND(*-avoid-c-arrays, cppcoreguidelines-avoid-non-const-global-variables)
 
@@ -26,8 +28,10 @@ int main(int argc, char* argv[]) {
         wall_sensors.update();
 
         for (uint8_t i = 0; i < 4; i++) {
-            test_reading[i] = wall_sensors.get_reading(i);
-            test_adc_reading[i] = wall_sensors.get_adc_reading(i);
+            test_distance[i] = wall_sensors.get_reading(i).distance;
+            test_slow_distance[i] = wall_sensors.get_reading(i).slow_distance;
+            test_intensity[i] = wall_sensors.get_intensity(i);
+            test_valid[i] = wall_sensors.get_reading(i).valid;
         }
 
         for (uint8_t i = 0; i < 2; i++) {

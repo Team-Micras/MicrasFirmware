@@ -367,6 +367,10 @@ const proxy::TorqueSensors::Config torque_sensors_config = {
  * settle before the scan of its group starts, and 75 us for that scan, which takes 66 us. It stays
  * off for the 175 us before the scan that reads it dark. The duty cycle also sets the dissipation
  * of the series resistors of the emitters, which at half of the time would be above their rating.
+ *
+ * @note The reference readings are those of the last calibration, taken with the robot centered in
+ * a cell: the side sensors between two walls, the front ones facing a wall. The reference distances
+ * are what the geometry of the sensors says they measure from there.
  */
 const proxy::WallSensors::Config wall_sensors_config = {
     .adc =
@@ -403,19 +407,36 @@ const proxy::WallSensors::Config wall_sensors_config = {
         },
     }},
     .emitter_duty_cycle = 30.0F,
-    .filter =
+    .fast_filter =
         {
-            .cutoff_frequency = sensor_filter_cutoff,
+            .cutoff_frequency = wall_fast_filter_cutoff,
             .sampling_frequency = wall_sensors_frequency,
         },
-    .base_readings =
+    .slow_filter =
+        {
+            .cutoff_frequency = wall_slow_filter_cutoff,
+            .sampling_frequency = wall_sensors_frequency,
+        },
+    .reference_readings =
         {
             0.413F,
             0.161F,
             0.177F,
             0.230F,
         },
-    .uncertainty = 0.5F,
+    .reference_distances =
+        {
+            nav::WallModel{wall_model_config}.get_centered_range(wall_sensors_index.left_front),
+            nav::WallModel{wall_model_config}.get_centered_range(wall_sensors_index.left),
+            nav::WallModel{wall_model_config}.get_centered_range(wall_sensors_index.right),
+            nav::WallModel{wall_model_config}.get_centered_range(wall_sensors_index.right_front),
+        },
+    .noise_floor = 0.002F,
+    .max_reading = 0.95F,
+    .max_distance = wall_sensors_range,
+    .wall_distance = 0.12F,
+    .wall_hysteresis = 0.02F,
+    .calibration_samples = 500,
 };
 
 /**
@@ -452,10 +473,6 @@ const proxy::Imu::Config imu_config = {
     .accelerometer_scale = LSM6DSV_8g,
     .gyroscope_filter = LSM6DSV_GY_ULTRA_LIGHT,
     .accelerometer_filter = LSM6DSV_XL_MEDIUM,
-    .calibration_filter = {
-        .cutoff_frequency = sensor_filter_cutoff,
-        .sampling_frequency = loop_frequency,
-    },
 };
 
 const proxy::Battery::Config battery_config = {
@@ -543,10 +560,12 @@ const proxy::Locomotion::Config locomotion_config = {
             .max_stopped_command = 0.2F,
             .deadzone = 15.0F,
         },
-    .enable_gpio = {
-        .port = Motors_Enable_GPIO_Port,
-        .pin = Motors_Enable_Pin,
-    },
+    .enable_gpio =
+        {
+            .port = Motors_Enable_GPIO_Port,
+            .pin = Motors_Enable_Pin,
+        },
+    .reserved_rotation = 50.0F,
 };
 
 /*****************************************

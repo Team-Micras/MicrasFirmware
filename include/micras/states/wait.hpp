@@ -5,11 +5,15 @@
 #ifndef WAIT_STATE_HPP
 #define WAIT_STATE_HPP
 
-#include <utility>
+#include <cstdint>
 
+#include "micras/proxy/stopwatch.hpp"
 #include "micras/states/base.hpp"
 
 namespace micras {
+/**
+ * @brief State that gives the user time to let go of the robot before it moves.
+ */
 class WaitState : public BaseState {
 public:
     /**
@@ -17,29 +21,22 @@ public:
      *
      * @param id The id of the state.
      * @param micras The Micras object.
-     * @param next_state_id The id of the state to go after ending the wait.
+     * @param next_state The state to go to after the wait.
      * @param wait_time_ms The time to wait in milliseconds.
      */
-    WaitState(Micras::State id, Micras& micras, Micras::State next_state_id, uint16_t wait_time_ms = 3000) :
-        BaseState{id, micras}, next_state_id{std::to_underlying(next_state_id)}, wait_time_ms{wait_time_ms} { }
+    WaitState(State id, Micras& micras, State next_state, uint16_t wait_time_ms = 3000);
 
     /**
      * @brief Execute the entry function of this state.
      */
-    void on_entry() override { this->wait_stopwatch.reset_ms(); }
+    void on_entry() override;
 
     /**
      * @brief Execute this state.
      *
      * @return The id of the next state.
      */
-    uint8_t execute() override {
-        if (this->wait_stopwatch.elapsed_time_ms() > this->wait_time_ms) {
-            return this->next_state_id;
-        }
-
-        return this->get_id();
-    }
+    uint8_t execute() override;
 
 private:
     /**
