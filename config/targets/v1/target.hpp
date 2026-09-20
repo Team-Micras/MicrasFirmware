@@ -317,12 +317,22 @@ const proxy::RotarySensor::Config rotary_sensor_right_config = {
     .registers = rotary_sensor_reg_config,
 };
 
+/**
+ * @brief Configuration of the torque sensors.
+ *
+ * @note The current of a motor ripples at the 100 kHz of its PWM, which the converter does not run
+ * in step with, so a single conversion reads wherever in the ripple it happens to land. A reading
+ * is therefore the mean of 48 conversions of 1.25 us: 60 us, six whole periods of the PWM, over
+ * which the ripple averages out whatever its phase. The two motors take 120 us, so every iteration
+ * of the control loop finds a new pair and next to none is thrown away. The sum of 48 conversions
+ * is shifted by six bits, which leaves the full scale at three quarters of the 16 bits.
+ */
 const proxy::TorqueSensors::Config torque_sensors_config = {
     .adc =
         {
             .init_function = MX_ADC2_Init,
             .handle = &hadc2,
-            .max_reading = 65535,
+            .max_reading = 49151,
             .reference_voltage = adc_reference_voltage,
         },
     // 40 mOhm shunts into current sense amplifiers of gain 20
@@ -452,8 +462,8 @@ const proxy::Battery::Config battery_config = {
     // The internal channel of this family taps the battery pin through a divider by four, which is
     // what makes a three cell pack measurable against a 3.3 V reference. A board that brought the
     // pack to a normal ADC input would put its real resistor ratio here instead.
-    // The converter runs from the slowest clock its datasheet allows, 2.5 MHz, with the longest
-    // sampling time, which the divider needs, and averages four conversions: 957 readings per second.
+    // A conversion samples for 32 us, since the divider asks for at least 9 us, and a reading is the
+    // mean of 32 of them: 957 readings per second, which is plenty for a quantity nothing steers by.
     .voltage_divider = 4.0F,
     .filter = {
         .cutoff_frequency = sensor_filter_cutoff,
