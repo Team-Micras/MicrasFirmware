@@ -21,7 +21,7 @@ namespace micras {
 constexpr uint8_t  maze_width{16};
 constexpr uint8_t  maze_height{16};
 constexpr float    cell_size{0.18F};
-constexpr uint32_t loop_time_us{1042};
+constexpr uint32_t loop_time_us{125};
 constexpr float    wall_thickness{0.0126F};
 constexpr float    start_offset{0.04F + wall_thickness / 2.0F};
 constexpr float    max_linear_acceleration{9.0F};
@@ -36,6 +36,10 @@ constexpr float    fan_speed{100.0F};
  *
  * @note Derived from the loop period rather than written twice: a filter designed for a sampling
  * rate it is not sampled at is a filter with the wrong cutoff.
+ *
+ * @note The period is the one of the fastest sensor, the 8 kHz of the inertial measurement unit,
+ * since an iteration without a new sample of anything has nothing to compute. The next periods that
+ * keep that property are 250 and 500 microseconds, with the data rate of the sensor following.
  */
 constexpr float loop_frequency{1.0e6F / static_cast<float>(loop_time_us)};
 
@@ -44,8 +48,11 @@ constexpr float loop_frequency{1.0e6F / static_cast<float>(loop_time_us)};
  *
  * @note A reset brings the driver enable pins and the PWM outputs back to their reset state, which
  * makes the watchdog the shutdown path for a hang or a fault handler that never returns.
+ *
+ * @note It is a time and not a number of iterations, since what it bounds is how far the robot
+ * travels with nobody driving it, and it has to stay above the longest iteration there is.
  */
-constexpr uint32_t watchdog_timeout_ms{10 * loop_time_us / 1000};
+constexpr uint32_t watchdog_timeout_ms{10};
 
 /**
  * @brief Watchdog timeout used around a flash erase.
