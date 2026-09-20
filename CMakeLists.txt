@@ -70,7 +70,9 @@ micras_apply_warnings(micras_core micras_hal micras_proxy micras_nav)
 ###############################################################################
 
 file(GLOB_RECURSE FORMAT_SOURCES CONFIGURE_DEPENDS "src/*.c*" "tests/*.c*" "micras_*/src/*.c*")
-file(GLOB_RECURSE FORMAT_HEADERS CONFIGURE_DEPENDS "include/*.h*" "config/*.h*" "tests/*.h*" "micras_*/include/*.h*")
+file(GLOB_RECURSE FORMAT_HEADERS CONFIGURE_DEPENDS
+    "include/*.h*" "config/*.h*" "tests/*.h*" "micras_*/include/*.h*" "micras_*/include/*.tpp"
+)
 
 generate_format_target(FORMAT_SOURCES FORMAT_HEADERS)
 generate_lint_target(FORMAT_SOURCES)

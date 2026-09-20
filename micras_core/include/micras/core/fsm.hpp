@@ -117,6 +117,6 @@ private:
 };
 }  // namespace micras::core
 
-#include "../src/fsm.cpp"  // NOLINT(bugprone-suspicious-include, misc-header-include-cycle)
+#include "micras/core/impl/fsm.tpp"  // IWYU pragma: export
 
 #endif  // MICRAS_CORE_FSM_HPP

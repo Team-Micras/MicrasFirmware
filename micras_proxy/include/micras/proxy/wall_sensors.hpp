@@ -147,6 +147,6 @@ private:
 };
 }  // namespace micras::proxy
 
-#include "../src/wall_sensors.cpp"  // NOLINT(bugprone-suspicious-include, misc-header-include-cycle)
+#include "micras/proxy/impl/wall_sensors.tpp"  // IWYU pragma: export
 
 #endif  // MICRAS_PROXY_WALL_SENSORS_HPP

@@ -2,8 +2,8 @@
  * @file
  */
 
-#ifndef MICRAS_PROXY_WALL_SENSORS_CPP
-#define MICRAS_PROXY_WALL_SENSORS_CPP
+#ifndef MICRAS_PROXY_WALL_SENSORS_TPP
+#define MICRAS_PROXY_WALL_SENSORS_TPP
 
 #include <cstdint>
 #include <cstdlib>
@@ -11,7 +11,6 @@
 #include "micras/core/butterworth_filter.hpp"
 #include "micras/core/utils.hpp"
 #include "micras/hal/pwm.hpp"
-#include "micras/proxy/wall_sensors.hpp"
 
 namespace micras::proxy {
 template <uint8_t num_of_sensors>
@@ -84,4 +83,4 @@ bool TWallSensors<num_of_sensors>::was_initialized() const {
 }
 }  // namespace micras::proxy
 
-#endif  // MICRAS_PROXY_WALL_SENSORS_CPP
+#endif  // MICRAS_PROXY_WALL_SENSORS_TPP

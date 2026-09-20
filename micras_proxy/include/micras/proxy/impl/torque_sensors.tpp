@@ -2,14 +2,13 @@
  * @file
  */
 
-#ifndef MICRAS_PROXY_TORQUE_SENSORS_CPP
-#define MICRAS_PROXY_TORQUE_SENSORS_CPP
+#ifndef MICRAS_PROXY_TORQUE_SENSORS_TPP
+#define MICRAS_PROXY_TORQUE_SENSORS_TPP
 
 #include <cstdint>
 
 #include "micras/core/butterworth_filter.hpp"
 #include "micras/core/utils.hpp"
-#include "micras/proxy/torque_sensors.hpp"
 
 namespace micras::proxy {
 template <uint8_t num_of_sensors>
@@ -66,4 +65,4 @@ bool TTorqueSensors<num_of_sensors>::was_initialized() const {
 }
 }  // namespace micras::proxy
 
-#endif  // MICRAS_PROXY_TORQUE_SENSORS_CPP
+#endif  // MICRAS_PROXY_TORQUE_SENSORS_TPP

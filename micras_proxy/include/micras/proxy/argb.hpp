@@ -165,6 +165,6 @@ private:
 };
 }  // namespace micras::proxy
 
-#include "../src/argb.cpp"  // NOLINT(bugprone-suspicious-include, misc-header-include-cycle)
+#include "micras/proxy/impl/argb.tpp"  // IWYU pragma: export
 
 #endif  // MICRAS_PROXY_ARGB_HPP

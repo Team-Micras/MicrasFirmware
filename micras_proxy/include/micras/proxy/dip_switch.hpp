@@ -63,6 +63,6 @@ private:
 };
 }  // namespace micras::proxy
 
-#include "../src/dip_switch.cpp"  // NOLINT(bugprone-suspicious-include, misc-header-include-cycle)
+#include "micras/proxy/impl/dip_switch.tpp"  // IWYU pragma: export
 
 #endif  // MICRAS_PROXY_DIP_SWITCH_HPP

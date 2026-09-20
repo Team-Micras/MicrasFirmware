@@ -134,6 +134,6 @@ private:
 };
 }  // namespace micras::proxy
 
-#include "../src/torque_sensors.cpp"  // NOLINT(bugprone-suspicious-include, misc-header-include-cycle)
+#include "micras/proxy/impl/torque_sensors.tpp"  // IWYU pragma: export
 
 #endif  // MICRAS_PROXY_TORQUE_SENSORS_HPP

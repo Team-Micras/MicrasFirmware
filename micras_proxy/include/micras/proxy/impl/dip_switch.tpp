@@ -2,13 +2,12 @@
  * @file
  */
 
-#ifndef MICRAS_PROXY_DIP_SWITCH_CPP
-#define MICRAS_PROXY_DIP_SWITCH_CPP
+#ifndef MICRAS_PROXY_DIP_SWITCH_TPP
+#define MICRAS_PROXY_DIP_SWITCH_TPP
 
 #include <cstdint>
 #include "micras/core/utils.hpp"
 #include "micras/hal/gpio.hpp"
-#include "micras/proxy/dip_switch.hpp"
 
 namespace micras::proxy {
 template <uint8_t num_of_sensors>
@@ -32,4 +31,4 @@ uint8_t TDipSwitch<num_of_sensors>::get_switches_value() const {
 }
 }  // namespace micras::proxy
 
-#endif  // MICRAS_PROXY_DIP_SWITCH_CPP
+#endif  // MICRAS_PROXY_DIP_SWITCH_TPP

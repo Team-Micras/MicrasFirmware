@@ -2,15 +2,13 @@
  * @file
  */
 
-#ifndef MICRAS_CORE_FSM_CPP
-#define MICRAS_CORE_FSM_CPP
+#ifndef MICRAS_CORE_FSM_TPP
+#define MICRAS_CORE_FSM_TPP
 
 #include <cstdint>
 #include <cstdlib>
 #include <memory>
 #include <utility>
-
-#include "micras/core/fsm.hpp"
 
 namespace micras::core {
 template <uint8_t num_of_states>
@@ -40,4 +38,4 @@ void TFsm<num_of_states>::update() {
 }
 }  // namespace micras::core
 
-#endif  // MICRAS_CORE_FSM_CPP
+#endif  // MICRAS_CORE_FSM_TPP

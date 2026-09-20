@@ -2,11 +2,10 @@
  * @file
  */
 
-#ifndef MICRAS_PROXY_ARGB_CPP
-#define MICRAS_PROXY_ARGB_CPP
+#ifndef MICRAS_PROXY_ARGB_TPP
+#define MICRAS_PROXY_ARGB_TPP
 
 #include <cstdint>
-#include "micras/proxy/argb.hpp"
 
 namespace micras::proxy {
 template <uint8_t num_of_leds>
@@ -78,4 +77,4 @@ bool TArgb<num_of_leds>::was_initialized() const {
 }
 }  // namespace micras::proxy
 
-#endif  // MICRAS_PROXY_ARGB_CPP
+#endif  // MICRAS_PROXY_ARGB_TPP
