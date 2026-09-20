@@ -378,6 +378,18 @@ const proxy::WallSensors::Config wall_sensors_config = {
     .uncertainty = 0.5F,
 };
 
+/**
+ * @brief Configuration of the inertial measurement unit.
+ *
+ * @note The data rate is the one of the control loop. In the high accuracy mode the rates are round
+ * numbers, 8 kHz being the fastest, and vary by 1 % with temperature and supply instead of by
+ * whatever the oscillator of each part happens to run at.
+ *
+ * @note The names of the gyroscope filter settings say little: with the first low pass filter
+ * enabled, the first setting gives a bandwidth of 281 Hz at this data rate and the fourth one the
+ * widest, 407 Hz, while without that filter the bandwidth is 537 Hz. No data rate makes the signal
+ * any faster than that.
+ */
 const proxy::Imu::Config imu_config = {
     .spi =
         {
@@ -392,8 +404,10 @@ const proxy::Imu::Config imu_config = {
             .clock_polarity = imu_clock_polarity,
             .clock_phase = imu_clock_phase,
         },
-    .gyroscope_data_rate = LSM6DSV_ODR_AT_960Hz,
-    .accelerometer_data_rate = LSM6DSV_ODR_AT_960Hz,
+    .gyroscope_mode = LSM6DSV_GY_HIGH_ACCURACY_ODR_MD,
+    .accelerometer_mode = LSM6DSV_XL_HIGH_ACCURACY_ODR_MD,
+    .gyroscope_data_rate = LSM6DSV_ODR_HA01_AT_8000Hz,
+    .accelerometer_data_rate = LSM6DSV_ODR_HA01_AT_8000Hz,
     .gyroscope_scale = LSM6DSV_4000dps,
     .accelerometer_scale = LSM6DSV_8g,
     .gyroscope_filter = LSM6DSV_GY_ULTRA_LIGHT,

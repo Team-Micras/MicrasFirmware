@@ -33,6 +33,9 @@ Imu::Imu(const Config& config) :
     lsm6dsv_sw_por(&(this->dev_ctx));
     lsm6dsv_block_data_update_set(&(this->dev_ctx), PROPERTY_ENABLE);
 
+    lsm6dsv_gy_mode_set(&(this->dev_ctx), config.gyroscope_mode);
+    lsm6dsv_xl_mode_set(&(this->dev_ctx), config.accelerometer_mode);
+
     lsm6dsv_gy_data_rate_set(&(this->dev_ctx), config.gyroscope_data_rate);
     lsm6dsv_xl_data_rate_set(&(this->dev_ctx), config.accelerometer_data_rate);
 
@@ -57,28 +60,51 @@ bool Imu::check_whoami() {
 }
 
 void Imu::update() {
-    std::array<int16_t, 3> raw_data{};
+    const hal::Spi::Transfer transfer = this->spi.get_transfer();
+    this->fresh = false;
 
-    lsm6dsv_data_ready_t data_ready{};
-    lsm6dsv_flag_data_ready_get(&this->dev_ctx, &data_ready);
-
-    if (data_ready.drdy_xl) {
-        lsm6dsv_acceleration_raw_get(&dev_ctx, raw_data.data());
-        std::get<0>(this->linear_acceleration) = std::get<0>(raw_data) * xl_factor;
-        std::get<1>(this->linear_acceleration) = std::get<1>(raw_data) * xl_factor;
-        std::get<2>(this->linear_acceleration) = std::get<2>(raw_data) * xl_factor;
+    if (transfer == hal::Spi::Transfer::RUNNING) {
+        return;
     }
 
-    if (data_ready.drdy_gy) {
-        lsm6dsv_angular_rate_raw_get(&dev_ctx, raw_data.data());
-        std::get<0>(this->angular_velocity) = std::get<0>(raw_data) * gy_factor;
-        std::get<1>(this->angular_velocity) = std::get<1>(raw_data) * gy_factor;
-        std::get<2>(this->angular_velocity) = std::get<2>(raw_data) * gy_factor;
+    if (transfer == hal::Spi::Transfer::COMPLETE) {
+        this->read_response();
     }
+
+    this->spi.start_transfer(this->command, this->response);
+}
+
+void Imu::read_response() {
+    const auto get_axis = [this](uint8_t offset, uint8_t axis) {
+        const uint8_t index = 1 + offset + 2 * axis;
+        return static_cast<int16_t>(this->response.at(index) | (this->response.at(index + 1) << 8));
+    };
+
+    const uint8_t status = std::get<1>(this->response);
+
+    if ((status & accelerometer_ready) != 0) {
+        for (uint8_t axis = 0; axis < 3; axis++) {
+            this->linear_acceleration.at(axis) = get_axis(acceleration_offset, axis) * this->xl_factor;
+        }
+    }
+
+    if ((status & gyroscope_ready) == 0) {
+        return;
+    }
+
+    for (uint8_t axis = 0; axis < 3; axis++) {
+        this->angular_velocity.at(axis) = get_axis(angular_rate_offset, axis) * this->gy_factor;
+    }
+
+    this->fresh = true;
 
     if (not this->calibrated) {
         this->calibration_filter.update(std::get<2>(this->angular_velocity));
     }
+}
+
+bool Imu::is_new() const {
+    return this->fresh;
 }
 
 float Imu::get_angular_velocity(Axis axis) const {
@@ -120,7 +146,7 @@ int32_t Imu::platform_read(void* handle, uint8_t reg, uint8_t* bufp, uint16_t le
         return -1;
     }
 
-    reg |= 0x80;
+    reg |= read_flag;
     const bool transferred = spi->transmit({&reg, 1}) and spi->receive({bufp, len});
     spi->unselect_device();
 
