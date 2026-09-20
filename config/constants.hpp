@@ -44,6 +44,15 @@ constexpr float    fan_speed{100.0F};
 constexpr float loop_frequency{1.0e6F / static_cast<float>(loop_time_us)};
 
 /**
+ * @brief Rate at which the wall sensors produce a reading, which is the rate their filter runs at.
+ *
+ * @note One reading per period of the emitter timer, which the peripheral configuration makes four
+ * periods of the control loop. The wall sensors check this value against the registers of the timer
+ * when they start.
+ */
+constexpr float wall_sensors_frequency{2000.0F};
+
+/**
  * @brief Time without a control loop iteration that resets the microcontroller.
  *
  * @note A reset brings the driver enable pins and the PWM outputs back to their reset state, which

@@ -329,6 +329,20 @@ const proxy::TorqueSensors::Config torque_sensors_config = {
     },
 };
 
+/**
+ * @brief Configuration of the wall sensors.
+ *
+ * @note The emitters fire in two groups, told apart by the inverted flag, so that the two sensors
+ * that look forward never light the same patch of wall at once and neither do the two sensors of
+ * each side, which sit next to each other.
+ *
+ * @note The timing is set by the receiver, a phototransistor on a 1 kOhm load that takes some tens
+ * of microseconds to follow its emitter. The emitter timer counts up and down in 250 us each way and
+ * starts a scan at both ends, so an emitter is on for 30 % of 500 us: 75 us to let the receiver
+ * settle before the scan of its group starts, and 75 us for that scan, which takes 66 us. It stays
+ * off for the 175 us before the scan that reads it dark. The duty cycle also sets the dissipation
+ * of the series resistors of the emitters, which at half of the time would be above their rating.
+ */
 const proxy::WallSensors::Config wall_sensors_config = {
     .adc =
         {
@@ -348,7 +362,7 @@ const proxy::WallSensors::Config wall_sensors_config = {
             .init_function = MX_TIM4_Init,
             .handle = &htim4,
             .timer_channel = TIM_CHANNEL_2,
-            .inverted = false,
+            .inverted = true,
         },
         {
             .init_function = MX_TIM4_Init,
@@ -360,13 +374,14 @@ const proxy::WallSensors::Config wall_sensors_config = {
             .init_function = MX_TIM4_Init,
             .handle = &htim4,
             .timer_channel = TIM_CHANNEL_4,
-            .inverted = false,
+            .inverted = true,
         },
     }},
+    .emitter_duty_cycle = 30.0F,
     .filter =
         {
             .cutoff_frequency = sensor_filter_cutoff,
-            .sampling_frequency = loop_frequency,
+            .sampling_frequency = wall_sensors_frequency,
         },
     .base_readings =
         {

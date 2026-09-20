@@ -25,6 +25,7 @@ public:
     struct Config {
         hal::AdcDma::Config                          adc;
         std::array<hal::Pwm::Config, num_of_sensors> led_pwms;
+        float                                        emitter_duty_cycle;
         core::ButterworthFilter::Config              filter;
         std::array<float, num_of_sensors>            base_readings;
         float                                        uncertainty;
@@ -48,9 +49,18 @@ public:
     void turn_off();
 
     /**
-     * @brief Update the wall sensors readings.
+     * @brief Update the wall sensors readings, if the emitters completed a period since the last call.
      */
     void update();
+
+    /**
+     * @brief Check whether the last update brought readings that were not seen before.
+     *
+     * @note The readings come at the rate of the emitter timer, whatever the rate of the caller.
+     *
+     * @return True if the readings are new, false otherwise.
+     */
+    bool is_new() const;
 
     /**
      * @brief Get the observation from a sensor.
@@ -91,13 +101,22 @@ public:
     void calibrate_sensor(uint8_t sensor_index);
 
     /**
-     * @brief Check if the ADC was initialized and its scan matches the buffer layout.
+     * @brief Check if the ADC was initialized, its scan matches the buffer layout, and the emitters
+     * run at the rate the filter was designed for.
+     *
+     * @note The rate of the emitters lives in the peripheral configuration and the one of the filter
+     * in the constants, and nothing else would notice the day only one of them changes.
      *
      * @return True if the initialization was successful, false otherwise.
      */
     bool was_initialized() const;
 
 private:
+    /**
+     * @brief Largest relative difference between the rate of the emitters and the one of the filter.
+     */
+    static constexpr float frequency_tolerance{0.01F};
+
     /**
      * @brief ADC DMA handle.
      */
@@ -109,21 +128,49 @@ private:
     std::array<hal::Pwm, num_of_sensors> led_pwms;
 
     /**
-     * @brief Buffer to store the ADC values, holding one emitter on and one emitter off scan.
+     * @brief Duty cycle of the emitters while the sensors are on.
+     */
+    float emitter_duty_cycle;
+
+    /**
+     * @brief Buffer the DMA writes to, holding one emitter on and one emitter off scan.
      *
      * @details The emitter PWM timer is center aligned and triggers the ADC on its update event, so
-     * the conversion sequence runs twice per emitter period: once at the underflow, while the
-     * emitters are on, and once at the overflow, while they are off. Two consecutive scans
-     * therefore fill the two halves of this buffer with a matching pair, and the difference between
-     * the halves is the reflected signal with the ambient light canceled. Taking the absolute
-     * value makes the result independent of which half currently holds which phase.
+     * the conversion sequence runs twice per emitter period: once at the underflow and once at the
+     * overflow. The emitters fire in two groups, one centered on each of those instants, so every
+     * scan reads half of the sensors lit and the other half dark, no sensor is ever lit by the
+     * emitter of its neighbor, and two consecutive scans hold a lit and a dark reading of every
+     * sensor. Their difference is the reflected signal with the ambient light canceled, and taking
+     * its absolute value makes the result independent of which half currently holds which scan.
      *
      * @note This depends on the ADC scanning exactly num_of_sensors channels, on the emitter timer
-     * being center aligned with its trigger on the update event, and on a scan fitting inside half
-     * an emitter period. The first of those is checked by the constructor; the other two live in the
-     * peripheral configuration.
+     * being center aligned with its trigger on the update event, on the two groups being told
+     * apart by the inverted flag of their PWM configuration, and on the emitter being on for at
+     * least the settling time of the receiver before the scan starts and the duration of the scan
+     * after it. The first of those is checked by the constructor; the others live in the
+     * configuration.
      */
-    std::array<uint16_t, 2 * num_of_sensors> buffer;
+    std::array<uint16_t, 2 * num_of_sensors> buffer{};
+
+    /**
+     * @brief Copy of the buffer taken when a pair of scans completes, so that a pair is never torn.
+     */
+    std::array<uint16_t, 2 * num_of_sensors> snapshot{};
+
+    /**
+     * @brief The pair of scans the readings are computed from.
+     */
+    std::array<uint16_t, 2 * num_of_sensors> scans{};
+
+    /**
+     * @brief Number of pairs of scans completed when the readings were last computed.
+     */
+    uint32_t sequence{};
+
+    /**
+     * @brief Flag to check if the last update brought new readings.
+     */
+    bool fresh{};
 
     /**
      * @brief Butterworth filter for the ADC readings.

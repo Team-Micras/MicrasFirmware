@@ -97,6 +97,15 @@ void Pwm::set_frequency(uint32_t frequency) {
     __HAL_TIM_SET_COUNTER(this->handle, 0);
 }
 
+float Pwm::get_frequency() const {
+    const uint32_t autoreload = __HAL_TIM_GET_AUTORELOAD(this->handle);
+    const bool     center_aligned = (this->handle->Instance->CR1 & TIM_CR1_CMS) != 0;
+    const uint32_t period = center_aligned ? 2 * autoreload : autoreload + 1;
+    const auto     ticks = static_cast<float>(this->handle->Instance->PSC + 1) * static_cast<float>(period);
+
+    return static_cast<float>(get_timer_clock_frequency(this->handle->Instance)) / ticks;
+}
+
 bool Pwm::was_initialized() const {
     return this->initialized;
 }

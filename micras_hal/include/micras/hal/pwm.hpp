@@ -62,6 +62,16 @@ public:
     void set_frequency(uint32_t frequency);
 
     /**
+     * @brief Get the frequency of the PWM signal from the registers of the timer.
+     *
+     * @note A timer that counts up and down takes twice its autoreload value to complete a period,
+     * where one that counts in a single direction takes the autoreload value plus one.
+     *
+     * @return Frequency value in Hz.
+     */
+    float get_frequency() const;
+
+    /**
      * @brief Check if the PWM was successfully started.
      *
      * @return True if the initialization was successful, false otherwise.
