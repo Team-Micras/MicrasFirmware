@@ -32,8 +32,10 @@
 #include "micras/proxy/locomotion.hpp"
 #include "micras/proxy/rotary_sensor.hpp"
 #include "micras/proxy/storage.hpp"
+#include "micras/proxy/tick.hpp"
 #include "micras/proxy/torque_sensors.hpp"
 #include "micras/proxy/wall_sensors.hpp"
+#include "micras/proxy/watchdog.hpp"
 
 extern "C" {
 /**
@@ -125,6 +127,14 @@ const hal::Mcu::Config mcu_config{
     .clock_init = SystemClock_Config,
     .peripheral_clock_init = PeriphCommonClock_Config,
     .peripheral_inits = mcu_peripheral_inits,
+};
+
+const proxy::Watchdog::Config watchdog_config{
+    .timeout_ms = watchdog_timeout_ms,
+};
+
+const proxy::Tick::Config tick_config{
+    .period_us = loop_time_us,
 };
 
 /*****************************************
