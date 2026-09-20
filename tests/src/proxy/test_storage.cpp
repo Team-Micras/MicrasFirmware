@@ -5,6 +5,7 @@
 #include <array>
 #include <bit>
 #include <cstdint>
+#include <string>
 #include <vector>
 #include "micras/core/serializable.hpp"
 #include "micras/core/variable_pool.hpp"

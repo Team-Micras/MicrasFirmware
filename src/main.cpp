@@ -46,13 +46,17 @@ void HardFault_Handler() {
 }
 
 /**
- * @note The robot is a static local rather than an automatic one, so that its few kilobytes live in
- * .bss instead of on the stack, while it is still constructed after the microcontroller is ready.
+ * @brief Entry point of the firmware.
+ *
+ * @note The robot lives in static storage because it is far too large for the stack, which also
+ * gives its members a fixed address that a variable monitor can read. It is constructed here, and
+ * not before main, since the proxies it holds need the microcontroller initialized.
  */
 int main() {
     std::signal(SIGABRT, signal_handler);
 
     micras::hal::Mcu::init(micras::mcu_config);
+
     static micras::Micras micras;
 
     while (true) {

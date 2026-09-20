@@ -9,7 +9,10 @@
 
 namespace micras::proxy {
 Locomotion::Locomotion(const Config& config) :
-    left_motor{config.left_motor}, right_motor{config.right_motor}, enable_gpio{config.enable_gpio} {
+    left_motor{config.left_motor},
+    right_motor{config.right_motor},
+    enable_gpio{config.enable_gpio},
+    reserved_rotation{config.reserved_rotation} {
     this->stop();
     this->disable();
 }
@@ -27,19 +30,18 @@ void Locomotion::set_wheel_command(float left_command, float right_command) {
     this->right_motor.set_command(right_command);
 }
 
-void Locomotion::set_command(float linear, float angular) {
-    float left_command = linear - angular;
-    float right_command = linear + angular;
+Locomotion::Command Locomotion::set_command(float linear, float angular) {
+    const float angular_limit = std::max(this->reserved_rotation, max_command - std::abs(linear));
 
-    const float peak = std::max(std::abs(left_command), std::abs(right_command));
+    angular = std::clamp(angular, -angular_limit, angular_limit);
 
-    if (peak > 100.0F) {
-        const float scale = 100.0F / peak;
-        left_command *= scale;
-        right_command *= scale;
-    }
+    const float linear_limit = max_command - std::abs(angular);
 
-    this->set_wheel_command(left_command, right_command);
+    linear = std::clamp(linear, -linear_limit, linear_limit);
+
+    this->set_wheel_command(linear - angular, linear + angular);
+
+    return {.linear = linear, .angular = angular};
 }
 
 void Locomotion::stop() {

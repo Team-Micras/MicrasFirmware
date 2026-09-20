@@ -46,9 +46,6 @@ int main(int argc, char* argv[]) {
         while (true) { }
     }
 
-    proxy::Stopwatch::sleep_ms(1000);
-    imu.calibrate();
-
     TestCore::loop([&imu, &stopwatch]() {
         stopwatch.reset_us();
         imu.update();
