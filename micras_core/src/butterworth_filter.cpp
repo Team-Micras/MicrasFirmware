@@ -2,9 +2,7 @@
  * @file
  */
 
-#include <array>
 #include <cmath>
-#include <cstdint>
 #include <numbers>
 
 #include "micras/core/butterworth_filter.hpp"
@@ -31,40 +29,23 @@ ButterworthFilter::Coefficients ButterworthFilter::compute_coefficients(const Co
 ButterworthFilter::ButterworthFilter(const Config& config) {
     const Coefficients coefficients = compute_coefficients(config);
 
-    std::get<0>(this->a_array) = std::get<1>(coefficients.feedback);
-    std::get<1>(this->a_array) = std::get<0>(coefficients.feedback);
-
-    std::get<0>(this->b_array) = std::get<2>(coefficients.feed_forward);
-    std::get<1>(this->b_array) = std::get<1>(coefficients.feed_forward);
-    std::get<2>(this->b_array) = std::get<0>(coefficients.feed_forward);
+    this->damping = std::get<1>(coefficients.feedback);
+    this->gain = std::get<0>(coefficients.feed_forward);
 }
 
 float ButterworthFilter::update(float x0) {
-    std::get<0>(this->x_array) = std::get<1>(this->x_array);
-    std::get<1>(this->x_array) = std::get<2>(this->x_array);
-    std::get<2>(this->x_array) = x0;
+    const float input_sum = x0 + 2.0F * std::get<0>(this->inputs) + std::get<1>(this->inputs);
 
-    float x_b_dot = 0;
+    this->rate = this->damping * this->rate + this->gain * (input_sum - 4.0F * this->output);
+    this->output += this->rate;
 
-    for (uint8_t i = 0; i < filter_order + 1; i++) {
-        x_b_dot += this->x_array.at(i) * this->b_array.at(i);
-    }
+    std::get<1>(this->inputs) = std::get<0>(this->inputs);
+    std::get<0>(this->inputs) = x0;
 
-    float y_a_dot = 0;
-
-    for (uint8_t i = 0; i < filter_order; i++) {
-        y_a_dot += this->y_array.at(i) * this->a_array.at(i);
-    }
-
-    const float y0 = x_b_dot - y_a_dot;
-
-    std::get<0>(this->y_array) = std::get<1>(this->y_array);
-    std::get<1>(this->y_array) = y0;
-
-    return y0;
+    return this->output;
 }
 
 float ButterworthFilter::get_last() const {
-    return std::get<1>(this->y_array);
+    return this->output;
 }
 }  // namespace micras::core
