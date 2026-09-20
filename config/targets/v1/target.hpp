@@ -148,6 +148,14 @@ const proxy::Led::Config led_config = {
     },
 };
 
+/**
+ * @brief Configuration of the addressable LEDs.
+ *
+ * @note The timer gives a bit 77 ticks of 18.2 ns, 1400 ns, of which a zero is high for 17 and a one
+ * for 39. That is 309 ns and 709 ns of the 220 to 380 ns and 580 to 840 ns the WS2815C takes for
+ * each, and leaves the line low for 1091 ns and 691 ns where it asks for at least 900 ns and 600 ns.
+ * The shorter bit the timer used to give cannot satisfy all four at once.
+ */
 const proxy::Argb::Config argb_config = {
     .pwm =
         {
@@ -155,8 +163,8 @@ const proxy::Argb::Config argb_config = {
             .handle = &htim8,
             .timer_channel = TIM_CHANNEL_1,
         },
-    .low_duty_cycle = 32.0F,
-    .high_duty_cycle = 64.0F,
+    .low_duty_cycle = 22.0F,
+    .high_duty_cycle = 50.6F,
     .max_brightness = 10.0F,
 };
 
