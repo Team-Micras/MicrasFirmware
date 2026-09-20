@@ -37,6 +37,26 @@ static uint32_t get_timer_clock_frequency(const TIM_TypeDef* instance) {
  */
 static constexpr uint32_t channel_shift_mask{0x1F};
 
+/**
+ * @brief Make a value written to the compare register of a channel take effect at once.
+ *
+ * @param handle Timer handle.
+ * @param channel Timer channel.
+ */
+static void disable_compare_preload(TIM_HandleTypeDef* handle, uint32_t channel) {
+    __HAL_TIM_DISABLE_OCxPRELOAD(handle, channel);
+}
+
+/**
+ * @brief Make a value written to the compare register of a channel wait for the next update.
+ *
+ * @param handle Timer handle.
+ * @param channel Timer channel.
+ */
+static void enable_compare_preload(TIM_HandleTypeDef* handle, uint32_t channel) {
+    __HAL_TIM_ENABLE_OCxPRELOAD(handle, channel);
+}
+
 Pwm::Pwm(const Config& config) : handle{config.handle}, channel{config.timer_channel}, inverted{config.inverted} {
     if (this->handle->State == HAL_TIM_STATE_RESET) {
         config.init_function();
@@ -46,7 +66,10 @@ Pwm::Pwm(const Config& config) : handle{config.handle}, channel{config.timer_cha
         this->handle->Instance->CCER |= TIM_CCER_CC1P << (this->channel & channel_shift_mask);
     }
 
+    disable_compare_preload(this->handle, this->channel);
     this->set_duty_cycle(0.0F);
+    enable_compare_preload(this->handle, this->channel);
+
     this->initialized = HAL_TIM_PWM_Start(this->handle, this->channel) == HAL_OK;
 }
 

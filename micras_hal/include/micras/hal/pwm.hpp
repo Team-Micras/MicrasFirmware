@@ -31,7 +31,11 @@ public:
     };
 
     /**
-     * @brief Construct a new Pwm object.
+     * @brief Construct a new Pwm object, with its output at a duty cycle of zero.
+     *
+     * @note The compare register is preloaded, so a value written to it waits for the next update
+     * of the timer. The first one is written around the preload: an inverted output would otherwise
+     * start fully on, since zero is what the register holds until then.
      *
      * @param config Configuration for the PWM.
      */
