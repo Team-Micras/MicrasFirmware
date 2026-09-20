@@ -452,6 +452,8 @@ const proxy::Battery::Config battery_config = {
     // The internal channel of this family taps the battery pin through a divider by four, which is
     // what makes a three cell pack measurable against a 3.3 V reference. A board that brought the
     // pack to a normal ADC input would put its real resistor ratio here instead.
+    // The converter runs from the slowest clock its datasheet allows, 2.5 MHz, with the longest
+    // sampling time, which the divider needs, and averages four conversions: 957 readings per second.
     .voltage_divider = 4.0F,
     .filter = {
         .cutoff_frequency = sensor_filter_cutoff,
