@@ -2,11 +2,11 @@
  * @file
  */
 
-#include <utility>
-
+#include <algorithm>
 #include <cmath>
 #include <cstdint>
 #include <numbers>
+#include <utility>
 
 #include "micras/core/vector.hpp"
 #include "micras/nav/grid_pose.hpp"
@@ -38,7 +38,11 @@ Side GridPoint::direction(const GridPoint& next) const {
 }
 
 GridPoint GridPoint::from_vector(const core::Vector& point, float cell_size) {
-    return {.x = static_cast<uint8_t>(point.x / cell_size), .y = static_cast<uint8_t>(point.y / cell_size)};
+    const auto to_index = [cell_size](float coordinate) {
+        return static_cast<uint8_t>(std::clamp(std::floor(coordinate / cell_size), 0.0F, 255.0F));
+    };
+
+    return {.x = to_index(point.x), .y = to_index(point.y)};
 }
 
 core::Vector GridPoint::to_vector(float cell_size) const {

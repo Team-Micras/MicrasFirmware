@@ -30,6 +30,22 @@ struct Pose {
     core::Vector to_cell(float cell_size) const;
 
     /**
+     * @brief Express in the frame of this pose a pose given relative to it.
+     *
+     * @param local The pose in the frame defined by this pose.
+     * @return The same pose in the frame this pose is expressed in.
+     */
+    Pose compose(const Pose& local) const;
+
+    /**
+     * @brief Express another pose in the frame defined by this pose.
+     *
+     * @param other A pose in the same frame as this pose.
+     * @return The other pose as seen from this one, with the orientation wrapped to [-pi, pi].
+     */
+    Pose relative(const Pose& other) const;
+
+    /**
      * @brief The position of the pose.
      */
     core::Vector position;
