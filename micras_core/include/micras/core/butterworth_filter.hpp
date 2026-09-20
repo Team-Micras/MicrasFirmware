@@ -7,6 +7,7 @@
 
 #include <array>
 #include <cstdint>
+#include <numbers>
 
 namespace micras::core {
 /**
@@ -62,6 +63,19 @@ public:
         std::array<float, filter_order + 1> feed_forward;
         std::array<float, filter_order>     feedback;
     };
+
+    /**
+     * @brief Get the delay the filter adds to a signal that changes slowly compared with the cutoff.
+     *
+     * @note This is the group delay at low frequency, `sqrt(2) / (2 * pi * cutoff)`. Whoever turns a
+     * filtered reading into a position has to account for the distance traveled during it.
+     *
+     * @param cutoff_frequency Cutoff frequency in Hz.
+     * @return The delay in seconds.
+     */
+    static constexpr float get_delay(float cutoff_frequency) {
+        return std::numbers::sqrt2_v<float> / (2.0F * std::numbers::pi_v<float> * cutoff_frequency);
+    }
 
     /**
      * @brief Compute the discrete coefficients of the filter.
