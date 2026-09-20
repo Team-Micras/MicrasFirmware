@@ -2,6 +2,7 @@
  * @file
  */
 
+#include <algorithm>
 #include <bit>
 #include <cstdint>
 
@@ -30,16 +31,32 @@ static uint32_t get_timer_clock_frequency(const TIM_TypeDef* instance) {
     return clock_config.APB1CLKDivider == RCC_APB1_DIV1 ? pclk1 : 2 * pclk1;
 }
 
-Pwm::Pwm(const Config& config) : handle{config.handle}, channel{config.timer_channel} {
+/**
+ * @brief Mask that turns the identifier of one of the first four channels into the position of its
+ * bits in the capture and compare enable register.
+ */
+static constexpr uint32_t channel_shift_mask{0x1F};
+
+Pwm::Pwm(const Config& config) : handle{config.handle}, channel{config.timer_channel}, inverted{config.inverted} {
     if (this->handle->State == HAL_TIM_STATE_RESET) {
         config.init_function();
     }
 
+    if (this->inverted) {
+        this->handle->Instance->CCER |= TIM_CCER_CC1P << (this->channel & channel_shift_mask);
+    }
+
+    this->set_duty_cycle(0.0F);
     this->initialized = HAL_TIM_PWM_Start(this->handle, this->channel) == HAL_OK;
-    __HAL_TIM_SET_COMPARE(this->handle, this->channel, 0);
 }
 
 void Pwm::set_duty_cycle(float duty_cycle) {
+    duty_cycle = std::clamp(duty_cycle, 0.0F, 100.0F);
+
+    if (this->inverted) {
+        duty_cycle = 100.0F - duty_cycle;
+    }
+
     const float scaled = duty_cycle * static_cast<float>(__HAL_TIM_GET_AUTORELOAD(this->handle) + 1) * 0.01F;
 
     // NOLINTNEXTLINE(bugprone-incorrect-roundings)

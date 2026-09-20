@@ -55,6 +55,11 @@ static constexpr uint32_t watchdog_max_reload{0xFFF};
  */
 static constexpr uint32_t watchdog_timeout_us{1000};
 
+/**
+ * @brief Compare value that keeps an inverted PWM output inactive, above any period.
+ */
+static constexpr uint32_t inactive_compare{0xFFFFFFFF};
+
 void Mcu::init(const Config& config) {
     SCB_EnableICache();
 
@@ -75,7 +80,8 @@ void Mcu::init(const Config& config) {
 
 void Mcu::emergency_stop(std::span<const Pwm::Config> pwm_outputs, std::span<const Gpio::Config> enable_gpios) {
     for (const auto& pwm_output : pwm_outputs) {
-        __HAL_TIM_SET_COMPARE(pwm_output.handle, pwm_output.timer_channel, 0);
+        const uint32_t compare = pwm_output.inverted ? inactive_compare : 0;
+        __HAL_TIM_SET_COMPARE(pwm_output.handle, pwm_output.timer_channel, compare);
     }
 
     for (const auto& enable_gpio : enable_gpios) {

@@ -17,11 +17,17 @@ class Pwm {
 public:
     /**
      * @brief PWM configuration struct.
+     *
+     * @note An inverted output is active for the last part of the period instead of the first. On a
+     * center aligned timer that centers its pulse on the overflow instead of the underflow, which
+     * is how two groups of channels of one timer are made to take turns. The duty cycle keeps
+     * meaning the fraction of the period the output is active for, so zero is always off.
      */
     struct Config {
         void (*init_function)();
         TIM_HandleTypeDef* handle;
         uint32_t           timer_channel;
+        bool               inverted;
     };
 
     /**
@@ -34,7 +40,7 @@ public:
     /**
      * @brief Set the PWM duty cycle.
      *
-     * @param duty_cycle Duty cycle value.
+     * @param duty_cycle Duty cycle value in percent, which is clamped to the range from 0 to 100.
      */
     void set_duty_cycle(float duty_cycle);
 
@@ -68,6 +74,11 @@ private:
      * @brief Channel number of the timer.
      */
     uint32_t channel;
+
+    /**
+     * @brief Whether the output is active for the last part of the period.
+     */
+    bool inverted;
 
     /**
      * @brief Flag to check if the PWM was started.

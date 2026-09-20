@@ -188,6 +188,7 @@ const proxy::Buzzer::Config buzzer_config = {
         .init_function = MX_TIM15_Init,
         .handle = &htim15,
         .timer_channel = TIM_CHANNEL_1,
+        .inverted = false,
     },
 };
 
@@ -331,21 +332,25 @@ const proxy::WallSensors::Config wall_sensors_config = {
             .init_function = MX_TIM4_Init,
             .handle = &htim4,
             .timer_channel = TIM_CHANNEL_1,
+            .inverted = false,
         },
         {
             .init_function = MX_TIM4_Init,
             .handle = &htim4,
             .timer_channel = TIM_CHANNEL_2,
+            .inverted = false,
         },
         {
             .init_function = MX_TIM4_Init,
             .handle = &htim4,
             .timer_channel = TIM_CHANNEL_3,
+            .inverted = false,
         },
         {
             .init_function = MX_TIM4_Init,
             .handle = &htim4,
             .timer_channel = TIM_CHANNEL_4,
+            .inverted = false,
         },
     }},
     .filter =
@@ -423,6 +428,7 @@ const proxy::Fan::Config fan_config = {
             .init_function = MX_TIM12_Init,
             .handle = &htim12,
             .timer_channel = TIM_CHANNEL_2,
+            .inverted = false,
         },
     .enable_gpio =
         {
@@ -440,12 +446,14 @@ const proxy::Locomotion::Config locomotion_config = {
                     .init_function = MX_TIM3_Init,
                     .handle = &htim3,
                     .timer_channel = TIM_CHANNEL_4,
+                    .inverted = false,
                 },
             .forward_pwm =
                 {
                     .init_function = MX_TIM3_Init,
                     .handle = &htim3,
                     .timer_channel = TIM_CHANNEL_2,
+                    .inverted = false,
                 },
             .max_stopped_command = 0.2F,
             .deadzone = 15.0F,
@@ -457,12 +465,14 @@ const proxy::Locomotion::Config locomotion_config = {
                     .init_function = MX_TIM1_Init,
                     .handle = &htim1,
                     .timer_channel = TIM_CHANNEL_2,
+                    .inverted = false,
                 },
             .forward_pwm =
                 {
                     .init_function = MX_TIM1_Init,
                     .handle = &htim1,
                     .timer_channel = TIM_CHANNEL_1,
+                    .inverted = false,
                 },
             .max_stopped_command = 0.2F,
             .deadzone = 15.0F,
