@@ -15,9 +15,14 @@ namespace micras::hal {
 /**
  * @brief Class to handle the filter math accelerator on STM32 microcontrollers.
  *
- * @note The accelerator works in q1.15 fixed point and holds one filter configuration at a time,
- * so a second filter cannot run without reprogramming the coefficient buffer. Both limits are
- * properties of the peripheral, not of this wrapper.
+ * @note The accelerator works in q1.15 fixed point and runs one function at a time. Its local
+ * memory of 256 words can hold the coefficients of several filters, chosen by the base address of
+ * the coefficient buffer, and N signals that share a cutoff can be interleaved through one filter
+ * whose coefficients are spaced N taps apart. What it does not keep is the history of a filter
+ * across a change of configuration: stopping it resets the pointers into its buffers, so the last
+ * inputs and outputs have to be loaded again, which for one sample at a time costs more than the
+ * filter does. This wrapper uses none of that. It configures one filter and runs it sample by
+ * sample.
  */
 class Fmac {
 public:

@@ -21,16 +21,18 @@ namespace micras::proxy {
  *
  * - The accelerator works in q1.15, so every coefficient has to fall inside [-1, 1) and be large
  *   enough not to quantize to zero. A second order Butterworth has a feed forward coefficient of
- *   roughly (fc / fs)^2 / 4, so at a cutoff far below the sampling rate the coefficients underflow.
- *   At a 960 Hz sampling rate the useful range starts around a 100 Hz cutoff, well above the 5 Hz
- *   and 10 Hz cutoffs the sensors of this robot use. was_initialized reports that refusal instead
- *   of filtering with silently truncated coefficients.
+ *   roughly (pi * fc / fs)^2 and a feedback coefficient close to -2, so the useful range starts
+ *   around a cutoff of a tenth of the sampling rate. Halving the coefficients and doubling the
+ *   output with the gain of the accelerator, which this class does not do, brings that to about a
+ *   fiftieth, still well above what the sensors of this robot use. was_initialized reports that
+ *   refusal instead of filtering with silently truncated coefficients.
  * - Samples and results are q1.15 too, so the input has to be normalized to [-1, 1). That suits a
  *   ratiometric reading such as an ADC fraction, and not a physical quantity such as a rate in
  *   radians per second.
- * - The accelerator holds one filter configuration at a time. Several instances cannot run
- *   concurrently without reprogramming the coefficient buffer between samples, which costs far
- *   more than the handful of multiply accumulates it would save.
+ * - The accelerator runs one function at a time, so one instance of this class owns it. Several
+ *   filters would have to share a cutoff and be interleaved through one set of coefficients spaced
+ *   apart, or have their history loaded again at every switch, which costs far more than the
+ *   handful of multiply accumulates it would save. Neither is what this class does.
  */
 class FmacFilter {
 public:
