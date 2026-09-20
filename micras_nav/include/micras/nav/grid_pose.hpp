@@ -51,6 +51,9 @@ struct GridPoint {
     /**
      * @brief Convert the point to a grid point.
      *
+     * @note A point outside of the first quadrant is clamped to it, since a negative coordinate
+     * cannot be represented and converting one to an unsigned type is undefined.
+     *
      * @param point The point to convert.
      * @param cell_size The size of the grid cells.
      * @return The grid point corresponding to the point.
