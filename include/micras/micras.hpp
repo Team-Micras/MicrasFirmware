@@ -82,6 +82,13 @@ public:
     bool check_crash() const;
 
     /**
+     * @brief Check if the navigation algorithm failed to produce a next action.
+     *
+     * @return True if the navigation failed, false otherwise.
+     */
+    bool check_navigation_failure() const;
+
+    /**
      * @brief Get the current objective of the robot.
      *
      * @return The current objective of the robot.
@@ -276,6 +283,11 @@ private:
      * @brief Last feed forward command to the right motor.
      */
     float right_ff{};
+
+    /**
+     * @brief Flag for when the navigation could not provide a next action.
+     */
+    bool navigation_failed{};
 
     nav::Twist last_pid_response{0.0F, 0.0F};
     float      wall_sensor_reading[4]{0.0F, 0.0F, 0.0F, 0.0F};

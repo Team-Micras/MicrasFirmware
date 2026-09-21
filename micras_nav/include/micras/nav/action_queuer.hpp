@@ -67,7 +67,12 @@ public:
     /**
      * @brief Pop an action from the queue.
      *
-     * @return Shared pointer to the action.
+     * @note Every caller dereferences the returned pointer without checking it,
+     *       so an empty queue yields the pre-built stop action instead of
+     *       popping from an empty deque. The robot then decelerates to a halt
+     *       rather than following an indeterminate action.
+     *
+     * @return Shared pointer to the action, never null.
      */
     std::shared_ptr<Action> pop();
 

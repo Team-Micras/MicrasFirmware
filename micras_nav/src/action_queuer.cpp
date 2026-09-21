@@ -103,6 +103,10 @@ void ActionQueuer::push_exploring(const GridPose& origin_pose, const GridPoint& 
 }
 
 std::shared_ptr<Action> ActionQueuer::pop() {
+    if (this->action_queue.empty()) {
+        return this->stop;
+    }
+
     auto action = this->action_queue.front();
     this->action_queue.pop_front();
     return action;

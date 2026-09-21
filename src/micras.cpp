@@ -168,6 +168,16 @@ bool Micras::run() {
 
             this->action_queuer.push_exploring(this->grid_pose, next_goal.position);
 
+            if (this->action_queuer.empty()) {
+                // The next goal is not reachable from the current pose, so no
+                // action describes the move and there is nothing left to
+                // follow. Recovering would need a pose the robot does not have.
+                this->navigation_failed = true;
+                this->locomotion.stop();
+                this->logger->log("navigation failed: no action for the next goal");
+                return false;
+            }
+
             this->current_action = this->action_queuer.pop();
             this->grid_pose = next_goal;
         }
@@ -212,6 +222,7 @@ void Micras::reset() {
     this->grid_pose = maze_config.start;
     this->odometry.reset();
     this->finished = false;
+    this->navigation_failed = false;
 }
 
 bool Micras::check_crash() const {
@@ -219,6 +230,10 @@ bool Micras::check_crash() const {
                this->imu->get_linear_acceleration(proxy::Imu::Axis::X),
                this->imu->get_linear_acceleration(proxy::Imu::Axis::Y)
            ) > crash_acceleration;
+}
+
+bool Micras::check_navigation_failure() const {
+    return this->navigation_failed;
 }
 
 void Micras::save_best_route() {

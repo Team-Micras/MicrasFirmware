@@ -30,7 +30,13 @@ public:
             return Micras::State::ERROR;
         }
 
-        if (not this->micras.run()) {
+        const bool objective_finished = this->micras.run();
+
+        if (this->micras.check_navigation_failure()) {
+            return Micras::State::ERROR;
+        }
+
+        if (not objective_finished) {
             return this->get_id();
         }
 
