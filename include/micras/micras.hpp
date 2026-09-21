@@ -281,6 +281,31 @@ private:
     float      wall_sensor_reading[4]{0.0F, 0.0F, 0.0F, 0.0F};
     float      rotary_sensor_left_reading{0.0F};
     float      rotary_sensor_right_reading{0.0F};
+
+    /**
+     * @brief Id of the state the finite state machine is currently in.
+     */
+    uint8_t fsm_state{};
+
+    /**
+     * @brief Last command sent to the left motor.
+     */
+    float left_command{};
+
+    /**
+     * @brief Last command sent to the right motor.
+     */
+    float right_command{};
+
+    /**
+     * @brief Last accumulated error of the speed controller PIDs.
+     */
+    nav::Twist last_pid_integral{0.0F, 0.0F};
+
+    /**
+     * @brief Last linear velocity measured by the encoders before filtering.
+     */
+    float odometry_linear_raw{};
 };
 }  // namespace micras
 

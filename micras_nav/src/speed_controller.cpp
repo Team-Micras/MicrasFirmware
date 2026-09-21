@@ -57,4 +57,11 @@ Twist SpeedController::get_last_pid_response() const {
         .angular = this->angular_pid.get_last_response(),
     };
 }
+
+Twist SpeedController::get_pid_error_acc() const {
+    return {
+        .linear = this->linear_pid.get_error_acc(),
+        .angular = this->angular_pid.get_error_acc(),
+    };
+}
 }  // namespace micras::nav

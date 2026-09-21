@@ -81,6 +81,13 @@ public:
      */
     void update();
 
+    /**
+     * @brief Get the state currently running.
+     *
+     * @return The id of the state currently running.
+     */
+    uint8_t get_current_state() const;
+
 private:
     /**
      * @brief Map of ids to states.

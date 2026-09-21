@@ -75,6 +75,13 @@ public:
      */
     void set_state(const State& new_state);
 
+    /**
+     * @brief Get the linear velocity measured by the encoders before filtering.
+     *
+     * @return Raw linear velocity of the robot.
+     */
+    float get_raw_linear_velocity() const;
+
 private:
     /**
      * @brief Left rotary sensor.
@@ -115,6 +122,11 @@ private:
      * @brief Linear velocity filter.
      */
     core::ButterworthFilter linear_filter;
+
+    /**
+     * @brief Linear velocity measured by the encoders before the filter.
+     */
+    float raw_linear_velocity{};
 
     /**
      * @brief Current state of the robot in space.

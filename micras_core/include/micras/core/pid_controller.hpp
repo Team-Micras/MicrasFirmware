@@ -70,6 +70,13 @@ public:
      */
     float get_last_response() const;
 
+    /**
+     * @brief Get the accumulated error of the integrative term.
+     *
+     * @return Accumulated error.
+     */
+    float get_error_acc() const;
+
 private:
     /**
      * @brief Proportional constant.

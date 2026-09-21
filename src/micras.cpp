@@ -60,10 +60,19 @@ Micras::Micras() :
     this->pool->add_variable("Rotary Sensor Left", this->rotary_sensor_left_reading);
     this->pool->add_variable("Rotary Sensor Right", this->rotary_sensor_right_reading);
     this->pool->add_variable("Loop Time", this->elapsed_time);
-    // this->pool->add_variable("Odometry State", odometry.get_state());  // @TODO implementar no app
-    // this->pool->add_variable("Grid Pose", this->grid_pose);            // @TODO implementar no app
     this->pool->add_variable("Odometry Linear Velocity", odometry.get_state().velocity.linear);
     this->pool->add_variable("Odometry Angular Velocity", odometry.get_state().velocity.angular);
+
+    // Appended last on purpose: the ids of the variables above are used by the
+    // external tooling and adding anything before them would shift every one.
+    this->pool->add_variable("FSM State", this->fsm_state);
+    this->pool->add_variable("Grid Pose", this->grid_pose);
+    this->pool->add_variable("Odometry State", odometry.get_state());
+    this->pool->add_variable("Left Command", this->left_command);
+    this->pool->add_variable("Right Command", this->right_command);
+    this->pool->add_variable("Linear PID Integral", this->last_pid_integral.linear);
+    this->pool->add_variable("Angular PID Integral", this->last_pid_integral.angular);
+    this->pool->add_variable("Odometry Linear Raw", this->odometry_linear_raw);
 }
 
 void Micras::update() {
@@ -158,6 +167,7 @@ bool Micras::run() {
             }
 
             this->action_queuer.push_exploring(this->grid_pose, next_goal.position);
+
             this->current_action = this->action_queuer.pop();
             this->grid_pose = next_goal;
         }
@@ -175,7 +185,10 @@ bool Micras::run() {
     std::tie(this->left_ff, this->right_ff) =
         this->speed_controller.compute_feed_forward_commands(desired_speeds, this->elapsed_time);
 
-    this->locomotion.set_wheel_command(this->left_ff + this->left_response, this->right_ff + this->right_response);
+    this->left_command = this->left_ff + this->left_response;
+    this->right_command = this->right_ff + this->right_response;
+
+    this->locomotion.set_wheel_command(this->left_command, this->right_command);
 
     return false;
 }
@@ -251,7 +264,10 @@ void Micras::handle_events() {
 }
 
 void Micras::update_monitoring_variables() {
+    this->fsm_state = this->fsm.get_current_state();
     this->last_pid_response = this->speed_controller.get_last_pid_response();
+    this->last_pid_integral = this->speed_controller.get_pid_error_acc();
+    this->odometry_linear_raw = this->odometry.get_raw_linear_velocity();
     this->wall_sensor_reading[0] = this->wall_sensors->get_reading(wall_sensors_index.left_front);
     this->wall_sensor_reading[1] = this->wall_sensors->get_reading(wall_sensors_index.left);
     this->wall_sensor_reading[2] = this->wall_sensors->get_reading(wall_sensors_index.right);

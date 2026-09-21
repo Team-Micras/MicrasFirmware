@@ -72,6 +72,13 @@ public:
      */
     Twist get_last_pid_response() const;
 
+    /**
+     * @brief Get the accumulated error of the PID controllers.
+     *
+     * @return The linear and angular integrative accumulators.
+     */
+    Twist get_pid_error_acc() const;
+
 private:
     /**
      * @brief Calculate the feed-forward term for a motor.

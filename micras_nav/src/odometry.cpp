@@ -38,7 +38,8 @@ void Odometry::update(float elapsed_time) {
 
     const float linear_distance = (left_distance + right_distance) / 2;
 
-    this->state.velocity.linear = this->linear_filter.update(linear_distance / elapsed_time);
+    this->raw_linear_velocity = linear_distance / elapsed_time;
+    this->state.velocity.linear = this->linear_filter.update(this->raw_linear_velocity);
     this->state.velocity.angular = this->imu->get_angular_velocity(proxy::Imu::Axis::Z);
 
     const float angular_distance = this->state.velocity.angular * elapsed_time;
@@ -56,6 +57,7 @@ void Odometry::update(float elapsed_time) {
 void Odometry::reset() {
     this->left_last_position = this->left_rotary_sensor->get_position();
     this->right_last_position = this->right_rotary_sensor->get_position();
+    this->raw_linear_velocity = 0.0F;
     this->state = {this->initial_pose, {0.0F, 0.0F}};
 }
 
@@ -69,5 +71,9 @@ nav::State& Odometry::get_state() {
 
 void Odometry::set_state(const nav::State& new_state) {
     this->state = new_state;
+}
+
+float Odometry::get_raw_linear_velocity() const {
+    return this->raw_linear_velocity;
 }
 }  // namespace micras::nav

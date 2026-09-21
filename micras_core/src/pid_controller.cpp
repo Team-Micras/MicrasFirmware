@@ -85,4 +85,8 @@ float PidController::compute_response(float state, float elapsed_time, float sta
 float PidController::get_last_response() const {
     return this->last_response;
 }
+
+float PidController::get_error_acc() const {
+    return this->error_acc;
+}
 }  // namespace micras::core
