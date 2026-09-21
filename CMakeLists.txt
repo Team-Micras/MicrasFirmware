@@ -44,26 +44,22 @@ set(LAUNCH_JSON_PATH "${CMAKE_CURRENT_SOURCE_DIR}/.vscode/launch.json")
 set(DEBUG_FILE_NAME ${CMAKE_PROJECT_NAME})
 
 include(cmake/config_validation.cmake)
-include(cmake/toolchain.cmake)
 
-project(${CMAKE_PROJECT_NAME} C CXX ASM)
+if(MICRAS_CUBE_GENERATED)
+    include(cmake/toolchain.cmake)
+    project(${CMAKE_PROJECT_NAME} C CXX ASM)
+else()
+    # The same system the generated toolchain file describes, since the build directory keeps
+    # the one it was first configured with
+    set(CMAKE_SYSTEM_NAME Generic)
+    set(CMAKE_SYSTEM_PROCESSOR arm)
+    project(${CMAKE_PROJECT_NAME} NONE)
+endif()
 
 include(cmake/utilities.cmake)
 include(cmake/warnings.cmake)
 include(cmake/targets.cmake)
 include(cmake/docs.cmake)
-include(cmake/cube.cmake)
-
-###############################################################################
-## Packages
-###############################################################################
-
-add_subdirectory(micras_core)
-add_subdirectory(micras_hal)
-add_subdirectory(micras_proxy)
-add_subdirectory(micras_nav)
-
-micras_apply_warnings(micras_core micras_hal micras_proxy micras_nav)
 
 ###############################################################################
 ## Input files
@@ -74,11 +70,36 @@ file(GLOB_RECURSE FORMAT_HEADERS CONFIGURE_DEPENDS
     "include/*.h*" "config/*.h*" "tests/*.h*" "micras_*/include/*.h*" "micras_*/include/*.tpp"
 )
 
-generate_format_target(FORMAT_SOURCES FORMAT_HEADERS)
-generate_lint_target(FORMAT_SOURCES)
-
 file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS "src/*.c*")
 file(GLOB_RECURSE PROJECT_TESTS CONFIGURE_DEPENDS "tests/src/*/*.c*")
+
+generate_format_target(FORMAT_SOURCES FORMAT_HEADERS)
+generate_helpme_text()
+generate_vscode_target()
+
+###############################################################################
+## Targets waiting for the generated tree
+###############################################################################
+
+if(NOT MICRAS_CUBE_GENERATED)
+    generate_bootstrap_targets(${PROJECT_NAME} PROJECT_TESTS)
+    return()
+endif()
+
+###############################################################################
+## Packages
+###############################################################################
+
+include(cmake/cube.cmake)
+
+add_subdirectory(micras_core)
+add_subdirectory(micras_hal)
+add_subdirectory(micras_proxy)
+add_subdirectory(micras_nav)
+
+micras_apply_warnings(micras_core micras_hal micras_proxy micras_nav)
+
+generate_lint_target(FORMAT_SOURCES)
 
 ###############################################################################
 ## Main executable target
@@ -105,8 +126,6 @@ generate_map_file(${PROJECT_NAME})
 generate_hex_file(${PROJECT_NAME})
 print_size_of_target(${PROJECT_NAME})
 
-generate_helpme_text()
-generate_vscode_target()
 generate_debug_target(${PROJECT_NAME})
 generate_flash_target(${PROJECT_NAME})
 
