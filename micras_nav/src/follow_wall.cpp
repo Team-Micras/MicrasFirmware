@@ -2,7 +2,6 @@
  * @file
  */
 
-#include <memory>
 #include "micras/core/types.hpp"
 #include "micras/core/utils.hpp"
 #include "micras/nav/follow_wall.hpp"
@@ -11,7 +10,7 @@
 #include "micras/proxy/wall_sensors.hpp"
 
 namespace micras::nav {
-FollowWall::FollowWall(const std::shared_ptr<proxy::TWallSensors<4>>& wall_sensors, const Config& config) :
+FollowWall::FollowWall(const proxy::TWallSensors<4>& wall_sensors, const Config& config) :
     wall_sensors{wall_sensors},
     pid{config.pid},
     sensor_index{config.wall_sensor_index},
@@ -24,10 +23,6 @@ FollowWall::FollowWall(const std::shared_ptr<proxy::TWallSensors<4>>& wall_senso
 float FollowWall::compute_angular_correction(float elapsed_time, State& state) {
     float          cell_advance = state.pose.to_cell(this->cell_size).y;
     const GridPose grid_pose = state.pose.to_grid(this->cell_size);
-
-    if (this->wall_sensors.use_count() == 1) {
-        this->wall_sensors->update();
-    }
 
     if (grid_pose == this->last_grid_pose) {
         if (this->check_posts(state.pose)) {
@@ -49,12 +44,12 @@ float FollowWall::compute_angular_correction(float elapsed_time, State& state) {
         return 0.0F;
     }
 
-    if (not this->following_left and this->wall_sensors->get_wall(this->sensor_index.left)) {
+    if (not this->following_left and this->wall_sensors.get_wall(this->sensor_index.left)) {
         this->following_left = true;
         this->pid.reset();
     }
 
-    if (not this->following_right and this->wall_sensors->get_wall(this->sensor_index.right)) {
+    if (not this->following_right and this->wall_sensors.get_wall(this->sensor_index.right)) {
         this->following_right = true;
         this->pid.reset();
     }
@@ -62,12 +57,12 @@ float FollowWall::compute_angular_correction(float elapsed_time, State& state) {
     float error{};
 
     if (this->following_left and this->following_right) {
-        error = this->wall_sensors->get_sensor_error(this->sensor_index.left) -
-                this->wall_sensors->get_sensor_error(this->sensor_index.right);
+        error = this->wall_sensors.get_sensor_error(this->sensor_index.left) -
+                this->wall_sensors.get_sensor_error(this->sensor_index.right);
     } else if (this->following_left) {
-        error = 2.0F * this->wall_sensors->get_sensor_error(this->sensor_index.left);
+        error = 2.0F * this->wall_sensors.get_sensor_error(this->sensor_index.left);
     } else if (this->following_right) {
-        error = -2.0F * this->wall_sensors->get_sensor_error(this->sensor_index.right);
+        error = -2.0F * this->wall_sensors.get_sensor_error(this->sensor_index.right);
     } else {
         return 0.0F;
     }
@@ -90,34 +85,34 @@ bool FollowWall::check_posts(const Pose& pose) {
     bool found_posts = false;
 
     if (this->following_left and
-        -(this->wall_sensors->get_adc_reading(this->sensor_index.left) - this->last_left_reading) / delta_distance >=
+        -(this->wall_sensors.get_adc_reading(this->sensor_index.left) - this->last_left_reading) / delta_distance >=
             this->post_threshold) {
         this->following_left = false;
         found_posts = true;
     }
 
     if (this->following_right and
-        -(this->wall_sensors->get_adc_reading(this->sensor_index.right) - this->last_right_reading) / delta_distance >=
+        -(this->wall_sensors.get_adc_reading(this->sensor_index.right) - this->last_right_reading) / delta_distance >=
             this->post_threshold) {
         this->following_right = false;
         found_posts = true;
     }
 
-    this->last_left_reading = this->wall_sensors->get_adc_reading(this->sensor_index.left);
-    this->last_right_reading = this->wall_sensors->get_adc_reading(this->sensor_index.right);
+    this->last_left_reading = this->wall_sensors.get_adc_reading(this->sensor_index.left);
+    this->last_right_reading = this->wall_sensors.get_adc_reading(this->sensor_index.right);
 
     return found_posts;
 }
 
 core::Observation FollowWall::get_observation() const {
-    const bool front_wall = this->wall_sensors->get_wall(this->sensor_index.left_front) and
-                            this->wall_sensors->get_wall(this->sensor_index.right_front);
+    const bool front_wall = this->wall_sensors.get_wall(this->sensor_index.left_front) and
+                            this->wall_sensors.get_wall(this->sensor_index.right_front);
     const bool disturbed = front_wall;
 
     return {
-        .left = this->wall_sensors->get_wall(this->sensor_index.left, disturbed),
+        .left = this->wall_sensors.get_wall(this->sensor_index.left, disturbed),
         .front = front_wall,
-        .right = this->wall_sensors->get_wall(this->sensor_index.right, disturbed),
+        .right = this->wall_sensors.get_wall(this->sensor_index.right, disturbed),
     };
 }
 

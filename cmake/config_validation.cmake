@@ -2,6 +2,24 @@
 ## Existence checks
 ###############################################################################
 
+# Check if the requested board has a board layer
+#
+# The v0 board is a different microcontroller, its STM32CubeMX project and its config/targets/v0.hpp
+# are kept as a record, and neither has been buildable for a long time. Accepting it here would
+# produce a binary for the wrong part while telling every flashing tool otherwise.
+if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${MICRAS_TARGET_DIRECTORY}/target.hpp")
+    message(FATAL_ERROR
+        "No board layer at ${MICRAS_TARGET_DIRECTORY}/target.hpp for BOARD_VERSION=${BOARD_VERSION}"
+    )
+endif()
+
+if(NOT BOARD_VERSION STREQUAL "v1")
+    message(FATAL_ERROR
+        "BOARD_VERSION=${BOARD_VERSION} is not buildable.\n"
+        "Only v1 is supported; see the warning at the top of ${MICRAS_TARGET_DIRECTORY}/target.hpp"
+    )
+endif()
+
 # Check if CMake build type is correctly configured
 if(NOT (BUILD_TYPE STREQUAL "Release"        OR BUILD_TYPE STREQUAL "Debug" OR
         BUILD_TYPE STREQUAL "RelWithDebInfo" OR BUILD_TYPE STREQUAL "MinSizeRel"))
@@ -111,24 +129,35 @@ string(SUBSTRING ${LOWERCASE_DEVICE} 0 7 TARGET_CFG)
 message(STATUS "Device is ${DEVICE}")
 
 # Check cube directory for files
-# If it's empty, generate the files
-file(GLOB_RECURSE CUBE_SOURCES_CHECK "${CMAKE_CURRENT_SOURCE_DIR}/cube/**/*.c")
+# While it's empty, only the targets that don't need the generated tree are configured, and the
+# others generate it on their first build
+file(GLOB_RECURSE CUBE_SOURCES_CHECK CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/cube/**/*.c")
 list(LENGTH CUBE_SOURCES_CHECK CUBE_LENGTH)
 
-if(CUBE_LENGTH EQUAL 0)
-    if(NOT EXISTS ${CUBE_CMD})
-        message(FATAL_ERROR
-            "Cube directory is empty and STM32CubeMX program was not found at: ${CUBE_CMD}\n"
-            "Define the CUBE_CMD environment variable or add the binary folder to the PATH"
-        )
+# The generated tree carries no record of which .ioc produced it, so a tree left over from another
+# board would be compiled as if it matched, and every flashing tool would be told the wrong device.
+# The stamp below closes that: it is written next to the generated sources and checked on every
+# configure.
+set(CUBE_STAMP_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cube/.generated-from")
+
+if(CUBE_LENGTH GREATER 0)
+    set(MICRAS_CUBE_GENERATED TRUE)
+
+    if(EXISTS ${CUBE_STAMP_FILE})
+        file(READ ${CUBE_STAMP_FILE} CUBE_STAMP)
+        string(STRIP "${CUBE_STAMP}" CUBE_STAMP)
+
+        if(NOT CUBE_STAMP STREQUAL PROJECT_RELEASE)
+            message(FATAL_ERROR
+                "The generated cube tree came from ${CUBE_STAMP}.ioc but this build wants "
+                "${PROJECT_RELEASE}.ioc.\nRun 'make clear_cube' and configure again to regenerate it"
+            )
+        endif()
+    else()
+        message(STATUS "Cube tree has no generation stamp, assuming ${PROJECT_RELEASE}")
+        file(WRITE ${CUBE_STAMP_FILE} "${PROJECT_RELEASE}\n")
     endif()
-
-    message(STATUS "Cube directory is empty. Generating cube files...")
-    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/cube_script.txt"
-        "config load ${CUBE_SOURCE_DIR}/${PROJECT_RELEASE}.ioc\n"
-        "project generate\n"
-        "exit\n"
-    )
-
-    execute_process(COMMAND ${CUBE_CMD} -q ${CMAKE_CURRENT_BINARY_DIR}/cube_script.txt)
+else()
+    set(MICRAS_CUBE_GENERATED FALSE)
+    message(STATUS "Cube directory is empty, the first build will generate the cube files")
 endif()

@@ -107,6 +107,13 @@ public:
      */
     void update();
 
+    /**
+     * @brief Check if the PWM was successfully initialized.
+     *
+     * @return True if the initialization was successful, false otherwise.
+     */
+    bool was_initialized() const;
+
 private:
     /**
      * @brief Encode a color into the data buffer.
@@ -158,6 +165,6 @@ private:
 };
 }  // namespace micras::proxy
 
-#include "../src/argb.cpp"  // NOLINT(bugprone-suspicious-include, misc-header-include-cycle)
+#include "micras/proxy/impl/argb.tpp"  // IWYU pragma: export
 
 #endif  // MICRAS_PROXY_ARGB_HPP

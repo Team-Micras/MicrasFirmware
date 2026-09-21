@@ -5,7 +5,9 @@
 #ifndef MICRAS_PROXY_ROTARY_SENSOR_HPP
 #define MICRAS_PROXY_ROTARY_SENSOR_HPP
 
+#include <array>
 #include <cstdint>
+#include <optional>
 
 #include "micras/hal/crc.hpp"
 #include "micras/hal/encoder.hpp"
@@ -14,6 +16,9 @@
 namespace micras::proxy {
 /**
  * @brief Class for acquiring rotary sensor data.
+ *
+ * @note The angle is decoded from the quadrature output of the sensor by a hardware timer, while
+ * SPI is used only to configure the sensor at construction and to read back that configuration.
  */
 class RotarySensor {
 public:
@@ -21,15 +26,21 @@ public:
 
     /**
      * @brief Rotary sensor configuration struct.
+     *
+     * @note There is no resolution field: the pulses per revolution are whatever the ABIRES field
+     * of the sensor says after configuration, so the scale factor is read back from the hardware
+     * instead of being asserted here.
      */
     struct Config {
         hal::Spi::Config     spi;
         hal::Encoder::Config encoder;
         hal::Crc::Config     crc;
-        uint32_t             resolution;
         Registers            registers;
     };
 
+    /**
+     * @brief Frame sent to the sensor to address one of its registers.
+     */
     union CommandFrame {
         struct __attribute__((__packed__)) Fields {
             uint8_t  crc         : 8;
@@ -42,6 +53,9 @@ public:
         uint32_t raw;
     };
 
+    /**
+     * @brief Frame carrying a register value in either direction.
+     */
     union DataFrame {
         struct __attribute__((__packed__)) Fields {
             uint8_t  crc     : 8;
@@ -69,21 +83,82 @@ public:
     float get_position() const;
 
     /**
-     * @brief Read a register to the rotary sensor.
+     * @brief Get the number of counts the quadrature decoder produces per revolution.
      *
-     * @param command_frame Command frame to send trough SPI.
+     * @return Counts per revolution, as read back from the sensor.
      */
-    uint16_t read_register(uint16_t address);
+    uint32_t get_resolution() const;
+
+    /**
+     * @brief Check if the sensor was configured and its configuration read back successfully.
+     *
+     * @return True if the initialization was successful, false otherwise.
+     */
+    bool was_initialized() const;
+
+    /**
+     * @brief Read a register from the rotary sensor.
+     *
+     * @note The sensor answers a command in the frame that follows it, so the command is sent
+     * twice: the first transfer carries it and the second clocks the answer out while repeating
+     * it.
+     *
+     * @param address Address of the register.
+     * @return The register value, or nothing if a transfer failed or a frame was rejected.
+     */
+    std::optional<uint16_t> read_register(uint16_t address);
 
     /**
      * @brief Write a register to the rotary sensor.
      *
-     * @param command_frame Command frame to send trough SPI.
-     * @param data_frame Data frame to send trough SPI.
+     * @param address Address of the register.
+     * @param data Value to write.
+     * @return True if both frames were transferred, false otherwise.
      */
-    void write_register(CommandFrame& command_frame, DataFrame& data_frame);
+    bool write_register(uint16_t address, uint16_t data);
 
 private:
+    /**
+     * @brief Number of bytes of a sensor SPI frame.
+     */
+    static constexpr uint8_t frame_size{3};
+
+    /**
+     * @brief Number of edges the quadrature decoder counts per pulse of a single channel.
+     */
+    static constexpr uint32_t edges_per_pulse{4};
+
+    /**
+     * @brief Pulses per revolution selected by each value of the ABIRES field, zero when reserved.
+     */
+    static constexpr std::array<uint16_t, 8> pulses_per_revolution{{1024, 512, 256, 2048, 4096, 0, 0, 0}};
+
+    /**
+     * @brief Serialize a frame into the wire order of the sensor, filling in its CRC.
+     *
+     * @note The sensor defines the CRC over the two most significant bytes of the frame, which
+     * are the first two on the wire and the last two in memory on a little endian core.
+     *
+     * @param raw The 24 bit frame, without a valid CRC.
+     * @return The frame as three bytes, most significant first, with the CRC in the last one.
+     */
+    std::array<uint8_t, frame_size> serialize(uint32_t raw);
+
+    /**
+     * @brief Exchange one frame with the sensor.
+     *
+     * @param frame The frame to send.
+     * @return The frame received while sending, or nothing if the transfer failed.
+     */
+    std::optional<uint32_t> exchange_frame(const std::array<uint8_t, frame_size>& frame);
+
+    /**
+     * @brief Read back the ABIRES field and derive the counts per revolution from it.
+     *
+     * @return Counts per revolution, or nothing if the read failed or reported a reserved value.
+     */
+    std::optional<uint32_t> read_resolution();
+
     /**
      * @brief SPI for the rotary sensor configuration.
      */
@@ -100,9 +175,14 @@ private:
     hal::Crc crc;
 
     /**
-     * @brief Resolution of the rotary sensor.
+     * @brief Counts per revolution of the quadrature decoder, read back from the sensor.
      */
-    uint32_t resolution;
+    uint32_t resolution{};
+
+    /**
+     * @brief Flag to check if the sensor was configured successfully.
+     */
+    bool initialized{};
 };
 }  // namespace micras::proxy
 

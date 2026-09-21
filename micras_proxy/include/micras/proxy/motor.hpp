@@ -37,6 +37,13 @@ public:
      */
     void set_command(float command);
 
+    /**
+     * @brief Check if both PWM channels were successfully initialized.
+     *
+     * @return True if the initialization was successful, false otherwise.
+     */
+    bool was_initialized() const;
+
 private:
     /**
      * @brief PWM object for controlling the motor in the backwards direction.

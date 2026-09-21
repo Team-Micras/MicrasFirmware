@@ -5,32 +5,21 @@
 #ifndef MICRAS_PROXY_STOPWATCH_HPP
 #define MICRAS_PROXY_STOPWATCH_HPP
 
-#include "micras/hal/timer.hpp"
+#include <cstdint>
 
 namespace micras::proxy {
 /**
  * @brief Class to measure the time elapsed between two events.
+ *
+ * @note The millisecond and microsecond timebases are independent, so an object can be reset in one
+ * unit and read in the other without the two interfering.
  */
 class Stopwatch {
 public:
     /**
-     * @brief Stopwatch configuration struct.
-     */
-    struct Config {
-        hal::Timer::Config timer;
-    };
-
-    /**
-     * @brief Construct a new Stopwatch object.
+     * @brief Construct a new Stopwatch object, starting both timebases.
      */
     Stopwatch();
-
-    /**
-     * @brief Construct a new Stopwatch object.
-     *
-     * @param config Configuration for the timer.
-     */
-    explicit Stopwatch(const Config& config);
 
     /**
      * @brief Reset the milliseconds timer counter.
@@ -68,15 +57,18 @@ public:
      *
      * @param time Time to sleep in microseconds.
      */
-    void sleep_us(uint32_t time) const;
+    static void sleep_us(uint32_t time);
 
 private:
-    hal::Timer timer;
+    /**
+     * @brief Value of the millisecond counter at the last reset.
+     */
+    uint32_t counter_ms{};
 
     /**
-     * @brief Stopwatch counter.
+     * @brief Value of the cycle counter at the last reset.
      */
-    uint32_t counter{};
+    uint32_t counter_cycles{};
 };
 }  // namespace micras::proxy
 

@@ -3,7 +3,6 @@
  */
 
 #include <cmath>
-#include <memory>
 
 #include "micras/nav/odometry.hpp"
 #include "micras/proxy/imu.hpp"
@@ -11,27 +10,22 @@
 
 namespace micras::nav {
 Odometry::Odometry(
-    const std::shared_ptr<const proxy::RotarySensor>& left_rotary_sensor,
-    const std::shared_ptr<const proxy::RotarySensor>& right_rotary_sensor, const std::shared_ptr<proxy::Imu>& imu,
-    Config config
+    const proxy::RotarySensor& left_rotary_sensor, const proxy::RotarySensor& right_rotary_sensor,
+    const proxy::Imu& imu, Config config
 ) :
     left_rotary_sensor{left_rotary_sensor},
     right_rotary_sensor{right_rotary_sensor},
     imu{imu},
     wheel_radius{config.wheel_radius},
     initial_pose(config.initial_pose),
-    left_last_position{left_rotary_sensor->get_position()},
-    right_last_position{right_rotary_sensor->get_position()},
-    linear_filter{config.linear_cutoff_frequency},
+    left_last_position{left_rotary_sensor.get_position()},
+    right_last_position{right_rotary_sensor.get_position()},
+    linear_filter{config.linear_filter},
     state{.pose = config.initial_pose, .velocity = {.linear = 0.0F, .angular = 0.0F}} { }
 
 void Odometry::update(float elapsed_time) {
-    if (this->imu.use_count() == 1) {
-        this->imu->update();
-    }
-
-    const float left_position = this->left_rotary_sensor->get_position();
-    const float right_position = this->right_rotary_sensor->get_position();
+    const float left_position = this->left_rotary_sensor.get_position();
+    const float right_position = this->right_rotary_sensor.get_position();
 
     const float left_distance = this->wheel_radius * (left_position - this->left_last_position);
     const float right_distance = this->wheel_radius * (right_position - this->right_last_position);
@@ -42,7 +36,7 @@ void Odometry::update(float elapsed_time) {
     const float linear_distance = (left_distance + right_distance) / 2;
 
     this->state.velocity.linear = this->linear_filter.update(linear_distance / elapsed_time);
-    this->state.velocity.angular = this->imu->get_angular_velocity(proxy::Imu::Axis::Z);
+    this->state.velocity.angular = this->imu.get_angular_velocity(proxy::Imu::Axis::Z);
 
     const float angular_distance = this->state.velocity.angular * elapsed_time;
 
@@ -57,8 +51,8 @@ void Odometry::update(float elapsed_time) {
 }
 
 void Odometry::reset() {
-    this->left_last_position = this->left_rotary_sensor->get_position();
-    this->right_last_position = this->right_rotary_sensor->get_position();
+    this->left_last_position = this->left_rotary_sensor.get_position();
+    this->right_last_position = this->right_rotary_sensor.get_position();
     this->state = {.pose = this->initial_pose, .velocity = {.linear = 0.0F, .angular = 0.0F}};
 }
 

@@ -96,9 +96,10 @@ void Storage::create(const std::string& name, const core::ISerializable& data) {
 }
 
 void Storage::sync(const std::string& name, core::ISerializable& data) {
-    if (this->serializables.contains(name) and this->serializables.at(name).ram_pointer == nullptr) {
-        const auto& serializable = this->serializables.at(name);
-        data.deserialize(&this->buffer.at(serializable.buffer_address), serializable.size);
+    const auto serializable = this->serializables.find(name);
+
+    if (serializable != this->serializables.end() and serializable->second.ram_pointer == nullptr) {
+        data.deserialize(&this->buffer.at(serializable->second.buffer_address), serializable->second.size);
     }
 
     this->create(name, data);

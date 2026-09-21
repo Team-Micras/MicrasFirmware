@@ -5,6 +5,30 @@
 #ifndef MICRAS_TARGET_HPP
 #define MICRAS_TARGET_HPP
 
+/**
+ * @brief Configuration of the Micras v0 mainboard, built around an STM32G474RET6.
+ *
+ * @warning This file is a record, not a build target. It is the last revision of the board layer
+ * that described the v0 hardware, recovered so that the pin and peripheral mapping of that board is
+ * not lost, and BOARD_VERSION deliberately does not accept v0. Reviving it needs, at least:
+ *
+ * - the proxy configuration structs brought up to date, since several gained or lost fields since
+ *   this was written: the wall sensors take an array of four emitter PWMs rather than two named
+ *   ones, the storage takes sectors rather than pages, the SPI takes a clock polarity and phase per
+ *   device, the ADC takes a reference voltage, the filters take a sampling frequency, the rotary
+ *   sensor takes no resolution, the DIP switch takes a polarity, and the fan takes no direction
+ *   pin;
+ * - hal::Mcu::init to stop calling SCB_EnableICache unconditionally, which does not exist on a
+ *   Cortex-M4;
+ * - an hal::Mcu::Config naming the generated initialization functions of this board, since the
+ *   package takes them rather than calling them by name;
+ * - the pin labels of the v0 STM32CubeMX project, which spells the red LED LED_RED where this
+ *   spells it LED_Red;
+ * - a check of the mappings themselves, since the two boards swap the encoder timers and both
+ *   motors' forward and backward channels, the v0 ADC1 scans eight ranks where the firmware assumes
+ *   four, and the v0 ADC is 12 bit where this file already says so but the v1 one is 16 bit.
+ */
+
 #include <main.h>
 
 #include "micras/proxy/argb.hpp"
@@ -46,8 +70,8 @@ const proxy::Stopwatch::Config stopwatch_config = {
 };
 
 const proxy::Storage::Config maze_storage_config{
-    .start_sector = 2,
-    .number_of_sectors = 1,
+    .start_page = 2,
+    .number_of_pages = 1,
 };
 
 /*****************************************
@@ -56,8 +80,8 @@ const proxy::Storage::Config maze_storage_config{
 
 const proxy::Led::Config led_config = {
     .gpio = {
-        .port = LED_Red_GPIO_Port,
-        .pin = LED_Red_Pin,
+        .port = LED_RED_GPIO_Port,
+        .pin = LED_RED_Pin,
     },
 };
 
@@ -105,8 +129,8 @@ const proxy::DipSwitch::Config dip_switch_config = {
 
 const proxy::Buzzer::Config buzzer_config = {
     .pwm = {
-        .init_function = MX_TIM15_Init,
-        .handle = &htim15,
+        .init_function = MX_TIM4_Init,
+        .handle = &htim4,
         .timer_channel = TIM_CHANNEL_1,
     },
 };
@@ -160,38 +184,12 @@ const proxy::RotarySensor::Registers rotary_sensor_reg_config = {
 const proxy::RotarySensor::Config rotary_sensor_left_config = {
     .spi =
         {
-            .init_function = MX_SPI3_Init,
-            .handle = &hspi3,
+            .init_function = MX_SPI1_Init,
+            .handle = &hspi1,
             .cs_gpio =
                 {
                     .port = Encoder_Left_CSn_GPIO_Port,
                     .pin = Encoder_Left_CSn_Pin,
-                },
-            .timeout = 2,
-        },
-    .encoder =
-        {
-            .init_function = MX_TIM5_Init,
-            .handle = &htim5,
-            .timer_channel = TIM_CHANNEL_ALL,
-        },
-    .crc =
-        {
-            .handle = &hcrc,
-        },
-    .resolution = 4096,
-    .registers = rotary_sensor_reg_config,
-};
-
-const proxy::RotarySensor::Config rotary_sensor_right_config = {
-    .spi =
-        {
-            .init_function = MX_SPI3_Init,
-            .handle = &hspi3,
-            .cs_gpio =
-                {
-                    .port = Encoder_Right_CSn_GPIO_Port,
-                    .pin = Encoder_Right_CSn_Pin,
                 },
             .timeout = 2,
         },
@@ -209,12 +207,38 @@ const proxy::RotarySensor::Config rotary_sensor_right_config = {
     .registers = rotary_sensor_reg_config,
 };
 
+const proxy::RotarySensor::Config rotary_sensor_right_config = {
+    .spi =
+        {
+            .init_function = MX_SPI1_Init,
+            .handle = &hspi1,
+            .cs_gpio =
+                {
+                    .port = Encoder_Right_CSn_GPIO_Port,
+                    .pin = Encoder_Right_CSn_Pin,
+                },
+            .timeout = 2,
+        },
+    .encoder =
+        {
+            .init_function = MX_TIM5_Init,
+            .handle = &htim5,
+            .timer_channel = TIM_CHANNEL_ALL,
+        },
+    .crc =
+        {
+            .handle = &hcrc,
+        },
+    .resolution = 4096,
+    .registers = rotary_sensor_reg_config,
+};
+
 const proxy::TorqueSensors::Config torque_sensors_config = {
     .adc =
         {
             .init_function = MX_ADC2_Init,
             .handle = &hadc2,
-            .max_reading = 65535,
+            .max_reading = 4095,
         },
     .shunt_resistor = 0.04F * 20,
     .max_torque = 10.0F,
@@ -226,30 +250,20 @@ const proxy::WallSensors::Config wall_sensors_config = {
         {
             .init_function = MX_ADC1_Init,
             .handle = &hadc1,
-            .max_reading = 65535,
+            .max_reading = 4095,
         },
-    .led_pwms = {{
+    .led_0_pwm =
         {
-            .init_function = MX_TIM4_Init,
-            .handle = &htim4,
+            .init_function = MX_TIM15_Init,
+            .handle = &htim15,
             .timer_channel = TIM_CHANNEL_1,
         },
+    .led_1_pwm =
         {
-            .init_function = MX_TIM4_Init,
-            .handle = &htim4,
+            .init_function = MX_TIM15_Init,
+            .handle = &htim15,
             .timer_channel = TIM_CHANNEL_2,
         },
-        {
-            .init_function = MX_TIM4_Init,
-            .handle = &htim4,
-            .timer_channel = TIM_CHANNEL_3,
-        },
-        {
-            .init_function = MX_TIM4_Init,
-            .handle = &htim4,
-            .timer_channel = TIM_CHANNEL_4,
-        },
-    }},
     .filter_cutoff = 5.0F,
     .base_readings =
         {
@@ -264,8 +278,8 @@ const proxy::WallSensors::Config wall_sensors_config = {
 const proxy::Imu::Config imu_config = {
     .spi =
         {
-            .init_function = MX_SPI3_Init,
-            .handle = &hspi3,
+            .init_function = MX_SPI1_Init,
+            .handle = &hspi1,
             .cs_gpio =
                 {
                     .port = IMU_SPI_CSn_GPIO_Port,
@@ -300,15 +314,15 @@ const proxy::Battery::Config battery_config = {
 const proxy::Fan::Config fan_config = {
     .pwm =
         {
-            .init_function = MX_TIM12_Init,
-            .handle = &htim12,
-            .timer_channel = TIM_CHANNEL_2,
+            .init_function = MX_TIM17_Init,
+            .handle = &htim17,
+            .timer_channel = TIM_CHANNEL_1,
         },
-    // .direction_gpio =
-    //     {
-    //         .port = Fan_Direction_GPIO_Port,
-    //         .pin = Fan_Direction_Pin,
-    //     },
+    .direction_gpio =
+        {
+            .port = Fan_Direction_GPIO_Port,
+            .pin = Fan_Direction_Pin,
+        },
     .enable_gpio =
         {
             .port = Fan_Enable_GPIO_Port,
@@ -330,7 +344,7 @@ const proxy::Locomotion::Config locomotion_config = {
                 {
                     .init_function = MX_TIM3_Init,
                     .handle = &htim3,
-                    .timer_channel = TIM_CHANNEL_2,
+                    .timer_channel = TIM_CHANNEL_3,
                 },
             .max_stopped_command = 0.2F,
             .deadzone = 15.0F,
@@ -359,4 +373,4 @@ const proxy::Locomotion::Config locomotion_config = {
 };
 }  // namespace micras
 
-#endif  //  MICRAS_TARGET_HPP
+#endif  // MICRAS_TARGET_HPP

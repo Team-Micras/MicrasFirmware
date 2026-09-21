@@ -8,10 +8,9 @@ add_library(${PROJECT_NAME} STATIC
 
 add_library(micras::core ALIAS ${PROJECT_NAME})
 
+# A requirement of the sources rather than a preference of whoever is building, so it propagates
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_23)
+
 target_include_directories(${PROJECT_NAME} PUBLIC
     include
-)
-
-target_link_libraries(${PROJECT_NAME} PRIVATE
-    micras::warnings
 )

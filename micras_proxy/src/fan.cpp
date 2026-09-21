@@ -2,24 +2,25 @@
  * @file
  */
 
+#include <algorithm>
+
 #include "micras/core/utils.hpp"
 #include "micras/proxy/fan.hpp"
 
 namespace micras::proxy {
 Fan::Fan(const Config& config) :
-    pwm{config.pwm},
-    // direction_gpio{config.direction_gpio},
-    enable_gpio{config.enable_gpio},
-    max_acceleration{config.max_acceleration} {
+    pwm{config.pwm}, enable_gpio{config.enable_gpio}, max_acceleration{config.max_acceleration} {
     this->stop();
     this->enable();
 }
 
 void Fan::enable() {
+    this->enabled = true;
     this->enable_gpio.write(true);
 }
 
 void Fan::disable() {
+    this->enabled = false;
     this->enable_gpio.write(false);
 }
 
@@ -35,24 +36,22 @@ float Fan::update() {
 
     this->acceleration_stopwatch.reset_ms();
 
-    if (this->current_speed > 0.0F) {
-        this->set_direction(RotationDirection::FORWARD);
-        this->pwm.set_duty_cycle(this->current_speed);
-    } else if (this->current_speed < 0.0F) {
-        this->set_direction(RotationDirection::BACKWARDS);
-        this->pwm.set_duty_cycle(-this->current_speed);
-    } else {
-        this->stop();
-    }
+    this->pwm.set_duty_cycle(std::max(this->current_speed, 0.0F));
 
     return this->current_speed;
 }
 
 void Fan::stop() {
+    this->target_speed = 0.0F;
+    this->current_speed = 0.0F;
     this->pwm.set_duty_cycle(0.0F);
 }
 
-void Fan::set_direction([[maybe_unused]] RotationDirection direction) {
-    // this->direction_gpio.write(static_cast<bool>(direction));
+bool Fan::check_fault() const {
+    return this->enabled and not this->enable_gpio.read();
+}
+
+bool Fan::was_initialized() const {
+    return this->pwm.was_initialized();
 }
 }  // namespace micras::proxy

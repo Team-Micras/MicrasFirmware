@@ -1,42 +1,22 @@
 project(micras_hal)
 
-get_target_property(CUBE_INCLUDE_DIRECTORIES stm32cubemx INTERFACE_INCLUDE_DIRECTORIES)
-get_target_property(CUBE_COMPILE_DEFINITIONS stm32cubemx INTERFACE_COMPILE_DEFINITIONS)
-
-# Remove warnings from Cube sources
-target_compile_options(cube_app PRIVATE -w)
-target_compile_options(STM32_Drivers PRIVATE -w)
-
 file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS "src/*.c*")
 
 add_library(${PROJECT_NAME} STATIC
     ${PROJECT_SOURCES}
 )
 
+add_library(micras::hal ALIAS ${PROJECT_NAME})
+
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_23)
+
 target_include_directories(${PROJECT_NAME} PUBLIC
     include
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE
-    cube_app
-    STM32_Drivers
-    micras::warnings
-)
-
+# stm32cubemx is the interface target STM32CubeMX generates, carrying the CMSIS and vendor HAL
+# include directories and the device macros. The public headers name them, so it propagates.
 target_link_libraries(${PROJECT_NAME} PUBLIC
     micras::core
-)
-
-target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
-    ${CUBE_INCLUDE_DIRECTORIES}
-)
-
-target_compile_definitions(${PROJECT_NAME} PUBLIC
-    ${CUBE_COMPILE_DEFINITIONS}
-)
-
-add_library(micras_hal_whole_archive INTERFACE)
-add_library(micras::hal ALIAS micras_hal_whole_archive)
-target_link_libraries(micras_hal_whole_archive INTERFACE
-    "-Wl,--whole-archive" ${PROJECT_NAME} "-Wl,--no-whole-archive"
+    stm32cubemx
 )

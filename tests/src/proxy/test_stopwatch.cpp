@@ -4,7 +4,6 @@
 
 #include <cstdint>
 #include "micras/proxy/stopwatch.hpp"
-#include "target.hpp"
 #include "test_core.hpp"
 
 using namespace micras;  // NOLINT(google-build-using-namespace)
@@ -13,7 +12,7 @@ static volatile uint32_t test_stopwatch_value{};  // NOLINT(cppcoreguidelines-av
 
 int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);
-    proxy::Stopwatch stopwatch{stopwatch_config};
+    proxy::Stopwatch stopwatch;
 
     TestCore::loop([&stopwatch]() {
         test_stopwatch_value += stopwatch.elapsed_time_us();

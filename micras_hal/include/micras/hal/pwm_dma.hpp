@@ -7,7 +7,8 @@
 
 #include <cstdint>
 #include <span>
-#include <tim.h>
+
+#include <main.h>
 
 namespace micras::hal {
 /**
@@ -65,6 +66,13 @@ public:
      */
     bool is_busy();
 
+    /**
+     * @brief Check if the PWM was successfully initialized.
+     *
+     * @return True if the initialization was successful, false otherwise.
+     */
+    bool was_initialized() const;
+
 private:
     /**
      * @brief Timer handle.
@@ -75,6 +83,11 @@ private:
      * @brief Channel number of the timer.
      */
     uint32_t channel;
+
+    /**
+     * @brief Flag to check if the PWM was initialized.
+     */
+    bool initialized{};
 };
 }  // namespace micras::hal
 

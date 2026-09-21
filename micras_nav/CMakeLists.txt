@@ -8,14 +8,12 @@ add_library(${PROJECT_NAME} STATIC
 
 add_library(micras::nav ALIAS ${PROJECT_NAME})
 
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_23)
+
 target_include_directories(${PROJECT_NAME} PUBLIC
     include
 )
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
     micras::proxy
-)
-
-target_link_libraries(${PROJECT_NAME} PRIVATE
-    micras::warnings
 )

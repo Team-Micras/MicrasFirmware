@@ -30,7 +30,7 @@ public:
      * @param argc Number of main arguments.
      * @param argv Main arguments.
      */
-    static void init(int /*argc*/ = 0, char** /*argv*/ = nullptr) { hal::Mcu::init(); }
+    static void init(int /*argc*/ = 0, char** /*argv*/ = nullptr) { hal::Mcu::init(mcu_config); }
 
     /**
      * @brief Loop the test core with a custom function.
