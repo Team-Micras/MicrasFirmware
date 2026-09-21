@@ -23,6 +23,7 @@ public:
         hal::AdcDma::Config adc;
         float               voltage_divider;
         float               filter_cutoff;
+        float               sampling_frequency;
     };
 
     /**

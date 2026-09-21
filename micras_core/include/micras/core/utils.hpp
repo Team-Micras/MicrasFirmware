@@ -74,18 +74,18 @@ constexpr std::array<T, N> make_array(const std::array<C, N>& parameters) {
 }
 
 /**
- * @brief Create an array of objects calling their constructors from a single parameter.
+ * @brief Create an array of objects calling their constructors from the same parameters.
  *
  * @tparam T Type of the array.
  * @tparam N Size of the array.
- * @tparam C Type of the parameter.
- * @param value Parameter.
- * @return Array with the objects created from the parameter.
+ * @tparam C Types of the parameters.
+ * @param values Parameters forwarded to every constructor.
+ * @return Array with the objects created from the parameters.
  */
-template <typename T, size_t N, typename C>
-constexpr std::array<T, N> make_array(C value) {
+template <typename T, size_t N, typename... C>
+constexpr std::array<T, N> make_array(C... values) {
     return [&]<std::size_t... I>(std::index_sequence<I...>) -> std::array<T, N> {
-        return {(static_cast<void>(I), T{value})...};
+        return {(static_cast<void>(I), T{values...})...};
     }(std::make_index_sequence<N>());
 }
 

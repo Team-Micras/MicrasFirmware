@@ -27,6 +27,7 @@ public:
         hal::Pwm::Config                  led_0_pwm;
         hal::Pwm::Config                  led_1_pwm;
         float                             filter_cutoff;
+        float                             sampling_frequency;
         std::array<float, num_of_sensors> base_readings;
         float                             uncertainty;
     };

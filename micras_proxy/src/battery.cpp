@@ -8,7 +8,7 @@ namespace micras::proxy {
 Battery::Battery(const Config& config) :
     adc{config.adc},
     max_voltage{hal::AdcDma::reference_voltage * config.voltage_divider},
-    filter{config.filter_cutoff} {
+    filter{config.filter_cutoff, config.sampling_frequency} {
     this->adc.start_dma({&(this->raw_reading), 1});
 }
 

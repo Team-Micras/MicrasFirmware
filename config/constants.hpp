@@ -1,5 +1,12 @@
 /**
  * @file
+ *
+ * @note loop_frequency is the rate at which every periodic filter is sampled, since all of them are updated once per
+ * control loop. Every core::ButterworthFilter used to be built with the default sampling frequency of 100 Hz while
+ * being fed at this rate, and the filter itself normalised the prototype by f_c instead of by 2 * pi * f_c. The two
+ * errors together placed the real cutoffs a factor of loop_frequency / (2 * pi * 100 Hz) = 1.527 above the configured
+ * numbers. Both are fixed now, and every filter_cutoff was restated as the cutoff the robot was actually running with,
+ * so the tuning carried over unchanged: the old 5 Hz is 7.64 Hz and the old 10 Hz is 15.27 Hz.
  */
 
 #ifndef MICRAS_CONSTANTS_HPP
@@ -23,6 +30,7 @@ constexpr uint8_t  maze_width{16};
 constexpr uint8_t  maze_height{16};
 constexpr float    cell_size{0.18};
 constexpr uint32_t loop_time_us{1042};
+constexpr float    loop_frequency{1000000.0F / loop_time_us};
 constexpr float    wall_thickness{0.0126F};
 constexpr float    start_offset{0.04F + wall_thickness / 2.0F};
 constexpr float    max_linear_acceleration{9.0F};
@@ -102,7 +110,8 @@ const nav::Maze::Config maze_config{
 };
 
 const nav::Odometry::Config odometry_config{
-    .linear_cutoff_frequency = 5.0F,
+    .linear_cutoff_frequency = 7.64F,
+    .sampling_frequency = loop_frequency,
     .wheel_radius = 0.0112F,
     .initial_pose = {{cell_size / 2.0F, start_offset}, std::numbers::pi / 2.0F},
 };

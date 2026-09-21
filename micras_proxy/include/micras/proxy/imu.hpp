@@ -151,7 +151,7 @@ private:
     /**
      * @brief Gyroscope Butterworth filter for the calibration.
      */
-    core::ButterworthFilter calibration_filter{5.0F};
+    core::ButterworthFilter calibration_filter{7.64F, 959.69F};
 
     /**
      * @brief Flag to check if the IMU was calibrated.

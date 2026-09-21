@@ -9,7 +9,10 @@
 
 namespace micras::core {
 ButterworthFilter::ButterworthFilter(float cutoff_frequency, float sampling_frequency) {
-    const float relative_frequency = cutoff_frequency / sampling_frequency;
+    // The Tustin substitution is s <- (2 / T) * (1 - z^-1) / (1 + z^-1), and the prototype is normalised by the
+    // cutoff angular frequency, so the dimensionless variable below is w_c * T = 2 * pi * f_c / f_s. Using
+    // f_c / f_s here instead placed every cutoff a factor of 2 * pi above its nominal value.
+    const float relative_frequency = 2 * std::numbers::pi_v<float> * cutoff_frequency / sampling_frequency;
     const float relative_frequency_2 = relative_frequency * relative_frequency;
 
     const float b0 = 1;

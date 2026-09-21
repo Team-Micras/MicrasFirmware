@@ -14,7 +14,7 @@ TWallSensors<num_of_sensors>::TWallSensors(const Config& config) :
     adc{config.adc},
     led_0_pwm{config.led_0_pwm},
     led_1_pwm{config.led_1_pwm},
-    filters{core::make_array<core::ButterworthFilter, num_of_sensors>(config.filter_cutoff)},
+    filters{core::make_array<core::ButterworthFilter, num_of_sensors>(config.filter_cutoff, config.sampling_frequency)},
     base_readings{config.base_readings},
     uncertainty{config.uncertainty} {
     this->adc.start_dma(this->buffer);

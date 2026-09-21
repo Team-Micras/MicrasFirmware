@@ -26,6 +26,7 @@ public:
         float               shunt_resistor;
         float               max_torque;
         float               filter_cutoff;
+        float               sampling_frequency;
     };
 
     /**

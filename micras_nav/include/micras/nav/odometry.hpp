@@ -23,6 +23,7 @@ public:
      */
     struct Config {
         float linear_cutoff_frequency;
+        float sampling_frequency;
         float wheel_radius;
         Pose  initial_pose;
     };

@@ -19,7 +19,7 @@ Odometry::Odometry(
     initial_pose(config.initial_pose),
     left_last_position{left_rotary_sensor->get_position()},
     right_last_position{right_rotary_sensor->get_position()},
-    linear_filter{config.linear_cutoff_frequency},
+    linear_filter{config.linear_cutoff_frequency, config.sampling_frequency},
     state{config.initial_pose, {0.0F, 0.0F}} { }
 
 void Odometry::update(float elapsed_time) {

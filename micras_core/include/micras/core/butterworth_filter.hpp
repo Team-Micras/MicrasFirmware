@@ -38,7 +38,7 @@ public:
      * @param cutoff_frequency Low-pass cutoff frequency in Hz.
      * @param sampling_frequency Sampling frequency in Hz.
      */
-    explicit ButterworthFilter(float cutoff_frequency, float sampling_frequency = 100.0F);
+    ButterworthFilter(float cutoff_frequency, float sampling_frequency);
 
     /**
      * @brief Produce a new value from measured data.

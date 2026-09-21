@@ -7,6 +7,7 @@
 
 #include <main.h>
 
+#include "constants.hpp"
 #include "micras/proxy/argb.hpp"
 #include "micras/proxy/battery.hpp"
 #include "micras/proxy/bluetooth_serial.hpp"
@@ -230,7 +231,8 @@ const proxy::TorqueSensors::Config torque_sensors_config = {
         },
     .shunt_resistor = 0.04F * 20,
     .max_torque = 10.0F,
-    .filter_cutoff = 10.0F,
+    .filter_cutoff = 15.27F,
+    .sampling_frequency = loop_frequency,
 };
 
 const proxy::WallSensors::Config wall_sensors_config = {
@@ -252,7 +254,8 @@ const proxy::WallSensors::Config wall_sensors_config = {
             .handle = &htim15,
             .timer_channel = TIM_CHANNEL_2,
         },
-    .filter_cutoff = 5.0F,
+    .filter_cutoff = 7.64F,
+    .sampling_frequency = loop_frequency,
     .base_readings =
         {
             0.413F,
@@ -292,7 +295,8 @@ const proxy::Battery::Config battery_config = {
             .max_reading = 4095,
         },
     .voltage_divider = 3.0F,
-    .filter_cutoff = 5.0F,
+    .filter_cutoff = 7.64F,
+    .sampling_frequency = loop_frequency,
 };
 
 /*****************************************
