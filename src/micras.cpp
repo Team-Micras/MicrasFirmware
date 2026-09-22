@@ -3,9 +3,13 @@
  */
 
 #include <algorithm>
+#include <array>
 #include <cmath>
+#include <cstdint>
 #include <memory>
+#include <span>
 #include <tuple>
+#include <utility>
 
 #include "constants.hpp"
 #include "micras/core/types.hpp"
@@ -20,6 +24,7 @@
 #include "micras/states/init.hpp"
 #include "micras/states/run.hpp"
 #include "micras/states/wait.hpp"
+#include "target.hpp"
 
 namespace micras {
 Micras::Micras() :
@@ -39,6 +44,29 @@ Micras::Micras() :
     this->fsm.add_state(std::make_unique<RunState>(State::RUN, *this));
     this->fsm.add_state(std::make_unique<WaitState>(State::WAIT_FOR_RUN, *this, State::RUN));
     this->fsm.add_state(std::make_unique<WaitState>(State::WAIT_FOR_CALIBRATE, *this, State::CALIBRATE));
+
+    this->register_variables();
+}
+
+void Micras::register_variables() {
+    this->imu.register_variables(this->variables, "imu/");
+    this->wall_sensors.register_variables(this->variables, "wall/");
+
+    this->variables.add("loop/", "elapsed_time", this->elapsed_time, {.stream = true});
+    this->variables.add("loop/", "worst_time_us", this->worst_loop_time_us, {.stream = true});
+
+    this->variables.add("cmd/", "linear", this->desired_speeds.linear, {.stream = true});
+    this->variables.add("cmd/", "angular", this->desired_speeds.angular, {.stream = true});
+
+    this->variables.add("response/", "left", this->left_response, {.stream = true});
+    this->variables.add("response/", "right", this->right_response, {.stream = true});
+    this->variables.add("feed_forward/", "left", this->left_ff, {.stream = true});
+    this->variables.add("feed_forward/", "right", this->right_ff, {.stream = true});
+
+    this->variables.add("", "objective", this->objective, {.stream = true, .write = true, .idle = true});
+    this->variables.add("", "maze", this->maze, {.persist = true});
+
+    this->maze_storage.restore(this->variables);
 }
 
 void Micras::update() {
@@ -187,14 +215,12 @@ bool Micras::check_crash() const {
 void Micras::save_best_route() {
     hal::Mcu::set_watchdog_timeout(flash_watchdog_timeout_ms);
 
-    this->maze_storage.create("maze", this->maze);
-    this->maze_storage.save();
+    this->maze_storage.save(this->variables);
 
     hal::Mcu::set_watchdog_timeout(watchdog_timeout_ms);
 }
 
 void Micras::load_best_route() {
-    this->maze_storage.sync("maze", this->maze);
     this->action_queuer.recompute(this->maze.get_best_route(), false);
     this->fan.set_speed(fan_speed);
 }

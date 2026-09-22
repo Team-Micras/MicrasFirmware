@@ -11,6 +11,7 @@
 
 #include "constants.hpp"
 #include "micras/core/fsm.hpp"
+#include "micras/core/variable_pool.hpp"
 #include "micras/interface.hpp"
 #include "target.hpp"
 
@@ -146,6 +147,14 @@ public:
 
 private:
     /**
+     * @brief Register every variable the robot exposes, and load the ones the flash memory holds.
+     *
+     * @note Each owner registers its own members, so the values are sampled where they already
+     * live and nothing has to be copied once per iteration to keep a second set up to date.
+     */
+    void register_variables();
+
+    /**
      * @brief Enum for the type of calibration being performed.
      */
     enum class CalibrationType : uint8_t {
@@ -199,6 +208,11 @@ private:
     nav::SpeedController speed_controller;
     nav::FollowWall      follow_wall;
     ///@}
+
+    /**
+     * @brief Every variable exposed to the storage.
+     */
+    core::TVariablePool<max_variables> variables;
 
     /**
      * @brief Finite state machine for the robot.
