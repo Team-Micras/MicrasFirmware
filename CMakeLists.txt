@@ -96,8 +96,9 @@ add_subdirectory(micras_core)
 add_subdirectory(micras_hal)
 add_subdirectory(micras_proxy)
 add_subdirectory(micras_nav)
+add_subdirectory(micras_comm)
 
-micras_apply_warnings(micras_core micras_hal micras_proxy micras_nav)
+micras_apply_warnings(micras_core micras_hal micras_proxy micras_nav micras_comm)
 
 generate_lint_target(FORMAT_SOURCES)
 
