@@ -24,18 +24,4 @@ uint16_t crc16(std::span<const uint8_t> data, uint16_t seed) {
 
     return crc;
 }
-
-uint32_t crc32(std::span<const uint8_t> data, uint32_t seed) {
-    uint32_t crc = seed;
-
-    for (const uint8_t byte : data) {
-        crc ^= static_cast<uint32_t>(byte) << 24;
-
-        for (uint8_t bit = 0; bit < 8; bit++) {
-            crc = (crc & 0x80000000) != 0 ? (crc << 1) ^ 0x04C11DB7 : crc << 1;
-        }
-    }
-
-    return crc;
-}
 }  // namespace micras::core

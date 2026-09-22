@@ -302,6 +302,10 @@ public:
      * application holding a cached schema would then plot the wrong signal with nothing to warn it.
      * Comparing this hash against the one the schema was fetched with is that warning.
      *
+     * @note Only has to change whenever the schema does, so it is an FNV-1a hash rather than
+     * anything with error detection properties. Nothing is being corrected here, and the schema it
+     * stands for arrives over a link that checks its own frames.
+     *
      * @return Hash over the name, type and access flags of every variable, in order.
      */
     uint32_t schema_hash() const;

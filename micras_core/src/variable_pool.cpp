@@ -2,7 +2,6 @@
  * @file
  */
 
-#include <array>
 #include <bit>
 #include <cstdint>
 #include <cstring>
@@ -11,13 +10,20 @@
 #include <string_view>
 #include <utility>
 
-#include "micras/core/crc.hpp"
 #include "micras/core/serializable.hpp"
 #include "micras/core/variable_pool.hpp"
 
 namespace micras::core {
-static std::span<const uint8_t> as_bytes(std::string_view text) {
-    return {std::bit_cast<const uint8_t*>(text.data()), text.size()};
+static uint32_t mix(uint32_t hash, uint8_t byte) {
+    return (hash ^ byte) * 16777619U;
+}
+
+static uint32_t mix(uint32_t hash, std::string_view text) {
+    for (const char character : text) {
+        hash = mix(hash, static_cast<uint8_t>(character));
+    }
+
+    return hash;
 }
 
 VariablePool::VariablePool(std::span<Variable> storage) : storage{storage} { }
@@ -119,14 +125,13 @@ VariablePool::WriteStatus VariablePool::write(VariableId id, std::span<const uin
 }
 
 uint32_t VariablePool::schema_hash() const {
-    uint32_t hash = 0xFFFFFFFF;
+    uint32_t hash = 2166136261U;
 
     for (const Variable& variable : this->all()) {
-        const std::array<uint8_t, 2> tail{std::to_underlying(variable.type), std::bit_cast<uint8_t>(variable.access)};
-
-        hash = crc32(as_bytes(variable.prefix), hash);
-        hash = crc32(as_bytes(variable.name), hash);
-        hash = crc32(tail, hash);
+        hash = mix(hash, variable.prefix);
+        hash = mix(hash, variable.name);
+        hash = mix(hash, std::to_underlying(variable.type));
+        hash = mix(hash, std::bit_cast<uint8_t>(variable.access));
     }
 
     return hash;

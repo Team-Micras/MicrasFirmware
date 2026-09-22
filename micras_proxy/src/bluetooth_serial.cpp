@@ -41,7 +41,7 @@ std::size_t BluetoothSerial::read(std::span<uint8_t> into) {
 }
 
 std::size_t BluetoothSerial::write(std::span<const uint8_t> from) {
-    if (from.size() > this->writable()) {
+    if (from.size() > this->tx_buffer.size() - this->stored) {
         return 0;
     }
 
@@ -59,10 +59,6 @@ std::size_t BluetoothSerial::write(std::span<const uint8_t> from) {
     this->stored += from.size();
 
     return from.size();
-}
-
-std::size_t BluetoothSerial::writable() const {
-    return this->tx_buffer.size() - this->stored;
 }
 
 bool BluetoothSerial::was_initialized() const {

@@ -22,17 +22,6 @@ namespace micras::core {
  * @return CRC of the buffer.
  */
 uint16_t crc16(std::span<const uint8_t> data, uint16_t seed = 0xFFFF);
-
-/**
- * @brief Compute the CRC-32 of a buffer.
- *
- * @note Computed bit by bit, with no lookup table, because the only caller runs once at startup.
- *
- * @param data Buffer to compute the CRC of.
- * @param seed Initial value of the register, so that a CRC can be computed in several calls.
- * @return CRC of the buffer.
- */
-uint32_t crc32(std::span<const uint8_t> data, uint32_t seed = 0xFFFFFFFF);
 }  // namespace micras::core
 
 #endif  // MICRAS_CORE_CRC_HPP

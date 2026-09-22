@@ -2,8 +2,13 @@
  * @file
  */
 
+#include <algorithm>
+#include <array>
 #include <bit>
+#include <cstddef>
+#include <cstdint>
 #include <cstdio>
+#include <span>
 #include <string_view>
 
 #include "micras/core/crc.hpp"
@@ -12,12 +17,26 @@
 using namespace micras::core;
 
 int main() {
-    std::string_view         s = "123456789";
-    std::span<const uint8_t> b{std::bit_cast<const uint8_t*>(s.data()), s.size()};
-    printf("crc16=%04X crc32=%08X\n", crc16(b), crc32(b));
-    CHECK(crc16(b) == 0x29B1);
-    CHECK(crc32(b) == 0x0376E6E7);
-    // incremental must equal one shot
-    CHECK(crc16(b.subspan(4), crc16(b.first(4))) == crc16(b));
-    puts("crc ok");
+    const std::string_view         text{"123456789"};
+    const std::span<const uint8_t> bytes{std::bit_cast<const uint8_t*>(text.data()), text.size()};
+
+    // The published check value of CRC-16/CCITT-FALSE, so this is pinned to the standard rather
+    // than to whatever the other implementation of it happens to agree with
+    CHECK(crc16(bytes) == 0x29B1);
+
+    // Computing it in two calls has to give the same answer as computing it in one
+    CHECK(crc16(bytes.subspan(4), crc16(bytes.first(4))) == crc16(bytes));
+
+    // A single flipped bit anywhere has to change it
+    for (std::size_t index = 0; index < text.size(); index++) {
+        for (uint8_t bit = 0; bit < 8; bit++) {
+            std::array<uint8_t, 9> flipped{};
+            std::ranges::copy(bytes, flipped.begin());
+            flipped.at(index) ^= static_cast<uint8_t>(1U << bit);
+
+            CHECK(crc16(flipped) != crc16(bytes));
+        }
+    }
+
+    std::puts("crc ok");
 }
