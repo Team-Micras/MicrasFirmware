@@ -64,7 +64,19 @@ struct Group {
      * @param into Buffer to copy into.
      * @return Number of bytes copied, zero if the buffer is too small.
      */
-    std::size_t sample(const core::VariablePool& pool, std::span<uint8_t> into) const;
+    std::size_t sample(const core::VariablePool& pool, std::span<uint8_t> into) const {
+        if (into.size() < this->sample_size) {
+            return 0;
+        }
+
+        std::size_t offset = 0;
+
+        for (uint8_t index = 0; index < this->count; index++) {
+            offset += pool.read(this->ids.at(index), into.subspan(offset));
+        }
+
+        return offset;
+    }
 };
 }  // namespace micras::comm
 

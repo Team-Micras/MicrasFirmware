@@ -352,22 +352,20 @@ void Link::log(Severity severity, std::string_view text) {
 bool Link::send(MessageType type, std::span<const uint8_t> payload) {
     const std::size_t size = encode_frame(type, payload, this->frame);
 
-    if (size == 0 or this->stream.writable() < size) {
-        return false;
-    }
-
-    this->stream.write(std::span{this->frame}.first(size));
-    return true;
+    return size > 0 and this->stream.write(std::span{this->frame}.first(size)) == size;
 }
 
 bool Link::send_metered(MessageType type, std::span<const uint8_t> payload) {
     const std::size_t size = encode_frame(type, payload, this->frame);
 
-    if (size == 0 or std::cmp_less(this->credit, size) or this->stream.writable() < size) {
+    if (size == 0 or std::cmp_less(this->credit, size)) {
         return false;
     }
 
-    this->stream.write(std::span{this->frame}.first(size));
+    if (this->stream.write(std::span{this->frame}.first(size)) != size) {
+        return false;
+    }
+
     this->credit -= static_cast<int32_t>(size);
     return true;
 }

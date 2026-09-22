@@ -36,14 +36,12 @@ struct Loopback : core::IByteStream {
     }
 
     std::size_t write(std::span<const uint8_t> from) override {
-        if (writable() < from.size())
+        if (capacity - from_robot.size() < from.size())
             return 0;
         for (uint8_t b : from)
             from_robot.push_back(b);
         return from.size();
     }
-
-    std::size_t writable() const override { return capacity - from_robot.size(); }
 };
 
 struct Commands : ICommandHandler {

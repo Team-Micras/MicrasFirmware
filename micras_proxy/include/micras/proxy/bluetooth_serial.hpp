@@ -60,18 +60,12 @@ public:
      * @brief Queue data to be sent.
      *
      * @note Either all of the data is queued or none of it is, so a frame is never cut in half.
+     * A frame that does not fit is refused, and the session drops it and counts it.
      *
      * @param from Data to send.
      * @return Number of bytes queued.
      */
     std::size_t write(std::span<const uint8_t> from) override;
-
-    /**
-     * @brief Get how much can be queued right now.
-     *
-     * @return Number of bytes that fit in the ring.
-     */
-    std::size_t writable() const override;
 
     /**
      * @brief Check if the peripheral was initialized and is receiving.

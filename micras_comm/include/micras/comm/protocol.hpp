@@ -89,8 +89,7 @@ enum class ErrorCode : uint8_t {
     NO_SUCH_GROUP = 2,
     GROUP_TOO_LARGE = 3,
     NOT_STREAMABLE = 4,
-    NO_SUCH_VARIABLE = 5,
-    BUSY = 6
+    NO_SUCH_VARIABLE = 5
 };
 
 /**

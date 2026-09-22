@@ -35,17 +35,13 @@ public:
     /**
      * @brief Queue data to be sent.
      *
+     * @note All of the data is taken or none of it is, so a frame is never cut in half and asking
+     * beforehand whether it would fit would only be the same question twice.
+     *
      * @param from Data to send.
      * @return Number of bytes accepted, which is either all of them or none.
      */
     virtual std::size_t write(std::span<const uint8_t> from) = 0;
-
-    /**
-     * @brief Get how much can be written before the stream refuses data.
-     *
-     * @return Number of bytes that can be written right now.
-     */
-    virtual std::size_t writable() const = 0;
 
 protected:
     /**
