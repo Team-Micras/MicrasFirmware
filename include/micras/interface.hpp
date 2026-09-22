@@ -27,15 +27,18 @@ public:
         SOLVE = 1,
         CALIBRATE = 2,
         ERROR = 3,
-        TURN_ON_FAN = 4,
-        TURN_OFF_FAN = 5,
-        TURN_ON_DIAGONAL = 6,
-        TURN_OFF_DIAGONAL = 7,
-        TURN_ON_BOOST = 8,
-        TURN_OFF_BOOST = 9,
-        TURN_ON_RISKY = 10,
-        TURN_OFF_RISKY = 11,
-        NUMBER_OF_EVENTS = 12,
+        PROFILE_MOVED = 4,
+        NUMBER_OF_EVENTS = 5,
+    };
+
+    /**
+     * @brief Bits of the run profile, one per DIP switch.
+     */
+    enum class Profile : uint8_t {
+        FAN = 1U << 0U,
+        DIAGONAL = 1U << 1U,
+        BOOST = 1U << 2U,
+        RISKY = 1U << 3U,
     };
 
     /**
@@ -78,17 +81,17 @@ public:
      */
     bool peek_event(Event event) const;
 
-private:
     /**
-     * @brief Enum for what each dip switch pin does.
+     * @brief Get the run profile the switches currently spell out.
+     *
+     * @note The switches are one of two writers of the run profile, the link being the other, so
+     * this is read when they move rather than being consulted every time the profile matters.
+     *
+     * @return One bit per switch, in the order of the Profile enum.
      */
-    enum class DipSwitchPins : uint8_t {
-        FAN = 0,
-        DIAGONAL = 1,
-        BOOST = 2,
-        RISKY = 3,
-    };
+    uint8_t get_profile() const;
 
+private:
     // NOLINTBEGIN(*-avoid-const-or-ref-data-members) borrowed for the lifetime of the robot
     /**
      * @brief Button object.
@@ -112,9 +115,9 @@ private:
     std::array<bool, std::to_underlying(Event::NUMBER_OF_EVENTS)> events{};
 
     /**
-     * @brief Array to store the last dip switch states.
+     * @brief Last read state of the switches, as a run profile.
      */
-    std::array<bool, 4> dip_switch_states{};
+    uint8_t profile{};
 };
 }  // namespace micras
 

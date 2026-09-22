@@ -12,6 +12,7 @@
 #include <utility>
 
 #include "constants.hpp"
+#include "micras/comm/link.hpp"
 #include "micras/core/types.hpp"
 #include "micras/hal/mcu.hpp"
 #include "micras/micras.hpp"
@@ -27,12 +28,22 @@
 #include "target.hpp"
 
 namespace micras {
+// NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables) the DMA and the capture write here
+static std::array<uint8_t, bluetooth_rx_buffer_size> bluetooth_rx_buffer;
+static std::array<uint8_t, bluetooth_tx_buffer_size> bluetooth_tx_buffer;
+static std::array<uint8_t, trace_buffer_size>        trace_buffer;
+
+// NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
+
 Micras::Micras() :
+    bluetooth{bluetooth_config, bluetooth_rx_buffer, bluetooth_tx_buffer},
     action_queuer{action_queuer_config},
     maze{maze_config},
     odometry{rotary_sensor_left, rotary_sensor_right, imu, odometry_config},
     speed_controller{speed_controller_config},
     follow_wall{wall_sensors, follow_wall_config},
+    trace{variables, trace_buffer},
+    link{bluetooth, variables, trace, *this, {.loop_time_us = loop_time_us}},
     interface{button, dip_switch, led},
     action_pose{odometry.get_state().pose} {
     hal::Mcu::set_watchdog_timeout(watchdog_timeout_ms);
@@ -64,7 +75,10 @@ void Micras::register_variables() {
     this->variables.add("feed_forward/", "right", this->right_ff, {.stream = true});
 
     this->variables.add("", "objective", this->objective, {.stream = true, .write = true, .idle = true});
+    this->variables.add("", "run_profile", this->run_profile, {.stream = true, .write = true, .persist = true});
     this->variables.add("", "maze", this->maze, {.persist = true});
+
+    this->link.register_variables(this->variables, "link/");
 
     this->maze_storage.restore(this->variables);
 }
@@ -84,8 +98,15 @@ void Micras::update() {
     this->imu.update();
     this->torque_sensors.update();
     this->wall_sensors.update();
+    this->bluetooth.update();
 
     this->fsm.update();
+
+    const uint32_t timestamp_us = this->telemetry_stopwatch.elapsed_time_us();
+
+    this->link.poll(this->is_idle());
+    this->trace.sample(timestamp_us);
+    this->link.pump(timestamp_us);
 
     this->worst_loop_time_us = std::max(this->worst_loop_time_us, this->loop_stopwatch.elapsed_time_us());
 
@@ -250,10 +271,57 @@ bool Micras::peek_event(Interface::Event event) const {
 }
 
 void Micras::handle_events() {
-    if (this->interface.acknowledge_event(Interface::Event::TURN_ON_FAN)) {
+    if (this->interface.acknowledge_event(Interface::Event::PROFILE_MOVED)) {
+        this->run_profile = this->interface.get_profile();
+    }
+
+    if ((this->run_profile & std::to_underlying(Interface::Profile::FAN)) != 0) {
         this->fan.enable();
-    } else if (this->interface.acknowledge_event(Interface::Event::TURN_OFF_FAN)) {
+    } else {
         this->fan.disable();
     }
+}
+
+bool Micras::is_idle() const {
+    return this->fsm.get_current_state_id() == std::to_underlying(State::IDLE);
+}
+
+comm::CommandResult Micras::handle_command(uint8_t code, uint32_t argument) {
+    switch (static_cast<Command>(code)) {
+        case Command::EXPLORE:
+            this->send_event(Interface::Event::EXPLORE);
+            return comm::CommandResult::OK;
+
+        case Command::SOLVE:
+            this->send_event(Interface::Event::SOLVE);
+            return comm::CommandResult::OK;
+
+        case Command::CALIBRATE:
+            this->send_event(Interface::Event::CALIBRATE);
+            return comm::CommandResult::OK;
+
+        case Command::TRACE_TRIGGER:
+            this->trace.fire();
+            return comm::CommandResult::OK;
+
+        case Command::SAVE:
+            if (not this->is_idle()) {
+                return comm::CommandResult::REFUSED;
+            }
+
+            this->save_best_route();
+            return comm::CommandResult::OK;
+
+        case Command::RESET:
+            if (not this->is_idle()) {
+                return comm::CommandResult::REFUSED;
+            }
+
+            this->reset();
+            return comm::CommandResult::OK;
+    }
+
+    static_cast<void>(argument);
+    return comm::CommandResult::UNKNOWN;
 }
 }  // namespace micras

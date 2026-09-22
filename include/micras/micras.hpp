@@ -10,6 +10,8 @@
 #include <utility>
 
 #include "constants.hpp"
+#include "micras/comm/link.hpp"
+#include "micras/comm/trace.hpp"
 #include "micras/core/fsm.hpp"
 #include "micras/core/variable_pool.hpp"
 #include "micras/interface.hpp"
@@ -19,7 +21,7 @@ namespace micras {
 /**
  * @brief Class for controlling the Micras robot.
  */
-class Micras {
+class Micras : public comm::ICommandHandler {
 public:
     /**
      * @brief Enum for the current status of the robot.
@@ -33,6 +35,21 @@ public:
         CALIBRATE = 5,           // Calibrating the robot.
         ERROR = 6,               // Error state.
         NUMBER_OF_STATES = 7
+    };
+
+    /**
+     * @brief Commands the link can ask the robot to run.
+     *
+     * @note These are edges, not levels: each one happens once, when it arrives. Everything that
+     * is a level, like the run profile, is a writable variable instead.
+     */
+    enum class Command : uint8_t {
+        EXPLORE = 0,
+        SOLVE = 1,
+        CALIBRATE = 2,
+        SAVE = 3,
+        RESET = 4,
+        TRACE_TRIGGER = 5,
     };
 
     /**
@@ -145,6 +162,25 @@ public:
      */
     void handle_events();
 
+    /**
+     * @brief Run a command that arrived over the link.
+     *
+     * @param code Command to run.
+     * @param argument Argument of the command.
+     * @return Whether the command ran.
+     */
+    comm::CommandResult handle_command(uint8_t code, uint32_t argument) override;
+
+    /**
+     * @brief Check if the robot is stopped.
+     *
+     * @note This is what gates the guarded writes and the commands that block for seconds, so it
+     * is the state of the machine rather than a flag anything else maintains.
+     *
+     * @return True if the robot is idle, false otherwise.
+     */
+    bool is_idle() const;
+
 private:
     /**
      * @brief Register every variable the robot exposes, and load the ones the flash memory holds.
@@ -181,11 +217,12 @@ private:
      * @brief Interface proxies with the external world.
      */
     ///@{
-    proxy::Argb      argb{argb_config};
-    proxy::Button    button{button_config};
-    proxy::Buzzer    buzzer{buzzer_config};
-    proxy::DipSwitch dip_switch{dip_switch_config};
-    proxy::Led       led{led_config};
+    proxy::Argb            argb{argb_config};
+    proxy::BluetoothSerial bluetooth;
+    proxy::Button          button{button_config};
+    proxy::Buzzer          buzzer{buzzer_config};
+    proxy::DipSwitch       dip_switch{dip_switch_config};
+    proxy::Led             led{led_config};
     ///@}
 
     /**
@@ -210,9 +247,22 @@ private:
     ///@}
 
     /**
-     * @brief Every variable exposed to the storage.
+     * @brief Every variable exposed to the storage and to the communication link.
      */
     core::TVariablePool<max_variables> variables;
+
+    /**
+     * @brief Full rate capture, and the session that arms and reads it out.
+     */
+    ///@{
+    comm::Trace trace;
+    comm::Link  link;
+    ///@}
+
+    /**
+     * @brief Free running clock the samples are stamped with.
+     */
+    proxy::Stopwatch telemetry_stopwatch;
 
     /**
      * @brief Finite state machine for the robot.
@@ -233,6 +283,14 @@ private:
      * @brief Current objective of the robot.
      */
     core::Objective objective{core::Objective::EXPLORE};
+
+    /**
+     * @brief Options of the next run, written by the switches and by the link alike.
+     *
+     * @note Last writer wins, which is a rule that can be predicted from the outside. The switches
+     * write it when they move, the link whenever it likes.
+     */
+    uint8_t run_profile{};
 
     /**
      * @brief Current type of calibration being performed.
