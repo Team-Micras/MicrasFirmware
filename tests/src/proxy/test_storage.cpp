@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <vector>
 #include "micras/core/serializable.hpp"
+#include "micras/core/variable_pool.hpp"
 #include "micras/proxy/button.hpp"
 #include "micras/proxy/stopwatch.hpp"
 #include "micras/proxy/storage.hpp"
@@ -86,12 +87,13 @@ int main(int argc, char* argv[]) {
 
     TestSerializable test_serializable_0{};
 
-    storage_0.create("test_bool", test_bool_0);
-    storage_0.create("test_int16", test_int16_0);
-    storage_0.create("test_float", test_float_0);
-    storage_0.create("test_serializable", test_serializable_0);
+    core::TVariablePool<8> pool_0;
+    pool_0.add("test/", "bool", test_bool_0, {.persist = true});
+    pool_0.add("test/", "int16", test_int16_0, {.persist = true});
+    pool_0.add("test/", "float", test_float_0, {.persist = true});
+    pool_0.add("test/", "serializable", test_serializable_0, {.persist = true});
 
-    storage_0.save();
+    storage_0.save(pool_0);
 
     proxy::Storage storage_1{storage_test_config};
 
@@ -101,13 +103,16 @@ int main(int argc, char* argv[]) {
 
     TestSerializable test_serializable_1{true};
 
-    storage_1.sync("test_bool", test_bool_1);
-    storage_1.sync("test_int16", test_int16_1);
-    storage_1.sync("test_float", test_float_1);
-    storage_1.sync("test_serializable", test_serializable_1);
+    core::TVariablePool<8> pool_1;
+    pool_1.add("test/", "bool", test_bool_1, {.persist = true});
+    pool_1.add("test/", "int16", test_int16_1, {.persist = true});
+    pool_1.add("test/", "float", test_float_1, {.persist = true});
+    pool_1.add("test/", "serializable", test_serializable_1, {.persist = true});
+
+    const bool restored = storage_1.restore(pool_1) == 4 and pool_1.schema_hash() == pool_0.schema_hash();
 
     TestCore::loop([&test_bool_0, &test_bool_1, &test_int16_0, &test_int16_1, &test_float_0, &test_float_1,
-                    &test_serializable_0, &test_serializable_1, &button, &argb]() {
+                    &test_serializable_0, &test_serializable_1, &restored, &button, &argb]() {
         while (button.get_status() == proxy::Button::Status::NO_PRESS) {
             button.update();
         }
@@ -143,6 +148,16 @@ int main(int argc, char* argv[]) {
         proxy::Stopwatch::sleep_ms(time_interval);
 
         if (test_serializable_0 != test_serializable_1) {
+            argb.set_color(proxy::Argb::Colors::red);
+        } else {
+            argb.set_color(proxy::Argb::Colors::green);
+        }
+
+        proxy::Stopwatch::sleep_ms(time_interval);
+        argb.turn_off();
+        proxy::Stopwatch::sleep_ms(time_interval);
+
+        if (not restored) {
             argb.set_color(proxy::Argb::Colors::red);
         } else {
             argb.set_color(proxy::Argb::Colors::green);

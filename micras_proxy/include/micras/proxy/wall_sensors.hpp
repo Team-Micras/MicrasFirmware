@@ -7,8 +7,10 @@
 
 #include <array>
 #include <cstdint>
+#include <string_view>
 
 #include "micras/core/butterworth_filter.hpp"
+#include "micras/core/variable_pool.hpp"
 #include "micras/hal/adc_dma.hpp"
 #include "micras/hal/pwm.hpp"
 
@@ -109,6 +111,14 @@ public:
      *
      * @return True if the initialization was successful, false otherwise.
      */
+    /**
+     * @brief Register the readings of the sensors for monitoring.
+     *
+     * @param pool Pool to register into.
+     * @param prefix Prefix of the names, identifying this set of sensors.
+     */
+    void register_variables(core::VariablePool& pool, std::string_view prefix);
+
     bool was_initialized() const;
 
 private:

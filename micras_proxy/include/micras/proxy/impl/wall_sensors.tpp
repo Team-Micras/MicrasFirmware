@@ -6,12 +6,15 @@
 #define MICRAS_PROXY_WALL_SENSORS_TPP
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
+#include <string_view>
 
 #include "micras/core/butterworth_filter.hpp"
 #include "micras/core/utils.hpp"
+#include "micras/core/variable_pool.hpp"
 #include "micras/hal/pwm.hpp"
 
 namespace micras::proxy {
@@ -94,6 +97,16 @@ float TWallSensors<num_of_sensors>::get_sensor_error(uint8_t sensor_index) const
 template <uint8_t num_of_sensors>
 void TWallSensors<num_of_sensors>::calibrate_sensor(uint8_t sensor_index) {
     this->base_readings.at(sensor_index) = this->get_reading(sensor_index);
+}
+
+template <uint8_t num_of_sensors>
+void TWallSensors<num_of_sensors>::register_variables(core::VariablePool& pool, std::string_view prefix) {
+    static constexpr std::array<std::string_view, 8> names{"0", "1", "2", "3", "4", "5", "6", "7"};
+    static_assert(num_of_sensors <= names.size(), "Every sensor needs a name literal to register under");
+
+    for (uint8_t i = 0; i < num_of_sensors; i++) {
+        this->filters.at(i).register_variables(pool, prefix, names.at(i));
+    }
 }
 
 template <uint8_t num_of_sensors>
