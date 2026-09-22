@@ -6,10 +6,8 @@
 #include <atomic>
 #include <cmath>
 #include <cstdint>
-#include <string_view>
 
 #include "lsm6dsv_reg.h"
-#include "micras/core/variable_pool.hpp"
 #include "micras/proxy/imu.hpp"
 #include "micras/proxy/stopwatch.hpp"
 
@@ -188,12 +186,4 @@ bool Imu::was_initialized() const {
     return this->initialized;
 }
 
-void Imu::register_variables(core::VariablePool& pool, std::string_view prefix) {
-    pool.add(prefix, "gyro_x", this->angular_velocity.at(0), {.stream = true});
-    pool.add(prefix, "gyro_y", this->angular_velocity.at(1), {.stream = true});
-    pool.add(prefix, "gyro_z", this->angular_velocity.at(2), {.stream = true});
-    pool.add(prefix, "accel_x", this->linear_acceleration.at(0), {.stream = true});
-    pool.add(prefix, "accel_y", this->linear_acceleration.at(1), {.stream = true});
-    pool.add(prefix, "accel_z", this->linear_acceleration.at(2), {.stream = true});
-}
 }  // namespace micras::proxy

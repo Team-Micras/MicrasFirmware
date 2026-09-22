@@ -8,9 +8,6 @@
 #include <array>
 #include <cstdint>
 #include <numbers>
-#include <string_view>
-
-#include "micras/core/variable_pool.hpp"
 
 namespace micras::core {
 /**
@@ -118,18 +115,6 @@ public:
      * @return Last filtered value.
      */
     float get_last() const;
-
-    /**
-     * @brief Expose the filtered value for monitoring.
-     *
-     * @note The value is registered where it already lives, so sampling it costs a copy of four
-     * bytes and the filter gains nothing to keep up to date.
-     *
-     * @param pool Pool to register into.
-     * @param prefix Prefix of the name, identifying the owner of the filter.
-     * @param name Name of the filtered value inside its owner.
-     */
-    void register_variables(VariablePool& pool, std::string_view prefix, std::string_view name);
 
 private:
     /**

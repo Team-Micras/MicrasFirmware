@@ -5,9 +5,11 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstddef>
 #include <cstdint>
 #include <memory>
 #include <span>
+#include <string_view>
 #include <tuple>
 #include <utility>
 
@@ -59,9 +61,40 @@ Micras::Micras() :
     this->register_variables();
 }
 
+void Micras::publish() {
+    for (std::size_t i = 0; i < this->telemetry.wall_reading.size(); i++) {
+        this->telemetry.wall_reading.at(i) = this->wall_sensors.get_reading(i);
+    }
+
+    this->telemetry.angular_velocity = {
+        this->imu.get_angular_velocity(proxy::Imu::Axis::X),
+        this->imu.get_angular_velocity(proxy::Imu::Axis::Y),
+        this->imu.get_angular_velocity(proxy::Imu::Axis::Z),
+    };
+
+    this->telemetry.linear_acceleration = {
+        this->imu.get_linear_acceleration(proxy::Imu::Axis::X),
+        this->imu.get_linear_acceleration(proxy::Imu::Axis::Y),
+        this->imu.get_linear_acceleration(proxy::Imu::Axis::Z),
+    };
+
+    this->telemetry.battery_voltage = this->battery.get_voltage();
+}
+
 void Micras::register_variables() {
-    this->imu.register_variables(this->variables, "imu/");
-    this->wall_sensors.register_variables(this->variables, "wall/");
+    static constexpr std::array<std::string_view, 4> sensor_names{"0", "1", "2", "3"};
+
+    for (std::size_t i = 0; i < this->telemetry.wall_reading.size(); i++) {
+        this->variables.add("wall/", sensor_names.at(i), this->telemetry.wall_reading.at(i), {.stream = true});
+    }
+
+    this->variables.add("imu/", "gyro_x", this->telemetry.angular_velocity.at(0), {.stream = true});
+    this->variables.add("imu/", "gyro_y", this->telemetry.angular_velocity.at(1), {.stream = true});
+    this->variables.add("imu/", "gyro_z", this->telemetry.angular_velocity.at(2), {.stream = true});
+    this->variables.add("imu/", "accel_x", this->telemetry.linear_acceleration.at(0), {.stream = true});
+    this->variables.add("imu/", "accel_y", this->telemetry.linear_acceleration.at(1), {.stream = true});
+    this->variables.add("imu/", "accel_z", this->telemetry.linear_acceleration.at(2), {.stream = true});
+    this->variables.add("", "battery_voltage", this->telemetry.battery_voltage, {.stream = true});
 
     this->variables.add("loop/", "elapsed_time", this->elapsed_time, {.stream = true});
     this->variables.add("loop/", "worst_time_us", this->worst_loop_time_us, {.stream = true});
@@ -101,6 +134,7 @@ void Micras::update() {
     this->bluetooth.update();
 
     this->fsm.update();
+    this->publish();
 
     const uint32_t timestamp_us = this->telemetry_stopwatch.elapsed_time_us();
 
