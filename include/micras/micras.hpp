@@ -5,6 +5,7 @@
 #ifndef MICRAS_HPP
 #define MICRAS_HPP
 
+#include <array>
 #include <cstdint>
 #include <memory>
 #include <utility>
@@ -183,6 +184,25 @@ public:
 
 private:
     /**
+     * @brief Values published over the link that no object holds at a stable address.
+     *
+     * @note Most of what is worth watching is computed on the way out of its sensor: the yaw rate
+     * has the calibration subtracted from it, the battery is scaled into volts. Publishing means
+     * copying those into somewhere that stays put.
+     */
+    struct Telemetry {
+        std::array<float, 4> wall_reading{};
+        std::array<float, 3> angular_velocity{};
+        std::array<float, 3> linear_acceleration{};
+        float                battery_voltage{};
+    };
+
+    /**
+     * @brief Copy the published sensor values into the telemetry.
+     */
+    void publish();
+
+    /**
      * @brief Register every variable the robot exposes, and load the ones the flash memory holds.
      *
      * @note Each owner registers its own members, so the values are sampled where they already
@@ -245,6 +265,11 @@ private:
     nav::SpeedController speed_controller;
     nav::FollowWall      follow_wall;
     ///@}
+
+    /**
+     * @brief Sensor values as they are published, which is not always as they are stored.
+     */
+    Telemetry telemetry;
 
     /**
      * @brief Every variable exposed to the storage and to the communication link.

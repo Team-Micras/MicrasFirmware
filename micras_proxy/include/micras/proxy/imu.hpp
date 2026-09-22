@@ -9,10 +9,8 @@
 #include <cstdint>
 #include <lsm6dsv_reg.h>
 #include <numbers>
-#include <string_view>
 
 #include "micras/core/butterworth_filter.hpp"
-#include "micras/core/variable_pool.hpp"
 #include "micras/hal/spi.hpp"
 
 namespace micras::proxy {
@@ -105,14 +103,6 @@ public:
      *
      * @return True if the device was successfully initialized, false otherwise.
      */
-    /**
-     * @brief Register the angular velocity and the linear acceleration for monitoring.
-     *
-     * @param pool Pool to register into.
-     * @param prefix Prefix of the names, identifying this sensor.
-     */
-    void register_variables(core::VariablePool& pool, std::string_view prefix);
-
     bool was_initialized() const;
 
 private:

@@ -4,10 +4,8 @@
 
 #include <cmath>
 #include <numbers>
-#include <string_view>
 
 #include "micras/core/butterworth_filter.hpp"
-#include "micras/core/variable_pool.hpp"
 
 namespace micras::core {
 ButterworthFilter::Coefficients ButterworthFilter::compute_coefficients(const Config& config) {
@@ -49,9 +47,5 @@ float ButterworthFilter::update(float x0) {
 
 float ButterworthFilter::get_last() const {
     return this->output;
-}
-
-void ButterworthFilter::register_variables(VariablePool& pool, std::string_view prefix, std::string_view name) {
-    pool.add(prefix, name, this->output, {.stream = true});
 }
 }  // namespace micras::core
