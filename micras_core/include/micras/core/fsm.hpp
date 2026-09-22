@@ -99,6 +99,13 @@ public:
      */
     void update();
 
+    /**
+     * @brief Get the id of the state currently running.
+     *
+     * @return The id of the current state.
+     */
+    uint8_t get_current_state_id() const;
+
 private:
     /**
      * @brief States of the machine, indexed by their id.

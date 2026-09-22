@@ -22,28 +22,15 @@ void Interface::update() {
         this->send_event(Event::CALIBRATE);
     }
 
+    uint8_t current = 0;
+
     for (uint8_t i = 0; i < 4; i++) {
-        if (this->dip_switch.get_switch_state(i) == this->dip_switch_states.at(i)) {
-            continue;
-        }
+        current |= static_cast<uint8_t>(this->dip_switch.get_switch_state(i)) << i;
+    }
 
-        this->dip_switch_states.at(i) = this->dip_switch.get_switch_state(i);
-        const auto dip_switch_pin = static_cast<DipSwitchPins>(i);
-
-        switch (dip_switch_pin) {
-            case DipSwitchPins::FAN:
-                this->send_event(this->dip_switch_states.at(i) ? Event::TURN_ON_FAN : Event::TURN_OFF_FAN);
-                break;
-            case DipSwitchPins::DIAGONAL:
-                this->send_event(this->dip_switch_states.at(i) ? Event::TURN_ON_DIAGONAL : Event::TURN_OFF_DIAGONAL);
-                break;
-            case DipSwitchPins::BOOST:
-                this->send_event(this->dip_switch_states.at(i) ? Event::TURN_ON_BOOST : Event::TURN_OFF_BOOST);
-                break;
-            case DipSwitchPins::RISKY:
-                this->send_event(this->dip_switch_states.at(i) ? Event::TURN_ON_RISKY : Event::TURN_OFF_RISKY);
-                break;
-        }
+    if (current != this->profile) {
+        this->profile = current;
+        this->send_event(Event::PROFILE_MOVED);
     }
 
     if (this->acknowledge_event(Event::ERROR)) {
@@ -66,5 +53,9 @@ bool Interface::acknowledge_event(Event event) {
 
 bool Interface::peek_event(Event event) const {
     return this->events.at(std::to_underlying(event));
+}
+
+uint8_t Interface::get_profile() const {
+    return this->profile;
 }
 }  // namespace micras
