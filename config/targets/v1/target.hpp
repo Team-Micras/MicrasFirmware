@@ -14,6 +14,7 @@
 #include <main.h>
 #include <spi.h>
 #include <tim.h>
+#include <usart.h>
 
 #include "constants.hpp"
 #include "micras/hal/fmac.hpp"
@@ -22,6 +23,7 @@
 #include "micras/hal/pwm.hpp"
 #include "micras/proxy/argb.hpp"
 #include "micras/proxy/battery.hpp"
+#include "micras/proxy/bluetooth_serial.hpp"
 #include "micras/proxy/button.hpp"
 #include "micras/proxy/buzzer.hpp"
 #include "micras/proxy/dip_switch.hpp"
@@ -104,6 +106,11 @@ constexpr uint32_t rotary_sensor_clock_phase{SPI_PHASE_2EDGE};
 const proxy::Storage::Config maze_storage_config{
     .start_sector = 2,
     .number_of_sectors = 1,
+};
+
+const proxy::BluetoothSerial::Config bluetooth_config{
+    .init_function = MX_UART4_Init,
+    .handle = &huart4,
 };
 
 const hal::Fmac::Config fmac_config{
