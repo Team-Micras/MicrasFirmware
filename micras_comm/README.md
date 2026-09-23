@@ -10,13 +10,14 @@ The module's serial port *is* the USB-C receptacle. `D-` reaches `PA11` and `D+`
 each through a 33 Ω series resistor, and `SBU1`/`SBU2` supply 3V3 through a 300 mA resettable fuse.
 `CC1` and `CC2` terminate in 5.1 kΩ resistors and never reach the microcontroller.
 
-Two consequences follow from that, and both shape the protocol:
+One consequence of that shapes the protocol: **there is no hardware flow control.** The CC2640R2F
+inside the module has `RTS`/`CTS`, but the board cannot reach them, and every other conductor of the
+receptacle is already used. The module therefore drops bytes silently when its buffer fills, which
+is what the credit window in the session layer exists to prevent.
 
-- **There is no hardware flow control.** The CC2640R2F inside the module has `RTS`/`CTS`, but the
-  board cannot reach them, and every other conductor of the receptacle is already used. The module
-  therefore drops bytes silently when its buffer fills, which is what the credit window in the
-  session layer exists to prevent.
-- **USB device mode does not exist on this board.** The receptacle is a serial port, not a USB one.
+`PA11` and `PA12` are also `USB_OTG_HS_DM` and `USB_OTG_HS_DP`, and the board carries the 5.1 kΩ
+`CC` terminations and the 1.5 kΩ `D+` pull-up of a full speed USB device, so the same receptacle
+can be a USB port instead. It cannot be both at once, and the radio owns it.
 
 ## Configuring the module
 
