@@ -3,11 +3,18 @@
  */
 
 #include <algorithm>
+#include <array>
 #include <cmath>
+#include <cstddef>
+#include <cstdint>
 #include <memory>
+#include <span>
+#include <string_view>
 #include <tuple>
+#include <utility>
 
 #include "constants.hpp"
+#include "micras/comm/link.hpp"
 #include "micras/core/types.hpp"
 #include "micras/hal/mcu.hpp"
 #include "micras/micras.hpp"
@@ -20,14 +27,23 @@
 #include "micras/states/init.hpp"
 #include "micras/states/run.hpp"
 #include "micras/states/wait.hpp"
+#include "target.hpp"
 
 namespace micras {
+// NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables) the DMA writes here
+static std::array<uint8_t, bluetooth_rx_buffer_size> bluetooth_rx_buffer;
+static std::array<uint8_t, bluetooth_tx_buffer_size> bluetooth_tx_buffer;
+
+// NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
+
 Micras::Micras() :
+    bluetooth{bluetooth_config, bluetooth_rx_buffer, bluetooth_tx_buffer},
     action_queuer{action_queuer_config},
     maze{maze_config},
     odometry{rotary_sensor_left, rotary_sensor_right, imu, odometry_config},
     speed_controller{speed_controller_config},
     follow_wall{wall_sensors, follow_wall_config},
+    link{bluetooth, variables, *this, {.loop_time_us = loop_time_us}},
     interface{button, dip_switch, led},
     action_pose{odometry.get_state().pose} {
     hal::Mcu::set_watchdog_timeout(watchdog_timeout_ms);
@@ -39,6 +55,63 @@ Micras::Micras() :
     this->fsm.add_state(std::make_unique<RunState>(State::RUN, *this));
     this->fsm.add_state(std::make_unique<WaitState>(State::WAIT_FOR_RUN, *this, State::RUN));
     this->fsm.add_state(std::make_unique<WaitState>(State::WAIT_FOR_CALIBRATE, *this, State::CALIBRATE));
+
+    this->register_variables();
+}
+
+void Micras::publish() {
+    for (std::size_t i = 0; i < this->telemetry.wall_reading.size(); i++) {
+        this->telemetry.wall_reading.at(i) = this->wall_sensors.get_reading(i);
+    }
+
+    this->telemetry.angular_velocity = {
+        this->imu.get_angular_velocity(proxy::Imu::Axis::X),
+        this->imu.get_angular_velocity(proxy::Imu::Axis::Y),
+        this->imu.get_angular_velocity(proxy::Imu::Axis::Z),
+    };
+
+    this->telemetry.linear_acceleration = {
+        this->imu.get_linear_acceleration(proxy::Imu::Axis::X),
+        this->imu.get_linear_acceleration(proxy::Imu::Axis::Y),
+        this->imu.get_linear_acceleration(proxy::Imu::Axis::Z),
+    };
+
+    this->telemetry.battery_voltage = this->battery.get_voltage();
+}
+
+void Micras::register_variables() {
+    static constexpr std::array<std::string_view, 4> sensor_names{"0", "1", "2", "3"};
+
+    for (std::size_t i = 0; i < this->telemetry.wall_reading.size(); i++) {
+        this->variables.add("wall/", sensor_names.at(i), this->telemetry.wall_reading.at(i), {.stream = true});
+    }
+
+    this->variables.add("imu/", "gyro_x", this->telemetry.angular_velocity.at(0), {.stream = true});
+    this->variables.add("imu/", "gyro_y", this->telemetry.angular_velocity.at(1), {.stream = true});
+    this->variables.add("imu/", "gyro_z", this->telemetry.angular_velocity.at(2), {.stream = true});
+    this->variables.add("imu/", "accel_x", this->telemetry.linear_acceleration.at(0), {.stream = true});
+    this->variables.add("imu/", "accel_y", this->telemetry.linear_acceleration.at(1), {.stream = true});
+    this->variables.add("imu/", "accel_z", this->telemetry.linear_acceleration.at(2), {.stream = true});
+    this->variables.add("", "battery_voltage", this->telemetry.battery_voltage, {.stream = true});
+
+    this->variables.add("loop/", "elapsed_time", this->elapsed_time, {.stream = true});
+    this->variables.add("loop/", "worst_time_us", this->worst_loop_time_us, {.stream = true});
+
+    this->variables.add("cmd/", "linear", this->desired_speeds.linear, {.stream = true});
+    this->variables.add("cmd/", "angular", this->desired_speeds.angular, {.stream = true});
+
+    this->variables.add("response/", "left", this->left_response, {.stream = true});
+    this->variables.add("response/", "right", this->right_response, {.stream = true});
+    this->variables.add("feed_forward/", "left", this->left_ff, {.stream = true});
+    this->variables.add("feed_forward/", "right", this->right_ff, {.stream = true});
+
+    this->variables.add("", "objective", this->objective, {.stream = true, .write = true, .idle = true});
+    this->variables.add("", "run_profile", this->run_profile, {.stream = true, .write = true, .persist = true});
+    this->variables.add("", "maze", this->maze, {.persist = true});
+
+    this->link.register_variables(this->variables, "link/");
+
+    this->maze_storage.restore(this->variables);
 }
 
 void Micras::update() {
@@ -56,8 +129,15 @@ void Micras::update() {
     this->imu.update();
     this->torque_sensors.update();
     this->wall_sensors.update();
+    this->bluetooth.update();
 
     this->fsm.update();
+    this->publish();
+
+    const uint32_t timestamp_us = this->telemetry_stopwatch.elapsed_time_us();
+
+    this->link.poll(this->is_idle());
+    this->link.pump(timestamp_us);
 
     this->worst_loop_time_us = std::max(this->worst_loop_time_us, this->loop_stopwatch.elapsed_time_us());
 
@@ -187,14 +267,12 @@ bool Micras::check_crash() const {
 void Micras::save_best_route() {
     hal::Mcu::set_watchdog_timeout(flash_watchdog_timeout_ms);
 
-    this->maze_storage.create("maze", this->maze);
-    this->maze_storage.save();
+    this->maze_storage.save(this->variables);
 
     hal::Mcu::set_watchdog_timeout(watchdog_timeout_ms);
 }
 
 void Micras::load_best_route() {
-    this->maze_storage.sync("maze", this->maze);
     this->action_queuer.recompute(this->maze.get_best_route(), false);
     this->fan.set_speed(fan_speed);
 }
@@ -224,10 +302,53 @@ bool Micras::peek_event(Interface::Event event) const {
 }
 
 void Micras::handle_events() {
-    if (this->interface.acknowledge_event(Interface::Event::TURN_ON_FAN)) {
+    if (this->interface.acknowledge_event(Interface::Event::PROFILE_MOVED)) {
+        this->run_profile = this->interface.get_profile();
+    }
+
+    if ((this->run_profile & std::to_underlying(Interface::Profile::FAN)) != 0) {
         this->fan.enable();
-    } else if (this->interface.acknowledge_event(Interface::Event::TURN_OFF_FAN)) {
+    } else {
         this->fan.disable();
     }
+}
+
+bool Micras::is_idle() const {
+    return this->fsm.get_current_state_id() == std::to_underlying(State::IDLE);
+}
+
+comm::CommandResult Micras::handle_command(uint8_t code, uint32_t argument) {
+    switch (static_cast<Command>(code)) {
+        case Command::EXPLORE:
+            this->send_event(Interface::Event::EXPLORE);
+            return comm::CommandResult::OK;
+
+        case Command::SOLVE:
+            this->send_event(Interface::Event::SOLVE);
+            return comm::CommandResult::OK;
+
+        case Command::CALIBRATE:
+            this->send_event(Interface::Event::CALIBRATE);
+            return comm::CommandResult::OK;
+
+        case Command::SAVE:
+            if (not this->is_idle()) {
+                return comm::CommandResult::REFUSED;
+            }
+
+            this->save_best_route();
+            return comm::CommandResult::OK;
+
+        case Command::RESET:
+            if (not this->is_idle()) {
+                return comm::CommandResult::REFUSED;
+            }
+
+            this->reset();
+            return comm::CommandResult::OK;
+    }
+
+    static_cast<void>(argument);
+    return comm::CommandResult::UNKNOWN;
 }
 }  // namespace micras

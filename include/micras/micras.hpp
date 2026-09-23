@@ -5,12 +5,15 @@
 #ifndef MICRAS_HPP
 #define MICRAS_HPP
 
+#include <array>
 #include <cstdint>
 #include <memory>
 #include <utility>
 
 #include "constants.hpp"
+#include "micras/comm/link.hpp"
 #include "micras/core/fsm.hpp"
+#include "micras/core/variable_pool.hpp"
 #include "micras/interface.hpp"
 #include "target.hpp"
 
@@ -18,7 +21,7 @@ namespace micras {
 /**
  * @brief Class for controlling the Micras robot.
  */
-class Micras {
+class Micras : public comm::ICommandHandler {
 public:
     /**
      * @brief Enum for the current status of the robot.
@@ -32,6 +35,20 @@ public:
         CALIBRATE = 5,           // Calibrating the robot.
         ERROR = 6,               // Error state.
         NUMBER_OF_STATES = 7
+    };
+
+    /**
+     * @brief Commands the link can ask the robot to run.
+     *
+     * @note These are edges, not levels: each one happens once, when it arrives. Everything that
+     * is a level, like the run profile, is a writable variable instead.
+     */
+    enum class Command : uint8_t {
+        EXPLORE = 0,
+        SOLVE = 1,
+        CALIBRATE = 2,
+        SAVE = 3,
+        RESET = 4,
     };
 
     /**
@@ -144,7 +161,53 @@ public:
      */
     void handle_events();
 
+    /**
+     * @brief Run a command that arrived over the link.
+     *
+     * @param code Command to run.
+     * @param argument Argument of the command.
+     * @return Whether the command ran.
+     */
+    comm::CommandResult handle_command(uint8_t code, uint32_t argument) override;
+
+    /**
+     * @brief Check if the robot is stopped.
+     *
+     * @note This is what gates the guarded writes and the commands that block for seconds, so it
+     * is the state of the machine rather than a flag anything else maintains.
+     *
+     * @return True if the robot is idle, false otherwise.
+     */
+    bool is_idle() const;
+
 private:
+    /**
+     * @brief Values published over the link that no object holds at a stable address.
+     *
+     * @note Most of what is worth watching is computed on the way out of its sensor: the yaw rate
+     * has the calibration subtracted from it, the battery is scaled into volts. Publishing means
+     * copying those into somewhere that stays put.
+     */
+    struct Telemetry {
+        std::array<float, 4> wall_reading{};
+        std::array<float, 3> angular_velocity{};
+        std::array<float, 3> linear_acceleration{};
+        float                battery_voltage{};
+    };
+
+    /**
+     * @brief Copy the published sensor values into the telemetry.
+     */
+    void publish();
+
+    /**
+     * @brief Register every variable the robot exposes, and load the ones the flash memory holds.
+     *
+     * @note Each owner registers its own members, so the values are sampled where they already
+     * live and nothing has to be copied once per iteration to keep a second set up to date.
+     */
+    void register_variables();
+
     /**
      * @brief Enum for the type of calibration being performed.
      */
@@ -172,11 +235,12 @@ private:
      * @brief Interface proxies with the external world.
      */
     ///@{
-    proxy::Argb      argb{argb_config};
-    proxy::Button    button{button_config};
-    proxy::Buzzer    buzzer{buzzer_config};
-    proxy::DipSwitch dip_switch{dip_switch_config};
-    proxy::Led       led{led_config};
+    proxy::Argb            argb{argb_config};
+    proxy::BluetoothSerial bluetooth;
+    proxy::Button          button{button_config};
+    proxy::Buzzer          buzzer{buzzer_config};
+    proxy::DipSwitch       dip_switch{dip_switch_config};
+    proxy::Led             led{led_config};
     ///@}
 
     /**
@@ -201,6 +265,26 @@ private:
     ///@}
 
     /**
+     * @brief Sensor values as they are published, which is not always as they are stored.
+     */
+    Telemetry telemetry;
+
+    /**
+     * @brief Every variable exposed to the storage and to the communication link.
+     */
+    core::TVariablePool<max_variables> variables;
+
+    /**
+     * @brief Session the variables are watched and steered through.
+     */
+    comm::Link link;
+
+    /**
+     * @brief Free running clock the samples are stamped with.
+     */
+    proxy::Stopwatch telemetry_stopwatch;
+
+    /**
      * @brief Finite state machine for the robot.
      */
     core::TFsm<std::to_underlying(State::NUMBER_OF_STATES)> fsm{std::to_underlying(State::INIT)};
@@ -219,6 +303,14 @@ private:
      * @brief Current objective of the robot.
      */
     core::Objective objective{core::Objective::EXPLORE};
+
+    /**
+     * @brief Options of the next run, written by the switches and by the link alike.
+     *
+     * @note Last writer wins, which is a rule that can be predicted from the outside. The switches
+     * write it when they move, the link whenever it likes.
+     */
+    uint8_t run_profile{};
 
     /**
      * @brief Current type of calibration being performed.
