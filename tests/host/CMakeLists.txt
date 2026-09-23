@@ -19,7 +19,6 @@ enable_testing()
 
 add_library(micras_host_core STATIC
     ${MICRAS_ROOT}/micras_core/src/cobs.cpp
-    ${MICRAS_ROOT}/micras_core/src/crc.cpp
     ${MICRAS_ROOT}/micras_core/src/variable_pool.cpp
 )
 
