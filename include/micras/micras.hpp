@@ -12,7 +12,6 @@
 
 #include "constants.hpp"
 #include "micras/comm/link.hpp"
-#include "micras/comm/trace.hpp"
 #include "micras/core/fsm.hpp"
 #include "micras/core/variable_pool.hpp"
 #include "micras/interface.hpp"
@@ -50,7 +49,6 @@ public:
         CALIBRATE = 2,
         SAVE = 3,
         RESET = 4,
-        TRACE_TRIGGER = 5,
     };
 
     /**
@@ -277,12 +275,9 @@ private:
     core::TVariablePool<max_variables> variables;
 
     /**
-     * @brief Full rate capture, and the session that arms and reads it out.
+     * @brief Session the variables are watched and steered through.
      */
-    ///@{
-    comm::Trace trace;
-    comm::Link  link;
-    ///@}
+    comm::Link link;
 
     /**
      * @brief Free running clock the samples are stamped with.

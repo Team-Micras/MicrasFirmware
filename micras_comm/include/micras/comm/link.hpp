@@ -12,9 +12,7 @@
 #include <string_view>
 
 #include "micras/comm/frame.hpp"
-#include "micras/comm/group.hpp"
 #include "micras/comm/protocol.hpp"
-#include "micras/comm/trace.hpp"
 #include "micras/core/byte_stream.hpp"
 #include "micras/core/variable_pool.hpp"
 
@@ -83,14 +81,10 @@ public:
      *
      * @param stream Transport the session runs over.
      * @param pool Variables the session exposes.
-     * @param trace Capture buffer the session arms and reads out.
      * @param commands Handler the commands are given to.
      * @param config Configuration for the link.
      */
-    Link(
-        core::IByteStream& stream, core::VariablePool& pool, Trace& trace, ICommandHandler& commands,
-        const Config& config
-    );
+    Link(core::IByteStream& stream, core::VariablePool& pool, ICommandHandler& commands, const Config& config);
 
     /**
      * @brief Take whatever arrived and act on at most one message.
@@ -133,6 +127,50 @@ public:
 
 private:
     /**
+     * @brief A set of variables sampled in the same loop iteration and sent under one timestamp.
+     *
+     * @note Sampling several variables under one header and one timestamp is not only cheaper on a
+     * link this slow, it is the only way the samples mean anything together. A response plotted
+     * against a setpoint captured two iterations later is a plot of the loop plus an unknown delay.
+     */
+    struct Group {
+        /**
+         * @brief Variables of the group, in the order their values are packed.
+         */
+        std::array<core::VariableId, max_group_variables> ids{};
+
+        /**
+         * @brief Number of variables in the group.
+         */
+        uint8_t count{};
+
+        /**
+         * @brief Number of loop iterations between two samples.
+         */
+        uint16_t period{1};
+
+        /**
+         * @brief Number of bytes of the values of one sample.
+         */
+        uint16_t sample_size{};
+
+        /**
+         * @brief Iterations left until the next sample.
+         */
+        uint16_t counter{};
+
+        /**
+         * @brief Number of samples taken, which lets the application see the ones that were dropped.
+         */
+        uint16_t sequence{};
+
+        /**
+         * @brief Whether the group is being sent.
+         */
+        bool enabled{};
+    };
+
+    /**
      * @brief Act on one decoded message.
      *
      * @param robot_is_idle Whether the robot is stopped.
@@ -151,28 +189,12 @@ private:
     void on_write(Reader& reader, bool robot_is_idle);
     void on_read(Reader& reader);
     void on_command(Reader& reader);
-    void on_trace_arm(Reader& reader);
-    void on_trace_read(Reader& reader);
     ///@}
 
     /**
      * @brief Send one page of the schema, if one was asked for.
-     *
-     * @return True if a frame was sent, false otherwise.
      */
-    bool send_schema_page();
-
-    /**
-     * @brief Send one block of the capture, if one was asked for.
-     *
-     * @return True if a frame was sent, false otherwise.
-     */
-    bool send_trace_block();
-
-    /**
-     * @brief Send the state of the capture.
-     */
-    void send_trace_status();
+    void send_schema_page();
 
     /**
      * @brief Send an error for a message that could not be acted on.
@@ -204,7 +226,6 @@ private:
     // NOLINTBEGIN(*-avoid-const-or-ref-data-members) borrowed for the lifetime of the robot
     core::IByteStream&  stream;
     core::VariablePool& pool;
-    Trace&              trace;
     ICommandHandler&    commands;
     // NOLINTEND(*-avoid-const-or-ref-data-members)
 
@@ -240,16 +261,6 @@ private:
      * @brief Index of the next schema entry to send, past the last one when no page is due.
      */
     uint16_t schema_index{};
-
-    /**
-     * @brief Offset of the next block of the capture to send, past the end when none is due.
-     */
-    uint32_t trace_offset{};
-
-    /**
-     * @brief Whether a capture is being read out.
-     */
-    bool trace_dumping{};
 
     /**
      * @brief Counters worth watching from the application.

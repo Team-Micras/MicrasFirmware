@@ -122,7 +122,7 @@ concept Registrable = std::is_trivially_copyable_v<T> and requires { TypeCodeOf<
  */
 struct Access {
     /**
-     * @brief Whether the variable can be part of a stream or of a trace group.
+     * @brief Whether the variable can be part of a stream.
      */
     bool stream : 1 {};
 

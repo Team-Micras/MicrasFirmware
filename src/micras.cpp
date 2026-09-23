@@ -30,10 +30,9 @@
 #include "target.hpp"
 
 namespace micras {
-// NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables) the DMA and the capture write here
+// NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables) the DMA writes here
 static std::array<uint8_t, bluetooth_rx_buffer_size> bluetooth_rx_buffer;
 static std::array<uint8_t, bluetooth_tx_buffer_size> bluetooth_tx_buffer;
-static std::array<uint8_t, trace_buffer_size>        trace_buffer;
 
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
@@ -44,8 +43,7 @@ Micras::Micras() :
     odometry{rotary_sensor_left, rotary_sensor_right, imu, odometry_config},
     speed_controller{speed_controller_config},
     follow_wall{wall_sensors, follow_wall_config},
-    trace{variables, trace_buffer},
-    link{bluetooth, variables, trace, *this, {.loop_time_us = loop_time_us}},
+    link{bluetooth, variables, *this, {.loop_time_us = loop_time_us}},
     interface{button, dip_switch, led},
     action_pose{odometry.get_state().pose} {
     hal::Mcu::set_watchdog_timeout(watchdog_timeout_ms);
@@ -139,7 +137,6 @@ void Micras::update() {
     const uint32_t timestamp_us = this->telemetry_stopwatch.elapsed_time_us();
 
     this->link.poll(this->is_idle());
-    this->trace.sample(timestamp_us);
     this->link.pump(timestamp_us);
 
     this->worst_loop_time_us = std::max(this->worst_loop_time_us, this->loop_stopwatch.elapsed_time_us());
@@ -332,10 +329,6 @@ comm::CommandResult Micras::handle_command(uint8_t code, uint32_t argument) {
 
         case Command::CALIBRATE:
             this->send_event(Interface::Event::CALIBRATE);
-            return comm::CommandResult::OK;
-
-        case Command::TRACE_TRIGGER:
-            this->trace.fire();
             return comm::CommandResult::OK;
 
         case Command::SAVE:

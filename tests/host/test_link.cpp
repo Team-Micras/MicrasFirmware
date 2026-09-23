@@ -12,7 +12,6 @@
 
 #include "micras/comm/frame.hpp"
 #include "micras/comm/link.hpp"
-#include "micras/comm/trace.hpp"
 #include "micras/core/byte_stream.hpp"
 #include "micras/core/variable_pool.hpp"
 #include "test_host.hpp"
@@ -120,16 +119,13 @@ int main() {
     pool.add("model/", "gain", gain, {.stream = true, .write = true, .idle = true, .persist = true});
     pool.add("", "run_profile", profile, {.stream = true, .write = true});
 
-    std::vector<uint8_t> ring(1024);
-    Trace                trace{pool, ring};
-    Commands             commands;
-    Loopback             io;
-    Link                 link{io, pool, trace, commands, {.loop_time_us = 125}};
+    Commands commands;
+    Loopback io;
+    Link     link{io, pool, commands, {.loop_time_us = 125}};
 
     auto step = [&](uint32_t t, bool idle = true) {
         link.poll(idle);
         link.pump(t);
-        trace.sample(t);
     };
     auto settle = [&](uint32_t& t, int n = 40, bool idle = true) {
         for (int i = 0; i < n; i++)
@@ -283,65 +279,6 @@ int main() {
     for (auto& m : msgs)
         if (m.type == MessageType::VALUE)
             CHECK(u16(m.payload, 0) == 1);
-
-    // --- trace: full rate capture with pre-trigger, read out afterwards ---
-    drain(io);
-    send(io, MessageType::GROUP_DEFINE, {1, 1, 0, 1, 0, 0});  // group 1, period 1, just cmd/linear
-    settle(now, 4);
-    drain(io);
-
-    // trigger when cmd/linear rises through 10
-    V arm{1, 50, uint8_t(TriggerType::ABOVE), 0, 0, 0, 0, 0x20, 0x41};  // threshold 10.0F
-    linear = 0.0F;
-    send(io, MessageType::TRACE_ARM, arm);
-    settle(now, 4);
-    msgs = drain(io);
-    CHECK(only(msgs, MessageType::TRACE_STATUS).payload[0] == uint8_t(TraceState::ARMED));
-
-    const std::size_t capacity = ring.size() / 4;
-    const std::size_t pre = capacity / 2;
-
-    for (std::size_t i = 0; i < capacity; i++) {
-        linear = -float(i);
-        step(now += 125);
-    }
-    CHECK(trace.state() == TraceState::ARMED);  // nothing crossed the threshold yet
-
-    for (std::size_t i = 0; i < pre; i++) {
-        linear = 50.0F + float(i);
-        step(now += 125);
-    }
-    CHECK(trace.state() == TraceState::FULL);
-    CHECK(trace.held() == capacity);
-    CHECK(trace.pre_trigger() == pre);
-    CHECK(trace.sample_size() == 4);
-    CHECK(trace.period() == 1);
-
-    drain(io);
-    send(io, MessageType::TRACE_READ, {0, 0, 0, 0});
-
-    // the readout runs at whatever rate the application returns credit at, which is the point
-    V dump;
-    for (int round = 0; round < 200 && dump.size() < capacity * 4; round++) {
-        settle(now, 8);
-        msgs = drain(io);
-
-        for (auto& m : msgs) {
-            if (m.type != MessageType::TRACE_DATA)
-                continue;
-            CHECK(u32(m.payload, 0) == dump.size());
-            dump.insert(dump.end(), m.payload.begin() + 4, m.payload.end());
-        }
-    }
-    CHECK(dump.size() == capacity * 4);
-
-    // the oldest half is what preceded the trigger, the newest half what followed it
-    for (std::size_t i = 0; i < pre; i++) {
-        CHECK(f32(dump, i * 4) == -float(pre + i));
-    }
-    for (std::size_t i = 0; i < capacity - pre; i++) {
-        CHECK(f32(dump, (pre + i) * 4) == 50.0F + float(i));
-    }
 
     std::puts("link ok");
 }
