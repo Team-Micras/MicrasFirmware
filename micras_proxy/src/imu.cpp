@@ -185,5 +185,4 @@ void Imu::calibrate() {
 bool Imu::was_initialized() const {
     return this->initialized;
 }
-
 }  // namespace micras::proxy
