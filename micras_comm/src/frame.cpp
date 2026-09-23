@@ -14,7 +14,6 @@
 #include "micras/comm/frame.hpp"
 #include "micras/comm/protocol.hpp"
 #include "micras/core/cobs.hpp"
-#include "micras/core/crc.hpp"
 
 namespace micras::comm {
 // The buffers here are all fixed size arrays and spans the caller owns, indexed right after the
@@ -94,6 +93,18 @@ bool Reader::valid() const {
     return not this->underflowed;
 }
 
+static uint16_t fletcher16(std::span<const uint8_t> data) {
+    uint16_t low = 0;
+    uint16_t high = 0;
+
+    for (const uint8_t byte : data) {
+        low = static_cast<uint16_t>((low + byte) % 255);
+        high = static_cast<uint16_t>((high + low) % 255);
+    }
+
+    return static_cast<uint16_t>(high << 8U | low);
+}
+
 std::size_t encode_frame(MessageType type, std::span<const uint8_t> payload, std::span<uint8_t> into) {
     if (payload.size() > max_payload_size or into.empty()) {
         return 0;
@@ -107,7 +118,7 @@ std::size_t encode_frame(MessageType type, std::span<const uint8_t> payload, std
     }
 
     const std::size_t checked_size = payload.size() + 1;
-    const uint16_t    check = core::crc16(std::span{plain}.first(checked_size));
+    const uint16_t    check = fletcher16(std::span{plain}.first(checked_size));
 
     plain[checked_size] = check;
     plain[checked_size + 1] = check >> 8;
@@ -155,7 +166,7 @@ bool FrameReader::finish() {
     const std::span<const uint8_t> checked = std::span{this->decoded}.first(size - 2);
     const auto expected = static_cast<uint16_t>(this->decoded[size - 2] | this->decoded[size - 1] << 8);
 
-    if (core::crc16(checked) != expected) {
+    if (fletcher16(checked) != expected) {
         return false;
     }
 

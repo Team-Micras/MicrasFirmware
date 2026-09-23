@@ -50,15 +50,18 @@ Frames are [COBS](https://en.wikipedia.org/wiki/Consistent_Overhead_Byte_Stuffin
 delimited by a zero byte:
 
 ```text
-COBS( type | payload | crc16 )  0x00
+COBS( type | payload | fletcher16 )  0x00
 ```
 
-The CRC-16/CCITT-FALSE covers the type and the payload, before encoding. It is not protecting
-against the radio, which has a CRC-24 and retransmits until acknowledged. It covers the two hops
-BLE never sees: the 8N1 serial port with no parity between the microcontroller and the module, and
-the module's buffer, which drops runs of bytes with no indication that it did. A dropped run can
-join the head of one frame to the tail of the next into something with a plausible shape, which a
-sum passes far too often and a CRC does not.
+The frame check is Fletcher-16 over the type and the payload, before encoding, little endian. It is
+not protecting against the radio, which has a CRC-24 and retransmits until acknowledged. It covers
+the two hops BLE never sees: the 8N1 serial port with no parity between the microcontroller and the
+module, and the module's buffer, which drops runs of bytes with no indication that it did. A
+dropped run can join the head of one frame to the tail of the next into something with a plausible
+shape, and the two running sums make that about as unlikely as a sixteen bit check can: one over
+sixty five thousand, against one in two hundred and fifty five for a single sum of bytes. It is
+weaker than a CRC on long bursts, which is what a CRC is uniquely good at, and it is four lines
+that live beside the codec they belong to.
 
 Message types, their payloads and the meaning of every field are in
 `micras_comm/include/micras/comm/protocol.hpp`. Everything on the wire is little endian, which is

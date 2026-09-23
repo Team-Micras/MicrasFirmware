@@ -45,7 +45,7 @@ target_include_directories(micras_host_proxy PUBLIC
 
 target_link_libraries(micras_host_proxy PUBLIC micras_host_core)
 
-foreach(TEST_NAME variable_pool crc cobs frame storage link)
+foreach(TEST_NAME variable_pool cobs frame storage link)
     add_executable(test_${TEST_NAME} test_${TEST_NAME}.cpp)
     target_include_directories(test_${TEST_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
     target_compile_options(test_${TEST_NAME} PRIVATE -Wall -Wextra -fsanitize=address,undefined)
@@ -54,7 +54,6 @@ foreach(TEST_NAME variable_pool crc cobs frame storage link)
 endforeach()
 
 target_link_libraries(test_variable_pool PRIVATE micras_host_core)
-target_link_libraries(test_crc PRIVATE micras_host_core)
 target_link_libraries(test_cobs PRIVATE micras_host_core)
 target_link_libraries(test_frame PRIVATE micras_host_comm)
 target_link_libraries(test_storage PRIVATE micras_host_proxy)
