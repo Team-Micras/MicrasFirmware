@@ -41,20 +41,13 @@ constexpr uint16_t bluetooth_rx_buffer_size{512};
  */
 constexpr uint16_t bluetooth_tx_buffer_size{4096};
 
-/**
- * @brief Size of the buffer the full rate capture is recorded into.
- *
- * @note Eight floats at the loop rate fill this in 130 ms, and four floats in 260 ms, which is a
- * whole turn. Reading it out takes a few seconds, which is why it is read with the robot stopped.
- */
-constexpr uint16_t trace_buffer_size{32768};
-constexpr float    wall_thickness{0.0126F};
-constexpr float    start_offset{0.04F + wall_thickness / 2.0F};
-constexpr float    max_linear_acceleration{9.0F};
-constexpr float    max_linear_deceleration{9.0F};
-constexpr float    max_angular_acceleration{300.0F};
-constexpr float    crash_acceleration{35.0F};
-constexpr float    fan_speed{100.0F};
+constexpr float wall_thickness{0.0126F};
+constexpr float start_offset{0.04F + wall_thickness / 2.0F};
+constexpr float max_linear_acceleration{9.0F};
+constexpr float max_linear_deceleration{9.0F};
+constexpr float max_angular_acceleration{300.0F};
+constexpr float crash_acceleration{35.0F};
+constexpr float fan_speed{100.0F};
 
 /**
  * @brief Rate at which the control loop runs, and therefore the rate at which every filter driven

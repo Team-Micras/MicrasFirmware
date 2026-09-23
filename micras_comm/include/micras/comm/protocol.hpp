@@ -62,9 +62,7 @@ enum class MessageType : uint8_t {
     WRITE = 0x06,
     READ = 0x07,
     COMMAND = 0x08,
-    TRACE_ARM = 0x09,
-    TRACE_READ = 0x0A,
-    PING = 0x0B,
+    PING = 0x09,
 
     HELLO_ACK = 0x81,
     SCHEMA_PAGE = 0x82,
@@ -73,10 +71,8 @@ enum class MessageType : uint8_t {
     WRITE_ACK = 0x86,
     VALUE = 0x87,
     COMMAND_ACK = 0x88,
-    LOG = 0x89,
-    TRACE_STATUS = 0x8A,
-    TRACE_DATA = 0x8B,
-    PONG = 0x8C,
+    PONG = 0x89,
+    LOG = 0x8A,
     ERROR = 0x8F
 };
 
@@ -100,26 +96,6 @@ enum class Severity : uint8_t {
     INFO = 1,
     WARNING = 2,
     ERROR = 3
-};
-
-/**
- * @brief What starts a trace capture.
- */
-enum class TriggerType : uint8_t {
-    IMMEDIATE = 0,
-    COMMAND = 1,
-    ABOVE = 2,
-    BELOW = 3
-};
-
-/**
- * @brief State of the trace capture.
- */
-enum class TraceState : uint8_t {
-    IDLE = 0,
-    ARMED = 1,
-    TRIGGERED = 2,
-    FULL = 3
 };
 }  // namespace micras::comm
 

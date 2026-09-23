@@ -79,6 +79,6 @@ what both the microcontroller and `DataView` in the browser already are.
 - **Writes are levels and commands are edges.** `WRITE` sets a gain or a flag and is acknowledged
   with a result; the `idle` flag on a variable refuses the dangerous ones while the robot is moving.
   `COMMAND` happens once, when it arrives.
-- **The trace is a scope.** The link is between twenty and a hundred times too slow to carry the
-  8 kHz control loop, so `TRACE_ARM` records a group into a RAM ring at loop rate, keeping a share
-  of the capture from before the trigger, and `TRACE_READ` pulls it out afterwards.
+- **The link cannot carry the control loop.** It is between twenty and a hundred times too slow for
+  8 kHz, so a group is defined with a period in loop iterations and only every period-th iteration
+  is sent. The rate the application asks for is a rate it can actually receive.

@@ -28,7 +28,6 @@ target_include_directories(micras_host_core PUBLIC ${MICRAS_ROOT}/micras_core/in
 add_library(micras_host_comm STATIC
     ${MICRAS_ROOT}/micras_comm/src/frame.cpp
     ${MICRAS_ROOT}/micras_comm/src/link.cpp
-    ${MICRAS_ROOT}/micras_comm/src/trace.cpp
 )
 
 target_include_directories(micras_host_comm PUBLIC ${MICRAS_ROOT}/micras_comm/include)

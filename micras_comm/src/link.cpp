@@ -11,19 +11,15 @@
 #include <utility>
 
 #include "micras/comm/frame.hpp"
-#include "micras/comm/group.hpp"
 #include "micras/comm/link.hpp"
 #include "micras/comm/protocol.hpp"
-#include "micras/comm/trace.hpp"
 #include "micras/core/byte_stream.hpp"
 #include "micras/core/serializable.hpp"
 #include "micras/core/variable_pool.hpp"
 
 namespace micras::comm {
-Link::Link(
-    core::IByteStream& stream, core::VariablePool& pool, Trace& trace, ICommandHandler& commands, const Config& config
-) :
-    stream{stream}, pool{pool}, trace{trace}, commands{commands}, config{config} {
+Link::Link(core::IByteStream& stream, core::VariablePool& pool, ICommandHandler& commands, const Config& config) :
+    stream{stream}, pool{pool}, commands{commands}, config{config} {
     this->schema_index = pool.all().size();
 }
 
@@ -83,14 +79,6 @@ void Link::execute(bool robot_is_idle) {
             this->on_command(payload_reader);
             return;
 
-        case MessageType::TRACE_ARM:
-            this->on_trace_arm(payload_reader);
-            return;
-
-        case MessageType::TRACE_READ:
-            this->on_trace_read(payload_reader);
-            return;
-
         case MessageType::PING:
             this->send(MessageType::PONG, {});
             return;
@@ -106,8 +94,6 @@ void Link::on_hello() {
         group = {};
     }
 
-    this->trace.stop();
-    this->trace_dumping = false;
     this->schema_index = this->pool.all().size();
     this->credit = initial_credit;
 
@@ -278,59 +264,6 @@ void Link::on_command(Reader& reader) {
     this->send(MessageType::COMMAND_ACK, writer.done());
 }
 
-void Link::on_trace_arm(Reader& reader) {
-    const uint8_t          index = reader.u8();
-    const uint8_t          pre_trigger = reader.u8();
-    const auto             trigger = static_cast<TriggerType>(reader.u8());
-    const core::VariableId watched = reader.u16();
-    const uint32_t         raw_threshold = reader.u32();
-
-    if (not reader.valid() or index >= max_groups) {
-        this->send_error(ErrorCode::NO_SUCH_GROUP, index);
-        return;
-    }
-
-    this->trace_dumping = false;
-
-    if (not this->trace.arm(
-            this->groups.at(index), pre_trigger, trigger, watched, std::bit_cast<float>(raw_threshold)
-        )) {
-        this->send_error(ErrorCode::MALFORMED, index);
-        return;
-    }
-
-    this->send_trace_status();
-}
-
-void Link::on_trace_read(Reader& reader) {
-    const uint32_t offset = reader.u32();
-
-    if (not reader.valid()) {
-        this->send_error(ErrorCode::MALFORMED, 0);
-        return;
-    }
-
-    if (this->trace.state() != TraceState::FULL) {
-        this->send_trace_status();
-        return;
-    }
-
-    this->trace_offset = offset;
-    this->trace_dumping = true;
-}
-
-void Link::send_trace_status() {
-    Writer writer{this->payload};
-    writer.u8(std::to_underlying(this->trace.state()));
-    writer.u32(this->trace.held());
-    writer.u32(this->trace.pre_trigger());
-    writer.u16(this->trace.sample_size());
-    writer.u16(this->trace.period());
-    writer.u32(this->trace.timestamp());
-
-    this->send(MessageType::TRACE_STATUS, writer.done());
-}
-
 void Link::send_error(ErrorCode code, uint16_t context) {
     Writer writer{this->payload};
     writer.u8(std::to_underlying(code));
@@ -370,11 +303,11 @@ bool Link::send_metered(MessageType type, std::span<const uint8_t> payload) {
     return true;
 }
 
-bool Link::send_schema_page() {
+void Link::send_schema_page() {
     const std::span<const core::Variable> variables = this->pool.all();
 
     if (this->schema_index >= variables.size()) {
-        return false;
+        return;
     }
 
     constexpr std::size_t count_offset{8};
@@ -409,42 +342,14 @@ bool Link::send_schema_page() {
 
     if (count == 0) {
         this->schema_index = variables.size();
-        return false;
+        return;
     }
 
     this->payload.at(count_offset) = count;
 
-    if (not this->send_metered(MessageType::SCHEMA_PAGE, writer.done())) {
-        return false;
+    if (this->send_metered(MessageType::SCHEMA_PAGE, writer.done())) {
+        this->schema_index = index;
     }
-
-    this->schema_index = index;
-    return true;
-}
-
-bool Link::send_trace_block() {
-    if (not this->trace_dumping) {
-        return false;
-    }
-
-    constexpr std::size_t header_size{4};
-
-    const std::size_t taken = this->trace.read(this->trace_offset, std::span{this->payload}.subspan(header_size));
-
-    if (taken == 0) {
-        this->trace_dumping = false;
-        return false;
-    }
-
-    Writer writer{this->payload};
-    writer.u32(this->trace_offset);
-
-    if (not this->send_metered(MessageType::TRACE_DATA, std::span{this->payload}.first(header_size + taken))) {
-        return false;
-    }
-
-    this->trace_offset += taken;
-    return true;
 }
 
 void Link::pump(uint32_t timestamp_us) {
@@ -462,24 +367,22 @@ void Link::pump(uint32_t timestamp_us) {
 
         group.counter = group.period - 1;
 
-        constexpr std::size_t header_size{7};
-
         Writer writer{this->payload};
         writer.u8(index);
         writer.u16(group.sequence++);
         writer.u32(timestamp_us);
 
-        group.sample(this->pool, std::span{this->payload}.subspan(header_size, group.sample_size));
+        std::size_t offset = writer.done().size();
 
-        const std::span<const uint8_t> message = std::span{this->payload}.first(header_size + group.sample_size);
+        for (uint8_t position = 0; position < group.count; position++) {
+            offset += this->pool.read(group.ids.at(position), std::span{this->payload}.subspan(offset));
+        }
 
-        if (not this->send_metered(MessageType::SAMPLE, message)) {
+        if (not this->send_metered(MessageType::SAMPLE, std::span{this->payload}.first(offset))) {
             this->dropped_samples++;
         }
     }
 
-    if (not this->send_schema_page()) {
-        this->send_trace_block();
-    }
+    this->send_schema_page();
 }
 }  // namespace micras::comm
