@@ -103,9 +103,9 @@ The button starts everything, and the four switches choose how.
 | Switch | Fast run | Extra long press, with the other two of these three off |
 | --- | --- | --- |
 | Fan | The fan runs, and its downforce is counted on. | The fan is not part of the choice. |
-| Diagonal | The route may use diagonals. | Drive identification: the robot drives forward and back by less than a meter, then turns to each side, and fits the constants of its drive train. |
+| Racing line | The robot drives the smoothest line through the cells of the fastest route instead of the route itself, if one is found. Every route may use diagonals. | Drive identification: the robot drives forward and back by less than a meter, then turns to each side, and fits the constants of its drive train. |
 | Boost | A larger share of the available traction is used. | Gyroscope scale calibration: facing a wall, the robot turns five times in place and compares what the gyroscope integrated with what the wall says. |
-| Risky | The turns designed with the smaller safety margin are used. | |
+| Risky | The turns designed with the smaller safety margin are used. With the racing line, the line through the route of those turns is driven only if it is faster. | |
 
 With none of those three on, an extra long press calibrates the wall sensors in two steps: first
 the side sensors, with the robot centered between two walls, and after a pause the front sensors,

@@ -18,6 +18,7 @@
 #include "micras/core/types.hpp"
 #include "micras/nav/executor.hpp"
 #include "micras/nav/grid_pose.hpp"
+#include "micras/nav/line.hpp"
 #include "micras/nav/localizer.hpp"
 #include "micras/nav/measurements.hpp"
 #include "micras/nav/route_compiler.hpp"
@@ -35,7 +36,8 @@ TMission<width, height>::TMission(const Dynamics& dynamics, const WallModel& wal
     observer{config.observer},
     planner{dynamics, config.planner},
     explorer{planner, config.map_profiles},
-    executor{dynamics, config.executor},
+    racing_line{dynamics, config.racing_line},
+    executor{dynamics, racing_line.get_line(), config.executor},
     search_speed{std::min(
         dynamics.get_linear_limits(config.search_profile).max_speed,
         dynamics.get_turn_speed(config.search_profile, TurnId::SS90S)
@@ -43,6 +45,9 @@ TMission<width, height>::TMission(const Dynamics& dynamics, const WallModel& wal
     this->solve_segments.reserve(config.executor.capacity);
     this->candidate_segments.reserve(config.executor.capacity);
     this->candidate_route.steps.reserve(config.executor.capacity);
+    this->solve_route.steps.reserve(config.executor.capacity);
+    this->careful_segments.reserve(config.executor.capacity);
+    this->careful_route.steps.reserve(config.executor.capacity);
     this->observer.reset();
 }
 
@@ -70,33 +75,103 @@ void TMission<width, height>::begin_plan(const RunProfile& profile) {
     this->solve_segments.clear();
     this->route_time = std::numeric_limits<float>::infinity();
     this->planner.begin(this->maze, WallAssumption::PESSIMISTIC, profile);
-    this->planning = true;
+    this->racing_line.reset();
+    this->stage = PlanStage::SEARCH;
+    this->pass = LinePass::REQUESTED;
+    this->risky_line_time = std::numeric_limits<float>::infinity();
 }
 
 template <uint8_t width, uint8_t height>
-bool TMission<width, height>::update_plan(uint32_t max_nodes) {
-    if (not this->planning) {
-        return true;
+bool TMission<width, height>::update_plan(uint32_t max_edges) {
+    switch (this->stage) {
+        case PlanStage::IDLE:
+            return true;
+
+        case PlanStage::SEARCH:
+            if (not this->planner.step(max_edges)) {
+                return false;
+            }
+
+            if (this->pass == LinePass::REQUESTED) {
+                this->route_time = this->choose_route(this->solve_profile, this->solve_route, this->solve_segments);
+
+                if (not this->solve_profile.racing_line or this->solve_segments.empty()) {
+                    this->stage = PlanStage::IDLE;
+                    return true;
+                }
+
+                this->racing_line.begin(this->solve_route, this->solve_segments, this->maze, this->solve_profile);
+            } else {
+                RunProfile careful = this->solve_profile;
+                careful.risky = false;
+                this->choose_route(careful, this->careful_route, this->careful_segments);
+
+                if (this->careful_segments.empty()) {
+                    this->pass = LinePass::AGAIN;
+                    this->racing_line.begin(this->solve_route, this->solve_segments, this->maze, this->solve_profile);
+                } else {
+                    this->racing_line.begin(this->careful_route, this->careful_segments, this->maze, careful);
+                }
+            }
+
+            this->stage = PlanStage::LINE;
+            return false;
+
+        case PlanStage::LINE:
+            break;
     }
 
-    if (not this->planner.step(max_nodes)) {
+    if (not this->racing_line.step()) {
         return false;
     }
 
-    this->planning = false;
+    const Line& line = this->racing_line.get_line();
+    const float line_time = line.is_ready() ? line.get_finish_time() : std::numeric_limits<float>::infinity();
 
-    const MotionLimits limits = this->dynamics.get_linear_limits(this->solve_profile);
+    if (this->pass == LinePass::REQUESTED and this->solve_profile.risky) {
+        RunProfile careful = this->solve_profile;
+        careful.risky = false;
+
+        this->risky_line_time = line_time;
+        this->pass = LinePass::CAREFUL;
+        this->planner.begin(this->maze, WallAssumption::PESSIMISTIC, careful);
+        this->stage = PlanStage::SEARCH;
+        return false;
+    }
+
+    if (this->pass == LinePass::CAREFUL and this->risky_line_time < line_time) {
+        this->pass = LinePass::AGAIN;
+        this->racing_line.begin(this->solve_route, this->solve_segments, this->maze, this->solve_profile);
+        return false;
+    }
+
+    this->stage = PlanStage::IDLE;
+
+    if (line.is_ready() and line_time < this->route_time) {
+        this->route_time = line_time;
+        this->solve_segments.clear();
+        this->solve_segments.push_back(make_segment(SegmentKind::LINE, line.length(), line.get_start()));
+    }
+
+    return true;
+}
+
+template <uint8_t width, uint8_t height>
+float TMission<width, height>::choose_route(const RunProfile& profile, Route& route, std::vector<Segment>& segments) {
+    const MotionLimits limits = this->dynamics.get_linear_limits(profile);
+
+    float best = std::numeric_limits<float>::infinity();
+    segments.clear();
 
     for (uint8_t i = 0; i < this->planner.get_number_of_routes(); i++) {
         this->planner.get_route(i, this->candidate_route);
 
         RouteCompiler::compile(
-            this->candidate_route, this->dynamics, this->solve_profile, this->config.planner.start_distance,
+            this->candidate_route, this->dynamics, profile, this->config.planner.start_distance,
             this->candidate_segments
         );
 
-        const float total_time =
-            VelocityPlanner::plan(this->candidate_segments, this->dynamics, this->solve_profile, 0.0F, 0.0F);
+        const float total_time = VelocityPlanner::plan(this->candidate_segments, this->dynamics, profile, 0.0F, 0.0F);
 
         const Segment&     last = this->candidate_segments.back();
         const SpeedProfile braking{last.length, last.start_speed, 0.0F, limits};
@@ -109,18 +184,19 @@ bool TMission<width, height>::update_plan(uint32_t max_nodes) {
             after_line += (this->candidate_route.finish_distance - last.length) / last.start_speed;
         }
 
-        if (total_time - after_line < this->route_time) {
-            this->route_time = total_time - after_line;
-            std::swap(this->solve_segments, this->candidate_segments);
+        if (total_time - after_line < best) {
+            best = total_time - after_line;
+            std::swap(segments, this->candidate_segments);
+            std::swap(route, this->candidate_route);
         }
     }
 
-    return true;
+    return best;
 }
 
 template <uint8_t width, uint8_t height>
 bool TMission<width, height>::has_route() const {
-    return not this->planning and not this->solve_segments.empty();
+    return this->stage == PlanStage::IDLE and not this->solve_segments.empty();
 }
 
 template <uint8_t width, uint8_t height>
@@ -146,8 +222,7 @@ void TMission<width, height>::start(core::Objective objective) {
             this->flood();
 
             Move move{};
-            move.add(
-                make_segment(SegmentKind::STRAIGHT, cell_size - this->config.start_offset, this->get_start_pose())
+            move.add(make_segment(SegmentKind::STRAIGHT, cell_size - this->config.start_offset, this->get_start_pose())
             );
             this->execute(move, 0.0F, this->search_speed);
             break;
@@ -182,7 +257,7 @@ TMission<width, height>::Status TMission<width, height>::update(
         bool changed = this->observer.update(measurements, localizer, this->wall_model, this->maze);
 
         if (this->objective == core::Objective::RETURN) {
-            changed = this->explorer.update(this->maze, this->config.nodes_per_iteration) or changed;
+            changed = this->explorer.update(this->maze, this->config.edges_per_iteration) or changed;
         }
 
         if (changed) {
@@ -202,10 +277,8 @@ TMission<width, height>::Status TMission<width, height>::update(
 
         if (wall == WallState::NO_WALL) {
             this->watching_front = false;
-        } else if (
-            wall == WallState::WALL or
-            this->executor.get_reference().distance >= cell_size / 2.0F - braking - this->config.commit_margin
-        ) {
+        } else if (wall == WallState::WALL or
+                   this->executor.get_reference().distance >= cell_size / 2.0F - braking - this->config.commit_margin) {
             this->divert_to_center();
         }
     }
@@ -360,7 +433,7 @@ void TMission<width, height>::decide_at_entry() {
     const bool       to_left = next->orientation == this->cell.turned_left().orientation;
 
     Segment turn = make_segment(
-        SegmentKind::TURN, to_left ? shape.angle : -shape.angle,
+        SegmentKind::TURN, to_left ? shape.length() : -shape.length(),
         entry.compose({.position = {.x = shape.pre, .y = 0.0F}, .orientation = 0.0F})
     );
     turn.turn = TurnId::SS90S;
@@ -460,10 +533,8 @@ bool TMission<width, height>::finish_at_entry() {
 
     if (this->objective == core::Objective::EXPLORE and this->maze.is_goal(this->cell.position)) {
         this->add_stop_at_center(move);
-    } else if (
-        this->objective == core::Objective::RETURN and this->explorer.is_complete() and
-        this->cell.position == this->maze.get_start().position
-    ) {
+    } else if (this->objective == core::Objective::RETURN and this->explorer.is_complete() and
+               this->cell.position == this->maze.get_start().position) {
         const GridPose parked{.position = this->cell.position, .orientation = this->maze.get_start().orientation};
 
         this->add_stop_at_center(move);
@@ -527,7 +598,6 @@ Segment TMission<width, height>::make_segment(SegmentKind kind, float length, co
         .length = length,
         .start_speed = 0.0F,
         .end_speed = 0.0F,
-        .max_speed = 0.0F,
         .start = start,
     };
 }

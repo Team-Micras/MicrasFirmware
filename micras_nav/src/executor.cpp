@@ -6,7 +6,9 @@
 #include <cmath>
 #include <span>
 
+#include "micras/nav/curve_speed.hpp"
 #include "micras/nav/executor.hpp"
+#include "micras/nav/line.hpp"
 #include "micras/nav/motion_limits.hpp"
 #include "micras/nav/segment.hpp"
 #include "micras/nav/speed_profile.hpp"
@@ -15,7 +17,8 @@
 #include "micras/nav/velocity_planner.hpp"
 
 namespace micras::nav {
-Executor::Executor(const Dynamics& dynamics, const Config& config) : dynamics{dynamics}, config{config} {
+Executor::Executor(const Dynamics& dynamics, const Line& line, const Config& config) :
+    dynamics{dynamics}, line{line}, config{config} {
     this->segments.reserve(config.capacity);
     this->durations.reserve(config.capacity);
 }
@@ -44,7 +47,11 @@ void Executor::push(std::span<const Segment> segments) {
 
     for (const Segment& segment : segments) {
         this->segments.push_back(segment);
-        this->durations.push_back(VelocityPlanner::get_duration(segment, this->dynamics, this->run_profile));
+        this->durations.push_back(
+            segment.kind == SegmentKind::LINE ?
+                this->line.duration() :
+                VelocityPlanner::get_duration(segment, this->dynamics, this->run_profile)
+        );
         this->queued_time += this->durations.back();
     }
 
@@ -147,6 +154,14 @@ void Executor::start_next() {
             this->duration = this->speed_profile.duration();
             break;
 
+        case SegmentKind::TURN:
+            this->curve_speed = CurveSpeed{
+                this->dynamics.get_turn(this->run_profile, segment.turn), segment.start_speed, segment.end_speed,
+                this->dynamics.get_curve_limits(this->run_profile)
+            };
+            this->duration = this->curve_speed.duration();
+            break;
+
         default:
             this->duration = this->durations.at(this->index);
             break;
@@ -172,18 +187,39 @@ Reference Executor::evaluate() const {
         }
 
         case SegmentKind::TURN: {
-            const TurnShape& shape = this->dynamics.get_turn(this->run_profile, segment.turn);
-            const float      speed = segment.start_speed;
-            const float      distance = std::min(speed * this->clock, shape.length());
-            const auto       sample = shape.sample<float>(distance);
+            const TurnShape&           shape = this->dynamics.get_turn(this->run_profile, segment.turn);
+            const SpeedProfile::Sample motion = this->curve_speed.sample(this->clock);
+            const auto                 point = shape.sample<float>(motion.distance);
 
             return {
                 .pose = segment.start.compose(
-                    {.position = {.x = sample.x, .y = side * sample.y}, .orientation = side * sample.heading}
+                    {.position = {.x = point.x, .y = side * point.y}, .orientation = side * point.heading}
                 ),
-                .twist = {.linear = speed, .angular = side * sample.curvature * speed},
-                .acceleration = {.linear = 0.0F, .angular = side * sample.sharpness * speed * speed},
-                .distance = distance,
+                .twist = {.linear = motion.speed, .angular = side * point.curvature * motion.speed},
+                .acceleration =
+                    {
+                        .linear = motion.acceleration,
+                        .angular = side * (point.sharpness * motion.speed * motion.speed +
+                                           point.curvature * motion.acceleration),
+                    },
+                .distance = motion.distance,
+            };
+        }
+
+        case SegmentKind::LINE: {
+            const SpeedProfile::Sample motion = this->line.sample_motion(this->clock);
+            const Line::Point          point = this->line.sample_point(motion.distance);
+
+            return {
+                .pose = point.pose,
+                .twist = {.linear = motion.speed, .angular = point.curvature * motion.speed},
+                .acceleration =
+                    {
+                        .linear = motion.acceleration,
+                        .angular =
+                            point.sharpness * motion.speed * motion.speed + point.curvature * motion.acceleration,
+                    },
+                .distance = motion.distance,
             };
         }
 

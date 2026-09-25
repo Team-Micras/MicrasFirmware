@@ -9,6 +9,8 @@
 #include <span>
 #include <vector>
 
+#include "micras/nav/curve_speed.hpp"
+#include "micras/nav/line.hpp"
 #include "micras/nav/motion_limits.hpp"
 #include "micras/nav/segment.hpp"
 #include "micras/nav/speed_profile.hpp"
@@ -45,9 +47,10 @@ public:
      * @brief Construct a new Executor object.
      *
      * @param dynamics The physical limits of the robot, borrowed for the lifetime of the executor.
+     * @param line The racing line a segment of that kind plays back, borrowed for the same time.
      * @param config The configuration for the executor.
      */
-    Executor(const Dynamics& dynamics, const Config& config);
+    Executor(const Dynamics& dynamics, const Line& line, const Config& config);
 
     /**
      * @brief Drop every segment and stand still at a pose.
@@ -152,6 +155,12 @@ private:
     const Dynamics& dynamics;
 
     /**
+     * @brief Racing line, for the segment that drives it.
+     */
+    // NOLINTNEXTLINE(*-avoid-const-or-ref-data-members) borrowed for the lifetime of the robot
+    const Line& line;
+
+    /**
      * @brief Tolerances to consider the robot settled.
      */
     Config config;
@@ -192,9 +201,14 @@ private:
     float duration{};
 
     /**
-     * @brief Motion along the segment in progress, for the kinds that have one.
+     * @brief Motion along the segment in progress, for the straights and the rotations in place.
      */
     SpeedProfile speed_profile;
+
+    /**
+     * @brief Motion along the segment in progress, for the turns.
+     */
+    CurveSpeed curve_speed;
 
     /**
      * @brief Time the robot has been within the settling tolerances.

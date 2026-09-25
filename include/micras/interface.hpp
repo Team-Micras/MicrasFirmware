@@ -36,7 +36,7 @@ public:
      */
     enum class Profile : uint8_t {
         FAN = 1U << 0U,
-        DIAGONAL = 1U << 1U,
+        RACING_LINE = 1U << 1U,
         BOOST = 1U << 2U,
         RISKY = 1U << 3U,
     };

@@ -50,8 +50,8 @@ public:
     /**
      * @brief Procedures that an extra long press of the button can start, chosen by the switches.
      *
-     * @note With the diagonal, boost and risky switches off it is the calibration of the wall
-     * sensors. The diagonal switch alone selects the identification of the drive train and the
+     * @note With the racing line, boost and risky switches off it is the calibration of the wall
+     * sensors. The racing line switch alone selects the identification of the drive train and the
      * boost switch alone the calibration of the gyroscope scale.
      */
     enum class Maintenance : uint8_t {
@@ -136,6 +136,16 @@ public:
      * @brief Get the robot ready to move: sensors on, and the fan too if the run uses it.
      */
     void prepare();
+
+    /**
+     * @brief Check if what prepare started is ready.
+     *
+     * @note The fan ramps its speed up at a limited rate, and the run is planned with the traction
+     * of the fan at full speed, so a run must not start before the fan gets there.
+     *
+     * @return True once the fan runs at the speed it was asked for.
+     */
+    bool is_prepared() const;
 
     /**
      * @brief Keep estimating the bias of the gyroscope while the robot waits to move.
@@ -249,6 +259,32 @@ public:
      */
     bool is_idle() const;
 
+    /**
+     * @brief Get the robot constructed last.
+     *
+     * @note For tools that run the firmware on a host, such as the simulator, which reads every
+     * registered variable after each step of its world. The robot lives in a static of main, which
+     * nothing else can name. Nothing on the robot calls this: it costs one pointer stored at
+     * construction.
+     *
+     * @return The robot, or null before one is constructed.
+     */
+    static const Micras* get_instance();
+
+    /**
+     * @brief Get the pool of every variable the robot registers.
+     *
+     * @return The pool.
+     */
+    const core::VariablePool& get_variables() const;
+
+    /**
+     * @brief Get the state the robot's state machine is in.
+     *
+     * @return Id of the state, one of State.
+     */
+    uint8_t get_state() const;
+
 private:
     /**
      * @brief Values published over the link that no object holds at a stable address.
@@ -281,6 +317,10 @@ private:
 
     /**
      * @brief Sample every sensor the navigation needs.
+     *
+     * @note The inertial measurement unit sits with its pin 1 at the front left of the board, so
+     * its Y axis points forward and its X axis to the right. Its Z axis points up, which makes the
+     * yaw rate its Z reading as it is.
      *
      * @return The measurements of this iteration.
      */

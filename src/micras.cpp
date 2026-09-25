@@ -82,6 +82,9 @@ static volatile float monitor_gyroscope_scale;
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 namespace micras {
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables) set once, by the constructor
+static const Micras* last_constructed{};
+
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables) the DMA writes here
 static std::array<uint8_t, bluetooth_rx_buffer_size> bluetooth_rx_buffer;
 static std::array<uint8_t, bluetooth_tx_buffer_size> bluetooth_tx_buffer;
@@ -106,6 +109,8 @@ Micras::Micras() :
     this->fsm.add_state(this->error_state);
 
     this->register_variables();
+
+    last_constructed = this;
 }
 
 void Micras::register_variables() {
@@ -179,7 +184,9 @@ void Micras::update() {
     }
 
     this->battery.update();
-    this->fan.update();
+    const float fan_share = this->fan.update() / fan_speed;
+
+    this->localizer.set_downforce(fan_share * fan_share);
     this->imu.update();
     this->torque_sensors.update();
     this->wall_sensors.update();
@@ -231,15 +238,15 @@ void Micras::set_objective(core::Objective objective) {
 }
 
 Micras::Maintenance Micras::get_maintenance() const {
-    const bool diagonal = this->is_selected(Interface::Profile::DIAGONAL);
+    const bool racing_line = this->is_selected(Interface::Profile::RACING_LINE);
     const bool boost = this->is_selected(Interface::Profile::BOOST);
     const bool risky = this->is_selected(Interface::Profile::RISKY);
 
-    if (diagonal and not boost and not risky) {
+    if (racing_line and not boost and not risky) {
         return Maintenance::DRIVE;
     }
 
-    if (boost and not diagonal and not risky) {
+    if (boost and not racing_line and not risky) {
         return Maintenance::GYROSCOPE;
     }
 
@@ -253,6 +260,10 @@ void Micras::prepare() {
         this->fan.enable();
         this->fan.set_speed(fan_speed);
     }
+}
+
+bool Micras::is_prepared() const {
+    return this->fan.is_at_speed();
 }
 
 void Micras::rest() {
@@ -300,7 +311,7 @@ void Micras::start_plan() {
 }
 
 bool Micras::plan() {
-    return this->mission.update_plan(plan_nodes_per_iteration);
+    return this->mission.update_plan(plan_edges_per_iteration);
 }
 
 bool Micras::has_route() const {
@@ -397,8 +408,8 @@ nav::Measurements Micras::measure() const {
         .right_wheel_angle = this->rotary_sensor_right.get_position(),
         .angular_rate = this->imu.get_angular_velocity(proxy::Imu::Axis::Z),
         .acceleration =
-            {.x = this->imu.get_linear_acceleration(proxy::Imu::Axis::X),
-             .y = this->imu.get_linear_acceleration(proxy::Imu::Axis::Y)},
+            {.x = this->imu.get_linear_acceleration(proxy::Imu::Axis::Y),
+             .y = -this->imu.get_linear_acceleration(proxy::Imu::Axis::X)},
         .imu_is_new = this->imu.is_new(),
         .walls = {},
     };
@@ -419,7 +430,7 @@ nav::Measurements Micras::measure() const {
 
 nav::RunProfile Micras::get_run_profile() const {
     return make_run_profile(
-        this->is_selected(Interface::Profile::DIAGONAL), this->is_selected(Interface::Profile::BOOST),
+        this->is_selected(Interface::Profile::RACING_LINE), this->is_selected(Interface::Profile::BOOST),
         this->is_selected(Interface::Profile::RISKY), this->is_selected(Interface::Profile::FAN)
     );
 }
@@ -499,6 +510,18 @@ void Micras::publish() {
 
 bool Micras::is_idle() const {
     return this->fsm.get_current_state_id() == std::to_underlying(State::IDLE);
+}
+
+const Micras* Micras::get_instance() {
+    return last_constructed;
+}
+
+const core::VariablePool& Micras::get_variables() const {
+    return this->variables;
+}
+
+uint8_t Micras::get_state() const {
+    return this->fsm.get_current_state_id();
 }
 
 comm::CommandResult Micras::handle_command(uint8_t code, uint32_t argument) {

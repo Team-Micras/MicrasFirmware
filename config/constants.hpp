@@ -23,6 +23,7 @@
 #include "micras/nav/turn_table.hpp"
 #include "micras/nav/wall_model.hpp"
 #include "robot.hpp"
+#include "two_bend_turns.hpp"
 
 namespace micras {
 /*****************************************
@@ -51,7 +52,16 @@ constexpr uint16_t bluetooth_rx_buffer_size{512};
  */
 constexpr uint16_t bluetooth_tx_buffer_size{4096};
 
-constexpr float crash_acceleration{35.0F};
+/**
+ * @brief Horizontal acceleration, in m/s^2, over which the robot has hit something.
+ *
+ * @note The tires cannot transmit more than the traction with the fan running, so anything above
+ * it came from a wall. The margin covers the noise of the accelerometer and the centripetal and
+ * tangential acceleration of the IMU, which is not on the axis of rotation. A fixed 35 m/s^2 was
+ * below the 32 m/s^2 a fast run plans with the fan, plus the feedback, and stopped fast runs that
+ * had touched nothing.
+ */
+constexpr float crash_acceleration{1.25F * robot_model.traction_acceleration(true)};
 constexpr float fan_speed{100.0F};
 
 /**
@@ -110,20 +120,32 @@ constexpr auto speed_window{static_cast<uint8_t>(0.002F * loop_frequency)};
 constexpr auto wall_votes{static_cast<int8_t>(0.012F * wall_sensors_frequency)};
 
 /**
- * @brief Number of nodes the route planner expands per iteration while a fast run is planned.
+ * @brief Number of edges the route planner tries per iteration while a fast run is planned.
  *
  * @note The robot is stopped then, so this only has to keep an iteration well inside the timeout
- * of the watchdog. A node costs some tens of microseconds.
+ * of the watchdog. It is about what 64 nodes of the planner with eight turns cost, and a node of
+ * that planner cost some tens of microseconds.
  */
-constexpr uint32_t plan_nodes_per_iteration{64};
+constexpr uint32_t plan_edges_per_iteration{512};
 
 /**
- * @brief Number of nodes the route planner expands per iteration while the robot searches.
+ * @brief Number of samples the racing line advances by per iteration while it is optimized.
  *
- * @note One, since a node is a good part of what is left of an iteration. At the rate of the
- * control loop that is still eight thousand nodes per second, and a plan is a few thousand.
+ * @note The robot is stopped then too. Finding the bounds of a sample is the costliest work per
+ * sample, at up to 31 checks of the outline of the robot.
  */
-constexpr uint32_t search_nodes_per_iteration{1};
+constexpr uint16_t line_samples_per_iteration{16};
+
+/**
+ * @brief Number of edges the route planner tries per iteration while the robot searches.
+ *
+ * @note A node of the planner with eight turns cost about 8 edges of this one on a PC, and was a good
+ * part of what is left of an iteration. A node now tries three to four times as many turns, so a
+ * budget in nodes would no longer bound the time of an iteration. The answers of the planner come
+ * later with a smaller budget, and the search waits for them: on ten mazes it took 17 % longer with
+ * 8 edges, 4 % with 16 and 2 % with 32.
+ */
+constexpr uint32_t search_edges_per_iteration{16};
 
 /**
  * @brief Time without a control loop iteration that resets the microcontroller.
@@ -205,10 +227,14 @@ using Mission = TMission<maze_width, maze_height>;
 
 /**
  * @brief Fraction of the available traction a run asks for, without and with the boost switch.
+ *
+ * @note In a turn the tires slide sideways in proportion to the grip they are asked for, and the
+ * pose estimate does not see it. At three quarters of the traction a turn put the robot 10 to 20 mm
+ * off its path; at 0.65 every run of ten mazes, with diagonals and the risky turns, stays clean.
  */
 ///@{
 constexpr float normal_utilization{0.6F};
-constexpr float boost_utilization{0.75F};
+constexpr float boost_utilization{0.65F};
 ///@}
 
 /**
@@ -226,26 +252,44 @@ constexpr float risky_turn_margin{0.010F};
  * @note A turn that does not fit in the maze with the margin asked for stops the build here.
  */
 ///@{
-constexpr nav::TurnTable turn_table{robot_model, turn_margin};
-constexpr nav::TurnTable risky_turn_table{robot_model, risky_turn_margin};
+constexpr nav::TurnTable::TwoBendShapes two_bend_shapes{
+    nav::TurnTable::place(robot_model, turn_margin, two_bend_designs)
+};
+constexpr nav::TurnTable::TwoBendShapes risky_two_bend_shapes{
+    nav::TurnTable::place(robot_model, risky_turn_margin, risky_two_bend_designs)
+};
+constexpr nav::TurnTable turn_table{robot_model, turn_margin, two_bend_shapes};
+constexpr nav::TurnTable risky_turn_table{robot_model, risky_turn_margin, risky_two_bend_shapes};
 
 static_assert(turn_table.is_valid(), "a turn does not fit in the maze with the normal margin");
 static_assert(risky_turn_table.is_valid(), "a turn does not fit in the maze with the risky margin");
+static_assert(
+    nav::TurnTable::clears(robot_model, turn_margin, two_bend_designs),
+    "a turn of two bends does not clear the walls with the normal margin: run the turn designer"
+);
+static_assert(
+    nav::TurnTable::clears(robot_model, risky_turn_margin, risky_two_bend_designs),
+    "a turn of two bends does not clear the walls with the risky margin: run the turn designer"
+);
 
 ///@}
 
 /**
  * @brief Make the profile of a fast run from the switches.
  *
- * @param diagonal Whether the route may use diagonals.
+ * @note Every route may use diagonals. With the racing line, the risky switch also optimizes a line
+ * through the route of the risky turns, which comes as close as they do, and the robot drives it
+ * only if it is faster than the line through the route of the normal turns.
+ *
+ * @param racing_line Whether to drive the racing line through the cells of the route instead.
  * @param boost Whether to ask for more of the available traction.
  * @param risky Whether to use the turns designed with the smaller margin.
  * @param fan Whether the fan runs, which adds its downforce to the traction.
  * @return The profile of the run.
  */
-constexpr nav::RunProfile make_run_profile(bool diagonal, bool boost, bool risky, bool fan) {
+constexpr nav::RunProfile make_run_profile(bool racing_line, bool boost, bool risky, bool fan) {
     return {
-        .diagonal = diagonal,
+        .racing_line = racing_line,
         .fan = fan,
         .risky = risky,
         .utilization = boost ? boost_utilization : normal_utilization,
@@ -255,31 +299,31 @@ constexpr nav::RunProfile make_run_profile(bool diagonal, bool boost, bool risky
 
 /**
  * @brief Profile of the search runs, which is where the search speed is set.
+ *
+ * @note Half of the traction without the fan, up to 1 m/s. Braking for a front wall is what limits
+ * it: past half, a front wall that corrects the pose late asks for more braking than the tires give.
  */
 constexpr nav::RunProfile search_profile{
-    .diagonal = false,
+    .racing_line = false,
     .fan = false,
     .risky = false,
-    .utilization = 0.35F,
-    .max_speed = 0.4F,
+    .utilization = 0.5F,
+    .max_speed = 1.0F,
 };
 
 /**
  * @brief Profiles the map has to be complete for before the search ends.
  *
- * @note Every combination of the diagonal, boost and risky switches, with the fan running. A shorter
- * list makes for a shorter search, at the price of a map that may hide the best route of the
- * profiles left out.
+ * @note Every combination of the boost and risky switches, with the fan running. The racing line
+ * goes through the cells of the route the planner chooses, so it needs no more of the map. A
+ * shorter list makes for a shorter search, at the price of a map that may hide the best route of
+ * the profiles left out.
  */
-constexpr std::array<nav::RunProfile, 8> map_profiles{{
+constexpr std::array<nav::RunProfile, 4> map_profiles{{
     make_run_profile(false, false, false, true),
-    make_run_profile(true, false, false, true),
     make_run_profile(false, true, false, true),
-    make_run_profile(true, true, false, true),
     make_run_profile(false, false, true, true),
-    make_run_profile(true, false, true, true),
     make_run_profile(false, true, true, true),
-    make_run_profile(true, true, true, true),
 }};
 
 /*****************************************
@@ -315,14 +359,34 @@ const nav::Dynamics::Config dynamics_config{
     .voltage_reserve = voltage_reserve,
 };
 
+/**
+ * @brief Configuration of the wall model.
+ *
+ * @note The minimum range sits past the distance at which the reading of a wall sensor peaks, about
+ * 30 mm (see wall_sensors_config): closer than that a reading no longer tells one range from a
+ * longer one, so it cannot correct anything.
+ */
 const nav::WallModel::Config wall_model_config{
     .model = robot_model,
-    .min_range = 0.02F,
+    .min_range = 0.035F,
     .max_range = wall_sensors_range,
     .edge_margin = 0.005F,
     .confidence = 2.0F,
 };
 
+/**
+ * @brief Configuration of the localizer.
+ *
+ * @note Ranges only correct the pose out to 120 mm. The beam of an emitter is 11.75 mm above the
+ * floor and a few degrees wide, so farther out part of it lands on the floor before the wall and
+ * the reading comes out long: 5 mm at 120 mm, 16 mm at 150 mm and 45 mm at 180 mm for the sensors
+ * that look forward.
+ *
+ * @note The end of a side wall is seen 16 mm inside the wall, whichever way the robot crosses it and
+ * at 0.4 to 2.6 m/s alike: the reading only changes once most of the spot has crossed the end. That
+ * is 1.32 times the half length of the spot the wall model computes from the half angle of the
+ * sensors, which is what the edge inset is.
+ */
 const nav::Localizer::Config localizer_config{
     .model = robot_model,
     .initial_position_deviation = 0.005F,
@@ -337,6 +401,7 @@ const nav::Localizer::Config localizer_config{
     .stationary_angular_speed = 0.02F,
     .range_delay = core::ButterworthFilter::get_delay(wall_fast_filter_cutoff),
     .range_correlation = wall_sensors_frequency / (2.22F * wall_fast_filter_cutoff),
+    .max_range = 0.12F,
     .rest_window = 0.1F,
     .use_edges = true,
     .edge_deviation = 0.004F,
@@ -370,6 +435,15 @@ const nav::Controller::Config controller_config{
     .voltage_reserve = voltage_reserve,
 };
 
+/**
+ * @brief Configuration of the mission.
+ *
+ * @note A wall is only voted absent while it would be closer than 130 mm, where a range reads at
+ * most 8 mm long (see localizer_config), well inside the tolerance; farther out a wall that is there
+ * reads long enough to look missing. The observer keeps voting through the turns of the search, which
+ * reach 8 rad/s: the side wall of the cell a turn ends in is only in sight during that turn, and a
+ * robot that has not seen it has to stop and spin in the middle of the cell to go on.
+ */
 const nav::Mission::Config mission_config{
     .maze =
         {
@@ -384,10 +458,25 @@ const nav::Mission::Config mission_config{
         {
             .tolerance = 0.015F,
             .relative_tolerance = 0.15F,
-            .detection_range = 0.18F,
-            .max_angular_speed = 2.0F,
+            .detection_range = 0.13F,
+            .max_angular_speed = 12.0F,
             .range_delay = core::ButterworthFilter::get_delay(wall_fast_filter_cutoff),
             .votes_to_decide = wall_votes,
+        },
+    .racing_line =
+        {
+            .spacing = 0.01F,
+            .margin = turn_margin,
+            .least_margin = turn_margin - 0.002F,
+            .risky_least_margin = risky_turn_margin - 0.002F,
+            .trust = 0.03F,
+            .scan_step = 0.002F,
+            .length_weight = 10.0F,
+            .convergence = 0.0002F,
+            .lateral_share = 0.8F,
+            .max_sweeps = 12,
+            .smoothing = 1,
+            .samples_per_step = line_samples_per_iteration,
         },
     .executor =
         {
@@ -406,7 +495,7 @@ const nav::Mission::Config mission_config{
     .look_time = 0.02F,
     .max_looks = 50,
     .commit_margin = 0.01F,
-    .nodes_per_iteration = search_nodes_per_iteration,
+    .edges_per_iteration = search_edges_per_iteration,
 };
 
 /**
