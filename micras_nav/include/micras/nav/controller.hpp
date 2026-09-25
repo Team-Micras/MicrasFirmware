@@ -27,6 +27,12 @@ namespace micras::nav {
  * proportional to the error across the path, which turns the robot back towards it at a rate set by
  * the distance traveled rather than by time. It works wherever the pose is known, walls or not.
  *
+ * In a curve the tires slide to the outside at a speed the lateral compliance of the model gives,
+ * so the robot has to point into the curve by that speed over its own, which is the compliance
+ * times the angular speed of the reference, to move along the path. That angle is added to the
+ * orientation the feedback aims at, and its rate to the angular speed, instead of being left for
+ * an error across the path to build up.
+ *
  * @note The gains are not tuned: they follow from the model of the drive train and from the natural
  * frequency and damping asked of each axis.
  */
@@ -106,7 +112,10 @@ public:
      * @note The feed forward alone may ask for more voltage than there is. Slowing the clock of
      * the reference scales its linear and angular speeds together, so the robot stays on the same
      * path and only takes longer, instead of cutting the turn it is in. With the limits of a run
-     * derived from the same model this should stay at one.
+     * derived from the same model this should stay at one. The reference this is computed from was
+     * already played at the scale in force, so the scale is corrected from that one rather than
+     * computed afresh, and settles where the demand meets the voltage available instead of
+     * alternating between one and a fraction every iteration.
      *
      * @return The factor to apply to the elapsed time of the reference, in (0, 1].
      */

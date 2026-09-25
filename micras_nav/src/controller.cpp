@@ -38,7 +38,7 @@ Controller::Command Controller::update(const Reference& reference, const State& 
     const float available = model.drive.supply_voltage * (1.0F - this->config.voltage_reserve);
     const float demand = std::abs(forward_feed_forward) + std::abs(rotation_feed_forward);
 
-    this->time_scale = demand > available ? available / demand : 1.0F;
+    this->time_scale = demand > 0.0F ? std::min(1.0F, this->time_scale * available / demand) : 1.0F;
 
     const Pose seen = reference.pose.relative(estimate.pose);
 
@@ -49,15 +49,18 @@ Controller::Command Controller::update(const Reference& reference, const State& 
         blend * std::clamp(
                     -this->config.steering_gain * seen.position.y, -this->config.max_steering, this->config.max_steering
                 );
-    const float orientation_error =
-        std::clamp(-seen.orientation + steering, -this->config.angular.max_error, this->config.angular.max_error);
+    const float slide_angle = model.traction.lateral_compliance * reference.twist.angular;
+    const float slide_rate = model.traction.lateral_compliance * reference.acceleration.angular;
+    const float orientation_error = std::clamp(
+        -seen.orientation + slide_angle + steering, -this->config.angular.max_error, this->config.angular.max_error
+    );
 
     const float forward_feedback = this->linear_gains.proportional * along_error +
                                    this->linear_gains.derivative * (reference.twist.linear - estimate.velocity.linear);
 
     const float rotation_feedback =
         this->angular_gains.proportional * orientation_error +
-        this->angular_gains.derivative * (reference.twist.angular - estimate.velocity.angular);
+        this->angular_gains.derivative * (reference.twist.angular + slide_rate - estimate.velocity.angular);
 
     this->status = {
         .along_error = -seen.position.x,

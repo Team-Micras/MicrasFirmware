@@ -41,6 +41,10 @@ float Fan::update() {
     return this->current_speed;
 }
 
+bool Fan::is_at_speed() const {
+    return this->current_speed == this->target_speed;
+}
+
 void Fan::stop() {
     this->target_speed = 0.0F;
     this->current_speed = 0.0F;

@@ -9,6 +9,7 @@
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
+#include <iterator>
 
 #include "micras/core/butterworth_filter.hpp"
 #include "micras/core/utils.hpp"
@@ -24,6 +25,8 @@ TWallSensors<num_of_sensors>::TWallSensors(const Config& config) :
     slow_filters{core::make_array<core::ButterworthFilter, num_of_sensors>(config.slow_filter)},
     reference_readings{config.reference_readings},
     reference_distances{config.reference_distances},
+    receiver_offset{config.receiver_offset},
+    receiver_half_angle{config.receiver_half_angle},
     noise_floor{config.noise_floor},
     max_distance{config.max_distance},
     max_reading{config.max_reading},
@@ -39,7 +42,61 @@ TWallSensors<num_of_sensors>::TWallSensors(const Config& config) :
                        frequency_tolerance * config.fast_filter.sampling_frequency;
         })
     } {
+    if (this->receiver_offset > 0.0F) {
+        const float step = this->max_distance / static_cast<float>(4 * shape_points);
+        float       peak = step;
+
+        for (float distance = step; distance < this->max_distance; distance += step) {
+            if (this->shape(distance) > this->shape(peak)) {
+                peak = distance;
+            }
+        }
+
+        const float ratio = std::pow(this->max_distance / peak, 1.0F / static_cast<float>(shape_points - 1));
+        float       distance = peak;
+
+        for (uint8_t i = 0; i < shape_points; i++) {
+            this->shape_distances.at(i) = distance;
+            this->shape_scales.at(i) = 1.0F / std::sqrt(this->shape(distance));
+            distance *= ratio;
+        }
+    }
+
     this->turn_off();
+}
+
+template <uint8_t num_of_sensors>
+float TWallSensors<num_of_sensors>::shape(float distance) const {
+    const float angle = std::atan(this->receiver_offset / distance) / this->receiver_half_angle;
+    return std::exp2(-angle * angle) / (distance * distance);
+}
+
+template <uint8_t num_of_sensors>
+float TWallSensors<num_of_sensors>::to_distance(uint8_t sensor_index, float intensity) const {
+    const float reference_distance = this->reference_distances.at(sensor_index);
+    const float ratio = this->reference_readings.at(sensor_index) / intensity;
+
+    if (this->receiver_offset <= 0.0F) {
+        return reference_distance * std::sqrt(ratio);
+    }
+
+    const float scale = std::sqrt(ratio) / std::sqrt(this->shape(reference_distance));
+
+    if (scale <= this->shape_scales.front()) {
+        return this->shape_distances.front();
+    }
+
+    if (scale >= this->shape_scales.back()) {
+        return this->max_distance;
+    }
+
+    const auto  upper = std::ranges::upper_bound(this->shape_scales, scale);
+    const auto  index = static_cast<uint8_t>(std::distance(this->shape_scales.begin(), upper));
+    const float low = this->shape_scales.at(index - 1);
+    const float fraction = (scale - low) / (this->shape_scales.at(index) - low);
+
+    return this->shape_distances.at(index - 1) +
+           fraction * (this->shape_distances.at(index) - this->shape_distances.at(index - 1));
 }
 
 template <uint8_t num_of_sensors>
@@ -73,11 +130,9 @@ void TWallSensors<num_of_sensors>::update() {
 
         const float intensity = this->get_intensity(i);
 
-        const float distance =
-            intensity >= this->noise_floor ?
-                this->reference_distances.at(i) *
-                    std::sqrt(this->reference_readings.at(i) / std::min(intensity, this->max_reading)) :
-                this->max_distance;
+        const float distance = intensity >= this->noise_floor ?
+                                   this->to_distance(i, std::min(intensity, this->max_reading)) :
+                                   this->max_distance;
 
         reading.valid = distance < this->max_distance;
         reading.distance = this->fast_filters.at(i).update(std::min(distance, this->max_distance));

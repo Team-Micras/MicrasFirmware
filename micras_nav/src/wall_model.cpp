@@ -37,7 +37,9 @@ PlaneCrossing WallModel::cross(const Pose& pose, uint8_t sensor, const RayHit& h
     const float lever_y = origin.position.y - pose.position.y;
     const float swing = gap / (across * across);
 
-    PlaneCrossing crossing{.offset = start + gap * slope - hit.base, .range = gap / across, .jacobian = {}};
+    PlaneCrossing crossing{
+        .offset = start + gap * slope - hit.base, .range = gap / across, .slope = slope, .jacobian = {}
+    };
 
     if (hit.vertical) {
         crossing.jacobian = {-slope, 1.0F, lever_x + lever_y * slope + swing};
@@ -78,6 +80,14 @@ float WallModel::get_centered_range(uint8_t sensor) const {
     }
 
     return (face - mounting.position.x) / std::cos(mounting.angle);
+}
+
+float WallModel::get_range(float distance, uint8_t sensor, const RayHit& hit) const {
+    const float angle = this->sensors.at(sensor).angle;
+    const float sine = std::abs(std::sin(angle));
+    const float calibrated = sine > 0.1F ? sine : std::abs(std::cos(angle));
+
+    return distance * std::sqrt(hit.cosine / calibrated);
 }
 
 float WallModel::get_range_deviation(float range) const {

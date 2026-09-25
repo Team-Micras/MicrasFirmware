@@ -21,7 +21,7 @@ void WaitState::on_entry() {
 uint8_t WaitState::execute() {
     this->micras.rest();
 
-    if (this->wait_stopwatch.elapsed_time_ms() > this->wait_time_ms) {
+    if (this->wait_stopwatch.elapsed_time_ms() > this->wait_time_ms and this->micras.is_prepared()) {
         return this->next_state_id;
     }
 

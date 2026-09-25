@@ -43,12 +43,15 @@ struct RobotModel {
      * @brief Mass properties and outline of the robot.
      *
      * @note The outline is the rectangle that encloses everything that can touch a wall, given by
-     * its half width and by how far it extends ahead of and behind the axle.
+     * its half width and by how far it extends ahead of and behind the axle. The rolling compliance
+     * is how much the radius a wheel rolls on shrinks for each newton on its tire, as the tire
+     * flattens under the load.
      */
     struct Chassis {
         float mass;
         float yaw_inertia;
         float wheel_radius;
+        float rolling_compliance;
         float track_width;
         float half_width;
         float front_length;
@@ -59,11 +62,17 @@ struct RobotModel {
      * @brief What limits the force the tires can transmit.
      *
      * @note The fan downforce is the extra normal force, in newtons, with the fan at the speed it
-     * is run at.
+     * is run at, and the fan offset is how far ahead of the axle it pulls, in meters. Pulling ahead
+     * of the axle, the fan tips the robot onto the front edge of its board, which then carries the
+     * share of the downforce that the lever of the offset over the front length gives it. The
+     * lateral compliance is how fast the tires slide sideways, to the outside of a curve, per unit
+     * of lateral acceleration, in m/s per m/s^2: a tire only pushes sideways by slipping a little.
      */
     struct Traction {
         float friction_coefficient;
         float fan_downforce;
+        float fan_offset;
+        float lateral_compliance;
     };
 
     /**
@@ -119,6 +128,27 @@ struct RobotModel {
     };
 
     /**
+     * @brief Get the part of the fan downforce that the tires carry.
+     *
+     * @return The downforce on the tires in newtons.
+     */
+    constexpr float tire_downforce() const {
+        return this->traction.fan_downforce * (1.0F - this->traction.fan_offset / this->chassis.front_length);
+    }
+
+    /**
+     * @brief Get the radius the wheels roll on under the load on their tires.
+     *
+     * @param downforce The share of the fan downforce there is, from 0 with the fan off to 1.
+     * @return The rolling radius in meters.
+     */
+    constexpr float rolling_radius(float downforce) const {
+        const float load = (this->chassis.mass * gravity + downforce * this->tire_downforce()) / 2.0F;
+
+        return this->chassis.wheel_radius - this->chassis.rolling_compliance * load;
+    }
+
+    /**
      * @brief Get the largest acceleration the tires can transmit, in any direction.
      *
      * @param fan_on Whether the fan is adding downforce.
@@ -126,7 +156,7 @@ struct RobotModel {
      */
     constexpr float traction_acceleration(bool fan_on) const {
         return this->traction.friction_coefficient *
-               (gravity + (fan_on ? this->traction.fan_downforce / this->chassis.mass : 0.0F));
+               (gravity + (fan_on ? this->tire_downforce() / this->chassis.mass : 0.0F));
     }
 
     /**

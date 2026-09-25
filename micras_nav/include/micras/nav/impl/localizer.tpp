@@ -7,6 +7,7 @@
 
 #include <cmath>
 #include <cstdint>
+#include <optional>
 
 #include "micras/nav/maze.hpp"
 #include "micras/nav/measurements.hpp"
@@ -21,7 +22,7 @@ void Localizer::correct(
 ) {
     if (std::abs(this->state.velocity.angular) > this->config.max_angular_speed) {
         for (EdgeTracker& tracker : this->edge_trackers) {
-            tracker.tracking = false;
+            tracker.locked = false;
         }
 
         return;
@@ -47,7 +48,7 @@ void Localizer::correct(
             this->track_edge(sensor, reading, sampled, hit, wall_model, maze);
         }
 
-        if (not reading.valid or not hit.valid or hit.state != WallState::WALL or
+        if (not reading.valid or not hit.valid or hit.state != WallState::WALL or hit.range > this->config.max_range or
             not wall_model.is_footprint_clear(
                 hit, sensor, this->get_position_deviation(), this->get_orientation_deviation()
             )) {
@@ -57,7 +58,8 @@ void Localizer::correct(
         const float deviation = wall_model.get_range_deviation(hit.range);
 
         this->update(
-            reading.distance - hit.range, {hit.jacobian.at(0), hit.jacobian.at(1), hit.jacobian.at(2), 0.0F},
+            wall_model.get_range(reading.distance, sensor, hit) - hit.range,
+            {hit.jacobian.at(0), hit.jacobian.at(1), hit.jacobian.at(2), 0.0F},
             deviation * deviation * this->config.range_correlation, gate, this->config.max_position_correction
         );
     }
@@ -70,64 +72,92 @@ void Localizer::track_edge(
 ) {
     EdgeTracker& tracker = this->edge_trackers.at(sensor);
 
-    const auto is_on = [this, &reading](float range) {
-        return reading.valid and std::abs(reading.distance - range) <
-                                     this->config.range_tolerance + this->config.relative_range_tolerance * range;
+    const auto tolerance = [this](float range) {
+        return this->config.range_tolerance + this->config.relative_range_tolerance * range;
     };
 
-    const bool on_wall =
-        hit.valid and hit.state == WallState::WALL and hit.range < this->config.edge_range and is_on(hit.range);
-    const bool was_tracking = tracker.tracking;
-    const bool was_on_wall = tracker.on_wall;
+    if (this->state.velocity.linear <= this->config.edge_speed) {
+        tracker.locked = false;
+        return;
+    }
 
-    const RayHit previous = tracker.hit;
+    if (tracker.locked) {
+        const PlaneCrossing crossing = wall_model.cross(sampled, sensor, tracker.hit);
+        const bool reading_on = reading.valid and reading.distance < crossing.range + tolerance(crossing.range);
 
-    tracker.tracking = this->state.velocity.linear > this->config.edge_speed;
-    tracker.on_wall = on_wall;
+        if (crossing.range > this->config.edge_range) {
+            tracker.locked = false;
+        } else if (reading_on != tracker.reading_on) {
+            tracker.reading_on = reading_on;
+
+            const float heading = this->state.pose.orientation;
+            const float travel =
+                this->state.velocity.linear * (tracker.hit.vertical ? std::sin(heading) : std::cos(heading));
+            const float                face = this->config.model.maze.wall_thickness * std::abs(crossing.slope);
+            const std::optional<float> edge = this->find_edge(maze, tracker.hit.wall, travel > 0.0F, reading_on, face);
+
+            if (edge.has_value() and std::abs(*edge - crossing.offset) <= this->config.edge_window and
+                this->update(
+                    *edge - crossing.offset,
+                    {crossing.jacobian.at(0), crossing.jacobian.at(1), crossing.jacobian.at(2), 0.0F},
+                    this->config.edge_deviation * this->config.edge_deviation, this->config.gate,
+                    this->config.max_edge_correction
+                )) {
+                this->status.edges++;
+            }
+        }
+    }
+
+    const bool on_wall = hit.valid and hit.state == WallState::WALL and hit.range < this->config.edge_range and
+                         std::abs(reading.distance - hit.range) < tolerance(hit.range) and reading.valid;
 
     if (on_wall) {
+        tracker.locked = true;
+        tracker.reading_on = true;
         tracker.hit = hit;
     }
+}
 
-    if (not was_tracking or not tracker.tracking or was_on_wall == on_wall) {
-        return;
-    }
-
-    const RayHit& wall = on_wall ? hit : previous;
-
-    const PlaneCrossing crossing = wall_model.cross(sampled, sensor, wall);
-
-    if (not on_wall and (is_on(crossing.range) or (reading.valid and reading.distance < crossing.range))) {
-        return;
-    }
-
-    const float heading = this->state.pose.orientation;
-    const float travel = this->state.velocity.linear * (wall.vertical ? std::sin(heading) : std::cos(heading));
-    const bool  leaving_upwards = (travel > 0.0F) == (not on_wall);
-
-    const Side towards =
-        wall.vertical ? (leaving_upwards ? Side::UP : Side::DOWN) : (leaving_upwards ? Side::RIGHT : Side::LEFT);
-    const GridPose beyond{.position = wall.wall.position + towards, .orientation = wall.wall.orientation};
-
-    if (maze.get_wall(beyond) == WallState::WALL) {
-        return;
-    }
-
+template <uint8_t width, uint8_t height>
+std::optional<float> Localizer::find_edge(
+    const TMaze<width, height>& maze, const GridPose& wall, bool upwards, bool start, float face
+) const {
+    const bool  vertical = wall.orientation == Side::LEFT or wall.orientation == Side::RIGHT;
+    const float cell_size = this->config.model.maze.cell_size;
     const float half_wall = this->config.model.maze.wall_thickness / 2.0F;
-    const float edge = leaving_upwards ? this->config.model.maze.cell_size + half_wall : -half_wall;
-    const float innovation = edge - crossing.offset;
+    const float sign = upwards ? 1.0F : -1.0F;
 
-    if (std::abs(innovation) > this->config.edge_window) {
-        return;
+    Side step = upwards ? Side::UP : Side::DOWN;
+
+    if (not vertical) {
+        step = upwards ? Side::RIGHT : Side::LEFT;
     }
 
-    if (this->update(
-            innovation, {crossing.jacobian.at(0), crossing.jacobian.at(1), crossing.jacobian.at(2), 0.0F},
-            this->config.edge_deviation * this->config.edge_deviation, this->config.gate,
-            this->config.max_edge_correction
-        )) {
-        this->status.edges++;
+    GridPose segment = wall;
+    bool     in_gap = false;
+
+    for (uint8_t shift = 1; shift <= edge_search_cells; shift++) {
+        segment.position = segment.position + step;
+
+        const WallState state =
+            TMaze<width, height>::contains(segment.position) ? maze.get_wall(segment) : WallState::UNKNOWN;
+
+        if (state == WallState::UNKNOWN) {
+            return std::nullopt;
+        }
+
+        const bool open = state == WallState::NO_WALL;
+        in_gap = in_gap or open;
+
+        if (start ? (in_gap and not open) : open) {
+            const auto  cells = static_cast<float>(shift);
+            const float boundary = (upwards ? cells : 1.0F - cells) * cell_size;
+
+            return start ? boundary - sign * (half_wall + face) : boundary + sign * half_wall;
+        }
     }
+
+    return std::nullopt;
 }
 }  // namespace micras::nav
 

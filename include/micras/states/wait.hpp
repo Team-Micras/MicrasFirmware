@@ -13,6 +13,8 @@
 namespace micras {
 /**
  * @brief State that gives the user time to let go of the robot before it moves.
+ *
+ * @note It also waits for what Micras::prepare started, the fan, to be ready.
  */
 class WaitState : public BaseState {
 public:
