@@ -34,7 +34,6 @@ void RouteCompiler::compile(
                 .length = length,
                 .start_speed = 0.0F,
                 .end_speed = 0.0F,
-                .max_speed = 0.0F,
                 .start = start,
             });
         }
@@ -66,10 +65,9 @@ void RouteCompiler::compile(
         segments.push_back({
             .kind = SegmentKind::TURN,
             .turn = step.turn,
-            .length = step.side == TurnSide::LEFT ? shape.angle : -shape.angle,
+            .length = step.side == TurnSide::LEFT ? shape.length() : -shape.length(),
             .start_speed = 0.0F,
             .end_speed = 0.0F,
-            .max_speed = 0.0F,
             .start = retreat(node, -shape.pre),
         });
 
