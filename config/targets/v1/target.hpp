@@ -12,6 +12,7 @@
 #include <fmac.h>
 #include <gpio.h>
 #include <main.h>
+#include <numbers>
 #include <spi.h>
 #include <tim.h>
 #include <usart.h>
@@ -371,6 +372,13 @@ const proxy::TorqueSensors::Config torque_sensors_config = {
  * @note The reference readings are those of the last calibration, taken with the robot centered in
  * a cell: the side sensors between two walls, the front ones facing a wall. The reference distances
  * are what the geometry of the sensors says they measure from there.
+ *
+ * @note Each emitter lens sits 6.5 mm above its receiver lens (the SolidWorks assembly), and the
+ * TPS601A receiver halves its sensitivity 10 degrees off its axis (datasheet). The receiver therefore
+ * sees the lit spot 9 degrees off its axis from the center of a cell facing a wall but 4 degrees off
+ * at 100 mm, and the inverse square law alone would read 22 mm short there. With them the range
+ * follows the geometry within about 2 mm from 30 mm out; closer than about 30 mm the reading falls
+ * again and a range cannot be told from a longer one.
  */
 const proxy::WallSensors::Config wall_sensors_config = {
     .adc =
@@ -431,6 +439,8 @@ const proxy::WallSensors::Config wall_sensors_config = {
             nav::WallModel{wall_model_config}.get_centered_range(wall_sensors_index.right),
             nav::WallModel{wall_model_config}.get_centered_range(wall_sensors_index.right_front),
         },
+    .receiver_offset = 0.0065F,
+    .receiver_half_angle = 10.0F * std::numbers::pi_v<float> / 180.0F,
     .noise_floor = 0.002F,
     .max_reading = 0.95F,
     .max_distance = wall_sensors_range,
@@ -521,6 +531,13 @@ const proxy::Fan::Config fan_config = {
     .max_acceleration = 0.02F,
 };
 
+/**
+ * @brief Configuration of the drive.
+ *
+ * @note The motors get no dead zone: the controller's feed-forward already adds the static friction
+ * voltage of the robot model, which the drive identification measures, so a dead zone here would
+ * count it twice and put a step of its size into every command that crosses zero.
+ */
 const proxy::Locomotion::Config locomotion_config = {
     .left_motor =
         {
@@ -539,7 +556,7 @@ const proxy::Locomotion::Config locomotion_config = {
                     .inverted = false,
                 },
             .max_stopped_command = 0.2F,
-            .deadzone = 15.0F,
+            .deadzone = 0.0F,
         },
     .right_motor =
         {
@@ -558,7 +575,7 @@ const proxy::Locomotion::Config locomotion_config = {
                     .inverted = false,
                 },
             .max_stopped_command = 0.2F,
-            .deadzone = 15.0F,
+            .deadzone = 0.0F,
         },
     .enable_gpio =
         {

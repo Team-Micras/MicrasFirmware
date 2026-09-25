@@ -14,7 +14,7 @@
 #include "micras/nav/state.hpp"
 
 namespace micras::nav {
-Localizer::Localizer(const Config& config) : config{config} {
+Localizer::Localizer(const Config& config) : config{config}, rolling_radius{config.model.rolling_radius(0.0F)} {
     this->config.speed_window = std::clamp<uint8_t>(config.speed_window, 1, max_speed_window);
 
     this->set_covariance({
@@ -47,7 +47,7 @@ void Localizer::reset(const Pose& pose, const Measurements& measurements) {
 }
 
 void Localizer::predict(const Measurements& measurements, float elapsed_time) {
-    const float radius = this->config.model.chassis.wheel_radius;
+    const float radius = this->rolling_radius;
 
     const float left_distance = radius * (measurements.left_wheel_angle - this->last_left_angle);
     const float right_distance = radius * (measurements.right_wheel_angle - this->last_right_angle);
@@ -67,8 +67,10 @@ void Localizer::predict(const Measurements& measurements, float elapsed_time) {
     const float cosine = std::cos(heading);
     const float sine = std::sin(heading);
 
-    this->state.pose.position.x += chord * cosine;
-    this->state.pose.position.y += chord * sine;
+    const float slide = -this->config.model.traction.lateral_compliance * distance * rate;
+
+    this->state.pose.position.x += chord * cosine - slide * sine;
+    this->state.pose.position.y += chord * sine + slide * cosine;
     this->state.pose.orientation = core::assert_angle(this->state.pose.orientation + rotation);
 
     this->window_distance += distance - this->distances.at(this->window_index);
@@ -326,6 +328,10 @@ bool Localizer::update(
     this->bias += gain.at(bias_index) * scale;
 
     return true;
+}
+
+void Localizer::set_downforce(float downforce) {
+    this->rolling_radius = this->config.model.rolling_radius(downforce);
 }
 
 float Localizer::get_variance(uint8_t index) const {

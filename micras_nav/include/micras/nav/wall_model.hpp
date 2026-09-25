@@ -50,12 +50,14 @@ struct RayHit {
  * @brief Where the optical axis of a sensor crosses the plane of a wall, extended past its ends.
  *
  * @note The offset is measured along the wall like the one of a RayHit, the range is the distance
- * from the sensor to the plane along the axis, and the jacobian is the derivative of the offset with
+ * from the sensor to the plane along the axis, the slope is how far the axis advances along the wall
+ * for each meter it closes on the plane, and the jacobian is the derivative of the offset with
  * respect to the x, y and orientation of the robot.
  */
 struct PlaneCrossing {
     float                offset;
     float                range;
+    float                slope;
     std::array<float, 3> jacobian;
 };
 
@@ -146,6 +148,23 @@ public:
      * @return The range to the wall the sensor points at, or zero if it points at none.
      */
     float get_centered_range(uint8_t sensor) const;
+
+    /**
+     * @brief Get the range to a wall from the distance a sensor reads for it.
+     *
+     * @details A wall reflects diffusely, so the light a sensor gets back from it falls with the
+     * cosine of the angle between the axis and the perpendicular of the wall, and a reading is turned
+     * into a distance as if the wall were met at the angle of the calibration: square on for a front
+     * sensor and at 45 degrees for a diagonal one. Met at another angle, a wall reads as one nearer
+     * or farther by the square root of the ratio of the two cosines. A diagonal sensor that meets a
+     * wall square on, as it does all along a diagonal, reads it 16 % short.
+     *
+     * @param distance The distance read by the sensor.
+     * @param sensor The index of the sensor.
+     * @param hit What the axis of the sensor meets.
+     * @return The range to the face of the wall along the axis.
+     */
+    float get_range(float distance, uint8_t sensor, const RayHit& hit) const;
 
     /**
      * @brief Get the standard deviation of a range reading.

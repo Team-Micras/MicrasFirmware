@@ -64,6 +64,13 @@ public:
     void stop();
 
     /**
+     * @brief Check if the fan has finished ramping to the speed it was asked for.
+     *
+     * @return True once the current speed is the target one, which a stopped fan always is.
+     */
+    bool is_at_speed() const;
+
+    /**
      * @brief Check if the driver is reporting a fault.
      *
      * @note The enable pin is bidirectional: the driver pulls it low to signal an over current or a

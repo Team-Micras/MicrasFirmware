@@ -7,6 +7,7 @@
 
 #include <array>
 #include <cstdint>
+#include <optional>
 
 #include "micras/nav/maze.hpp"
 #include "micras/nav/measurements.hpp"
@@ -58,7 +59,10 @@ public:
      * share it: the variance of each is multiplied by it, so that what a second of ranges is worth
      * does not depend on how many there are in it. The speed window is the number of iterations the linear
      * speed is measured over, which trades noise for delay. The rest window is the time over which
-     * the gyroscope is compared with the encoders to measure its bias.
+     * the gyroscope is compared with the encoders to measure its bias. The maximum range is the
+     * longest range a reading corrects the pose from: past it the beam of the emitter grows wide
+     * enough to land partly on the floor, the reading loses light the model of the sensor does not
+     * know about, and the range comes out long by several percent.
      *
      * The ends of the side walls are used as references along the path when use_edges is set. An
      * end is accepted while the robot moves forward faster than the edge speed, since the only time
@@ -82,6 +86,7 @@ public:
         float      stationary_angular_speed;
         float      range_delay;
         float      range_correlation;
+        float      max_range;
         float      rest_window;
         bool       use_edges;
         float      edge_deviation;
@@ -125,10 +130,21 @@ public:
     /**
      * @brief Advance the estimate by one iteration.
      *
+     * @note The wheels and the gyroscope give the motion along the heading. The tires also slide to
+     * the outside of a curve, in proportion to the lateral acceleration, which neither of them sees,
+     * so that slide comes from the lateral compliance of the model.
+     *
      * @param measurements The current measurements.
      * @param elapsed_time Time since the last iteration, in seconds.
      */
     void predict(const Measurements& measurements, float elapsed_time);
+
+    /**
+     * @brief Set how much of the fan downforce presses the tires, which sets the radius they roll on.
+     *
+     * @param downforce The share of the fan downforce, from 0 with the fan off to 1.
+     */
+    void set_downforce(float downforce);
 
     /**
      * @brief Correct the estimate with the ranges of the wall sensors that can be trusted.
@@ -218,6 +234,11 @@ private:
     using Matrix = std::array<Vector, number_of_states>;
 
     /**
+     * @brief Number of walls a line is followed over to find an edge.
+     */
+    static constexpr uint8_t edge_search_cells{4};
+
+    /**
      * @brief Indexes of the states.
      */
     ///@{
@@ -229,19 +250,30 @@ private:
     ///@}
 
     /**
-     * @brief What a side looking sensor was seeing at its previous sample.
+     * @brief The line of walls a side looking sensor follows, and what its reading last said of it.
      *
-     * @note The end of a wall shows up as a change between two consecutive samples, from a reading
-     * on the wall to a reading past it or the other way around, so both are remembered.
+     * @note A sensor locks on a line once its axis, cast from the estimated pose, meets a wall of it
+     * and the reading agrees. From then on the reading is compared with the plane of that line, and
+     * whether it is on the plane or past it is remembered, until the robot stops or turns.
      */
     struct EdgeTracker {
-        bool   tracking;
-        bool   on_wall;
+        bool   locked;
+        bool   reading_on;
         RayHit hit;
     };
 
     /**
-     * @brief Look for the end of a side wall in the reading of a sensor, and use it as a reference.
+     * @brief Look for the end or the start of a side wall in the reading of a sensor, and use it as
+     * a reference along the path.
+     *
+     * @note Only a change of the reading places an edge, and the map only says which edge it is:
+     * from the wall the sensor is locked on, the first end of the line of walls ahead, or the first
+     * start after a gap, in the direction the axis moves along it. So an edge is found whether the
+     * estimate is ahead of the robot or behind it. The reading changes where half of the spot is on
+     * the wall, with the axis of the sensor on the edge itself. Toward the start of a wall the beam,
+     * which always points ahead, also lights the end face of the wall, so the start is seen early, by
+     * the thickness of the wall times the slope of the axis to it. Leaving a wall that face is in the
+     * shade. An edge the map does not know, because a wall on the way is unknown, is not used.
      *
      * @tparam width The width of the maze in cells.
      * @tparam height The height of the maze in cells.
@@ -257,6 +289,23 @@ private:
         uint8_t sensor, const WallReading& reading, const Pose& sampled, const RayHit& hit, const WallModel& wall_model,
         const TMaze<width, height>& maze
     );
+
+    /**
+     * @brief Find the edge ahead along a line of walls.
+     *
+     * @tparam width The width of the maze in cells.
+     * @tparam height The height of the maze in cells.
+     * @param maze The map of the walls.
+     * @param wall A known wall of the line.
+     * @param upwards Whether to look toward higher coordinates along the line.
+     * @param start Whether to look for the start of a wall after a gap, rather than for an end.
+     * @param face How far ahead of a start its end face is seen.
+     * @return The coordinate of the edge along the line, from the base of the wall, if the map
+     * knows every wall on the way.
+     */
+    template <uint8_t width, uint8_t height>
+    std::optional<float>
+        find_edge(const TMaze<width, height>& maze, const GridPose& wall, bool upwards, bool start, float face) const;
 
     /**
      * @brief Set the covariance to a diagonal one.
@@ -325,6 +374,11 @@ private:
      * @brief Diagonal factor of the covariance.
      */
     Vector diagonal{};
+
+    /**
+     * @brief Radius the wheels roll on, under the load on their tires.
+     */
+    float rolling_radius;
 
     /**
      * @brief Wheel angles at the last iteration.

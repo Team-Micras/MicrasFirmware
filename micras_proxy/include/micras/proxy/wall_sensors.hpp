@@ -19,10 +19,16 @@ namespace micras::proxy {
  * @details Each sensor is an infrared emitter next to a phototransistor, and what comes out of this
  * class is the distance to whatever the emitter lights up, along its optical axis, in meters. The
  * emitter has a narrow beam that lands entirely on the wall, which scatters it in every direction,
- * so the light that comes back falls with the square of the distance. One reading at a known
- * distance therefore calibrates a sensor:
+ * so the light that comes back falls with the square of the distance. The receiver sits beside the
+ * emitter, not on its axis, and only takes in light close to its own axis, so it sees the lit spot
+ * at an angle that grows as the wall comes closer and loses light to its directivity:
  *
- *     distance = reference_distance * sqrt(reference_reading / reading)
+ *     reading = k * 2^(-(atan(receiver_offset / distance) / receiver_half_angle)^2) / distance^2
+ *
+ * One reading at a known distance therefore calibrates a sensor, by fixing k. With no receiver
+ * offset this is the inverse square law, distance = reference_distance * sqrt(reference_reading /
+ * reading). With one, the reading peaks at a short distance and falls again closer than that, so a
+ * reading above the peak is reported as the distance of the peak, as a saturated one is.
  *
  * @tparam num_of_sensors Number of sensors.
  */
@@ -38,7 +44,9 @@ public:
      * A reading below the noise floor, or one that works out to more than the maximum distance,
      * means nothing is within range. A reading above the maximum is saturated, and is reported as
      * the distance of the maximum reading. A wall is considered present when the slow distance is
-     * below the wall distance, and absent again when it goes above it by the hysteresis.
+     * below the wall distance, and absent again when it goes above it by the hysteresis. The
+     * receiver offset is the distance from the optical axis of the emitter to the receiver, and the
+     * receiver half angle the angle off its own axis at which the receiver's sensitivity halves.
      */
     struct Config {
         hal::AdcDma::Config                          adc;
@@ -48,6 +56,8 @@ public:
         core::ButterworthFilter::Config              slow_filter;
         std::array<float, num_of_sensors>            reference_readings;
         std::array<float, num_of_sensors>            reference_distances;
+        float                                        receiver_offset;
+        float                                        receiver_half_angle;
         float                                        noise_floor;
         float                                        max_reading;
         float                                        max_distance;
@@ -173,6 +183,28 @@ private:
     static constexpr float frequency_tolerance{0.01F};
 
     /**
+     * @brief Number of distances the shape of the reading is tabulated at.
+     */
+    static constexpr uint8_t shape_points{64};
+
+    /**
+     * @brief Get how the reading varies with the distance, up to the calibrated constant.
+     *
+     * @param distance Distance to the wall in meters.
+     * @return The reading at that distance divided by k.
+     */
+    float shape(float distance) const;
+
+    /**
+     * @brief Get the distance a reading corresponds to.
+     *
+     * @param sensor_index Index of the sensor.
+     * @param intensity Reading from 0 to 1, above the noise floor.
+     * @return Distance in meters.
+     */
+    float to_distance(uint8_t sensor_index, float intensity) const;
+
+    /**
      * @brief Averaging of the readings of one sensor during its calibration.
      */
     struct Calibration {
@@ -251,6 +283,26 @@ private:
      * @brief Distance each sensor was calibrated at.
      */
     std::array<float, num_of_sensors> reference_distances;
+
+    /**
+     * @brief Distance from the axis of each emitter to its receiver.
+     */
+    float receiver_offset;
+
+    /**
+     * @brief Angle off its axis at which the sensitivity of the receiver halves.
+     */
+    float receiver_half_angle;
+
+    /**
+     * @brief Distances the shape of the reading is tabulated at, from its peak to the maximum distance.
+     */
+    std::array<float, shape_points> shape_distances{};
+
+    /**
+     * @brief One over the square root of the shape at each tabulated distance, which grows with it.
+     */
+    std::array<float, shape_points> shape_scales{};
 
     /**
      * @brief Reading below which there is only noise.

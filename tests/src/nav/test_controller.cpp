@@ -112,8 +112,8 @@ int main(int argc, char* argv[]) {
             .right_wheel_angle = rotary_sensor_right.get_position(),
             .angular_rate = imu.get_angular_velocity(proxy::Imu::Axis::Z),
             .acceleration =
-                {.x = imu.get_linear_acceleration(proxy::Imu::Axis::X),
-                 .y = imu.get_linear_acceleration(proxy::Imu::Axis::Y)},
+                {.x = imu.get_linear_acceleration(proxy::Imu::Axis::Y),
+                 .y = -imu.get_linear_acceleration(proxy::Imu::Axis::X)},
             .imu_is_new = imu.is_new(),
             .walls = {},
         };
