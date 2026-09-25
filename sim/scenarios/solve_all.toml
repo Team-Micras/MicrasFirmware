@@ -1,0 +1,46 @@
+# The fastest run alone in the fastest mode, from a map an earlier exploration saved:
+# give the flash of that run with --flash. With every switch on (fan, racing line, boost,
+# risky turns), a long press plans the route and runs it; the run ends when the robot
+# is idle at the goal, or at once if it gives up in ERROR.
+robot = "micras"
+arena = "maze1"
+seconds = 120
+seed = 1
+
+# Where the firmware expects to be placed (constants.hpp start_offset): its origin
+# 40 mm in front of the face of the back wall, the board 3.5 mm clear of it.
+[start]
+x = 0.09
+y = 0.0463
+yaw_deg = 90.0
+
+[[events]]
+at = 0.1
+set = "dip_fan"
+value = true
+
+[[events]]
+at = 0.1
+set = "dip_racing_line"
+value = true
+
+[[events]]
+at = 0.1
+set = "dip_boost"
+value = true
+
+[[events]]
+at = 0.1
+set = "dip_risky"
+value = true
+
+[[events]]
+at = 0.5
+press = "button"
+for = 1.0
+
+[stop]
+when = "state"
+equals = "IDLE"
+after = 2.0
+abort = "ERROR"
