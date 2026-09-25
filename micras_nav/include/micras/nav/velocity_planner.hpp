@@ -14,12 +14,12 @@ namespace micras::nav {
 /**
  * @brief Choice of the speed at every junction of a route.
  *
- * @details Every turn starts at the speed its shape allows and every straight at the speed limit.
- * A pass from the end to the start then lowers each junction to what can be braked from before the
- * next one, and a pass from the start to the end lowers it to what can be reached from the previous
- * one. A turn is driven at a single speed, so lowering one of its ends lowers the other, which is
- * how two turns too close together slow each other down. What is left is the fastest set of speeds
- * the limits allow.
+ * @details Every turn starts and ends at the speed its shape allows there and every straight at the
+ * speed limit. A pass from the end to the start then lowers each junction to what can be braked from
+ * before the next one, and a pass from the start to the end lowers it to what can be reached from
+ * the previous one. A turn is braked and accelerated through as its curvature leaves grip to spare,
+ * which is how two turns too close together slow each other down: the grip they have left has to
+ * make up for the straight they lack. What is left is the fastest set of speeds the limits allow.
  */
 class VelocityPlanner {
 public:
@@ -45,6 +45,8 @@ public:
 
     /**
      * @brief Get the time a segment takes, with the speeds it already has.
+     *
+     * @note A racing line is timed by the line itself, and gets zero here.
      *
      * @param segment The segment.
      * @param dynamics The physical limits of the robot.

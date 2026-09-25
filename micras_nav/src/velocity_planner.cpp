@@ -7,9 +7,11 @@
 #include <ranges>
 #include <span>
 
+#include "micras/nav/curve_speed.hpp"
 #include "micras/nav/motion_limits.hpp"
 #include "micras/nav/segment.hpp"
 #include "micras/nav/speed_profile.hpp"
+#include "micras/nav/turn_table.hpp"
 #include "micras/nav/velocity_planner.hpp"
 
 namespace micras::nav {
@@ -21,23 +23,25 @@ float VelocityPlanner::plan(
     }
 
     const MotionLimits linear_limits = dynamics.get_linear_limits(profile);
+    const CurveLimits  curve_limits = dynamics.get_curve_limits(profile);
 
     const auto is_straight = [](const Segment& segment) {
         return segment.kind == SegmentKind::STRAIGHT or segment.kind == SegmentKind::DIAGONAL;
     };
 
     for (Segment& segment : route) {
-        float limit = 0.0F;
+        segment.start_speed = 0.0F;
+        segment.end_speed = 0.0F;
 
         if (is_straight(segment)) {
-            limit = linear_limits.max_speed;
+            segment.start_speed = linear_limits.max_speed;
+            segment.end_speed = linear_limits.max_speed;
         } else if (segment.kind == SegmentKind::TURN) {
-            limit = dynamics.get_turn_speed(profile, segment.turn);
-        }
+            const TurnShape& shape = dynamics.get_turn(profile, segment.turn);
 
-        segment.max_speed = limit;
-        segment.start_speed = limit;
-        segment.end_speed = limit;
+            segment.start_speed = curve_limits.get_speed_limit(shape.bending_at(0.0F));
+            segment.end_speed = curve_limits.get_speed_limit(shape.bending_at(shape.length()));
+        }
     }
 
     float next_speed = end_speed;
@@ -49,6 +53,11 @@ float VelocityPlanner::plan(
             segment.start_speed = std::min(
                 segment.start_speed,
                 SpeedProfile::get_brakeable_speed(std::abs(segment.length), segment.end_speed, linear_limits)
+            );
+        } else if (segment.kind == SegmentKind::TURN) {
+            segment.start_speed = std::min(
+                segment.start_speed,
+                CurveSpeed::get_entry_speed(dynamics.get_turn(profile, segment.turn), segment.end_speed, curve_limits)
             );
         } else {
             segment.start_speed = std::min(segment.start_speed, segment.end_speed);
@@ -66,6 +75,11 @@ float VelocityPlanner::plan(
             segment.end_speed = std::min(
                 segment.end_speed,
                 SpeedProfile::get_reachable_speed(std::abs(segment.length), segment.start_speed, linear_limits)
+            );
+        } else if (segment.kind == SegmentKind::TURN) {
+            segment.end_speed = std::min(
+                segment.end_speed,
+                CurveSpeed::get_exit_speed(dynamics.get_turn(profile, segment.turn), segment.start_speed, curve_limits)
             );
         } else {
             segment.end_speed = std::min(segment.end_speed, segment.start_speed);
@@ -93,7 +107,14 @@ float VelocityPlanner::get_duration(const Segment& segment, const Dynamics& dyna
                 .duration();
 
         case SegmentKind::TURN:
-            return dynamics.get_turn(profile, segment.turn).length() / segment.start_speed;
+            return CurveSpeed{
+                dynamics.get_turn(profile, segment.turn), segment.start_speed, segment.end_speed,
+                dynamics.get_curve_limits(profile)
+            }
+                .duration();
+
+        case SegmentKind::LINE:
+            return 0.0F;
 
         case SegmentKind::SPIN:
             return SpeedProfile{std::abs(segment.length), 0.0F, 0.0F, dynamics.get_angular_limits(profile)}.duration();

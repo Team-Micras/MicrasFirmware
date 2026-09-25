@@ -13,11 +13,13 @@ namespace micras::nav {
  * @brief How a run trades time for safety.
  *
  * @note The utilization is the fraction of the available traction the run may ask for, in (0, 1].
- * Whether the run is risky selects the turn table built with the smaller safety margin. The speed
- * limit is what makes the search run slow: a fast run leaves it above what the robot can reach.
+ * Whether the run is risky selects the turn table built with the smaller safety margin. The racing
+ * line replaces the route by the smoothest line through
+ * its cells, which only a fast run planned with the robot stopped can drive. The speed limit is what
+ * makes the search run slow: a fast run leaves it above what the robot can reach.
  */
 struct RunProfile {
-    bool  diagonal;
+    bool  racing_line;
     bool  fan;
     bool  risky;
     float utilization;
@@ -53,6 +55,52 @@ struct MotionLimits {
     float deceleration;
     float motor_acceleration;
     float motor_speed;
+};
+
+/**
+ * @brief Limits of a motion along a curve, where the tires share their grip between turning and
+ * changing speed.
+ *
+ * @details The speed at a point is limited by the lateral acceleration its curvature asks for and
+ * by the angular acceleration its sharpness asks for, each against what the tires can give, which
+ * is the rule a turn has always been driven by. What is left of the grip there can change the
+ * speed: the lateral part takes its share as on a friction circle, and the angular part, which the
+ * two tires make by pushing in opposite directions, takes it from the push each tire has left. A
+ * change of speed on a curve also changes the angular speed, and that angular acceleration is
+ * counted too.
+ *
+ * @note On a straight nothing is taken and the limits are those of the linear motion.
+ */
+struct CurveLimits {
+    /**
+     * @brief Get the largest speed at a point.
+     *
+     * @param bending How the path bends there.
+     * @return The speed in m/s.
+     */
+    float get_speed_limit(const Bending& bending) const;
+
+    /**
+     * @brief Get the largest acceleration at a point, at a speed.
+     *
+     * @param speed The speed there.
+     * @param bending How the path bends there.
+     * @return The acceleration along the path in m/s^2, which is zero where the grip is all used.
+     */
+    float get_acceleration(float speed, const Bending& bending) const;
+
+    /**
+     * @brief Get the largest deceleration at a point, at a speed.
+     *
+     * @param speed The speed there.
+     * @param bending How the path bends there.
+     * @return The deceleration along the path in m/s^2, as a positive number.
+     */
+    float get_deceleration(float speed, const Bending& bending) const;
+
+    MotionLimits linear;
+    float        lateral;
+    float        angular;
 };
 
 /**
@@ -102,6 +150,14 @@ public:
     MotionLimits get_angular_limits(const RunProfile& profile) const;
 
     /**
+     * @brief Get the limits of a motion along a curve.
+     *
+     * @param profile The profile of the run.
+     * @return The limits, the linear ones being those of a straight.
+     */
+    CurveLimits get_curve_limits(const RunProfile& profile) const;
+
+    /**
      * @brief Get the shape of a turn for a run.
      *
      * @param profile The profile of the run.
@@ -111,10 +167,11 @@ public:
     const TurnShape& get_turn(const RunProfile& profile, TurnId turn) const;
 
     /**
-     * @brief Get the speed a turn is driven at.
+     * @brief Get the speed a turn is priced at.
      *
      * @details The largest speed at which neither the lateral acceleration at the peak curvature
-     * nor the angular acceleration along the ramps exceeds what the tires can give to this run.
+     * nor the angular acceleration along the ramps exceeds what the tires can give to this run. It
+     * is the slowest point of the turn, which the robot may drive faster where the turn allows.
      *
      * @param profile The profile of the run.
      * @param turn The turn.

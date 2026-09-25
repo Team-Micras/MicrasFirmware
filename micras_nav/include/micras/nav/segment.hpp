@@ -17,19 +17,21 @@ namespace micras::nav {
 enum class SegmentKind : uint8_t {
     STRAIGHT = 0,  // Straight line along the grid.
     DIAGONAL = 1,  // Straight line along a diagonal.
-    TURN = 2,      // Slalom turn from the turn table, at a constant linear speed.
+    TURN = 2,      // Slalom turn from the turn table, braked and accelerated as its curvature allows.
     SPIN = 3,      // Rotation in place.
     STOP = 4,      // Stand still for a given time.
     ATTACH = 5,    // Stand still facing a wall until the pose settles, or for a given time at most.
+    LINE = 6,      // The racing line, from the start to the goal, at the speeds it was planned with.
 };
 
 /**
  * @brief One motion of a route, as a plain value.
  *
- * @details The length is in meters for a straight and negative to drive it backwards, in radians for
- * a turn and for a rotation in place, positive to the left, and in seconds for the two kinds that
- * stand still. The speeds are those at the ends of the segment and are filled in by the velocity
- * planner, as is the largest speed allowed along it.
+ * @details The length is in meters for a straight and negative to drive it backwards, in meters of
+ * curve for a turn, negative for the mirror of the turn of the table, which is the turn to the right,
+ * in radians for a rotation in place, positive to the left, in seconds for the two kinds that stand
+ * still, and in meters for the racing line. The speeds are those at the ends of the segment and are
+ * filled in by the velocity planner, except for the racing line, which carries its own.
  *
  * @note The start is the pose the segment nominally starts from in the maze frame. It comes from the
  * route on the grid and never from a measurement, so the references generated from it do not move
@@ -42,7 +44,6 @@ struct Segment {
     float       length;
     float       start_speed;
     float       end_speed;
-    float       max_speed;
     Pose        start;
 };
 

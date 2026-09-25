@@ -18,6 +18,49 @@ float MotionLimits::crossover_speed() const {
     return this->motor_speed * (1.0F - this->acceleration / this->motor_acceleration);
 }
 
+float CurveLimits::get_speed_limit(const Bending& bending) const {
+    const float curvature = std::abs(bending.curvature);
+    const float sharpness = std::abs(bending.sharpness);
+
+    float limit = this->linear.max_speed;
+
+    if (curvature > 0.0F) {
+        limit = std::min(limit, std::sqrt(this->lateral / curvature));
+    }
+
+    if (sharpness > 0.0F) {
+        limit = std::min(limit, std::sqrt(this->angular / sharpness));
+    }
+
+    return limit;
+}
+
+float CurveLimits::get_acceleration(float speed, const Bending& bending) const {
+    const float lateral_use = speed * speed * std::abs(bending.curvature) / this->lateral;
+    const float angular_use = speed * speed * std::abs(bending.sharpness) / this->angular;
+    const float spare = std::sqrt(std::max(1.0F - lateral_use * lateral_use, 0.0F)) - angular_use;
+
+    if (spare <= 0.0F) {
+        return 0.0F;
+    }
+
+    const float grip = spare / (1.0F / this->linear.acceleration + std::abs(bending.curvature) / this->angular);
+
+    return std::max(std::min(grip, this->linear.acceleration_at(speed)), 0.0F);
+}
+
+float CurveLimits::get_deceleration(float speed, const Bending& bending) const {
+    const float lateral_use = speed * speed * std::abs(bending.curvature) / this->lateral;
+    const float angular_use = speed * speed * std::abs(bending.sharpness) / this->angular;
+    const float spare = std::sqrt(std::max(1.0F - lateral_use * lateral_use, 0.0F)) - angular_use;
+
+    if (spare <= 0.0F) {
+        return 0.0F;
+    }
+
+    return spare / (1.0F / this->linear.deceleration + std::abs(bending.curvature) / this->angular);
+}
+
 Dynamics::Dynamics(const Config& config) :
     model{config.model},
     turns{config.turns},
@@ -51,6 +94,14 @@ MotionLimits Dynamics::get_angular_limits(const RunProfile& profile) const {
         .deceleration = traction,
         .motor_acceleration = this->available_voltage / this->model.angular_acceleration_constant(),
         .motor_speed = free_speed,
+    };
+}
+
+CurveLimits Dynamics::get_curve_limits(const RunProfile& profile) const {
+    return {
+        .linear = this->get_linear_limits(profile),
+        .lateral = profile.utilization * this->model.traction_acceleration(profile.fan),
+        .angular = profile.utilization * this->model.traction_angular_acceleration(profile.fan),
     };
 }
 
