@@ -1,0 +1,62 @@
+{
+  "target": "micras",
+  "scenario": "scenarios/explore.toml",
+  "args": "--scenario scenarios/explore.toml --seconds 30 --out runs/explore",
+  "firmware_sha": "0be27df9c12a0f6fbca55f007283f6bb1eeb2ec0-dirty",
+  "mujoco_version": "3.14.0",
+  "compiler": "GNU 13.4.0",
+  "data_sha256": "bc460542d2e22a5f1cdb51ff153ed7fed62d2f55b2e7cad0c298b10906804424",
+  "states": [
+    [
+      0.000125,
+      "INIT"
+    ],
+    [
+      0.00025,
+      "IDLE"
+    ],
+    [
+      0.760125,
+      "WAIT_FOR_RUN"
+    ],
+    [
+      3.76113,
+      "RUN"
+    ],
+    [
+      26.5168,
+      "SAVE"
+    ],
+    [
+      26.5169,
+      "WAIT_FOR_RUN"
+    ],
+    [
+      29.5171,
+      "RUN"
+    ]
+  ],
+  "values": {
+    "ticks": 240000,
+    "warnings_total": 0,
+    "unbound_ports": 0,
+    "collisions": 0,
+    "goal_time": 26.225625,
+    "stopped_at": null,
+    "running_time": 23.23862500011096,
+    "max_pose_error": 0.012532117593383792,
+    "rms_across_error": 0.0011946963676523932
+  },
+  "tolerances": {
+    "state_time": 0.25,
+    "ticks": null,
+    "warnings_total": null,
+    "unbound_ports": null,
+    "collisions": 2,
+    "goal_time": 1.0,
+    "stopped_at": 1.0,
+    "running_time": 1.0,
+    "max_pose_error": 0.02,
+    "rms_across_error": 0.003
+  }
+}
