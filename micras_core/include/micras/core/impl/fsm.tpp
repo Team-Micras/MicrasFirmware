@@ -7,16 +7,14 @@
 
 #include <cstdint>
 #include <cstdlib>
-#include <memory>
-#include <utility>
 
 namespace micras::core {
 template <uint8_t num_of_states>
 TFsm<num_of_states>::TFsm(uint8_t initial_state_id) : current_state_id{initial_state_id} { }
 
 template <uint8_t num_of_states>
-void TFsm<num_of_states>::add_state(std::unique_ptr<FsmState> state) {
-    this->states.at(state->get_id()) = std::move(state);
+void TFsm<num_of_states>::add_state(FsmState& state) {
+    this->states.at(state.get_id()) = &state;
 }
 
 template <uint8_t num_of_states>

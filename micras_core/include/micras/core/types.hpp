@@ -9,15 +9,6 @@
 
 namespace micras::core {
 /**
- * @brief Possible values for the observation from the sensors.
- */
-struct Observation {
-    bool left{};
-    bool front{};
-    bool right{};
-};
-
-/**
  * @brief Possible objectives of the robot.
  */
 enum class Objective : uint8_t {

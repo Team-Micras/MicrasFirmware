@@ -28,11 +28,19 @@ static void signal_handler(int signal) {
     }
 }
 
+/**
+ * @brief Entry point of the firmware.
+ *
+ * @note The robot lives in static storage because it is far too large for the stack, which also
+ * gives its members a fixed address that a variable monitor can read. It is constructed here, and
+ * not before main, since the proxies it holds need the microcontroller initialized.
+ */
 int main() {
     std::signal(SIGABRT, signal_handler);
 
     micras::hal::Mcu::init(micras::mcu_config);
-    micras::Micras micras;
+
+    static micras::Micras micras;
 
     while (true) {
         micras.update();

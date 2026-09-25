@@ -10,12 +10,15 @@
 #include <lsm6dsv_reg.h>
 #include <numbers>
 
-#include "micras/core/butterworth_filter.hpp"
 #include "micras/hal/spi.hpp"
 
 namespace micras::proxy {
 /**
  * @brief Class for acquiring IMU data.
+ *
+ * @note The rates are delivered as the sensor reports them, with their bias still in them. The bias
+ * of a gyroscope drifts with temperature and time, so it is estimated continuously by whoever
+ * integrates the rate, not measured once here.
  *
  * @note The samples are read by the DMA into a buffer of this object, which therefore has to live in
  * memory that the DMA reaches.
@@ -38,7 +41,6 @@ public:
         lsm6dsv_xl_full_scale_t         accelerometer_scale;
         lsm6dsv_filt_gy_lp1_bandwidth_t gyroscope_filter;
         lsm6dsv_filt_xl_lp2_bandwidth_t accelerometer_filter;
-        core::ButterworthFilter::Config calibration_filter;
     };
 
     /**
@@ -92,11 +94,6 @@ public:
      * @return Linear acceleration over the desired axis in m/s².
      */
     float get_linear_acceleration(Axis axis) const;
-
-    /**
-     * @brief Define the base reading to be removed from the IMU value.
-     */
-    void calibrate();
 
     /**
      * @brief Check if IMU was initialized.
@@ -213,19 +210,9 @@ private:
     float xl_factor;
 
     /**
-     * @brief Gyroscope Butterworth filter for the calibration.
-     */
-    core::ButterworthFilter calibration_filter;
-
-    /**
      * @brief Flag to check if the last update brought a new angular rate.
      */
     bool fresh{};
-
-    /**
-     * @brief Flag to check if the IMU was calibrated.
-     */
-    bool calibrated{};
 
     /**
      * @brief Flag to check if the IMU was initialized.

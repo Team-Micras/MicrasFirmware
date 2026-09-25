@@ -3,8 +3,8 @@
  */
 
 #include <cstdint>
-
 #include <main.h>
+
 #include "micras/hal/timer.hpp"
 
 namespace micras::hal {
