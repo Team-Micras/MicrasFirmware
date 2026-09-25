@@ -20,6 +20,13 @@ namespace micras::nav {
  * @details S is a straight along the grid and D a diagonal, followed by the angle turned. SS90S is
  * the short turn that fits inside one cell, which is also the turn used while searching, and SS90L
  * the long one that needs a cell of straight on both sides.
+ *
+ * The turns from SD45E on enter a cell and leave it through one of its other three walls, two bends
+ * each. Their last letter is the wall they leave through, in the canonical frame of TurnPrimitive: T
+ * the wall on the left of the entry, E the wall across from it and B the wall on the right. Those that
+ * start on a diagonal may end turned to the right of it, since the side of a diagonal turn is fixed by
+ * the wall it starts on: DS45E, DD90E and DS135B turn right, and DD0E does not turn,
+ * shifting to the next diagonal.
  */
 enum class TurnId : uint8_t {
     SS90S = 0,
@@ -30,13 +37,32 @@ enum class TurnId : uint8_t {
     DS45 = 5,
     DS135 = 6,
     DD90 = 7,
-    NUMBER_OF_TURNS = 8,
+    SD45E = 8,
+    SD45T = 9,
+    SD135T = 10,
+    DS45T = 11,
+    DD0E = 12,
+    DS45E = 13,
+    DD90E = 14,
+    DS135B = 15,
+    NUMBER_OF_TURNS = 16,
 };
 
 /**
  * @brief Number of different turns.
  */
 inline constexpr uint8_t number_of_turns{std::to_underlying(TurnId::NUMBER_OF_TURNS)};
+
+/**
+ * @brief First of the turns of two bends, whose shapes are designed before the firmware is compiled
+ * rather than while it is.
+ */
+inline constexpr uint8_t first_two_bend_turn{std::to_underlying(TurnId::SD45E)};
+
+/**
+ * @brief Number of turns of two bends.
+ */
+inline constexpr uint8_t number_of_two_bend_turns{number_of_turns - first_two_bend_turn};
 
 /**
  * @brief Side a turn is made to.
@@ -315,6 +341,14 @@ inline constexpr std::array<TurnPrimitive, number_of_turns> turn_primitives{{
      .exit = {.x = 0, .y = 2},
      .gates = {{{.x = 1, .y = 1}, {}}},
      .number_of_gates = 1},
+    {.diagonal_entry = false, .rotation = 1, .exit = {.x = 2, .y = 0}, .gates = {}, .number_of_gates = 0},
+    {.diagonal_entry = false, .rotation = 1, .exit = {.x = 1, .y = 1}, .gates = {}, .number_of_gates = 0},
+    {.diagonal_entry = false, .rotation = 3, .exit = {.x = 1, .y = 1}, .gates = {}, .number_of_gates = 0},
+    {.diagonal_entry = true, .rotation = 1, .exit = {.x = 1, .y = 1}, .gates = {}, .number_of_gates = 0},
+    {.diagonal_entry = true, .rotation = 0, .exit = {.x = 2, .y = 0}, .gates = {}, .number_of_gates = 0},
+    {.diagonal_entry = true, .rotation = 7, .exit = {.x = 2, .y = 0}, .gates = {}, .number_of_gates = 0},
+    {.diagonal_entry = true, .rotation = 6, .exit = {.x = 2, .y = 0}, .gates = {}, .number_of_gates = 0},
+    {.diagonal_entry = true, .rotation = 5, .exit = {.x = 1, .y = -1}, .gates = {}, .number_of_gates = 0},
 }};
 
 /**

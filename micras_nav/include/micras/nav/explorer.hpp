@@ -68,10 +68,10 @@ public:
      * @brief Advance the planning.
      *
      * @param maze The map of the walls.
-     * @param max_nodes The largest number of nodes the planner may expand in this call.
+     * @param max_edges The largest number of edges the planner may try in this call.
      * @return True if the targets changed.
      */
-    bool update(const TMaze<width, height>& maze, uint32_t max_nodes);
+    bool update(const TMaze<width, height>& maze, uint32_t max_edges);
 
     /**
      * @brief Check if an answer for the current map exists yet.

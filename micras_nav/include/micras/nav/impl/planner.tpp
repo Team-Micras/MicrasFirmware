@@ -36,14 +36,55 @@ void TPlanner<width, height>::begin(
         this->turn_speeds.at(i) = this->dynamics.get_turn_speed(profile, static_cast<TurnId>(i));
     }
 
-    for (auto& runs : this->edges) {
-        for (auto& turns : runs) {
-            turns.fill({.cost = -1.0F, .speed_ratio = 0});
+    this->number_of_usable_turns.fill(0);
+
+    for (uint8_t i = 0; i < number_of_turns; i++) {
+        const auto    turn = static_cast<TurnId>(i);
+        const uint8_t diagonal = get_primitive(turn).diagonal_entry ? 1 : 0;
+
+        if (this->is_usable(turn)) {
+            this->usable_turns.at(diagonal).at(this->number_of_usable_turns.at(diagonal)) = turn;
+            this->number_of_usable_turns.at(diagonal)++;
         }
     }
 
-    this->cleared = 0;
+    for (auto& costs : this->edge_costs) {
+        costs.fill(-1.0F);
+    }
+
+    for (auto& row : this->gaps) {
+        row.fill(-std::numeric_limits<float>::infinity());
+    }
+
+    this->preparing = true;
+    this->prepare_first = 0;
+    this->prepare_second = 0;
+    this->prepare_run = 0;
+    this->expanding = none;
+
+    this->goal_length = 1;
+
+    for (const GridPoint& cell : maze.get_goal()) {
+        for (const Side side : {Side::RIGHT, Side::UP, Side::LEFT, Side::DOWN}) {
+            GridPose pose{.position = cell, .orientation = side};
+            uint8_t  length = 1;
+
+            while (TMaze<width, height>::contains(pose.front().position) and maze.is_goal(pose.front().position)) {
+                pose = pose.front();
+                length++;
+            }
+
+            this->goal_length = std::max(this->goal_length, length);
+        }
+    }
+
+    this->heads.fill(none);
     this->queue_size = 0;
+    this->allocated = 0;
+    this->free_list = none;
+    this->held = 0;
+    this->peak = 0;
+    this->exact = true;
     this->number_of_terminals = 0;
 
     const GridPose&   start_pose = maze.get_start();
@@ -62,36 +103,50 @@ void TPlanner<width, height>::begin(
              .y = static_cast<int8_t>(center.point.y + step.y / 2)},
         .heading = heading,
     };
+
+    if (is_inside(this->start) and this->is_traversable(this->start)) {
+        this->insert({
+            .cost = 0.0F,
+            .node = encode(this->start),
+            .parent = none,
+            .next = none,
+            .position = none,
+            .arrival = rest,
+            .speed_ratio = full_speed,
+            .run = 0,
+            .side = TurnSide::LEFT,
+        });
+    }
 }
 
 template <uint8_t width, uint8_t height>
-bool TPlanner<width, height>::step(uint32_t max_nodes) {
-    while (this->cleared < number_of_states and max_nodes > 0) {
-        const uint16_t end = std::min<uint32_t>(this->cleared + states_per_node_budget, number_of_states);
-
-        std::fill(
-            this->costs.begin() + this->cleared, this->costs.begin() + end, std::numeric_limits<float>::infinity()
-        );
-        std::fill(this->positions.begin() + this->cleared, this->positions.begin() + end, not_queued);
-
-        this->cleared = end;
-        max_nodes--;
-
-        if (this->cleared == number_of_states and is_inside(this->start) and this->is_traversable(this->start)) {
-            this->relax(encode({.node = this->start, .arrival = Arrival::REST}), 0.0F, 0, full_speed);
-        }
-    }
-
-    for (uint32_t i = 0; i < max_nodes and this->queue_size > 0; i++) {
-        const uint16_t index = this->pop();
-
-        if (this->number_of_terminals == number_of_candidates and
-            this->costs.at(index) >= this->terminals.at(number_of_candidates - 1).cost) {
-            this->queue_size = 0;
-            break;
+bool TPlanner<width, height>::step(uint32_t max_edges) {
+    for (; max_edges > 0; max_edges--) {
+        if (this->preparing) {
+            this->prepare();
+            continue;
         }
 
-        this->expand(index);
+        if (this->expanding == none) {
+            if (this->queue_size == 0) {
+                break;
+            }
+
+            const uint16_t index = this->pop();
+
+            if (this->number_of_terminals == number_of_candidates and
+                this->labels.at(index).cost >= this->terminals.at(number_of_candidates - 1).cost) {
+                this->queue_size = 0;
+                break;
+            }
+
+            this->expanding = index;
+            this->expansion_entry = decode(this->labels.at(index).node);
+            this->expansion_run = 0;
+            this->expansion_turn = 0;
+        }
+
+        this->advance_expansion();
     }
 
     return this->is_finished();
@@ -99,7 +154,17 @@ bool TPlanner<width, height>::step(uint32_t max_nodes) {
 
 template <uint8_t width, uint8_t height>
 bool TPlanner<width, height>::is_finished() const {
-    return this->cleared == number_of_states and this->queue_size == 0;
+    return not this->preparing and this->expanding == none and this->queue_size == 0;
+}
+
+template <uint8_t width, uint8_t height>
+bool TPlanner<width, height>::is_exact() const {
+    return this->exact;
+}
+
+template <uint8_t width, uint8_t height>
+uint16_t TPlanner<width, height>::get_peak_labels() const {
+    return this->peak;
 }
 
 template <uint8_t width, uint8_t height>
@@ -121,42 +186,9 @@ void TPlanner<width, height>::get_route(uint8_t index, Route& route) const {
         {.run = terminal.run, .has_turn = terminal.has_turn, .turn = terminal.turn, .side = terminal.side}
     );
 
-    uint16_t index_of_state = terminal.state;
-
-    while (true) {
-        const State        state = decode(index_of_state);
-        const LatticePose& node = state.node;
-        const Arrival      arrival = state.arrival;
-
-        if (arrival == Arrival::REST) {
-            break;
-        }
-
-        const uint16_t link = this->links.at(index_of_state);
-        const auto     run = static_cast<uint8_t>(link & 0x3FU);
-        const auto     previous = static_cast<Arrival>((link >> 6U) & 0x0FU);
-        const TurnSide side = (link >> 10U) != 0 ? TurnSide::RIGHT : TurnSide::LEFT;
-        const TurnId   turn = to_turn(arrival);
-
-        route.steps.push_back({.run = run, .has_turn = true, .turn = turn, .side = side});
-
-        const TurnPrimitive& primitive = get_primitive(turn);
-        const uint8_t        rotation =
-            side == TurnSide::LEFT ? primitive.rotation : LatticePose::number_of_headings - primitive.rotation;
-        const auto entry_heading = static_cast<uint8_t>(
-            (node.heading + LatticePose::number_of_headings - rotation) % LatticePose::number_of_headings
-        );
-        const LatticePoint offset = from_canonical(primitive.exit, primitive.diagonal_entry, entry_heading, side);
-        const LatticePoint step = LatticePose{.point = {}, .heading = entry_heading}.step();
-
-        const LatticePose origin{
-            .point =
-                {.x = static_cast<int8_t>(node.point.x - offset.x - run * step.x),
-                 .y = static_cast<int8_t>(node.point.y - offset.y - run * step.y)},
-            .heading = entry_heading,
-        };
-
-        index_of_state = encode({.node = origin, .arrival = previous});
+    for (uint16_t i = terminal.label; this->labels.at(i).arrival != rest; i = this->labels.at(i).parent) {
+        const Label& label = this->labels.at(i);
+        route.steps.push_back({.run = label.run, .has_turn = true, .turn = to_turn(label.arrival), .side = label.side});
     }
 
     std::ranges::reverse(route.steps);
@@ -188,23 +220,18 @@ void TPlanner<width, height>::for_each_wall(const Route& route, F&& function) {
 }
 
 template <uint8_t width, uint8_t height>
-constexpr TPlanner<width, height>::Arrival TPlanner<width, height>::to_arrival(TurnId turn) {
-    constexpr std::array<Arrival, number_of_turns> arrivals{
-        Arrival::SS90S, Arrival::SS90L, Arrival::SS180, Arrival::SD45,
-        Arrival::SD135, Arrival::DS45,  Arrival::DS135, Arrival::DD90,
-    };
+constexpr bool TPlanner<width, height>::ends_diagonal(uint8_t arrival) {
+    if (arrival == rest) {
+        return false;
+    }
 
-    return arrivals.at(std::to_underlying(turn));
+    const TurnPrimitive& primitive = get_primitive(to_turn(arrival));
+    return (primitive.rotation % 2 == 1) != primitive.diagonal_entry;
 }
 
 template <uint8_t width, uint8_t height>
-constexpr TurnId TPlanner<width, height>::to_turn(Arrival arrival) {
-    constexpr std::array<TurnId, std::to_underlying(Arrival::NUMBER_OF_ARRIVALS)> turns{
-        TurnId::SS90S, TurnId::SS90S, TurnId::SS90L, TurnId::SS180, TurnId::DS45,
-        TurnId::DS135, TurnId::SD45,  TurnId::SD135, TurnId::DD90,
-    };
-
-    return turns.at(std::to_underlying(arrival));
+constexpr TurnId TPlanner<width, height>::to_turn(uint8_t arrival) {
+    return static_cast<TurnId>(arrival - 1);
 }
 
 template <uint8_t width, uint8_t height>
@@ -214,49 +241,45 @@ constexpr bool TPlanner<width, height>::is_inside(const LatticePose& node) {
 }
 
 template <uint8_t width, uint8_t height>
-constexpr uint16_t TPlanner<width, height>::encode(const State& state) {
-    const LatticePoint& point = state.node.point;
-    const uint8_t       heading = state.node.heading;
+constexpr uint16_t TPlanner<width, height>::encode(const LatticePose& node) {
+    const LatticePoint& point = node.point;
 
     const int32_t wall = point.on_vertical_wall() ?
                              (point.x / 2) * height + (point.y - 1) / 2 :
                              (width + 1) * height + ((point.x - 1) / 2) * (height + 1) + point.y / 2;
 
-    const int32_t sub = heading % 2 == 0 ? (heading / 4) * 6 + std::to_underlying(state.arrival) :
-                                           12 + (heading / 2) * 3 + (std::to_underlying(state.arrival) - 6);
+    const int32_t sub = node.heading % 2 == 0 ? node.heading / 4 : 2 + node.heading / 2;
 
-    return static_cast<uint16_t>(wall * states_per_wall + sub);
+    return static_cast<uint16_t>(wall * headings_per_wall + sub);
 }
 
 template <uint8_t width, uint8_t height>
-constexpr TPlanner<width, height>::State TPlanner<width, height>::decode(uint16_t index) {
-    const uint16_t wall = index / states_per_wall;
-    const uint16_t sub = index % states_per_wall;
+constexpr LatticePose TPlanner<width, height>::decode(uint16_t index) {
+    const uint16_t wall = index / headings_per_wall;
+    const uint16_t sub = index % headings_per_wall;
 
-    State state{};
+    LatticePose node{};
 
     if (wall < (width + 1) * height) {
-        state.node.point = {
-            .x = static_cast<int8_t>(2 * (wall / height)), .y = static_cast<int8_t>(2 * (wall % height) + 1)
-        };
+        node.point = {.x = static_cast<int8_t>(2 * (wall / height)), .y = static_cast<int8_t>(2 * (wall % height) + 1)};
     } else {
         const uint16_t horizontal = wall - (width + 1) * height;
 
-        state.node.point = {
+        node.point = {
             .x = static_cast<int8_t>(2 * (horizontal / (height + 1)) + 1),
             .y = static_cast<int8_t>(2 * (horizontal % (height + 1))),
         };
     }
 
-    if (sub < 12) {
-        state.node.heading = static_cast<uint8_t>((state.node.point.on_vertical_wall() ? 0 : 2) + 4 * (sub / 6));
-        state.arrival = static_cast<Arrival>(sub % 6);
-    } else {
-        state.node.heading = static_cast<uint8_t>(2 * ((sub - 12) / 3) + 1);
-        state.arrival = static_cast<Arrival>(6 + (sub - 12) % 3);
-    }
+    node.heading = sub < 2 ? static_cast<uint8_t>((node.point.on_vertical_wall() ? 0 : 2) + 4 * sub) :
+                             static_cast<uint8_t>(2 * (sub - 2) + 1);
 
-    return state;
+    return node;
+}
+
+template <uint8_t width, uint8_t height>
+bool TPlanner<width, height>::is_usable(TurnId turn) const {
+    return this->dynamics.get_turn(this->run_profile, turn).valid;
 }
 
 template <uint8_t width, uint8_t height>
@@ -297,40 +320,39 @@ float TPlanner<width, height>::get_stop_distance(const LatticePose& node) const 
 }
 
 template <uint8_t width, uint8_t height>
-float TPlanner<width, height>::get_speed(uint16_t index, Arrival arrival) const {
-    if (arrival == Arrival::REST) {
+float TPlanner<width, height>::get_speed(uint8_t arrival, uint8_t speed_ratio) const {
+    if (arrival == rest) {
         return 0.0F;
     }
 
-    return this->turn_speeds.at(std::to_underlying(to_turn(arrival))) *
-           static_cast<float>(this->speed_ratios.at(index)) / static_cast<float>(full_speed);
+    return this->turn_speeds.at(arrival - 1) * static_cast<float>(speed_ratio) / static_cast<float>(full_speed);
 }
 
 template <uint8_t width, uint8_t height>
-float TPlanner<width, height>::get_offset(Arrival arrival) const {
-    return arrival == Arrival::REST ? this->start_distance :
-                                      this->dynamics.get_turn(this->run_profile, to_turn(arrival)).post;
+float TPlanner<width, height>::get_offset(uint8_t arrival) const {
+    return arrival == rest ? this->start_distance : this->dynamics.get_turn(this->run_profile, to_turn(arrival)).post;
 }
 
 template <uint8_t width, uint8_t height>
 TPlanner<width, height>::Edge
-    TPlanner<width, height>::get_edge(uint16_t index, Arrival arrival, uint8_t run, TurnId turn) {
-    const bool at_full_speed = arrival == Arrival::REST or this->speed_ratios.at(index) == full_speed;
-    Edge&      cached = this->edges.at(std::to_underlying(arrival)).at(run).at(std::to_underlying(turn));
+    TPlanner<width, height>::get_edge(uint8_t arrival, uint8_t speed_ratio, uint8_t run, TurnId turn) {
+    const bool    at_full_speed = arrival == rest or speed_ratio == full_speed;
+    const int16_t pair = edge_pairs.index.at(arrival).at(std::to_underlying(turn));
+    float&        cached_cost = this->edge_costs.at(pair).at(run);
+    uint8_t&      cached_speed_ratio = this->edge_speed_ratios.at(pair).at(run);
 
-    if (at_full_speed and cached.cost >= 0.0F) {
-        return cached;
+    if (at_full_speed and cached_cost >= 0.0F) {
+        return {.cost = cached_cost, .speed_ratio = cached_speed_ratio};
     }
 
     const float cell_size = this->dynamics.get_model().maze.cell_size;
-    const bool  diagonal = std::to_underlying(arrival) >= std::to_underlying(Arrival::SD45);
-    const float step = diagonal ? cell_size / std::numbers::sqrt2_v<float> : cell_size;
+    const float step = ends_diagonal(arrival) ? cell_size / std::numbers::sqrt2_v<float> : cell_size;
 
     const TurnShape& shape = this->dynamics.get_turn(this->run_profile, turn);
     const float      distance = this->get_offset(arrival) + static_cast<float>(run) * step + shape.pre;
     const float      nominal_speed = this->turn_speeds.at(std::to_underlying(turn));
 
-    float start_speed = this->get_speed(index, arrival);
+    float start_speed = this->get_speed(arrival, speed_ratio);
     float penalty = 0.0F;
 
     const float brakeable = SpeedProfile::get_brakeable_speed(distance, nominal_speed, this->limits);
@@ -351,43 +373,171 @@ TPlanner<width, height>::Edge
     };
 
     if (at_full_speed) {
-        cached = edge;
+        cached_cost = edge.cost;
+        cached_speed_ratio = edge.speed_ratio;
     }
 
     return edge;
 }
 
 template <uint8_t width, uint8_t height>
-void TPlanner<width, height>::expand(uint16_t index) {
-    const State state = decode(index);
+bool TPlanner<width, height>::is_comparable(uint8_t first, uint8_t second) const {
+    const auto is_reachable = [this](uint8_t arrival) { return arrival == rest or this->is_usable(to_turn(arrival)); };
 
-    const bool  diagonal = state.node.is_diagonal();
+    return first != second and ends_diagonal(first) == ends_diagonal(second) and is_reachable(first) and
+           is_reachable(second);
+}
+
+template <uint8_t width, uint8_t height>
+void TPlanner<width, height>::prepare() {
+    while (this->prepare_first < number_of_arrivals and
+           not this->is_comparable(this->prepare_first, this->prepare_second)) {
+        this->prepare_second++;
+
+        if (this->prepare_second == number_of_arrivals) {
+            this->prepare_second = 0;
+            this->prepare_first++;
+        }
+    }
+
+    if (this->prepare_first == number_of_arrivals) {
+        this->preparing = false;
+        return;
+    }
+
+    this->compare_arrivals(this->prepare_first, this->prepare_second, this->prepare_run);
+    this->prepare_run++;
+
+    const uint8_t longest = ends_diagonal(this->prepare_first) ? max_run : max_straight_run;
+
+    if (this->prepare_run > longest or std::isinf(this->gaps.at(this->prepare_first).at(this->prepare_second))) {
+        this->prepare_run = 0;
+        this->prepare_second++;
+
+        if (this->prepare_second == number_of_arrivals) {
+            this->prepare_second = 0;
+            this->prepare_first++;
+        }
+    }
+}
+
+template <uint8_t width, uint8_t height>
+void TPlanner<width, height>::compare_arrivals(uint8_t first, uint8_t second, uint8_t run) {
+    float& gap = this->gaps.at(first).at(second);
+
+    const bool    diagonal = ends_diagonal(first);
+    const uint8_t kind = diagonal ? 1 : 0;
+
+    for (uint8_t i = 0; i < this->number_of_usable_turns.at(kind); i++) {
+        const TurnId         turn = this->usable_turns.at(kind).at(i);
+        const TurnPrimitive& primitive = get_primitive(turn);
+        const auto           arrival = static_cast<uint8_t>(std::to_underlying(turn) + 1);
+
+        const Edge kept = this->get_edge(first, full_speed, run, turn);
+        const Edge dropped = this->get_edge(second, full_speed, run, turn);
+
+        if (kept.speed_ratio < dropped.speed_ratio) {
+            gap = std::numeric_limits<float>::infinity();
+            return;
+        }
+
+        const TurnShape& shape = this->dynamics.get_turn(this->run_profile, turn);
+        const float      kept_speed = this->get_speed(arrival, kept.speed_ratio);
+        const float      dropped_speed = this->get_speed(arrival, dropped.speed_ratio);
+
+        gap =
+            std::max(gap, (kept.cost - shape.length() / kept_speed) - (dropped.cost - shape.length() / dropped_speed));
+
+        for (uint8_t j = 0; j < primitive.number_of_gates; j++) {
+            const float remaining = shape.pre + shape.length() - std::max(shape.gates.at(j), shape.pre);
+            gap = std::max(gap, (kept.cost - remaining / kept_speed) - (dropped.cost - remaining / dropped_speed));
+        }
+    }
+
+    if (diagonal) {
+        return;
+    }
+
     const float cell_size = this->dynamics.get_model().maze.cell_size;
 
-    LatticePose entry = state.node;
+    for (uint8_t cells = 1; cells <= this->goal_length; cells++) {
+        const float stop_distance = (static_cast<float>(cells) - 0.5F) * cell_size;
+        const float kept_line = this->get_offset(first) + static_cast<float>(run) * cell_size;
+        const float dropped_line = this->get_offset(second) + static_cast<float>(run) * cell_size;
 
-    for (uint8_t run = 0; run <= max_run; run++) {
-        if (run > 0) {
-            entry = entry.advanced();
+        const SpeedProfile kept{kept_line + stop_distance, this->get_speed(first, full_speed), 0.0F, this->limits};
+        const SpeedProfile dropped{
+            dropped_line + stop_distance, this->get_speed(second, full_speed), 0.0F, this->limits
+        };
 
-            if (not is_inside(entry) or not this->is_traversable(entry)) {
-                break;
+        gap = std::max(gap, kept.time_at(kept_line) - dropped.time_at(dropped_line));
+    }
+}
+
+template <uint8_t width, uint8_t height>
+bool TPlanner<width, height>::dominates(const Label& first, const Label& second) {
+    if (first.arrival == second.arrival) {
+        if (first.speed_ratio < second.speed_ratio) {
+            return false;
+        }
+
+        if (first.arrival == rest) {
+            return first.cost <= second.cost;
+        }
+
+        const float length = this->dynamics.get_turn(this->run_profile, to_turn(first.arrival)).length();
+
+        return first.cost - length / this->get_speed(first.arrival, first.speed_ratio) <=
+               second.cost - length / this->get_speed(second.arrival, second.speed_ratio);
+    }
+
+    if (first.speed_ratio != full_speed) {
+        return false;
+    }
+
+    float second_cost = second.cost;
+
+    if (second.speed_ratio != full_speed) {
+        const float length = this->dynamics.get_turn(this->run_profile, to_turn(second.arrival)).length();
+
+        second_cost -= length / this->get_speed(second.arrival, second.speed_ratio) -
+                       length / this->get_speed(second.arrival, full_speed);
+    }
+
+    return first.cost + this->gaps.at(first.arrival).at(second.arrival) <= second_cost;
+}
+
+template <uint8_t width, uint8_t height>
+void TPlanner<width, height>::advance_expansion() {
+    const Label   label = this->labels.at(this->expanding);
+    const bool    diagonal = this->expansion_entry.is_diagonal();
+    const uint8_t kind = diagonal ? 1 : 0;
+
+    if (this->expansion_turn == 0) {
+        if (this->expansion_run > 0) {
+            this->expansion_entry = this->expansion_entry.advanced();
+
+            if (not is_inside(this->expansion_entry) or not this->is_traversable(this->expansion_entry)) {
+                this->expanding = none;
+                return;
             }
         }
 
-        if (this->is_goal(entry.cell_ahead())) {
+        if (this->is_goal(this->expansion_entry.cell_ahead())) {
             if (not diagonal) {
-                const float line = this->get_offset(state.arrival) + static_cast<float>(run) * cell_size;
-                const float stop_distance = this->get_stop_distance(entry);
+                const float cell_size = this->dynamics.get_model().maze.cell_size;
+                const float line =
+                    this->get_offset(label.arrival) + static_cast<float>(this->expansion_run) * cell_size;
+                const float stop_distance = this->get_stop_distance(this->expansion_entry);
 
                 const SpeedProfile approach{
-                    line + stop_distance, this->get_speed(index, state.arrival), 0.0F, this->limits
+                    line + stop_distance, this->get_speed(label.arrival, label.speed_ratio), 0.0F, this->limits
                 };
 
                 this->add_terminal({
-                    .cost = this->costs.at(index) + approach.time_at(line),
-                    .state = index,
-                    .run = run,
+                    .cost = label.cost + approach.time_at(line),
+                    .label = this->expanding,
+                    .run = this->expansion_run,
                     .has_turn = false,
                     .turn = TurnId::SS90S,
                     .side = TurnSide::LEFT,
@@ -396,35 +546,34 @@ void TPlanner<width, height>::expand(uint16_t index) {
                 });
             }
 
-            break;
+            this->expanding = none;
+            return;
         }
+    }
 
-        if (diagonal) {
-            this->relax_turn(index, state, entry, run, TurnId::DS45);
-            this->relax_turn(index, state, entry, run, TurnId::DS135);
-            this->relax_turn(index, state, entry, run, TurnId::DD90);
-        } else {
-            this->relax_turn(index, state, entry, run, TurnId::SS90S);
-            this->relax_turn(index, state, entry, run, TurnId::SS90L);
-            this->relax_turn(index, state, entry, run, TurnId::SS180);
+    if (this->expansion_turn < this->number_of_usable_turns.at(kind)) {
+        this->relax_turn(
+            this->expanding, this->expansion_entry, this->expansion_run,
+            this->usable_turns.at(kind).at(this->expansion_turn)
+        );
+        this->expansion_turn++;
+    }
 
-            if (this->run_profile.diagonal) {
-                this->relax_turn(index, state, entry, run, TurnId::SD45);
-                this->relax_turn(index, state, entry, run, TurnId::SD135);
-            }
+    if (this->expansion_turn >= this->number_of_usable_turns.at(kind)) {
+        this->expansion_turn = 0;
+        this->expansion_run++;
+
+        if (this->expansion_run > max_run) {
+            this->expanding = none;
         }
     }
 }
 
 template <uint8_t width, uint8_t height>
-void TPlanner<width, height>::relax_turn(
-    uint16_t index, const State& state, const LatticePose& entry, uint8_t run, TurnId turn
-) {
+void TPlanner<width, height>::relax_turn(uint16_t index, const LatticePose& entry, uint8_t run, TurnId turn) {
     const TurnPrimitive& primitive = get_primitive(turn);
 
-    if (not this->dynamics.get_turn(this->run_profile, turn).valid) {
-        return;
-    }
+    Edge edge{.cost = -1.0F, .speed_ratio = 0};
 
     for (const TurnSide side : {TurnSide::LEFT, TurnSide::RIGHT}) {
         if (primitive.diagonal_entry and side != entry.diagonal_turn_side()) {
@@ -472,8 +621,13 @@ void TPlanner<width, height>::relax_turn(
             continue;
         }
 
-        const Edge  edge = this->get_edge(index, state.arrival, run, turn);
-        const float cost = this->costs.at(index) + edge.cost;
+        const Label& label = this->labels.at(index);
+
+        if (edge.cost < 0.0F) {
+            edge = this->get_edge(label.arrival, label.speed_ratio, run, turn);
+        }
+
+        const float cost = label.cost + edge.cost;
 
         if (finish_gate >= 0) {
             if (exit.is_diagonal() or not this->is_goal(exit.cell_ahead())) {
@@ -483,14 +637,13 @@ void TPlanner<width, height>::relax_turn(
             const TurnShape& shape = this->dynamics.get_turn(this->run_profile, turn);
             const float      remaining =
                 shape.pre + shape.length() - std::max(shape.gates.at(static_cast<uint8_t>(finish_gate)), shape.pre);
-            const float speed = this->turn_speeds.at(std::to_underlying(turn)) * static_cast<float>(edge.speed_ratio) /
-                                static_cast<float>(full_speed);
+            const float speed = this->get_speed(std::to_underlying(turn) + 1, edge.speed_ratio);
 
             const float stop_distance = this->get_stop_distance(exit);
 
             this->add_terminal({
                 .cost = cost - remaining / speed,
-                .state = index,
+                .label = index,
                 .run = run,
                 .has_turn = true,
                 .turn = turn,
@@ -502,16 +655,17 @@ void TPlanner<width, height>::relax_turn(
             continue;
         }
 
-        const uint16_t target = encode({.node = exit, .arrival = to_arrival(turn)});
-
-        if (cost < this->costs.at(target)) {
-            const auto link = static_cast<uint16_t>(
-                static_cast<uint32_t>(run) | (static_cast<uint32_t>(std::to_underlying(state.arrival)) << 6U) |
-                ((side == TurnSide::RIGHT ? 1U : 0U) << 10U)
-            );
-
-            this->relax(target, cost, link, edge.speed_ratio);
-        }
+        this->insert({
+            .cost = cost,
+            .node = encode(exit),
+            .parent = index,
+            .next = none,
+            .position = none,
+            .arrival = static_cast<uint8_t>(std::to_underlying(turn) + 1),
+            .speed_ratio = edge.speed_ratio,
+            .run = run,
+            .side = side,
+        });
     }
 }
 
@@ -534,79 +688,177 @@ void TPlanner<width, height>::add_terminal(const Terminal& terminal) {
 }
 
 template <uint8_t width, uint8_t height>
-void TPlanner<width, height>::relax(uint16_t index, float cost, uint16_t link, uint8_t speed_ratio) {
-    this->costs.at(index) = cost;
-    this->links.at(index) = link;
-    this->speed_ratios.at(index) = speed_ratio;
+void TPlanner<width, height>::insert(Label label) {
+    uint16_t previous = none;
+    uint16_t current = this->heads.at(label.node);
 
-    if (this->positions.at(index) == not_queued) {
-        this->positions.at(index) = this->queue_size;
-        this->queue.at(this->queue_size) = index;
-        this->queue_size++;
+    while (current != none) {
+        const Label&   other = this->labels.at(current);
+        const uint16_t next = other.next;
+
+        if (this->dominates(other, label)) {
+            return;
+        }
+
+        if (other.position != none and this->dominates(label, other)) {
+            if (previous == none) {
+                this->heads.at(label.node) = next;
+            } else {
+                this->labels.at(previous).next = next;
+            }
+
+            this->remove(other.position);
+            this->labels.at(current).next = this->free_list;
+            this->free_list = current;
+            this->held--;
+        } else {
+            previous = current;
+        }
+
+        current = next;
     }
 
-    this->sift_up(this->positions.at(index));
+    const uint16_t index = this->allocate(label.cost);
+
+    if (index == none) {
+        return;
+    }
+
+    label.next = this->heads.at(label.node);
+    this->labels.at(index) = label;
+    this->heads.at(label.node) = index;
+    this->push(index);
+}
+
+template <uint8_t width, uint8_t height>
+uint16_t TPlanner<width, height>::allocate(float cost) {
+    if (this->free_list == none and this->allocated == max_labels) {
+        this->exact = false;
+
+        uint16_t costliest = none;
+
+        for (uint16_t position = this->queue_size / 2; position < this->queue_size; position++) {
+            const uint16_t index = this->queue.at(position);
+
+            if (costliest == none or this->labels.at(index).cost > this->labels.at(costliest).cost) {
+                costliest = index;
+            }
+        }
+
+        if (costliest == none or this->labels.at(costliest).cost <= cost) {
+            return none;
+        }
+
+        this->release(costliest);
+    }
+
+    uint16_t index = this->free_list;
+
+    if (index != none) {
+        this->free_list = this->labels.at(index).next;
+    } else {
+        index = this->allocated;
+        this->allocated++;
+    }
+
+    this->held++;
+    this->peak = std::max(this->peak, this->held);
+
+    return index;
+}
+
+template <uint8_t width, uint8_t height>
+void TPlanner<width, height>::release(uint16_t index) {
+    Label&    label = this->labels.at(index);
+    uint16_t* link = &this->heads.at(label.node);
+
+    while (*link != index) {
+        link = &this->labels.at(*link).next;
+    }
+
+    *link = label.next;
+    this->remove(label.position);
+    label.next = this->free_list;
+    this->free_list = index;
+    this->held--;
+}
+
+template <uint8_t width, uint8_t height>
+void TPlanner<width, height>::push(uint16_t index) {
+    this->queue.at(this->queue_size) = index;
+    this->labels.at(index).position = this->queue_size;
+    this->queue_size++;
+    this->sift_up(this->queue_size - 1);
 }
 
 template <uint8_t width, uint8_t height>
 uint16_t TPlanner<width, height>::pop() {
     const uint16_t top = this->queue.at(0);
+    this->remove(0);
+    return top;
+}
 
+template <uint8_t width, uint8_t height>
+void TPlanner<width, height>::remove(uint16_t position) {
+    this->labels.at(this->queue.at(position)).position = none;
     this->queue_size--;
-    this->positions.at(top) = not_queued;
 
-    if (this->queue_size > 0) {
-        this->queue.at(0) = this->queue.at(this->queue_size);
-        this->positions.at(this->queue.at(0)) = 0;
-        this->sift_down(0);
+    if (position == this->queue_size) {
+        return;
     }
 
-    return top;
+    const uint16_t last = this->queue.at(this->queue_size);
+    this->queue.at(position) = last;
+    this->labels.at(last).position = position;
+    this->sift_down(position);
+    this->sift_up(this->labels.at(last).position);
 }
 
 template <uint8_t width, uint8_t height>
 void TPlanner<width, height>::sift_up(uint16_t position) {
     const uint16_t index = this->queue.at(position);
+    const float    cost = this->labels.at(index).cost;
 
     while (position > 0) {
         const uint16_t parent = (position - 1) / 2;
 
-        if (this->costs.at(this->queue.at(parent)) <= this->costs.at(index)) {
+        if (this->labels.at(this->queue.at(parent)).cost <= cost) {
             break;
         }
 
         this->queue.at(position) = this->queue.at(parent);
-        this->positions.at(this->queue.at(position)) = position;
+        this->labels.at(this->queue.at(position)).position = position;
         position = parent;
     }
 
     this->queue.at(position) = index;
-    this->positions.at(index) = position;
+    this->labels.at(index).position = position;
 }
 
 template <uint8_t width, uint8_t height>
 void TPlanner<width, height>::sift_down(uint16_t position) {
     const uint16_t index = this->queue.at(position);
+    const float    cost = this->labels.at(index).cost;
 
     while (2 * position + 1 < this->queue_size) {
         uint16_t child = 2 * position + 1;
 
         if (child + 1 < this->queue_size and
-            this->costs.at(this->queue.at(child + 1)) < this->costs.at(this->queue.at(child))) {
+            this->labels.at(this->queue.at(child + 1)).cost < this->labels.at(this->queue.at(child)).cost) {
             child++;
         }
 
-        if (this->costs.at(index) <= this->costs.at(this->queue.at(child))) {
+        if (cost <= this->labels.at(this->queue.at(child)).cost) {
             break;
         }
 
         this->queue.at(position) = this->queue.at(child);
-        this->positions.at(this->queue.at(position)) = position;
+        this->labels.at(this->queue.at(position)).position = position;
         position = child;
     }
 
     this->queue.at(position) = index;
-    this->positions.at(index) = position;
+    this->labels.at(index).position = position;
 }
 }  // namespace micras::nav
 

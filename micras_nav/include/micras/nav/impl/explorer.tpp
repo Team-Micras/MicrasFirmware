@@ -30,7 +30,7 @@ void TExplorer<width, height>::reset() {
 }
 
 template <uint8_t width, uint8_t height>
-bool TExplorer<width, height>::update(const TMaze<width, height>& maze, uint32_t max_nodes) {
+bool TExplorer<width, height>::update(const TMaze<width, height>& maze, uint32_t max_edges) {
     if (this->profiles.empty()) {
         this->answered = true;
         return false;
@@ -55,7 +55,7 @@ bool TExplorer<width, height>::update(const TMaze<width, height>& maze, uint32_t
         this->planning = true;
     }
 
-    if (not this->planner.step(max_nodes)) {
+    if (not this->planner.step(max_edges)) {
         return false;
     }
 
