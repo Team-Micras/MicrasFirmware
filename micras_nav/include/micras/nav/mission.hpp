@@ -18,6 +18,7 @@
 #include "micras/nav/measurements.hpp"
 #include "micras/nav/motion_limits.hpp"
 #include "micras/nav/planner.hpp"
+#include "micras/nav/racing_line.hpp"
 #include "micras/nav/segment.hpp"
 #include "micras/nav/wall_model.hpp"
 #include "micras/nav/wall_observer.hpp"
@@ -34,7 +35,7 @@ namespace micras::nav {
  * - Returning, the explorer names the cells still worth visiting and the robot descends the flood
  *   towards them, until the map proves that the fastest route is known. Then it goes back to the
  *   start cell, squares up against its back wall and parks where a run starts from.
- * - Solving, the route planned beforehand is executed as it is.
+ * - Solving, the route planned beforehand is executed as it is, or the racing line through its cells.
  *
  * The move through a cell is decided when the robot crosses into it, as late as it can be, from the
  * walls that were decided by then. A turn is only made through a wall that was seen absent. A
@@ -83,6 +84,7 @@ public:
         TMaze<width, height>::Config         maze;
         TPlanner<width, height>::Config      planner;
         TWallObserver<width, height>::Config observer;
+        TRacingLine<width, height>::Config   racing_line;
         Executor::Config                     executor;
         RunProfile                           search_profile;
         std::span<const RunProfile>          map_profiles;
@@ -92,7 +94,7 @@ public:
         float                                look_time;
         uint16_t                             max_looks;
         float                                commit_margin;
-        uint32_t                             nodes_per_iteration;
+        uint32_t                             edges_per_iteration;
     };
 
     /**
@@ -136,12 +138,16 @@ public:
      * @brief Advance the planning of the route of a fast run.
      *
      * @note Only to be called with the robot stopped: when the search ends, the best candidates
-     * are compiled and timed, which is not bounded to fit in an iteration.
+     * are compiled and timed, which is not bounded to fit in an iteration. When the profile asks
+     * for the racing line, it is optimized next, through the cells of the route chosen, and it
+     * replaces the route if it is found and faster. With the risky switch too, a second line goes
+     * through the route planned without the risky turns, and the risky line is only driven if it
+     * is the faster of the two; it is then optimized again, since only one line is kept.
      *
-     * @param max_nodes The largest number of nodes the planner may expand in this call.
+     * @param max_edges The largest number of edges the planner may try in this call.
      * @return True if the planning has finished.
      */
-    bool update_plan(uint32_t max_nodes);
+    bool update_plan(uint32_t max_edges);
 
     /**
      * @brief Check if a route for a fast run exists.
@@ -203,6 +209,25 @@ public:
 
 private:
     /**
+     * @brief What the planning of a fast run is doing.
+     */
+    enum class PlanStage : uint8_t {
+        IDLE = 0,
+        SEARCH = 1,
+        LINE = 2,
+    };
+
+    /**
+     * @brief Which racing line is being optimized: through the route of the profile asked for,
+     * through the route planned without the risky turns, or the first one again.
+     */
+    enum class LinePass : uint8_t {
+        REQUESTED = 0,
+        CAREFUL = 1,
+        AGAIN = 2,
+    };
+
+    /**
      * @brief Largest number of segments a move through one cell takes.
      */
     static constexpr uint8_t max_move_segments{6};
@@ -235,6 +260,16 @@ private:
         std::array<Segment, max_move_segments> segments{};
         uint8_t                                size{};
     };
+
+    /**
+     * @brief Time the candidate routes the planner found and keep the fastest.
+     *
+     * @param profile The profile the routes are compiled and timed for.
+     * @param route Filled with the fastest route.
+     * @param segments Filled with its segments, and left empty if there is no route.
+     * @return The time of the fastest route up to the goal line, or infinity.
+     */
+    float choose_route(const RunProfile& profile, Route& route, std::vector<Segment>& segments);
 
     /**
      * @brief Get the nominal pose of the robot as it crosses into a cell.
@@ -346,6 +381,11 @@ private:
     TExplorer<width, height> explorer;
 
     /**
+     * @brief Smoothest line through the cells of the route of a fast run.
+     */
+    TRacingLine<width, height> racing_line;
+
+    /**
      * @brief Playback of the moves as a reference.
      */
     Executor executor;
@@ -416,14 +456,35 @@ private:
     Route candidate_route;
 
     /**
+     * @brief Route of the fast run that was planned, which the racing line goes through.
+     */
+    Route solve_route;
+
+    /**
+     * @brief Route planned without the risky turns, and its segments, for the second racing line.
+     */
+    ///@{
+    Route                careful_route;
+    std::vector<Segment> careful_segments;
+    ///@}
+
+    /**
+     * @brief Time of the racing line through the risky route, to compare the second one with.
+     */
+    float risky_line_time{};
+
+    /**
      * @brief Time the planned fast run is expected to take.
      */
     float route_time{};
 
     /**
-     * @brief Whether the route of a fast run is being planned.
+     * @brief What the planning of a fast run is doing, and which racing line it is at.
      */
-    bool planning{};
+    ///@{
+    PlanStage stage{PlanStage::IDLE};
+    LinePass  pass{LinePass::REQUESTED};
+    ///@}
 
     /**
      * @brief Last reference produced.
