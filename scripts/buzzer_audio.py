@@ -17,8 +17,8 @@ the samples, which the coil and its flyback diode average into a current. This s
    the ear are most sensitive, and ramp the duty cycle from zero into the middle of its range and
    back so that playback starts and ends without a thump.
 
-The output is a C++ header in the build tree, where the test picks it up, and optionally two WAV
-previews: the signal sent to the buzzer and an approximation of what the buzzer does to it.
+The output is tests/include/chatuba.hpp, the header the test plays, and optionally WAV previews of
+the excerpt, of the signal sent to the buzzer and of an approximation of what the buzzer does to it.
 
 Example:
     .venv/bin/python scripts/buzzer_audio.py chatuba.mp3 --start 0:32 --duration 40 --preview preview
@@ -342,11 +342,19 @@ def write_header(path: Path, codes: np.ndarray, rate: int, source: str) -> None:
 #include <cstdint>
 
 namespace micras::audio_clip {{
+/**
+ * @brief Rate of the samples in Hz.
+ */
 inline constexpr uint32_t sample_rate{{{rate}}};
 
+/**
+ * @brief Samples, as duty cycles of the buzzer from 0 to 255.
+ */
+// clang-format off
 inline constexpr std::array<uint8_t, {codes.size}> samples{{
 {body}
 }};
+// clang-format on
 }}  // namespace micras::audio_clip
 
 #endif  // MICRAS_CHATUBA_HPP
@@ -393,8 +401,8 @@ def main() -> None:
     parser.add_argument(
         "--output",
         type=Path,
-        default=root / "build" / "generated" / "chatuba.hpp",
-        help="header to write, build/generated/chatuba.hpp by default",
+        default=root / "tests" / "include" / "chatuba.hpp",
+        help="header to write, tests/include/chatuba.hpp by default",
     )
     parser.add_argument("--preview", type=Path, default=None, help="directory for the WAV previews")
     parser.add_argument("--bass", type=float, default=1.0, help="level of the synthesized bass harmonics, 0 disables")

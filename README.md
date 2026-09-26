@@ -187,7 +187,7 @@ make test_all -j
 
 ### 🎵 Playing a song on the buzzer
 
-`test_chatuba` plays an audio clip through the buzzer, started and stopped by the button. The buzzer PWM works as an 8-bit DAC, so any song fits, as long as its excerpt fits in the flash: about 45 s at the best sample rate, and up to 90 s at a lower one. Until a song is converted, the test plays a frequency sweep.
+`test_chatuba` plays an audio clip through the buzzer, started and stopped by the button. The buzzer PWM works as an 8-bit DAC, so any song fits, as long as its excerpt fits in the flash: about 45 s at the best sample rate, and up to 90 s at a lower one. The clip it plays is `tests/include/chatuba.hpp`, which comes converted with the repository, so flashing the test needs no conversion.
 
 The converter needs [`ffmpeg`](https://ffmpeg.org/) and the Python packages in `scripts/requirements.txt`:
 
@@ -196,7 +196,7 @@ python3 -m venv .venv
 .venv/bin/pip install -r scripts/requirements.txt
 ```
 
-It shapes the song for the buzzer and writes it to `build/generated/chatuba.hpp`, where the test picks it up:
+It shapes a song for the buzzer and writes it over `tests/include/chatuba.hpp`:
 
 ```bash
 .venv/bin/python scripts/buzzer_audio.py song.mp3 --start 0:30 --duration 40 --preview preview

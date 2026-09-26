@@ -136,13 +136,5 @@ generate_flash_target(${PROJECT_NAME})
 ## Test executables
 ###############################################################################
 
-# test_chatuba plays the clip scripts/buzzer_audio.py writes into the build tree; until the script
-# runs, a frequency sweep takes its place
-set(MICRAS_GENERATED_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/generated)
-
-if(NOT EXISTS ${MICRAS_GENERATED_DIRECTORY}/chatuba.hpp)
-    file(WRITE ${MICRAS_GENERATED_DIRECTORY}/chatuba.hpp "#include \"sweep_clip.hpp\"  // IWYU pragma: export\n")
-endif()
-
 generate_test_targets(PROJECT_TESTS)
 generate_test_all_target(${PROJECT_TESTS})
