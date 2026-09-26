@@ -1,6 +1,7 @@
 docs/
 build/
 .venv/
+preview/
 cube/*
 !**/*.ioc
 

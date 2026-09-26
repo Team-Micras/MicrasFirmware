@@ -65,8 +65,8 @@ BUZZER_RESPONSE = [
 ]
 """Sound pressure of the FST-5030 at 10 cm in dB, read from the curve on page 3 of its datasheet.
 
-The curve was swept with a square wave, whose harmonics reach the 4 kHz resonance, so below about
-1.4 kHz it is an upper bound of the response to a sine.
+The curve was swept with a square wave, whose harmonics reach the resonances, so below about 1.4 kHz
+it overstates the response to a sine; estimate_sine_response removes the harmonics.
 """
 
 
@@ -110,13 +110,12 @@ def envelope(x: np.ndarray, rate: float, seconds: float) -> np.ndarray:
     return signal.lfilter([1 - pole], [1, -pole], np.abs(x))
 
 
-def enhance_bass(x: np.ndarray, rate: float, crossover: float, gain: float) -> np.ndarray:
-    """Replace the bass below the crossover with odd harmonics of it above the crossover.
+def enhance_bass(x: np.ndarray, rate: float, crossover: float, band: tuple[float, float], gain: float) -> np.ndarray:
+    """Replace the bass below the crossover with odd harmonics of it in a band the buzzer reproduces.
 
     The bass is saturated at its own envelope, which turns each tone into something close to a
-    square wave of the same loudness contour, and the harmonics that fall in the band the buzzer
-    reproduces, from three to twelve times the crossover, are kept. They are scaled to the power of
-    the bass they stand for.
+    square wave of the same loudness contour, and the harmonics that fall in the band are kept. They
+    are scaled to the power of the bass they stand for.
     """
     if gain <= 0:
         return np.zeros_like(x)
@@ -124,8 +123,8 @@ def enhance_bass(x: np.ndarray, rate: float, crossover: float, gain: float) -> n
     bass = signal.sosfilt(signal.butter(4, crossover, "lowpass", fs=rate, output="sos"), x)
     level = envelope(bass, rate, 0.02) + 1e-6
     saturated = level * np.tanh(4.0 * bass / level)
-    band = signal.butter(4, [crossover * 3, crossover * 12], "bandpass", fs=rate, output="sos")
-    harmonics = signal.sosfilt(band, saturated)
+    bandpass = signal.butter(4, band, "bandpass", fs=rate, output="sos")
+    harmonics = signal.sosfilt(bandpass, saturated)
 
     bass_power = np.sqrt(np.mean(bass**2))
     harmonic_power = np.sqrt(np.mean(harmonics**2)) + 1e-12
@@ -133,11 +132,58 @@ def enhance_bass(x: np.ndarray, rate: float, crossover: float, gain: float) -> n
     return harmonics * gain * bass_power / harmonic_power
 
 
-def response_db(frequencies: np.ndarray) -> np.ndarray:
-    """Interpolate the buzzer response on a logarithmic frequency axis."""
+def square_response_db(frequencies: np.ndarray) -> np.ndarray:
+    """Interpolate the datasheet curve on a logarithmic frequency axis, falling at 40 dB per decade
+    above its last point."""
     known = np.array(BUZZER_RESPONSE)
     clipped = np.clip(frequencies, known[0, 0], known[-1, 0])
-    return np.interp(np.log(clipped), np.log(known[:, 0]), known[:, 1])
+    inside = np.interp(np.log(clipped), np.log(known[:, 0]), known[:, 1])
+    above = np.maximum(frequencies / known[-1, 0], 1.0)
+    return inside - 40 * np.log10(above)
+
+
+def estimate_sine_response() -> tuple[np.ndarray, np.ndarray]:
+    """Estimate the response of the buzzer to a sine from the square wave curve of the datasheet.
+
+    A square wave at f carries odd harmonics at n f with 1/n of the amplitude of the fundamental,
+    and the datasheet reading at f is the power sum of the response to all of them. Subtracting the
+    harmonics leaves the response to the fundamental; where they explain the whole reading, the
+    estimate is floored 25 dB below it. The subtraction is repeated until it settles, and the result
+    is smoothed over a third of an octave, since the curve was read by eye.
+    """
+    frequencies = np.geomspace(100, 12000, 480)
+    measured = square_response_db(frequencies)
+    estimate = measured.copy()
+    orders = np.arange(3, 41, 2)
+
+    for _ in range(30):
+        harmonics = np.zeros_like(frequencies)
+
+        for order in orders:
+            at_harmonic = np.interp(np.log(order * frequencies), np.log(frequencies), estimate)
+            beyond = order * frequencies > frequencies[-1]
+            at_harmonic[beyond] = square_response_db(order * frequencies[beyond])
+            harmonics += 10 ** (at_harmonic / 10) / order**2
+
+        remaining = 10 ** (measured / 10) - harmonics
+        floor = measured - 25
+        estimate = np.maximum(10 * np.log10(np.maximum(remaining, 1e-12)), floor)
+
+    per_octave = len(frequencies) / np.log2(frequencies[-1] / frequencies[0])
+    width = max(int(round(per_octave / 3)), 1)
+    padded = np.pad(estimate, width, mode="edge")
+    smoothed = np.convolve(padded, np.ones(width) / width, mode="same")[width:-width]
+
+    return frequencies, smoothed
+
+
+SINE_FREQUENCIES, SINE_RESPONSE = estimate_sine_response()
+
+
+def response_db(frequencies: np.ndarray) -> np.ndarray:
+    """Estimated response of the buzzer to a sine in dB, on a logarithmic frequency axis."""
+    clipped = np.clip(frequencies, SINE_FREQUENCIES[0], SINE_FREQUENCIES[-1])
+    return np.interp(np.log(clipped), np.log(SINE_FREQUENCIES), SINE_RESPONSE)
 
 
 def design_fir(rate: float, gains_db, taps: int = 255) -> np.ndarray:
@@ -164,10 +210,10 @@ def equalizer(rate: float, strength: float, max_cut: float, max_boost: float) ->
 
 def buzzer_model(rate: float) -> np.ndarray:
     """Design a filter with the relative response of the buzzer, for the audible preview."""
-    peak = max(level for _, level in BUZZER_RESPONSE)
+    peak = np.max(SINE_RESPONSE)
 
     def gains(frequencies):
-        below = np.clip(frequencies / 200.0, 1e-3, 1.0)
+        below = np.clip(frequencies / 100.0, 1e-3, 1.0)
         return response_db(frequencies) - peak + 40 * np.log10(below)
 
     return design_fir(rate, gains, taps=511)
@@ -309,6 +355,34 @@ inline constexpr std::array<uint8_t, {codes.size}> samples{{
     )
 
 
+def shape(song: np.ndarray, rate: int, settings: argparse.Namespace) -> np.ndarray:
+    """Turn the decoded excerpt into a signal in [-1, 1] at the sample rate, ready to quantize."""
+    song = song - np.mean(song)
+    bass = enhance_bass(song, WORKING_RATE, settings.crossover, tuple(settings.bass_band), settings.bass)
+    highpass = signal.butter(4, settings.highpass, "highpass", fs=WORKING_RATE, output="sos")
+    shaped = signal.sosfilt(highpass, song) + bass
+
+    x = resample(shaped, WORKING_RATE, rate)
+
+    if settings.eq > 0:
+        taps = equalizer(rate, settings.eq, settings.max_cut, settings.max_boost)
+        x = signal.fftconvolve(x, taps, mode="same")
+
+    x = x / (np.sqrt(np.mean(x**2)) + 1e-12) * 10 ** (-18 / 20)
+
+    if settings.compression > 1:
+        x = compress(x, rate, -24.0, settings.compression, attack=0.005, release=0.15)
+        x = x / (np.sqrt(np.mean(x**2)) + 1e-12) * 10 ** (-12 / 20)
+
+    x = limit(x, rate, -0.5, lookahead=0.002, release=0.06)
+    x = x / (np.max(np.abs(x)) + 1e-12)
+
+    if settings.drive > 0:
+        x = soft_clip(x, settings.drive)
+
+    return x
+
+
 def main() -> None:
     root = Path(__file__).resolve().parent.parent
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -325,12 +399,15 @@ def main() -> None:
     parser.add_argument("--preview", type=Path, default=None, help="directory for the WAV previews")
     parser.add_argument("--bass", type=float, default=1.0, help="level of the synthesized bass harmonics, 0 disables")
     parser.add_argument("--crossover", type=float, default=150.0, help="upper end of the bass that is replaced, in Hz")
-    parser.add_argument("--highpass", type=float, default=300.0, help="cutoff of the high-pass filter in Hz")
-    parser.add_argument("--eq", type=float, default=0.7, help="fraction of the buzzer response that is flattened")
+    parser.add_argument(
+        "--bass-band", type=float, nargs=2, default=(600.0, 2400.0), help="band of the bass harmonics in Hz"
+    )
+    parser.add_argument("--highpass", type=float, default=600.0, help="cutoff of the high-pass filter in Hz")
+    parser.add_argument("--eq", type=float, default=0.85, help="fraction of the buzzer response that is flattened")
     parser.add_argument("--max-cut", type=float, default=12.0, help="largest cut of the equalizer in dB")
     parser.add_argument("--max-boost", type=float, default=6.0, help="largest boost of the equalizer in dB")
     parser.add_argument("--compression", type=float, default=4.0, help="ratio of the compressor, 1 disables it")
-    parser.add_argument("--drive", type=float, default=4.0, help="saturation after the limiter in dB, 0 disables it")
+    parser.add_argument("--drive", type=float, default=2.0, help="saturation after the limiter in dB, 0 disables it")
     parser.add_argument("--budget", type=int, default=FLASH_BUDGET, help="bytes of flash available for the samples")
     arguments = parser.parse_args()
 
@@ -352,28 +429,7 @@ def main() -> None:
     if rate * total_seconds > arguments.budget:
         sys.exit(f"{seconds:.1f} s at {rate} Hz takes {rate * total_seconds:.0f} bytes, over {arguments.budget}")
 
-    song = song - np.mean(song)
-    bass = enhance_bass(song, WORKING_RATE, arguments.crossover, arguments.bass)
-    highpass = signal.butter(4, arguments.highpass, "highpass", fs=WORKING_RATE, output="sos")
-    shaped = signal.sosfilt(highpass, song) + bass
-
-    x = resample(shaped, WORKING_RATE, rate)
-
-    if arguments.eq > 0:
-        taps = equalizer(rate, arguments.eq, arguments.max_cut, arguments.max_boost)
-        x = signal.fftconvolve(x, taps, mode="same")
-
-    x = x / (np.sqrt(np.mean(x**2)) + 1e-12) * 10 ** (-18 / 20)
-
-    if arguments.compression > 1:
-        x = compress(x, rate, -24.0, arguments.compression, attack=0.005, release=0.15)
-        x = x / (np.sqrt(np.mean(x**2)) + 1e-12) * 10 ** (-12 / 20)
-
-    x = limit(x, rate, -0.5, lookahead=0.002, release=0.06)
-    x = x / (np.max(np.abs(x)) + 1e-12)
-
-    if arguments.drive > 0:
-        x = soft_clip(x, arguments.drive)
+    x = shape(song, rate, arguments)
 
     fade = int(FADE_SECONDS * rate)
     x[:fade] *= ramp(fade, rising=True)
