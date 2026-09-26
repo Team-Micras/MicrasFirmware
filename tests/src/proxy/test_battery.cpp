@@ -2,6 +2,7 @@
  * @file
  */
 
+#include "constants.hpp"
 #include "micras/proxy/battery.hpp"
 #include "micras/proxy/stopwatch.hpp"
 #include "target.hpp"
@@ -20,7 +21,7 @@ int main(int argc, char* argv[]) {
         battery.update();
         test_battery_voltage_raw = battery.get_voltage_raw();
         test_battery_voltage = battery.get_voltage();
-        proxy::Stopwatch::sleep_ms(2);
+        proxy::Stopwatch::sleep_us(loop_time_us);
     });
 
     return 0;

@@ -85,9 +85,12 @@ public:
      * @brief Read the last complete sequence.
      *
      * @note The snapshot may be replaced while it is being read, which is detected with the
-     * sequence counter and answered by reading it again.
+     * sequence counter and answered by reading it again. The counter is volatile but the snapshot
+     * is not, so the copy is fenced on both sides to keep the compiler from moving it past either
+     * read of the counter.
      *
-     * @param destination Buffer of the size of the snapshot that receives it.
+     * @param destination Buffer of the size of the snapshot that receives it, of which a smaller
+     * one receives only what fits.
      * @return The number of sequences completed so far, which tells whether this one is new.
      */
     uint32_t read_snapshot(std::span<uint16_t> destination) const;

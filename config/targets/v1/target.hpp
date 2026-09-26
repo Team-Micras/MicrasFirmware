@@ -127,6 +127,11 @@ const hal::Mcu::Config mcu_config{
     .clock_init = SystemClock_Config,
     .peripheral_clock_init = PeriphCommonClock_Config,
     .peripheral_inits = mcu_peripheral_inits,
+    // The clock tree runs the core at 550 MHz, which the datasheet allows only with CPU_FREQ_BOOST,
+    // an option byte programmed once per chip with STM32CubeProgrammer. The boost turns off the ECC
+    // of the tightly coupled memories, and 520 MHz without it would change the 275 MHz every timer
+    // period on this board was computed for.
+    .cpu_frequency_boost = true,
 };
 
 const proxy::Watchdog::Config watchdog_config{

@@ -60,10 +60,42 @@ static constexpr uint32_t watchdog_timeout_us{1000};
  */
 static constexpr uint32_t inactive_compare{0xFFFFFFFF};
 
+bool Mcu::watchdog_reset{};
+bool Mcu::cpu_frequency_supported{};
+
+/**
+ * @brief Check whether the option byte that lets the core run above its default maximum frequency is
+ * set.
+ *
+ * @return True if the option byte is set, false otherwise or on a part without it.
+ */
+static bool cpu_frequency_boosted() {
+#ifdef FLASH_OPTSR2_CPUFREQ_BOOST
+    return (FLASH->OPTSR2_CUR & FLASH_OPTSR2_CPUFREQ_BOOST) != 0;
+#else
+    return false;
+#endif
+}
+
 void Mcu::init(const Config& config) {
+#ifdef IWDG1
+    watchdog_reset = __HAL_RCC_GET_FLAG(RCC_FLAG_IWDG1RST) != 0;
+#else
+    watchdog_reset = __HAL_RCC_GET_FLAG(RCC_FLAG_IWDGRST) != 0;
+#endif
+    __HAL_RCC_CLEAR_RESET_FLAGS();
+
     SCB_EnableICache();
 
     HAL_Init();
+
+#ifdef IWDG1
+    __HAL_DBGMCU_FREEZE_IWDG1();
+#else
+    __HAL_DBGMCU_FREEZE_IWDG();
+#endif
+
+    cpu_frequency_supported = not config.cpu_frequency_boost or cpu_frequency_boosted();
 
     config.clock_init();
 
@@ -119,5 +151,13 @@ void Mcu::set_watchdog_timeout(uint32_t timeout_ms) {
 
 void Mcu::refresh_watchdog() {
     watchdog_instance()->KR = watchdog_key_reload;
+}
+
+bool Mcu::was_reset_by_watchdog() {
+    return watchdog_reset;
+}
+
+bool Mcu::is_cpu_frequency_supported() {
+    return cpu_frequency_supported;
 }
 }  // namespace micras::hal

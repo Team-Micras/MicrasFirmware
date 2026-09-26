@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <array>
+#include <atomic>
 #include <bit>
 #include <cstdint>
 #include <span>
@@ -81,10 +82,13 @@ bool AdcDma::start_dma(std::span<uint16_t> buffer, std::span<uint16_t> snapshot)
 }
 
 uint32_t AdcDma::read_snapshot(std::span<uint16_t> destination) const {
-    uint32_t before = this->sequence;
+    const std::span<const uint16_t> source = this->snapshot.first(std::min(this->snapshot.size(), destination.size()));
+    uint32_t                        before = this->sequence;
 
     while (true) {
-        std::ranges::copy(this->snapshot, destination.begin());
+        std::atomic_signal_fence(std::memory_order_seq_cst);
+        std::ranges::copy(source, destination.begin());
+        std::atomic_signal_fence(std::memory_order_seq_cst);
 
         const uint32_t after = this->sequence;
 

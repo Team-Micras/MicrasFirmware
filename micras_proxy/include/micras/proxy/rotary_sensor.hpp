@@ -71,6 +71,11 @@ public:
     /**
      * @brief Construct a new RotarySensor object.
      *
+     * @note The error register is read before anything is written, since reading it is what clears
+     * it, and the sensor flags an error in every answer while it holds one. An error left over from
+     * the power up, or from a frame garbled while the bus was being set up, would otherwise fail the
+     * read back of the resolution.
+     *
      * @param config Configuration for the rotary sensor.
      */
     explicit RotarySensor(const Config& config);
@@ -124,6 +129,11 @@ private:
     static constexpr uint8_t frame_size{3};
 
     /**
+     * @brief Time the chip select is kept high after a frame, in microseconds.
+     */
+    static constexpr uint32_t min_deselect_time_us{1};
+
+    /**
      * @brief Number of edges the quadrature decoder counts per pulse of a single channel.
      */
     static constexpr uint32_t edges_per_pulse{4};
@@ -146,6 +156,9 @@ private:
 
     /**
      * @brief Exchange one frame with the sensor.
+     *
+     * @note The chip select is kept high for a while after the frame, since the sensor needs 350 ns
+     * between two frames and the next one would otherwise start within about 200 ns.
      *
      * @param frame The frame to send.
      * @return The frame received while sending, or nothing if the transfer failed.

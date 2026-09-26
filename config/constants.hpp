@@ -55,8 +55,9 @@ constexpr float wall_sensors_frequency{2000.0F};
 /**
  * @brief Time without a control loop iteration that resets the microcontroller.
  *
- * @note A reset brings the driver enable pins and the PWM outputs back to their reset state, which
- * makes the watchdog the shutdown path for a hang or a fault handler that never returns.
+ * @note A reset stops the program that hung, but it does not by itself switch the drivers off: the
+ * pins of the microcontroller float from the reset until they are configured again, so the state
+ * of the drivers in between depends on the pull resistors of the board.
  *
  * @note It is a time and not a number of iterations, since what it bounds is how far the robot
  * travels with nobody driving it, and it has to stay above the longest iteration there is.
@@ -64,24 +65,36 @@ constexpr float wall_sensors_frequency{2000.0F};
 constexpr uint32_t watchdog_timeout_ms{10};
 
 /**
- * @brief Watchdog timeout used around a flash erase.
+ * @brief Watchdog timeout used around an operation that stalls the control loop while the robot is
+ * stopped.
  *
- * @note Erasing a sector stalls the core for around 2 s, and up to 4 s in the worst case, since the
- * flash cannot be read while it is being erased. The robot is stopped whenever this happens.
+ * @note Erasing a flash sector stalls the core for around 2 s, and up to 4 s in the worst case,
+ * since the flash cannot be read while it is being erased. The search for the best route at the end
+ * of the exploration is a backtracking whose duration depends on the maze, and still has to be
+ * measured on the robot.
  */
-constexpr uint32_t flash_watchdog_timeout_ms{8000};
+constexpr uint32_t stopped_watchdog_timeout_ms{8000};
 
 /**
  * @brief Cutoff frequencies of the sensor filters, in hertz.
  *
- * @note These are the cutoffs the firmware was actually running before the sampling rate and the
- * bilinear prewarping were corrected, so that fixing the mathematics changed no behavior on the
- * bench. They were never tuned against a working robot and are a starting point, not a result.
+ * @note Close to what the firmware was actually running before the sampling rate and the bilinear
+ * prewarping were corrected, when the loop ran at about 500 Hz: 3.98 Hz and 7.95 Hz. They were never
+ * tuned against a working robot and are a starting point, not a result.
  */
 ///@{
-constexpr float sensor_filter_cutoff{7.64F};
-constexpr float torque_filter_cutoff{15.27F};
+constexpr float sensor_filter_cutoff{4.0F};
+constexpr float torque_filter_cutoff{8.0F};
 ///@}
+
+static_assert(
+    sensor_filter_cutoff > 0.0F and sensor_filter_cutoff < wall_sensors_frequency / 2.0F,
+    "A filter cutoff has to be positive and below half of its sampling rate"
+);
+static_assert(
+    torque_filter_cutoff > 0.0F and torque_filter_cutoff < loop_frequency / 2.0F,
+    "A filter cutoff has to be positive and below half of its sampling rate"
+);
 
 constexpr core::WallSensorsIndex wall_sensors_index{
     .left_front = 0,
