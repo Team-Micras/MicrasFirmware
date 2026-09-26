@@ -233,6 +233,7 @@ function(generate_test_targets TEST_FILES)
             tests/include
             config
             ${MICRAS_TARGET_DIRECTORY}
+            ${MICRAS_GENERATED_DIRECTORY}
         )
 
         target_link_libraries(${TEST_NAME} PRIVATE
