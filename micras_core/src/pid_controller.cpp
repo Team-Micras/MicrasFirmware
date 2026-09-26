@@ -23,7 +23,8 @@ PidController::PidController(Config config) :
     kd{config.kd},
     setpoint{config.setpoint},
     saturation{config.saturation},
-    max_integral{config.max_integral} { }
+    max_integral{config.max_integral},
+    monitored{config.monitored} { }
 
 void PidController::set_setpoint(float setpoint) {
     this->setpoint = setpoint;
@@ -32,23 +33,22 @@ void PidController::set_setpoint(float setpoint) {
 void PidController::reset() {
     this->error_acc = 0;
     this->prev_state = 0;
-    this->last_response = 0;
     this->first_run = true;
 }
 
-float PidController::compute_response(float state, float elapsed_time, bool save) {
-    if (first_run) {
+float PidController::compute_response(float state, float elapsed_time) {
+    if (this->first_run) {
         this->prev_state = state;
-        this->first_run = false;
     }
 
     const float state_change = (state - this->prev_state) / elapsed_time;
-    return this->compute_response(state, elapsed_time, state_change, save);
+    return this->compute_response(state, elapsed_time, state_change);
 }
 
-float PidController::compute_response(float state, float elapsed_time, float state_change, bool save) {
+float PidController::compute_response(float state, float elapsed_time, float state_change) {
     const float error = this->setpoint - state;
     this->prev_state = state;
+    this->first_run = false;
 
     float response = this->kp * (error + this->ki * this->error_acc - this->kd * state_change);
 
@@ -69,9 +69,7 @@ float PidController::compute_response(float state, float elapsed_time, float sta
         response = std::clamp(response, -this->saturation, this->saturation);
     }
 
-    this->last_response = response;
-
-    if (save) {
+    if (this->monitored) {
         test_error = error;
         test_proportional = this->kp * error;
         test_integrative = this->kp * this->ki * this->error_acc;

@@ -5,6 +5,8 @@
 #ifndef MICRAS_HPP
 #define MICRAS_HPP
 
+#include <cstdint>
+#include <memory>
 #include <utility>
 
 #include "constants.hpp"
@@ -28,7 +30,8 @@ public:
         RUN = 3,                 // Running the main algorithm.
         WAIT_FOR_CALIBRATE = 4,  // Timer for entering the CALIBRATE state.
         CALIBRATE = 5,           // Calibrating the robot.
-        ERROR = 6                // Error state.
+        ERROR = 6,               // Error state.
+        NUMBER_OF_STATES = 7
     };
 
     /**
@@ -99,6 +102,11 @@ public:
     /**
      * @brief Check if the robot was correctly initialized.
      *
+     * @note Every proxy the robot drives with has to have started. A start that followed a reset by
+     * the watchdog also fails, so that an error that keeps resetting the microcontroller stops in
+     * the error state where it can be seen, instead of looping through boots, and so does a core
+     * clocked above what its option bytes allow.
+     *
      * @return True if the initialization was successful, false otherwise.
      */
     bool check_initialization() const;
@@ -152,35 +160,38 @@ private:
 
     /**
      * @brief Sensors and actuators.
+     *
+     * @note Every proxy is owned here, by value, for the whole lifetime of the program, and the
+     * objects that use them borrow them by reference.
      */
     ///@{
-    proxy::Battery    battery{battery_config};
-    proxy::Fan        fan{fan_config};
-    proxy::Locomotion locomotion{locomotion_config};
-    proxy::Stopwatch  loop_stopwatch{stopwatch_config};
-    proxy::Storage    maze_storage{maze_storage_config};
-    // proxy::TorqueSensors torque_sensors{torque_sensors_config};
+    proxy::Battery       battery{battery_config};
+    proxy::Fan           fan{fan_config};
+    proxy::Locomotion    locomotion{locomotion_config};
+    proxy::Stopwatch     loop_stopwatch;
+    proxy::Storage       maze_storage{maze_storage_config};
+    proxy::TorqueSensors torque_sensors{torque_sensors_config};
     ///@}
 
     /**
      * @brief Interface proxies with the external world.
      */
     ///@{
-    std::shared_ptr<proxy::Argb>      argb;
-    std::shared_ptr<proxy::Button>    button;
-    std::shared_ptr<proxy::Buzzer>    buzzer;
-    std::shared_ptr<proxy::DipSwitch> dip_switch;
-    std::shared_ptr<proxy::Led>       led;
+    proxy::Argb      argb{argb_config};
+    proxy::Button    button{button_config};
+    proxy::Buzzer    buzzer{buzzer_config};
+    proxy::DipSwitch dip_switch{dip_switch_config};
+    proxy::Led       led{led_config};
     ///@}
 
     /**
      * @brief Sensors shared with nav.
      */
     ///@{
-    std::shared_ptr<proxy::Imu>          imu;
-    std::shared_ptr<proxy::RotarySensor> rotary_sensor_left;
-    std::shared_ptr<proxy::RotarySensor> rotary_sensor_right;
-    std::shared_ptr<proxy::WallSensors>  wall_sensors;
+    proxy::Imu          imu{imu_config};
+    proxy::RotarySensor rotary_sensor_left{rotary_sensor_left_config};
+    proxy::RotarySensor rotary_sensor_right{rotary_sensor_right_config};
+    proxy::WallSensors  wall_sensors{wall_sensors_config};
     ///@}
 
     /**
@@ -197,7 +208,7 @@ private:
     /**
      * @brief Finite state machine for the robot.
      */
-    core::Fsm fsm{std::to_underlying(State::INIT)};
+    core::TFsm<std::to_underlying(State::NUMBER_OF_STATES)> fsm{std::to_underlying(State::INIT)};
 
     /**
      * @brief Class for controlling the interface with the external world.
@@ -223,6 +234,14 @@ private:
      * @brief Current action of the robot.
      */
     std::shared_ptr<nav::Action> current_action;
+
+    /**
+     * @brief Longest control loop body observed since the last reset, in microseconds.
+     *
+     * @note Not acted on, but the only way to know how much of the loop budget is actually used,
+     * which every performance decision depends on. Read it with a debugger or a variable monitor.
+     */
+    uint32_t worst_loop_time_us{};
 
     /**
      * @brief Current pose of the robot in the maze.

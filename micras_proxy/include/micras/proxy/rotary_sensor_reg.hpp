@@ -43,7 +43,7 @@ struct Registers {
             uint8_t Dia2_en : 1;
         };
 
-        Fields  Fields;
+        Fields  fields;
         uint8_t raw;
     };
 
@@ -102,6 +102,7 @@ struct Registers {
      * @brief Register addresses in the rotary sensor memory.
      */
     ///@{
+    static constexpr uint16_t errfl_addr{0x0001};
     static constexpr uint16_t disable_addr{0x0015};
     static constexpr uint16_t zposm_addr{0x0016};
     static constexpr uint16_t zposl_addr{0x0017};

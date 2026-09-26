@@ -34,4 +34,8 @@ void Motor::set_command(float command) {
         this->backwards_pwm.set_duty_cycle(command);
     }
 }
+
+bool Motor::was_initialized() const {
+    return this->backwards_pwm.was_initialized() and this->forward_pwm.was_initialized();
+}
 }  // namespace micras::proxy

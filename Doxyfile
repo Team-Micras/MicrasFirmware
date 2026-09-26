@@ -20,6 +20,8 @@ INPUT                  = config/ \
                          micras_proxy/ \
                          micras_nav/
 RECURSIVE              = YES
+FILE_PATTERNS          = *.c *.cpp *.h *.hpp *.tpp *.md
+EXTENSION_MAPPING      = tpp=C++
 VERBATIM_HEADERS       = NO
 GENERATE_HTML          = YES
 GENERATE_TREEVIEW      = YES

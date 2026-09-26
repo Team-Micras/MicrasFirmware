@@ -22,10 +22,10 @@ public:
      * @brief Configuration struct for torque sensors.
      */
     struct Config {
-        hal::AdcDma::Config adc;
-        float               shunt_resistor;
-        float               max_torque;
-        float               filter_cutoff;
+        hal::AdcDma::Config             adc;
+        float                           shunt_resistor;
+        float                           max_torque;
+        core::ButterworthFilter::Config filter;
     };
 
     /**
@@ -37,6 +37,10 @@ public:
 
     /**
      * @brief Calibrate the torque sensors.
+     *
+     * @note The amplifiers on this board are bidirectional about half the reference voltage, so the
+     * uncalibrated reading carries a large offset and this has to be called before any reading is
+     * meaningful. Calling it again refines the baseline rather than discarding it.
      */
     void calibrate();
 
@@ -85,6 +89,13 @@ public:
      */
     float get_adc_reading(uint8_t sensor_index) const;
 
+    /**
+     * @brief Check if the ADC was successfully initialized.
+     *
+     * @return True if the initialization was successful, false otherwise.
+     */
+    bool was_initialized() const;
+
 private:
     /**
      * @brief ADC DMA handle.
@@ -94,7 +105,7 @@ private:
     /**
      * @brief Buffer to store the ADC values.
      */
-    std::array<uint16_t, num_of_sensors> buffer;
+    std::array<uint16_t, num_of_sensors> buffer{};
 
     /**
      * @brief Reading of each sensor when no current is flowing.
@@ -115,9 +126,14 @@ private:
      * @brief Butterworth filters for the torque reading.
      */
     std::array<core::ButterworthFilter, num_of_sensors> filters;
+
+    /**
+     * @brief Flag to check if the ADC was initialized.
+     */
+    bool initialized{};
 };
 }  // namespace micras::proxy
 
-#include "../src/torque_sensors.cpp"  // NOLINT(bugprone-suspicious-include, misc-header-include-cycle)
+#include "micras/proxy/impl/torque_sensors.tpp"  // IWYU pragma: export
 
 #endif  // MICRAS_PROXY_TORQUE_SENSORS_HPP

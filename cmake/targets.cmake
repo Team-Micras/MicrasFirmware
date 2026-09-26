@@ -13,10 +13,20 @@ file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/cube_script.txt"
     "exit\n"
 )
 
-add_custom_target(cube
-    COMMAND echo "Generating cube files..."
-    COMMAND ${CUBE_CMD} -q ${CMAKE_CURRENT_BINARY_DIR}/cube_script.txt
-)
+if(EXISTS ${CUBE_CMD})
+    add_custom_target(cube
+        COMMAND echo "Generating cube files..."
+        COMMAND ${CUBE_CMD} -q ${CMAKE_CURRENT_BINARY_DIR}/cube_script.txt
+        COMMAND test -f ${CMAKE_CURRENT_SOURCE_DIR}/cube/cmake/stm32cubemx/CMakeLists.txt
+        COMMAND echo ${PROJECT_RELEASE} > ${CUBE_STAMP_FILE}
+    )
+else()
+    add_custom_target(cube
+        COMMAND echo "STM32CubeMX program was not found at: ${CUBE_CMD}"
+        COMMAND echo "Define the CUBE_CMD environment variable or add the binary folder to the PATH"
+        COMMAND false
+    )
+endif()
 
 add_custom_target(info
     COMMAND ${PROGRAMMER_CMD} -c port=SWD
@@ -58,6 +68,41 @@ add_custom_target(rebuild_all
     COMMAND ${CMAKE_MAKE_PROGRAM}
 )
 
+# Stand in for the targets that need the generated tree while it doesn't exist: generate it,
+# configure again and build the real target of the same name
+function(generate_bootstrap_targets MAIN_TARGET TEST_FILES)
+    set(BOOTSTRAP_TARGETS flash jflash debug test_all lint lint_fix)
+
+    foreach(TEST_FILE ${${TEST_FILES}})
+        get_filename_component(TEST_NAME ${TEST_FILE} NAME_WLE)
+        list(APPEND BOOTSTRAP_TARGETS
+            ${TEST_NAME} flash_${TEST_NAME} jflash_${TEST_NAME} debug_${TEST_NAME}
+        )
+    endforeach()
+
+    if(CMAKE_GENERATOR MATCHES "Makefiles")
+        set(BUILD_PROGRAM "$(MAKE)")
+    else()
+        set(BUILD_PROGRAM ${CMAKE_MAKE_PROGRAM})
+    endif()
+
+    set(BOOTSTRAP_COMMANDS
+        COMMAND ${CMAKE_MAKE_PROGRAM} cube
+        COMMAND ${CMAKE_COMMAND} -S ${CMAKE_CURRENT_SOURCE_DIR} -B ${CMAKE_CURRENT_BINARY_DIR}
+    )
+
+    add_custom_target(${MAIN_TARGET} ALL
+        ${BOOTSTRAP_COMMANDS}
+        COMMAND ${BUILD_PROGRAM} ${MAIN_TARGET}
+    )
+
+    foreach(BOOTSTRAP_TARGET ${BOOTSTRAP_TARGETS})
+        add_custom_target(${BOOTSTRAP_TARGET}
+            ${BOOTSTRAP_COMMANDS}
+            COMMAND ${BUILD_PROGRAM} ${BOOTSTRAP_TARGET}
+        )
+    endforeach()
+endfunction()
 
 function(generate_test_all_target)
     foreach(FILE ${ARGV})
@@ -173,4 +218,35 @@ function(generate_debug_target TARGET)
     )
 
     add_dependencies(debug${TARGET_SUFFIX} ${TARGET})
+endfunction()
+
+# Create one executable per test source, each excluded from the default build
+function(generate_test_targets TEST_FILES)
+    foreach(TEST_FILE ${${TEST_FILES}})
+        get_filename_component(TEST_NAME ${TEST_FILE} NAME_WLE)
+
+        add_executable(${TEST_NAME} EXCLUDE_FROM_ALL
+            ${TEST_FILE}
+        )
+
+        target_include_directories(${TEST_NAME} PRIVATE
+            tests/include
+            config
+            ${MICRAS_TARGET_DIRECTORY}
+        )
+
+        target_link_libraries(${TEST_NAME} PRIVATE
+            micras::nav
+            ${MICRAS_CUBE_OBJECT_LIBRARIES}
+        )
+
+        micras_apply_warnings(${TEST_NAME})
+
+        generate_map_file(${TEST_NAME})
+        generate_hex_file(${TEST_NAME})
+        print_size_of_target(${TEST_NAME})
+
+        generate_debug_target(${TEST_NAME})
+        generate_flash_target(${TEST_NAME})
+    endforeach()
 endfunction()

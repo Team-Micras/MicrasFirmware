@@ -2,7 +2,6 @@
  * @file
  */
 
-#include <memory>
 #include "constants.hpp"
 #include "micras/nav/odometry.hpp"
 #include "micras/proxy/imu.hpp"
@@ -24,24 +23,23 @@ static volatile float test_angular_velocity{};
 
 int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);
-    auto imu{std::make_shared<proxy::Imu>(imu_config)};
+    proxy::Imu                imu{imu_config};
+    const proxy::RotarySensor rotary_sensor_left{rotary_sensor_left_config};
+    const proxy::RotarySensor rotary_sensor_right{rotary_sensor_right_config};
 
-    proxy::Stopwatch stopwatch{stopwatch_config};
-    nav::Odometry    odometry{
-        std::make_shared<proxy::RotarySensor>(rotary_sensor_left_config),
-        std::make_shared<proxy::RotarySensor>(rotary_sensor_right_config), imu, odometry_config
-    };
+    proxy::Stopwatch stopwatch;
+    nav::Odometry    odometry{rotary_sensor_left, rotary_sensor_right, imu, odometry_config};
 
     stopwatch.reset_us();
 
     proxy::Stopwatch::sleep_ms(1000);
-    imu->calibrate();
+    imu.calibrate();
 
     TestCore::loop([&odometry, &imu, &stopwatch]() {
         const float elapsed_time = stopwatch.elapsed_time_us() / 1000000.0F;
         stopwatch.reset_us();
 
-        imu->update();
+        imu.update();
         odometry.update(elapsed_time);
 
         const auto& state = odometry.get_state();
@@ -52,7 +50,7 @@ int main(int argc, char* argv[]) {
         test_linear_velocity = state.velocity.linear;
         test_angular_velocity = state.velocity.angular;
 
-        while (stopwatch.elapsed_time_us() < 1000) { }
+        while (stopwatch.elapsed_time_us() < loop_time_us) { }
     });
 
     return 0;

@@ -2,11 +2,10 @@
  * @file
  */
 
-#ifndef MICRAS_PROXY_ARGB_CPP
-#define MICRAS_PROXY_ARGB_CPP
+#ifndef MICRAS_PROXY_ARGB_TPP
+#define MICRAS_PROXY_ARGB_TPP
 
 #include <cstdint>
-#include "micras/proxy/argb.hpp"
 
 namespace micras::proxy {
 template <uint8_t num_of_leds>
@@ -71,6 +70,11 @@ void TArgb<num_of_leds>::encode_color(const Color& color, uint8_t index) {
         this->buffer.at(i) = ((data >> j) & 1) == 1 ? this->high_bit : this->low_bit;
     }
 }
+
+template <uint8_t num_of_leds>
+bool TArgb<num_of_leds>::was_initialized() const {
+    return this->pwm.was_initialized();
+}
 }  // namespace micras::proxy
 
-#endif  // MICRAS_PROXY_ARGB_CPP
+#endif  // MICRAS_PROXY_ARGB_TPP

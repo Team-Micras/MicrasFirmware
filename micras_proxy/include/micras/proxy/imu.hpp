@@ -16,21 +16,29 @@
 namespace micras::proxy {
 /**
  * @brief Class for acquiring IMU data.
+ *
+ * @note The samples are read by the DMA into a buffer of this object, which therefore has to live in
+ * memory that the DMA reaches.
  */
 class Imu {
 public:
     /**
      * @brief IMU configuration struct.
+     *
+     * @note The data rates of the high accuracy mode, which are the ones that are round numbers,
+     * exist only with both sensors in that mode.
      */
     struct Config {
         hal::Spi::Config                spi;
+        lsm6dsv_gy_mode_t               gyroscope_mode;
+        lsm6dsv_xl_mode_t               accelerometer_mode;
         lsm6dsv_data_rate_t             gyroscope_data_rate;
         lsm6dsv_data_rate_t             accelerometer_data_rate;
-        lsm6dsv_sflp_data_rate_t        orientation_data_rate;
         lsm6dsv_gy_full_scale_t         gyroscope_scale;
         lsm6dsv_xl_full_scale_t         accelerometer_scale;
         lsm6dsv_filt_gy_lp1_bandwidth_t gyroscope_filter;
         lsm6dsv_filt_xl_lp2_bandwidth_t accelerometer_filter;
+        core::ButterworthFilter::Config calibration_filter;
     };
 
     /**
@@ -45,14 +53,34 @@ public:
     /**
      * @brief Construct a new Imu object.
      *
-     * @param config Configuration for the IMU.
+     * @note The high accuracy data rate set is chosen while both sensors are still powered down,
+     * since the datasheet only allows high accuracy mode to change in power down, and the data rates
+     * are read back afterwards: a sensor that kept the default set runs at 7680 Hz instead of
+     * 8000 Hz, and fails the initialization instead of passing silently.
+     *
+     * @param config Configuration for the IMU, whose two data rates have to share one set.
      */
     explicit Imu(const Config& config);
 
     /**
-     * @brief Update the IMU data.
+     * @brief Take the sample that the last call asked for, and ask for the next one.
+     *
+     * @details The status, the angular rate and the acceleration are read in one transfer that the
+     * DMA carries out while the caller does something else, so a call costs the time to start a
+     * transfer and never the time the transfer takes. The price is that a sample is one call old
+     * when it is used.
      */
     void update();
+
+    /**
+     * @brief Check whether the last update brought an angular rate that was not seen before.
+     *
+     * @note The sensor samples on its own clock, so a caller running faster than the output data
+     * rate, or close to it, gets the same sample more than once.
+     *
+     * @return True if the angular rate is a new sample, false otherwise.
+     */
+    bool is_new() const;
 
     /**
      * @brief Get the IMU angular velocity over an axis.
@@ -91,6 +119,11 @@ private:
     bool check_whoami();
 
     /**
+     * @brief Convert the registers that the last transfer brought.
+     */
+    void read_response();
+
+    /**
      * @brief Read data from the IMU.
      *
      * @param handle Pointer to a SPI object.
@@ -113,6 +146,38 @@ private:
     static int32_t platform_write(void* handle, uint8_t reg, const uint8_t* bufp, uint16_t len);
 
     /**
+     * @brief Bit of the register address that makes a transfer a read.
+     */
+    static constexpr uint8_t read_flag{0x80};
+
+    /**
+     * @brief Number of registers from the status to the last byte of the acceleration.
+     */
+    static constexpr uint8_t burst_size{16};
+
+    /**
+     * @brief Offsets of the angular rate and of the acceleration from the status register.
+     */
+    ///@{
+    static constexpr uint8_t angular_rate_offset{4};
+    static constexpr uint8_t acceleration_offset{10};
+    ///@}
+
+    /**
+     * @brief Bits of the high accuracy data rate configuration register that select the set, which
+     * the data rate identifiers of the driver carry in their high nibble.
+     */
+    static constexpr uint8_t haodr_sel_mask{0x03};
+
+    /**
+     * @brief Bits of the status register that tell which sensor has a new sample.
+     */
+    ///@{
+    static constexpr uint8_t accelerometer_ready{0x01};
+    static constexpr uint8_t gyroscope_ready{0x02};
+    ///@}
+
+    /**
      * @brief Conversion constants.
      */
     static constexpr float mdps_to_radps{std::numbers::pi_v<float> / 180000.0F};
@@ -127,6 +192,16 @@ private:
      * @brief Device context for the IMU library.
      */
     stmdev_ctx_t dev_ctx{};
+
+    /**
+     * @brief Address of the status register, followed by the padding that clocks the registers out.
+     */
+    std::array<uint8_t, burst_size + 1> command{LSM6DSV_STATUS_REG | read_flag};
+
+    /**
+     * @brief Registers received by the last transfer, after the byte that answers the address.
+     */
+    std::array<uint8_t, burst_size + 1> response{};
 
     /**
      * @brief Current angular velocity on each axis.
@@ -151,7 +226,12 @@ private:
     /**
      * @brief Gyroscope Butterworth filter for the calibration.
      */
-    core::ButterworthFilter calibration_filter{5.0F};
+    core::ButterworthFilter calibration_filter;
+
+    /**
+     * @brief Flag to check if the last update brought a new angular rate.
+     */
+    bool fresh{};
 
     /**
      * @brief Flag to check if the IMU was calibrated.

@@ -3,6 +3,7 @@
  */
 
 #include <cstdint>
+#include "constants.hpp"
 #include "micras/proxy/stopwatch.hpp"
 #include "target.hpp"
 #include "test_core.hpp"
@@ -38,7 +39,7 @@ int main(int argc, char* argv[]) {
             argb.set_color(color, i);
         }
 
-        proxy::Stopwatch::sleep_ms(2);
+        proxy::Stopwatch::sleep_us(loop_time_us);
     });
 
     return 0;
