@@ -102,6 +102,11 @@ public:
     /**
      * @brief Check if the robot was correctly initialized.
      *
+     * @note Every proxy the robot drives with has to have started. A start that followed a reset by
+     * the watchdog also fails, so that an error that keeps resetting the microcontroller stops in
+     * the error state where it can be seen, instead of looping through boots, and so does a core
+     * clocked above what its option bytes allow.
+     *
      * @return True if the initialization was successful, false otherwise.
      */
     bool check_initialization() const;

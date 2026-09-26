@@ -53,7 +53,12 @@ public:
     /**
      * @brief Construct a new Imu object.
      *
-     * @param config Configuration for the IMU.
+     * @note The high accuracy data rate set is chosen while both sensors are still powered down,
+     * since the datasheet only allows high accuracy mode to change in power down, and the data rates
+     * are read back afterwards: a sensor that kept the default set runs at 7680 Hz instead of
+     * 8000 Hz, and fails the initialization instead of passing silently.
+     *
+     * @param config Configuration for the IMU, whose two data rates have to share one set.
      */
     explicit Imu(const Config& config);
 
@@ -157,6 +162,12 @@ private:
     static constexpr uint8_t angular_rate_offset{4};
     static constexpr uint8_t acceleration_offset{10};
     ///@}
+
+    /**
+     * @brief Bits of the high accuracy data rate configuration register that select the set, which
+     * the data rate identifiers of the driver carry in their high nibble.
+     */
+    static constexpr uint8_t haodr_sel_mask{0x03};
 
     /**
      * @brief Bits of the status register that tell which sensor has a new sample.

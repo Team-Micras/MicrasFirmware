@@ -69,7 +69,7 @@ int main(int argc, char* argv[]) {
 
     TestCore::loop([&locomotion, &argb, &button, &loop_stopwatch, &running_stopwatch, &waiting, &running, &odometry,
                     &imu, &last_linear_speed, &last_angular_speed, &iterator, &test_type]() {
-        while (loop_stopwatch.elapsed_time_us() < 1000) { }
+        while (loop_stopwatch.elapsed_time_us() < loop_time_us) { }
 
         const float elapsed_time = loop_stopwatch.elapsed_time_us() / 1000000.0F;
         loop_stopwatch.reset_us();

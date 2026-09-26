@@ -8,12 +8,15 @@
 #include <optional>
 
 #include "micras/proxy/rotary_sensor.hpp"
+#include "micras/proxy/stopwatch.hpp"
 
 namespace micras::proxy {
 RotarySensor::RotarySensor(const Config& config) : spi{config.spi}, encoder{config.encoder}, crc{config.crc} {
     if (not this->spi.was_initialized() or not this->encoder.was_initialized()) {
         return;
     }
+
+    this->read_register(Registers::errfl_addr);
 
     this->write_register(Registers::disable_addr, config.registers.disable.raw);
     this->write_register(Registers::zposm_addr, config.registers.zposm.raw);
@@ -71,6 +74,7 @@ std::optional<uint32_t> RotarySensor::exchange_frame(const std::array<uint8_t, f
 
     const bool transferred = this->spi.transmit_receive(frame, received);
     this->spi.unselect_device();
+    proxy::Stopwatch::sleep_us(min_deselect_time_us);
 
     if (not transferred) {
         return std::nullopt;

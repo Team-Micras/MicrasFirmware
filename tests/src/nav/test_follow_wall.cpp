@@ -69,7 +69,7 @@ int main(int argc, char* argv[]) {
     locomotion.enable();
 
     TestCore::loop([&]() {
-        while (loop_stopwatch.elapsed_time_us() < 1000) { }
+        while (loop_stopwatch.elapsed_time_us() < loop_time_us) { }
         const float elapsed_time = loop_stopwatch.elapsed_time_us() / 1000000.0F;
         loop_stopwatch.reset_us();
 

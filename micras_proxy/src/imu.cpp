@@ -3,6 +3,7 @@
  */
 
 #include <array>
+#include <atomic>
 #include <cmath>
 #include <cstdint>
 
@@ -30,25 +31,35 @@ Imu::Imu(const Config& config) :
         return;
     }
 
-    lsm6dsv_sw_por(&(this->dev_ctx));
-    lsm6dsv_block_data_update_set(&(this->dev_ctx), PROPERTY_ENABLE);
+    uint8_t haodr_cfg = (static_cast<uint8_t>(config.gyroscope_data_rate) >> 4) & haodr_sel_mask;
 
-    lsm6dsv_gy_mode_set(&(this->dev_ctx), config.gyroscope_mode);
-    lsm6dsv_xl_mode_set(&(this->dev_ctx), config.accelerometer_mode);
+    int32_t status = lsm6dsv_sw_por(&(this->dev_ctx));
+    status |= lsm6dsv_block_data_update_set(&(this->dev_ctx), PROPERTY_ENABLE);
+    status |= lsm6dsv_write_reg(&(this->dev_ctx), LSM6DSV_HAODR_CFG, &haodr_cfg, 1);
 
-    lsm6dsv_gy_data_rate_set(&(this->dev_ctx), config.gyroscope_data_rate);
-    lsm6dsv_xl_data_rate_set(&(this->dev_ctx), config.accelerometer_data_rate);
+    status |= lsm6dsv_gy_mode_set(&(this->dev_ctx), config.gyroscope_mode);
+    status |= lsm6dsv_xl_mode_set(&(this->dev_ctx), config.accelerometer_mode);
 
-    lsm6dsv_gy_full_scale_set(&(this->dev_ctx), config.gyroscope_scale);
-    lsm6dsv_xl_full_scale_set(&(this->dev_ctx), config.accelerometer_scale);
+    status |= lsm6dsv_gy_data_rate_set(&(this->dev_ctx), config.gyroscope_data_rate);
+    status |= lsm6dsv_xl_data_rate_set(&(this->dev_ctx), config.accelerometer_data_rate);
 
-    lsm6dsv_filt_settling_mask_set(&dev_ctx, {.drdy = 1, .ois_drdy = 0, .irq_xl = 0, .irq_g = 0});
+    status |= lsm6dsv_gy_full_scale_set(&(this->dev_ctx), config.gyroscope_scale);
+    status |= lsm6dsv_xl_full_scale_set(&(this->dev_ctx), config.accelerometer_scale);
 
-    lsm6dsv_filt_gy_lp1_set(&(this->dev_ctx), PROPERTY_ENABLE);
-    lsm6dsv_filt_gy_lp1_bandwidth_set(&(this->dev_ctx), config.gyroscope_filter);
-    lsm6dsv_filt_xl_lp2_set(&(this->dev_ctx), PROPERTY_ENABLE);
-    lsm6dsv_filt_xl_lp2_bandwidth_set(&(this->dev_ctx), config.accelerometer_filter);
-    this->initialized = true;
+    status |= lsm6dsv_filt_settling_mask_set(&dev_ctx, {.drdy = 1, .ois_drdy = 0, .irq_xl = 0, .irq_g = 0});
+
+    status |= lsm6dsv_filt_gy_lp1_set(&(this->dev_ctx), PROPERTY_ENABLE);
+    status |= lsm6dsv_filt_gy_lp1_bandwidth_set(&(this->dev_ctx), config.gyroscope_filter);
+    status |= lsm6dsv_filt_xl_lp2_set(&(this->dev_ctx), PROPERTY_ENABLE);
+    status |= lsm6dsv_filt_xl_lp2_bandwidth_set(&(this->dev_ctx), config.accelerometer_filter);
+
+    lsm6dsv_data_rate_t gyroscope_data_rate{};
+    lsm6dsv_data_rate_t accelerometer_data_rate{};
+    status |= lsm6dsv_gy_data_rate_get(&(this->dev_ctx), &gyroscope_data_rate);
+    status |= lsm6dsv_xl_data_rate_get(&(this->dev_ctx), &accelerometer_data_rate);
+
+    this->initialized = status == 0 and gyroscope_data_rate == config.gyroscope_data_rate and
+                        accelerometer_data_rate == config.accelerometer_data_rate;
 }
 
 bool Imu::check_whoami() {
@@ -68,6 +79,7 @@ void Imu::update() {
     }
 
     if (transfer == hal::Spi::Transfer::COMPLETE) {
+        std::atomic_signal_fence(std::memory_order_seq_cst);
         this->read_response();
     }
 

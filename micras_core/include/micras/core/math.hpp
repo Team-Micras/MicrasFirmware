@@ -7,6 +7,7 @@
 
 #include <concepts>
 #include <cstdint>
+#include <limits>
 #include <numbers>
 
 /**
@@ -34,9 +35,16 @@ constexpr T abs(T value) {
 /**
  * @brief Square root by Newton iterations.
  *
+ * @details Newton's method only converges quickly once the estimate is close to the root, so the
+ * value is first brought to [1/4, 4) by powers of four, whose square roots are exact powers of two
+ * that scale the result back. From an estimate above the root, which the mean of the value and one
+ * always is, every iteration lowers the estimate until rounding stops it, which is where the
+ * iterations end: within an ulp of the root, in about six iterations for a double.
+ *
  * @tparam T Floating point type.
  * @param value Non negative value.
- * @return The square root of the value, or zero for a non positive value.
+ * @return The square root of the value, zero for a non positive value, and the value itself for an
+ * infinity or a NaN.
  */
 template <std::floating_point T>
 constexpr T sqrt(T value) {
@@ -44,19 +52,45 @@ constexpr T sqrt(T value) {
         return T{0};
     }
 
-    T estimate = value > T{1} ? value : T{1};
+    if (not(value <= std::numeric_limits<T>::max())) {
+        return value;
+    }
 
-    for (uint8_t i = 0; i < 64; i++) {
+    T scale{1};
+
+    while (value >= T{0x1p64}) {
+        value *= T{0x1p-64};
+        scale *= T{0x1p32};
+    }
+
+    while (value < T{0x1p-64}) {
+        value *= T{0x1p64};
+        scale *= T{0x1p-32};
+    }
+
+    while (value >= T{4}) {
+        value /= T{4};
+        scale *= T{2};
+    }
+
+    while (value < T{0.25}) {
+        value *= T{4};
+        scale /= T{2};
+    }
+
+    T estimate = (value + T{1}) / T{2};
+
+    for (uint8_t i = 0; i < 16; i++) {
         const T next = (estimate + value / estimate) / T{2};
 
-        if (abs(next - estimate) <= estimate * T{1e-16}) {
-            return next;
+        if (next >= estimate) {
+            break;
         }
 
         estimate = next;
     }
 
-    return estimate;
+    return estimate * scale;
 }
 
 /**

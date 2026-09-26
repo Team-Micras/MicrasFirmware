@@ -50,7 +50,7 @@ int main(int argc, char* argv[]) {
         test_linear_velocity = state.velocity.linear;
         test_angular_velocity = state.velocity.angular;
 
-        while (stopwatch.elapsed_time_us() < 1000) { }
+        while (stopwatch.elapsed_time_us() < loop_time_us) { }
     });
 
     return 0;

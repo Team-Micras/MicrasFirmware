@@ -105,7 +105,9 @@ bool Micras::run() {
             this->locomotion.stop();
 
             if (this->objective != core::Objective::SOLVE) {
+                hal::Mcu::set_watchdog_timeout(stopped_watchdog_timeout_ms);
                 this->maze.compute_best_route();
+                hal::Mcu::set_watchdog_timeout(watchdog_timeout_ms);
             }
 
             return true;
@@ -185,7 +187,7 @@ bool Micras::check_crash() const {
 }
 
 void Micras::save_best_route() {
-    hal::Mcu::set_watchdog_timeout(flash_watchdog_timeout_ms);
+    hal::Mcu::set_watchdog_timeout(stopped_watchdog_timeout_ms);
 
     this->maze_storage.create("maze", this->maze);
     this->maze_storage.save();
@@ -208,7 +210,11 @@ void Micras::set_objective(core::Objective objective) {
 }
 
 bool Micras::check_initialization() const {
-    return this->imu.was_initialized();
+    return not hal::Mcu::was_reset_by_watchdog() and hal::Mcu::is_cpu_frequency_supported() and
+           this->imu.was_initialized() and this->rotary_sensor_left.was_initialized() and
+           this->rotary_sensor_right.was_initialized() and this->wall_sensors.was_initialized() and
+           this->battery.was_initialized() and this->torque_sensors.was_initialized() and
+           this->fan.was_initialized() and this->locomotion.was_initialized();
 }
 
 void Micras::send_event(Interface::Event event) {
