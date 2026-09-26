@@ -22,13 +22,32 @@ constexpr uint8_t  maze_width{16};
 constexpr uint8_t  maze_height{16};
 constexpr float    cell_size{0.18F};
 constexpr uint32_t loop_time_us{125};
-constexpr float    wall_thickness{0.0126F};
-constexpr float    start_offset{0.04F + wall_thickness / 2.0F};
-constexpr float    max_linear_acceleration{9.0F};
-constexpr float    max_linear_deceleration{9.0F};
-constexpr float    max_angular_acceleration{300.0F};
-constexpr float    crash_acceleration{35.0F};
-constexpr float    fan_speed{100.0F};
+constexpr uint8_t  max_variables{64};
+
+/**
+ * @brief Size of the buffer the radio receives into.
+ *
+ * @note Nothing stops the DMA from wrapping around it, so it has to hold everything that can
+ * arrive between two control loop iterations. At 115200 baud that is a byte every 87 us, so this
+ * covers more than four thousand iterations.
+ */
+constexpr uint16_t bluetooth_rx_buffer_size{512};
+
+/**
+ * @brief Size of the buffer the frames waiting to be sent are queued in.
+ *
+ * @note Whole frames only: a frame that does not fit is not queued at all, so this only has to
+ * hold a few of the largest ones.
+ */
+constexpr uint16_t bluetooth_tx_buffer_size{4096};
+
+constexpr float wall_thickness{0.0126F};
+constexpr float start_offset{0.04F + wall_thickness / 2.0F};
+constexpr float max_linear_acceleration{9.0F};
+constexpr float max_linear_deceleration{9.0F};
+constexpr float max_angular_acceleration{300.0F};
+constexpr float crash_acceleration{35.0F};
+constexpr float fan_speed{100.0F};
 
 /**
  * @brief Rate at which the control loop runs, and therefore the rate at which every filter driven
