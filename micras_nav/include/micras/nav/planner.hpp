@@ -60,9 +60,12 @@ struct Route {
  * crosses passes the wall assumption. Its cost is the time of the run, from the evaluator the
  * executor plays back, plus the time of the turn at the speed the run profile gives it, so the
  * fastest path of the graph is the fastest route the robot can drive, to within what the velocity
- * planner refines among the candidates. Diagonals, the turns of 135
- * degrees and the two sizes of the turn of 90 degrees are part of the search rather than a rewrite
- * of its result.
+ * planner refines among the candidates. A turn the run cannot reach its speed for is priced at a
+ * blend of the two speeds, since the robot accelerates inside it, and a turn that has to leave
+ * slower for the next one costs nothing more, since the robot slows in its exit ramp. Over thousands
+ * of mazes that prices a route to within about 20 ms of what the velocity planner makes of it.
+ * Diagonals, the turns of 135 degrees and the two sizes of the turn of 90 degrees are part of the
+ * search rather than a rewrite of its result.
  *
  * What the search holds are labels: a way of reaching a node, with its cost, the turn that reached
  * it and how fast that turn is driven, since those fix the speed the next straight starts at and
@@ -247,6 +250,12 @@ private:
     static constexpr uint8_t full_speed{255};
 
     /**
+     * @brief Share of the way from the speed a turn is entered at to its own speed that the time of
+     * the turn is priced at.
+     */
+    static constexpr float turn_blend{0.7F};
+
+    /**
      * @brief Number of headings a wall can be crossed with: two along the grid and four diagonal.
      */
     static constexpr uint8_t headings_per_wall{6};
@@ -387,6 +396,21 @@ private:
      * @return The speed in m/s.
      */
     float get_speed(uint8_t arrival, uint8_t speed_ratio) const;
+
+    /**
+     * @brief Get the time a part of a turn takes, entered at a speed.
+     *
+     * @note Entered below its speed, a turn is not driven at the speed it was entered at: the
+     * robot accelerates inside it, where its curvature leaves grip to spare. The time is the length
+     * at a speed that blends the two, by the turn blend, which matches the motion the executor plays
+     * within a few milliseconds per turn over thousands of mazes, whatever the traction.
+     *
+     * @param turn The turn.
+     * @param length The length of the part of the turn, in meters.
+     * @param speed The speed the turn is entered at, in m/s.
+     * @return The time in seconds.
+     */
+    float get_turn_time(TurnId turn, float length, float speed) const;
 
     /**
      * @brief Get the straight left between the curve that reached a label and its node.

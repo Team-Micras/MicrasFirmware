@@ -320,6 +320,13 @@ float TPlanner<width, height>::get_stop_distance(const LatticePose& node) const 
 }
 
 template <uint8_t width, uint8_t height>
+float TPlanner<width, height>::get_turn_time(TurnId turn, float length, float speed) const {
+    const float nominal = this->turn_speeds.at(std::to_underlying(turn));
+
+    return length / (speed < nominal ? speed + turn_blend * (nominal - speed) : speed);
+}
+
+template <uint8_t width, uint8_t height>
 float TPlanner<width, height>::get_speed(uint8_t arrival, uint8_t speed_ratio) const {
     if (arrival == rest) {
         return 0.0F;
@@ -352,23 +359,16 @@ TPlanner<width, height>::Edge
     const float      distance = this->get_offset(arrival) + static_cast<float>(run) * step + shape.pre;
     const float      nominal_speed = this->turn_speeds.at(std::to_underlying(turn));
 
-    float start_speed = this->get_speed(arrival, speed_ratio);
-    float penalty = 0.0F;
-
-    const float brakeable = SpeedProfile::get_brakeable_speed(distance, nominal_speed, this->limits);
-
-    if (start_speed > brakeable) {
-        const float previous_length = this->dynamics.get_turn(this->run_profile, to_turn(arrival)).length();
-        penalty = previous_length * (1.0F / brakeable - 1.0F / start_speed);
-        start_speed = brakeable;
-    }
+    const float start_speed = std::min(
+        this->get_speed(arrival, speed_ratio), SpeedProfile::get_brakeable_speed(distance, nominal_speed, this->limits)
+    );
 
     const float end_speed =
         std::min(nominal_speed, SpeedProfile::get_reachable_speed(distance, start_speed, this->limits));
 
     const Edge edge{
-        .cost = SpeedProfile{distance, start_speed, end_speed, this->limits}.duration() + shape.length() / end_speed +
-                penalty,
+        .cost = SpeedProfile{distance, start_speed, end_speed, this->limits}.duration() +
+                this->get_turn_time(turn, shape.length(), end_speed),
         .speed_ratio = static_cast<uint8_t>(std::lround(static_cast<float>(full_speed) * end_speed / nominal_speed)),
     };
 
@@ -445,12 +445,17 @@ void TPlanner<width, height>::compare_arrivals(uint8_t first, uint8_t second, ui
         const float      kept_speed = this->get_speed(arrival, kept.speed_ratio);
         const float      dropped_speed = this->get_speed(arrival, dropped.speed_ratio);
 
-        gap =
-            std::max(gap, (kept.cost - shape.length() / kept_speed) - (dropped.cost - shape.length() / dropped_speed));
+        gap = std::max(
+            gap, (kept.cost - this->get_turn_time(turn, shape.length(), kept_speed)) -
+                     (dropped.cost - this->get_turn_time(turn, shape.length(), dropped_speed))
+        );
 
         for (uint8_t j = 0; j < primitive.number_of_gates; j++) {
             const float remaining = shape.pre + shape.length() - std::max(shape.gates.at(j), shape.pre);
-            gap = std::max(gap, (kept.cost - remaining / kept_speed) - (dropped.cost - remaining / dropped_speed));
+            gap = std::max(
+                gap, (kept.cost - this->get_turn_time(turn, remaining, kept_speed)) -
+                         (dropped.cost - this->get_turn_time(turn, remaining, dropped_speed))
+            );
         }
     }
 
@@ -485,10 +490,11 @@ bool TPlanner<width, height>::dominates(const Label& first, const Label& second)
             return first.cost <= second.cost;
         }
 
-        const float length = this->dynamics.get_turn(this->run_profile, to_turn(first.arrival)).length();
+        const TurnId turn = to_turn(first.arrival);
+        const float  length = this->dynamics.get_turn(this->run_profile, turn).length();
 
-        return first.cost - length / this->get_speed(first.arrival, first.speed_ratio) <=
-               second.cost - length / this->get_speed(second.arrival, second.speed_ratio);
+        return first.cost - this->get_turn_time(turn, length, this->get_speed(first.arrival, first.speed_ratio)) <=
+               second.cost - this->get_turn_time(turn, length, this->get_speed(second.arrival, second.speed_ratio));
     }
 
     if (first.speed_ratio != full_speed) {
@@ -498,10 +504,11 @@ bool TPlanner<width, height>::dominates(const Label& first, const Label& second)
     float second_cost = second.cost;
 
     if (second.speed_ratio != full_speed) {
-        const float length = this->dynamics.get_turn(this->run_profile, to_turn(second.arrival)).length();
+        const TurnId turn = to_turn(second.arrival);
+        const float  length = this->dynamics.get_turn(this->run_profile, turn).length();
 
-        second_cost -= length / this->get_speed(second.arrival, second.speed_ratio) -
-                       length / this->get_speed(second.arrival, full_speed);
+        second_cost -= this->get_turn_time(turn, length, this->get_speed(second.arrival, second.speed_ratio)) -
+                       this->get_turn_time(turn, length, this->get_speed(second.arrival, full_speed));
     }
 
     return first.cost + this->gaps.at(first.arrival).at(second.arrival) <= second_cost;
@@ -642,7 +649,7 @@ void TPlanner<width, height>::relax_turn(uint16_t index, const LatticePose& entr
             const float stop_distance = this->get_stop_distance(exit);
 
             this->add_terminal({
-                .cost = cost - remaining / speed,
+                .cost = cost - this->get_turn_time(turn, remaining, speed),
                 .label = index,
                 .run = run,
                 .has_turn = true,
