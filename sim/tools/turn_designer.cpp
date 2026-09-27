@@ -26,7 +26,10 @@
 #include <string>
 #include <vector>
 
-#include "constants.hpp"
+#include "micras/nav/lattice.hpp"
+#include "micras/nav/turn_table.hpp"
+#include "robot.hpp"
+#include "turn_margins.hpp"
 
 namespace {
 using micras::nav::TurnBend;

@@ -9,7 +9,6 @@
 
 #include "constants.hpp"
 #include "micras/hal/host/board.hpp"
-#include "micras/sim/arenas/maze.hpp"
 #include "micras/sim/micras/bindings.hpp"
 #include "micras/sim/robot/robot_model.hpp"
 #include "target.hpp"
@@ -188,8 +187,6 @@ MicrasBoard bind_devices(RunContext& context, const WorldInfo& world) {
                 .write = [&wall_adc](std::size_t index, uint32_t counts) { wall_adc.write(index, counts); },
                 .finish_sequence = [&wall_adc] { wall_adc.finish_sequence(); },
                 .reflectance = world.reflectance,
-                .robot_group = RobotModelNames::robot_group,
-                .paint_group = Maze::paint_group,
             },
             context.noise
         )
@@ -206,7 +203,6 @@ MicrasBoard bind_devices(RunContext& context, const WorldInfo& world) {
                              .adc_reference = battery_config.adc.reference_voltage,
                              .adc_max_counts = static_cast<double>(battery_config.adc.max_reading),
                              .adc_noise_counts = 1.0,
-                             .load_current = nullptr,
                              .write = [&battery_adc](uint32_t counts) { battery_adc.write(0, counts); },
                          },
                          context.noise
@@ -268,7 +264,7 @@ MicrasBoard bind_devices(RunContext& context, const WorldInfo& world) {
 
     for (std::size_t index = 0; index < board.dip_switches.size(); index++) {
         board.dip_switches.at(index) = bind_input(
-            context, "dip_" + std::to_string(index), dip_switch_config.gpio_array.at(index),
+            context, std::string{"dip_"} + dip_names.at(index), dip_switch_config.gpio_array.at(index),
             dip_switch_config.active_low
         );
     }

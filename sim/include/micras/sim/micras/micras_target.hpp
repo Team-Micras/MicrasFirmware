@@ -15,6 +15,7 @@
 
 #include "micras/sim/app/target.hpp"
 #include "micras/sim/devices/dc_motor.hpp"
+#include "micras/sim/devices/digital_input.hpp"
 #include "micras/sim/devices/imu.hpp"
 #include "micras/sim/devices/power.hpp"
 #include "micras/sim/devices/quadrature_encoder.hpp"
@@ -121,7 +122,8 @@ public:
     Wiring wire(FirmwareThread& firmware, const WorldInfo& world) override;
 
     /**
-     * @brief Stop handing time over, and save the flash when --flash asked for it.
+     * @brief Stop handing time over, name the ports the firmware used that nothing is bound to, and
+     *        save the flash when --flash asked for it.
      */
     void unwire() override;
 
@@ -151,7 +153,6 @@ private:
     std::filesystem::path          flash_file;
     MicrasBoard                    board;
     std::unique_ptr<PoolVariables> variables;
-    std::unique_ptr<IRunListener>  port_check;
 };
 }  // namespace micras::sim
 

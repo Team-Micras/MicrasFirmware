@@ -2,12 +2,14 @@
 #
 # The physical truth the simulator builds its model and devices from; the
 # firmware's config/targets/v1/robot.hpp is the robot's belief about itself, and
-# `just micras robot-report` shows where the two differ. SPEC_2_DECISIONS.md,
-# section 14, has the derivation of every value.
+# `just micras robot-report` shows where the two differ.
 #
 # Frames follow robot.hpp: x forward, y left, z up, origin on the floor under the
 # midpoint of the wheel axle. Lengths in metres, masses in kilograms, angles in
-# degrees where the key ends in _deg.
+# degrees where the key ends in _deg. From the CAD, in millimetres: the KiCad board
+# gives x = 113.5036 - y_KiCad, y = 148.5011 - x_KiCad, with the KiCad rotation as
+# the yaw; the SolidWorks assembly gives x = 1033.6 - Z_sw, y = -(X_sw + 4.9091),
+# z = Y_sw + 11.3503.
 #
 # Sources: "datasheet" (named), "CAD" (the KiCad board or the SolidWorks
 # assembly), "firmware" (target.hpp, the CubeMX project), "owner", "estimate".
@@ -16,7 +18,7 @@ schema = 1
 name = "micras"
 
 [integration]
-# Divides the firmware's 125 us loop; chosen by contact stability (SPEC_1 R3).
+# One firmware loop; halving it changed neither the contacts nor the trace.
 timestep = { value = 0.000125, source = "measured: tyre contact, penetration and the explore trace unchanged at 62.5 and 31.25 us" }
 
 [chassis]
@@ -60,9 +62,10 @@ base = { value = [0.0175, 0.0, 0.0095], source = "CAD" }
 radius = { value = 0.005, source = "CAD: 10 mm coreless motor" }
 height = { value = 0.022, source = "CAD" }
 
-# The real robot has no third contact point: it rests on the rear edge of its board
-# and dips onto the front edge when it brakes. These two frictionless skids stand in
-# for those edges, so the chassis is carried level without the board scraping.
+# The real robot has no third contact point: it rests on the rear edge of its board,
+# and on the front edge with the fan on or when it brakes. Two 1 mm skids stand in
+# for those edges. They are frictionless, since a sliding frictional contact would
+# lift the board off the floor in MuJoCo.
 [[chassis.skids]]
 name = "rear_skid"
 center = { value = [-0.034, 0.0, 0.001], source = "simulation: under the rear edge of the board, touching the floor when level" }
@@ -94,7 +97,6 @@ rotor_inertia = { value = 3.79e-9, source = "datasheet: 0.0379 g cm^2" }
 gear_ratio = { value = 5.25, source = "CAD: 4 mm pinion to 21 mm wheel gear pitch circles" }
 gear_efficiency = { value = 0.9, source = "estimate: one printed spur stage" }
 supply_voltage = { value = 19.63, source = "CAD and datasheet: TPS611781 feedback divider" }
-max_motor_speed = { value = 1811.6, source = "datasheet: 17 300 rpm permissible" }
 
 [encoders]
 counts_per_revolution = { value = 16384, source = "firmware: AS5047U ABIRES 4096 pulses, four edges, magnet on the axle" }
@@ -103,7 +105,6 @@ counts_per_revolution = { value = 16384, source = "firmware: AS5047U ABIRES 4096
 position = { value = [0.00066, 0.0, 0.0024], source = "CAD: IC2, 0.4 mm above the board top" }
 chip_x = { value = [0.0, -1.0, 0.0], source = "CAD and datasheet: pin 1 at the front left" }
 chip_y = { value = [1.0, 0.0, 0.0], source = "CAD and datasheet" }
-chip_z = { value = [0.0, 0.0, 1.0], source = "CAD and datasheet" }
 gyro_noise_density = { value = 4.887e-5, source = "datasheet: LSM6DSV 2.8 mdps/sqrt(Hz), in rad/s/sqrt(Hz)" }
 gyro_bias = { value = 0.005236, source = "estimate: one third of the +-1 dps zero-rate level, in rad/s" }
 gyro_scale_error = { value = 0.001, source = "estimate: one third of the +-0.3 % sensitivity tolerance" }
@@ -124,7 +125,6 @@ time_constant = { value = 0.15, source = "estimate: coreless motor with a 27 mm 
 [battery]
 cells = { value = 3, source = "owner" }
 cell_voltage = { value = 4.1, source = "estimate: a charged cell under a light load" }
-cell_resistance = { value = 0.15, source = "estimate: 250 mAh LiPo" }
 
 [link]
 baud_rate = { value = 115200, source = "firmware: usart.c, UART4 to the HM-19" }

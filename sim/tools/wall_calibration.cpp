@@ -8,16 +8,15 @@
  *       a wall for the ones that look forward, as the firmware's two calibration
  *       steps do. It fires every emitter and compares the simulated lit minus
  *       dark reading of each sensor with the reference reading target.hpp
- *       records from the robot. The ratio is the sensor's gain for robot.toml;
- *       the gains already in robot.toml are applied, so a calibrated file prints
- *       gains of one.
+ *       records from the robot. The simulation runs with the gains already in
+ *       robot.toml, and each is corrected by the ratio of the two readings, so a
+ *       calibrated file prints its own gains back.
  *
  * @note With --sweep it moves the robot instead: toward and away from the wall
  *       ahead for the front sensors, across the corridor for the side ones. At
  *       each place it prints the range along each sensor's axis and the
- *       distance the firmware makes of the simulated reading, which assumes the
- *       reading falls with the square of the distance from the one it was
- *       calibrated at.
+ *       distance the firmware makes of the simulated reading, with its model of
+ *       the receiver's offset and half angle.
  */
 
 #include <array>
@@ -50,7 +49,6 @@ using micras::sim::MazeConfig;
 using micras::sim::MujocoWorld;
 using micras::sim::robot_mjcf;
 using micras::sim::RobotDescription;
-using micras::sim::RobotModelNames;
 using micras::sim::WallSensorDescription;
 using micras::sim::WallSensors;
 
@@ -119,7 +117,6 @@ Sample sample(const RobotDescription& robot, std::string_view drawing, double ac
                     const char* name = mj_id2name(world.model(), mjOBJ_GEOM, geom);
                     return Maze::reflectance(name == nullptr ? "" : name, config);
                 },
-                      .robot_group = RobotModelNames::robot_group,
         },
                   {.seed = 1, .ideal = true},
     };
@@ -147,7 +144,7 @@ Sample sample(const RobotDescription& robot, std::string_view drawing, double ac
         const std::span<const mjtNum> frame = site_frames.subspan(9 * site, 9);
         const std::array<mjtNum, 3>   axis{frame[0], frame[3], frame[6]};
         std::array<mjtByte, mjNGROUP> groups{1, 1, 1, 1, 1, 1};
-        groups.at(RobotModelNames::robot_group) = 0;
+        groups.at(MujocoWorld::unseen_group) = 0;
         int geom = -1;
         result.ranges.push_back(mj_ray(
             world.model(), world.data(), site_positions.subspan(3 * site, 3).data(), axis.data(), groups.data(), true,

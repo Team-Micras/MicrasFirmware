@@ -10,6 +10,7 @@
 #include <iostream>
 #include <iterator>
 #include <stdexcept>
+#include <string_view>
 #include <utility>
 
 #include "constants.hpp"
@@ -32,9 +33,12 @@ extern int micras_firmware_main();
 namespace micras::sim {
 namespace {
 /**
- * @brief Names of the states of the firmware's state machine, indexed as Micras::State.
+ * @brief Names of the states of the firmware's state machine, indexed as micras::State.
+ *
+ * @note The firmware has no names for its states, so they are written here, and the build checks
+ *       that there is one for each.
  */
-const std::vector<std::string> state_names{
+constexpr auto state_name_table = std::to_array<std::string_view>({
     "INIT",
     "IDLE",
     "WAIT_FOR_RUN",
@@ -48,12 +52,16 @@ const std::vector<std::string> state_names{
     "WAIT_FOR_GYROSCOPE",
     "CALIBRATE_GYROSCOPE",
     "ERROR",
-};
+});
+
+static_assert(
+    state_name_table.size() == std::to_underlying(State::NUMBER_OF_STATES), "every firmware state needs a name"
+);
 
 /**
- * @brief Names of the DIP switches, indexed as Interface::Profile.
+ * @brief The names of the states, as the panel, the overlay and the scenarios take them.
  */
-constexpr std::array<const char*, 4> dip_names{"fan", "racing_line", "boost", "risky"};
+const std::vector<std::string> state_names{state_name_table.begin(), state_name_table.end()};
 
 /**
  * @brief Link commands a scenario sends by name, with their codes in Micras::Command.
@@ -113,26 +121,6 @@ std::vector<Colour> decode_argb(const hal::host::PwmDmaPort& port, std::size_t c
     return colours;
 }
 
-/**
- * @brief Reports, once the firmware has built its robot, every port it used that nothing is bound to.
- */
-class PortCheck : public IRunListener {
-public:
-    /**
-     * @brief Check after the first tick.
-     *
-     * @param simulation Run that just advanced.
-     */
-    void on_after_tick(const Simulation& simulation) override {
-        if (simulation.tick() != 0) {
-            return;
-        }
-
-        for (const std::string& port : hal::host::Board::unbound()) {
-            std::cerr << "warning: the firmware uses " << port << ", which nothing in the simulator is bound to\n";
-        }
-    }
-};
 }  // namespace
 
 std::string MicrasTarget::name() const {
@@ -166,7 +154,6 @@ std::filesystem::path MicrasTarget::robot_file() const {
 GroundTruthConfig MicrasTarget::ground_truth() const {
     return {
         .body = "micras",
-        .forward_axis = ForwardAxis::X,
         .columns =
             {
                 {.name = "wheel_angle_left", .probe = Probe::JOINT_POSITION, .object = "left_wheel"},
@@ -214,14 +201,10 @@ Wiring MicrasTarget::wire(FirmwareThread& firmware, const WorldInfo& world) {
 
     this->board = bind_devices(this->run_context, world);
     this->variables = std::make_unique<PoolVariables>();
-    this->port_check = std::make_unique<PortCheck>();
 
     return {
-        .inputs = {},
-        .observers = {this->port_check.get()},
         .columns = {this->variables.get()},
         .variables = this->variables.get(),
-        .monitor_inbound = nullptr,
         .panel = this->make_panel(),
         .overlay =
             {.state = StateLabel{.variable = "state", .names = state_names},
@@ -234,6 +217,10 @@ Wiring MicrasTarget::wire(FirmwareThread& firmware, const WorldInfo& world) {
 
 void MicrasTarget::unwire() {
     hal::host::Clock::instance().clear_handover();
+
+    for (const std::string& port : hal::host::Board::unbound()) {
+        std::cerr << "warning: the firmware used " << port << ", which nothing in the simulator is bound to\n";
+    }
 
     if (not this->flash_file.empty()) {
         const std::vector<uint8_t>& bytes = hal::host::Board::flash().bytes;
@@ -261,7 +248,7 @@ PanelSpec MicrasTarget::make_panel() const {
                  .lamps = {},
                  .readouts = {},
                  .plots = {"reference/linear_speed", "pose/linear_speed", "reference/angular_speed", "pose/angular_speed"},
-                 .take_over = nullptr,
+                 .take_over = {},
     };
 
     for (std::size_t index = 0; index < devices.dip_switches.size(); index++) {

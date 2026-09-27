@@ -7,19 +7,6 @@
 
 set(MICRAS_FIRMWARE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/MicrasFirmware")
 
-# Every source that includes the firmware's constants.hpp designs the turn tables in the
-# compiler, which takes about a gigabyte of memory each. A build as wide as the processor
-# ran a 28 GB machine out of memory and took the whole WSL virtual machine down, so the
-# sources of this target compile in a pool of one job per 2 GiB of memory. Only Ninja,
-# which every preset uses, honours pools.
-cmake_host_system_information(RESULT MICRAS_TOTAL_MEMORY QUERY TOTAL_PHYSICAL_MEMORY)
-math(EXPR MICRAS_COMPILE_JOBS "${MICRAS_TOTAL_MEMORY} / 2048")
-if(MICRAS_COMPILE_JOBS LESS 1)
-    set(MICRAS_COMPILE_JOBS 1)
-endif()
-set_property(GLOBAL APPEND PROPERTY JOB_POOLS micras_compile=${MICRAS_COMPILE_JOBS})
-set(CMAKE_JOB_POOL_COMPILE micras_compile)
-
 # The commit is read at build time, not here, so meta.json never names a firmware
 # the binary was not built from.
 set(MICRAS_FIRMWARE_SHA_HEADER "${CMAKE_CURRENT_BINARY_DIR}/generated/micras_firmware_sha.hpp")
@@ -118,7 +105,7 @@ target_link_libraries(micras_wall_calibration PRIVATE micras_sim_micras)
 target_compile_definitions(micras_wall_calibration PRIVATE MICRAS_TARGET_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
 
 add_executable(micras_turn_designer tools/turn_designer.cpp)
-target_link_libraries(micras_turn_designer PRIVATE micras_sim_micras)
+target_link_libraries(micras_turn_designer PRIVATE micras_firmware)
 
 add_executable(micras_robot_report tools/robot_report.cpp)
 target_link_libraries(micras_robot_report PRIVATE micras_sim_micras)

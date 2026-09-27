@@ -4,7 +4,7 @@
  * @brief Fake STM32CubeMX main.h of the Micras v1 board, for the simulator.
  *
  * @note Hand written, because micras_v1.ioc does not hold every value the host
- *       backend needs (see SPEC_2_DECISIONS.md, D4). Every value names the
+ *       backend needs. Every value names the
  *       generated line it mirrors, in MicrasFirmware/cube/Inc and cube/Src. A
  *       CubeMX change that renames a handle or a pin is a compile error here; a
  *       changed prescaler or period shows as a wrong frequency at initialisation.

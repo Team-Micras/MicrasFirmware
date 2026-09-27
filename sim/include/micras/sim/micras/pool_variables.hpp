@@ -19,8 +19,8 @@ namespace micras::sim {
  * @brief Records and looks up every variable the firmware registers, and its state.
  *
  * @note Read through Micras::get_variables() while the firmware is parked, so
- *       every value of a row belongs to the same instant (SPEC_2_DECISIONS.md,
- *       D5). Blobs, such as the maze, are skipped. The state machine's state is
+ *       every value of a row belongs to the same instant. Blobs, such as the
+ *       maze, are skipped. The state machine's state is
  *       added as "state", which the pool does not hold. Column names are the
  *       variables' full names with slashes as underscores: "pose/x" is pose_x.
  */

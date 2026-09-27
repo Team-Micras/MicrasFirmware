@@ -7,11 +7,21 @@
 #ifndef MICRAS_SIM_MICRAS_BINDINGS_HPP
 #define MICRAS_SIM_MICRAS_BINDINGS_HPP
 
+#include <array>
+
 #include "micras/sim/app/target.hpp"
 #include "micras/sim/core/run_context.hpp"
 #include "micras/sim/micras/micras_target.hpp"
 
 namespace micras::sim {
+/**
+ * @brief Names of the DIP switches, in the order of their bits in Interface::Profile.
+ *
+ * @note The panel shows them as they are, the switch devices and their CSV columns are called
+ *       "dip_" and the name, and so are the inputs a scenario sets.
+ */
+constexpr std::array<const char*, 4> dip_names{"fan", "racing_line", "boost", "risky"};
+
 /**
  * @brief Build the board's devices and connect them to the firmware's ports.
  *
