@@ -2,7 +2,7 @@
   "target": "micras",
   "scenario": "scenarios/idle.toml",
   "args": "--scenario scenarios/idle.toml --out runs/idle",
-  "firmware_sha": "9e307de4d2d95c70243be0bbf9ea095c5e83130c-dirty",
+  "firmware_sha": "e3aafea664935826e05c0e9217df6c5d515e5ee5-dirty",
   "mujoco_version": "3.14.0",
   "compiler": "GNU 13.4.0",
   "data_sha256": "6b2c615d4336e756ebc4b005ac1a87c38197588b6c592256d8f59f5aa62afed3",
