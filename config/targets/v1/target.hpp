@@ -12,8 +12,10 @@
 #include <fmac.h>
 #include <gpio.h>
 #include <main.h>
+#include <numbers>
 #include <spi.h>
 #include <tim.h>
+#include <usart.h>
 
 #include "constants.hpp"
 #include "micras/hal/fmac.hpp"
@@ -22,6 +24,7 @@
 #include "micras/hal/pwm.hpp"
 #include "micras/proxy/argb.hpp"
 #include "micras/proxy/battery.hpp"
+#include "micras/proxy/bluetooth_serial.hpp"
 #include "micras/proxy/button.hpp"
 #include "micras/proxy/buzzer.hpp"
 #include "micras/proxy/dip_switch.hpp"
@@ -106,6 +109,11 @@ const proxy::Storage::Config maze_storage_config{
     .number_of_sectors = 1,
 };
 
+const proxy::BluetoothSerial::Config bluetooth_config{
+    .init_function = MX_UART4_Init,
+    .handle = &huart4,
+};
+
 const hal::Fmac::Config fmac_config{
     .init_function = MX_FMAC_Init,
     .handle = &hfmac,
@@ -159,7 +167,6 @@ const proxy::Led::Config led_config = {
  * @note The timer gives a bit 77 ticks of 18.2 ns, 1400 ns, of which a zero is high for 17 and a one
  * for 39. That is 309 ns and 709 ns of the 220 to 380 ns and 580 to 840 ns the WS2815C takes for
  * each, and leaves the line low for 1091 ns and 691 ns where it asks for at least 900 ns and 600 ns.
- * The shorter bit the timer used to give cannot satisfy all four at once.
  */
 const proxy::Argb::Config argb_config = {
     .pwm =
@@ -340,8 +347,11 @@ const proxy::TorqueSensors::Config torque_sensors_config = {
             .max_reading = 49151,
             .reference_voltage = adc_reference_voltage,
         },
-    // 40 mOhm shunts into current sense amplifiers of gain 20
+    // 40 mOhm shunts, in series with the motors, into current sense amplifiers of gain 20
     .shunt_resistor = 0.04F * 20,
+    // The amplifiers are referenced to half their supply, which is the reference of the converter
+    // too, so no current reads half the range whatever that supply is
+    .zero_reading = 0.5F,
     // Full scale current times the torque constant of the motor. The torque constant has not been
     // measured on these motors, so this is an order of magnitude estimate for a coreless
     // micromouse motor and wants a bench calibration before nav relies on the value.
@@ -365,6 +375,25 @@ const proxy::TorqueSensors::Config torque_sensors_config = {
  * settle before the scan of its group starts, and 75 us for that scan, which takes 66 us. It stays
  * off for the 175 us before the scan that reads it dark. The duty cycle also sets the dissipation
  * of the series resistors of the emitters, which at half of the time would be above their rating.
+ *
+ * @note The reference readings are placeholders, until the first calibration in the setup of the
+ * README replaces them. They come from a calibration of April 2025, from before that setup, so the
+ * diagonal ones may be those of the wall ahead, at about half the reference distance. The
+ * calibration is not saved, so every boot starts from these. The reference distances are what the
+ * geometry of the sensors says they measure in that setup: the front sensors facing a wall from the
+ * center of a cell, the diagonal ones in a corridor with no wall ahead.
+ *
+ * @note The receiver is an emitter follower from the 3.3 V rail, so ambient light raises its output
+ * towards about 3.1 V, 94 % of the full scale. Above a dark reading of 80 % there is less room left
+ * than a wall at the reference distance of the dimmest sensor adds, and the sensor is taken as
+ * blind.
+ *
+ * @note Each emitter lens sits 6.5 mm above its receiver lens (the SolidWorks assembly), and the
+ * TPS601A receiver halves its sensitivity 10 degrees off its axis (datasheet). The receiver therefore
+ * sees the lit spot 9 degrees off its axis from the center of a cell facing a wall but 4 degrees off
+ * at 100 mm, and the inverse square law alone would read 22 mm short there. With them the range
+ * follows the geometry within about 2 mm from 30 mm out; closer than about 30 mm the reading falls
+ * again and a range cannot be told from a longer one.
  */
 const proxy::WallSensors::Config wall_sensors_config = {
     .adc =
@@ -401,19 +430,39 @@ const proxy::WallSensors::Config wall_sensors_config = {
         },
     }},
     .emitter_duty_cycle = 30.0F,
-    .filter =
+    .fast_filter =
         {
-            .cutoff_frequency = sensor_filter_cutoff,
+            .cutoff_frequency = wall_fast_filter_cutoff,
             .sampling_frequency = wall_sensors_frequency,
         },
-    .base_readings =
+    .slow_filter =
+        {
+            .cutoff_frequency = wall_slow_filter_cutoff,
+            .sampling_frequency = wall_sensors_frequency,
+        },
+    .reference_readings =
         {
             0.413F,
             0.161F,
             0.177F,
             0.230F,
         },
-    .uncertainty = 0.5F,
+    .reference_distances =
+        {
+            nav::WallModel{wall_model_config}.get_centered_range(wall_sensors_index.left_front),
+            nav::WallModel{wall_model_config}.get_centered_range(wall_sensors_index.left),
+            nav::WallModel{wall_model_config}.get_centered_range(wall_sensors_index.right),
+            nav::WallModel{wall_model_config}.get_centered_range(wall_sensors_index.right_front),
+        },
+    .receiver_offset = 0.0065F,
+    .receiver_half_angle = 10.0F * std::numbers::pi_v<float> / 180.0F,
+    .noise_floor = 0.002F,
+    .max_reading = 0.95F,
+    .max_distance = wall_sensors_range,
+    .blind_reading = 0.8F,
+    .wall_distance = 0.12F,
+    .wall_hysteresis = 0.02F,
+    .calibration_samples = 500,
 };
 
 /**
@@ -450,10 +499,6 @@ const proxy::Imu::Config imu_config = {
     .accelerometer_scale = LSM6DSV_8g,
     .gyroscope_filter = LSM6DSV_GY_ULTRA_LIGHT,
     .accelerometer_filter = LSM6DSV_XL_MEDIUM,
-    .calibration_filter = {
-        .cutoff_frequency = sensor_filter_cutoff,
-        .sampling_frequency = loop_frequency,
-    },
 };
 
 const proxy::Battery::Config battery_config = {
@@ -502,6 +547,13 @@ const proxy::Fan::Config fan_config = {
     .max_acceleration = 0.02F,
 };
 
+/**
+ * @brief Configuration of the drive.
+ *
+ * @note The motors get no dead zone: the controller's feed-forward already adds the static friction
+ * voltage of the robot model, which the drive identification measures, so a dead zone here would
+ * count it twice and put a step of its size into every command that crosses zero.
+ */
 const proxy::Locomotion::Config locomotion_config = {
     .left_motor =
         {
@@ -520,7 +572,7 @@ const proxy::Locomotion::Config locomotion_config = {
                     .inverted = false,
                 },
             .max_stopped_command = 0.2F,
-            .deadzone = 15.0F,
+            .deadzone = 0.0F,
         },
     .right_motor =
         {
@@ -539,12 +591,14 @@ const proxy::Locomotion::Config locomotion_config = {
                     .inverted = false,
                 },
             .max_stopped_command = 0.2F,
-            .deadzone = 15.0F,
+            .deadzone = 0.0F,
         },
-    .enable_gpio = {
-        .port = Motors_Enable_GPIO_Port,
-        .pin = Motors_Enable_Pin,
-    },
+    .enable_gpio =
+        {
+            .port = Motors_Enable_GPIO_Port,
+            .pin = Motors_Enable_Pin,
+        },
+    .reserved_rotation = 50.0F,
 };
 
 /*****************************************

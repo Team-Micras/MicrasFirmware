@@ -236,7 +236,9 @@ function(generate_test_targets TEST_FILES)
         )
 
         target_link_libraries(${TEST_NAME} PRIVATE
+            micras_config
             micras::nav
+            micras::proxy
             ${MICRAS_CUBE_OBJECT_LIBRARIES}
         )
 

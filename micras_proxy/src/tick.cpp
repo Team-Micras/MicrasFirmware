@@ -20,6 +20,10 @@ uint32_t Tick::wait() {
     return ticks;
 }
 
+void Tick::restart() {
+    this->last_tick = hal::Timer::get_counter();
+}
+
 uint32_t Tick::elapsed_time_us() const {
     return hal::Timer::to_microseconds(hal::Timer::get_counter() - this->last_tick);
 }

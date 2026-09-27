@@ -12,6 +12,7 @@ Battery::Battery(const Config& config) :
     initialized{this->adc.start_dma({&(this->raw_reading), 1}) and this->adc.was_initialized()} { }
 
 void Battery::update() {
+    this->adc.recover();
     this->filter.update(this->get_adc_reading());
 }
 

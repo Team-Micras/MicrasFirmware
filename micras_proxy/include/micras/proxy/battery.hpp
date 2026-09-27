@@ -34,6 +34,8 @@ public:
 
     /**
      * @brief Update the battery reading.
+     *
+     * @note Restarts the converter first if an error stopped it.
      */
     void update();
 

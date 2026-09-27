@@ -100,9 +100,7 @@ public:
      * which is the same transfer function. The direct form computes the output as the small
      * difference of two large terms, and gets its unity gain from three rounded coefficients
      * adding up exactly, which single precision stops doing when the cutoff is a thousand times
-     * below the sampling rate: a 7.64 Hz filter sampled at 10 kHz comes out with a gain error of
-     * 0.35 % and blind to changes of 0.04 %. In this form the gain is one by construction and the
-     * same filter is good to 0.001 %.
+     * below the sampling rate. In this form the gain is one by construction.
      *
      * @param x0 Last measure.
      * @return Filtered value.

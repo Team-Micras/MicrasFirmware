@@ -7,8 +7,7 @@
 # who ran it, burying the handful of settings that actually changed.
 * text=auto eol=lf
 
-# Everything tracked today is text, so these only matter the day someone adds an image or a
-# firmware blob and git has to be told not to rewrite it
+# Binary types, so that git never rewrites them
 *.png binary
 *.jpg binary
 *.pdf binary

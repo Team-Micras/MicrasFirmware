@@ -65,7 +65,7 @@ include(cmake/docs.cmake)
 ## Input files
 ###############################################################################
 
-file(GLOB_RECURSE FORMAT_SOURCES CONFIGURE_DEPENDS "src/*.c*" "tests/*.c*" "micras_*/src/*.c*")
+file(GLOB_RECURSE FORMAT_SOURCES CONFIGURE_DEPENDS "src/*.c*" "config/*.c*" "tests/*.c*" "micras_*/src/*.c*")
 file(GLOB_RECURSE FORMAT_HEADERS CONFIGURE_DEPENDS
     "include/*.h*" "config/*.h*" "tests/*.h*" "micras_*/include/*.h*" "micras_*/include/*.tpp"
 )
@@ -96,10 +96,33 @@ add_subdirectory(micras_core)
 add_subdirectory(micras_hal)
 add_subdirectory(micras_proxy)
 add_subdirectory(micras_nav)
+add_subdirectory(micras_comm)
 
-micras_apply_warnings(micras_core micras_hal micras_proxy micras_nav)
+micras_apply_warnings(micras_core micras_hal micras_proxy micras_nav micras_comm)
 
 generate_lint_target(FORMAT_SOURCES)
+
+###############################################################################
+## Configuration computed when the firmware is compiled
+###############################################################################
+
+# The turns are designed in one source, compiled once for the executable and every test, since
+# designing them takes the compiler most of a gigabyte and several seconds
+add_library(micras_config OBJECT
+    config/dynamics_config.cpp
+)
+
+target_include_directories(micras_config PRIVATE
+    include
+    config
+    ${MICRAS_TARGET_DIRECTORY}
+)
+
+target_link_libraries(micras_config PRIVATE
+    micras::nav
+)
+
+micras_apply_warnings(micras_config)
 
 ###############################################################################
 ## Main executable target
@@ -116,7 +139,10 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
+    micras_config
     micras::nav
+    micras::comm
+    micras::proxy
     ${MICRAS_CUBE_OBJECT_LIBRARIES}
 )
 

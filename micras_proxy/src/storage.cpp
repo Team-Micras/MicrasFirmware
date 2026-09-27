@@ -2,88 +2,75 @@
  * @file
  */
 
-#include <algorithm>
 #include <bit>
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <span>
-#include <string>
-#include <unordered_map>
+#include <string_view>
+#include <utility>
 #include <vector>
 
 #include "micras/core/serializable.hpp"
+#include "micras/core/variable_pool.hpp"
 #include "micras/hal/flash.hpp"
 #include "micras/proxy/storage.hpp"
 
 namespace micras::proxy {
-/**
- * @brief Read a 16 bit little endian value from a buffer.
- *
- * @param buffer Buffer to read from.
- * @param address Address of the first byte of the value.
- * @return Value read from the buffer.
- */
-static uint16_t read_uint16(std::span<const uint8_t> buffer, uint16_t address) {
+static uint16_t read_uint16(std::span<const uint8_t> buffer, uint32_t address) {
     // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
     return static_cast<uint16_t>(buffer[address] | buffer[address + 1U] << 8);
 }
 
-/**
- * @brief Append a 16 bit little endian value to a buffer.
- *
- * @param buffer Buffer to append to.
- * @param value Value to append.
- */
 static void append_uint16(std::vector<uint8_t>& buffer, uint16_t value) {
     buffer.emplace_back(value);
     buffer.emplace_back(value >> 8);
 }
 
-/**
- * @brief Check if the data of every variable of a map fits inside the buffer.
- *
- * @tparam T Type of the variables.
- * @param variables Map of variables to check.
- * @param buffer_size Number of bytes of the buffer.
- * @return True if every variable is inside the buffer, false otherwise.
- */
-template <typename T>
-static bool validate_var_map(const std::unordered_map<std::string, T>& variables, std::size_t buffer_size) {
-    return std::ranges::all_of(variables, [buffer_size](const auto& variable) {
-        return variable.second.buffer_address + static_cast<std::size_t>(variable.second.size) <= buffer_size;
-    });
+static constexpr uint32_t align_size(std::size_t size) {
+    return (size + hal::FlashWord::size - 1) / hal::FlashWord::size * hal::FlashWord::size;
 }
 
 Storage::Storage(const Config& config) :
     start_sector{config.start_sector}, number_of_sectors{config.number_of_sectors} {
+    this->load();
+}
+
+void Storage::load() {
+    this->entries = {};
+    this->values = {};
+    this->entry_count = 0;
+    this->valid = false;
+
     const std::span<const uint8_t> header = hal::Flash::read(this->start_sector, 0, header_size);
 
-    if (header.size() < header_size or read_uint16(header, 0) != start_symbol) {
+    // NOLINTBEGIN(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
+    if (header.size() < header_size or read_uint16(header, 0) != start_symbol or header[2] != format_version) {
         return;
     }
 
-    const uint16_t total_size = read_uint16(header, 2);
-    const uint16_t num_primitives = read_uint16(header, 4);
-    const uint16_t num_serializables = read_uint16(header, 6);
+    this->entry_count = header[3];
+    // NOLINTEND(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 
-    const std::span<const uint8_t> payload = hal::Flash::read(this->start_sector, header_size, 4UL * total_size);
+    const uint32_t                 body_size = read_uint16(header, 4) * hal::FlashWord::size;
+    const std::span<const uint8_t> body = hal::Flash::read(this->start_sector, header_size, body_size);
 
-    if (payload.size() < 4UL * total_size) {
+    if (body.size() < body_size) {
         return;
     }
 
-    this->buffer.assign(payload.begin(), payload.end());
+    std::span<const uint8_t> table = body;
 
-    if (not deserialize_var_map<PrimitiveVariable>(this->buffer, num_primitives, this->primitives) or
-        not deserialize_var_map<SerializableVariable>(this->buffer, num_serializables, this->serializables) or
-        not validate_var_map(this->primitives, this->buffer.size()) or
-        not validate_var_map(this->serializables, this->buffer.size())) {
-        this->primitives.clear();
-        this->serializables.clear();
-        this->buffer.clear();
-        return;
+    for (uint8_t index = 0; index < this->entry_count; index++) {
+        if (table.empty() or table.size() < table.front() + entry_overhead) {
+            return;
+        }
+
+        table = table.subspan(table.front() + entry_overhead);
     }
 
+    this->entries = body.first(body.size() - table.size());
+    this->values = table;
     this->valid = true;
 }
 
@@ -91,73 +78,108 @@ bool Storage::is_valid() const {
     return this->valid;
 }
 
-void Storage::create(const std::string& name, const core::ISerializable& data) {
-    this->serializables[name].ram_pointer = &data;
+bool Storage::take_entry(std::span<const uint8_t>& table, Entry& entry) const {
+    const uint8_t name_size = table.front();
+
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+    entry.name = {std::bit_cast<const char*>(table.data() + 1), name_size};
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
+    entry.type = static_cast<core::TypeCode>(table[name_size + 1U]);
+    entry.offset = read_uint16(table, name_size + 2U);
+    entry.size = read_uint16(table, name_size + 4U);
+
+    table = table.subspan(name_size + entry_overhead);
+
+    return entry.offset + static_cast<std::size_t>(entry.size) <= this->values.size();
 }
 
-void Storage::sync(const std::string& name, core::ISerializable& data) {
-    const auto serializable = this->serializables.find(name);
-
-    if (serializable != this->serializables.end() and serializable->second.ram_pointer == nullptr) {
-        data.deserialize(&this->buffer.at(serializable->second.buffer_address), serializable->second.size);
+std::size_t Storage::restore(core::VariablePool& pool) {
+    if (not this->valid) {
+        return 0;
     }
 
-    this->create(name, data);
-}
+    std::span<const uint8_t> table = this->entries;
+    std::size_t              restored = 0;
 
-bool Storage::save() {
-    this->buffer.clear();
+    for (uint8_t index = 0; index < this->entry_count; index++) {
+        Entry entry{};
 
-    for (auto it = this->primitives.begin(); it != this->primitives.end();) {
-        auto& [name, variable] = *it;
-
-        if (variable.ram_pointer == nullptr) {
-            it = this->primitives.erase(it);
+        if (not this->take_entry(table, entry)) {
             continue;
         }
 
-        const auto* aux = std::bit_cast<const uint8_t*>(variable.ram_pointer);
-        variable.buffer_address = buffer.size();
+        const auto id = pool.find(entry.name);
 
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-        this->buffer.insert(this->buffer.end(), aux, aux + variable.size);
-        it++;
-    }
-
-    for (auto it = this->serializables.begin(); it != this->serializables.end();) {
-        auto& [name, variable] = *it;
-
-        if (variable.ram_pointer == nullptr) {
-            it = this->serializables.erase(it);
+        if (not id.has_value()) {
             continue;
         }
 
-        std::vector<uint8_t> aux = variable.ram_pointer->serialize();
-        variable.buffer_address = this->buffer.size();
-        variable.size = aux.size();
-        this->buffer.insert(this->buffer.end(), aux.begin(), aux.end());
-        it++;
+        const core::Variable& variable = pool.at(id.value());
+
+        if (not variable.access.persist or variable.type != entry.type) {
+            continue;
+        }
+
+        const std::span<const uint8_t> data = this->values.subspan(entry.offset, entry.size);
+
+        if (variable.type == core::TypeCode::BLOB) {
+            static_cast<core::ISerializable*>(variable.address)->deserialize(data.data(), data.size());
+        } else if (variable.size != entry.size) {
+            continue;
+        } else {
+            std::memcpy(variable.address, data.data(), data.size());
+        }
+
+        restored++;
     }
 
-    auto serialized_serializables = serialize_var_map<SerializableVariable>(this->serializables);
-    this->buffer.insert(this->buffer.begin(), serialized_serializables.begin(), serialized_serializables.end());
+    return restored;
+}
 
-    auto serialized_primitives = serialize_var_map<PrimitiveVariable>(this->primitives);
-    this->buffer.insert(this->buffer.begin(), serialized_primitives.begin(), serialized_primitives.end());
+bool Storage::save(const core::VariablePool& pool) {
+    std::vector<uint8_t> table;
+    std::vector<uint8_t> payload;
+    uint8_t              count = 0;
 
-    this->buffer.insert(this->buffer.end(), (4 - (this->buffer.size() % 4)) % 4, 0);
-    const uint16_t total_size = this->buffer.size() / 4;
+    for (const core::Variable& variable : pool.all()) {
+        if (not variable.access.persist) {
+            continue;
+        }
 
-    std::vector<uint8_t> header;
-    header.reserve(header_size);
-    append_uint16(header, start_symbol);
-    append_uint16(header, total_size);
-    append_uint16(header, this->primitives.size());
-    append_uint16(header, this->serializables.size());
+        const std::size_t name_size = variable.prefix.size() + variable.name.size();
+        const std::size_t offset = payload.size();
 
-    this->buffer.insert(this->buffer.begin(), header.begin(), header.end());
+        if (variable.type == core::TypeCode::BLOB) {
+            const std::vector<uint8_t> data = static_cast<const core::ISerializable*>(variable.address)->serialize();
+            payload.insert(payload.end(), data.begin(), data.end());
+        } else {
+            const auto* bytes = std::bit_cast<const uint8_t*>(variable.address);
+            // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+            payload.insert(payload.end(), bytes, bytes + variable.size);
+        }
 
-    if (this->buffer.size() > this->number_of_sectors * hal::Flash::sector_size) {
+        const std::size_t size = payload.size() - offset;
+
+        if (count == UINT8_MAX or name_size > UINT8_MAX or offset > UINT16_MAX or size > UINT16_MAX) {
+            return false;
+        }
+
+        table.emplace_back(name_size);
+        table.insert(table.end(), variable.prefix.begin(), variable.prefix.end());
+        table.insert(table.end(), variable.name.begin(), variable.name.end());
+        table.emplace_back(std::to_underlying(variable.type));
+        append_uint16(table, offset);
+        append_uint16(table, size);
+
+        count++;
+    }
+
+    std::vector<uint8_t> body = std::move(table);
+    body.insert(body.end(), payload.begin(), payload.end());
+    body.resize(align_size(body.size()), hal::FlashWord::erased_value);
+
+    if (body.size() / hal::FlashWord::size > UINT16_MAX or
+        header_size + body.size() > this->number_of_sectors * hal::Flash::sector_size) {
         return false;
     }
 
@@ -165,77 +187,23 @@ bool Storage::save() {
         return false;
     }
 
-    if (hal::Flash::write(this->start_sector, 0, this->buffer) != hal::Flash::Status::OK) {
+    if (hal::Flash::write(this->start_sector, header_size, body) != hal::Flash::Status::OK) {
         return false;
     }
 
-    this->valid = true;
-    return true;
-}
+    std::vector<uint8_t> header;
+    header.reserve(header_size);
+    append_uint16(header, start_symbol);
+    header.emplace_back(format_version);
+    header.emplace_back(count);
+    append_uint16(header, body.size() / hal::FlashWord::size);
+    header.resize(header_size, hal::FlashWord::erased_value);
 
-template <typename T>
-std::vector<uint8_t> Storage::serialize_var_map(const std::unordered_map<std::string, T>& variables) {
-    std::vector<uint8_t> buffer;
-
-    for (const auto& [name, variable] : variables) {
-        buffer.emplace_back(name.size());
-        buffer.insert(buffer.end(), name.begin(), name.end());
-
-        buffer.emplace_back(variable.buffer_address);
-        buffer.emplace_back(variable.buffer_address >> 8);
-
-        buffer.emplace_back(variable.size);
-        buffer.emplace_back(variable.size >> 8);
+    if (hal::Flash::write(this->start_sector, 0, header) != hal::Flash::Status::OK) {
+        return false;
     }
 
-    return buffer;
+    this->load();
+    return this->valid;
 }
-
-template <typename T>
-bool Storage::deserialize_var_map(
-    std::vector<uint8_t>& buffer, uint16_t num_vars, std::unordered_map<std::string, T>& variables
-) {
-    uint16_t current_addr = 0;
-
-    for (uint16_t decoded_vars = 0; decoded_vars < num_vars; decoded_vars++) {
-        if (current_addr >= buffer.size()) {
-            return false;
-        }
-
-        const uint8_t var_name_len = buffer.at(current_addr);
-
-        if (current_addr + var_name_len + 5UL > buffer.size()) {
-            return false;
-        }
-
-        const std::string var_name(buffer.begin() + current_addr + 1, buffer.begin() + current_addr + 1 + var_name_len);
-        current_addr += var_name_len + 1;
-
-        variables[var_name].buffer_address = read_uint16(buffer, current_addr);
-        current_addr += 2;
-
-        variables.at(var_name).size = read_uint16(buffer, current_addr);
-        current_addr += 2;
-    }
-
-    buffer.erase(buffer.begin(), buffer.begin() + current_addr);
-    return true;
-}
-
-// Explicit instantiation of template functions
-template std::vector<uint8_t>
-    Storage::serialize_var_map(const std::unordered_map<std::string, PrimitiveVariable>& variables);
-
-template bool Storage::deserialize_var_map(
-    std::vector<uint8_t>& buffer, uint16_t num_vars,
-    std::unordered_map<std::string, Storage::PrimitiveVariable>& variables
-);
-
-template std::vector<uint8_t>
-    Storage::serialize_var_map(const std::unordered_map<std::string, SerializableVariable>& variables);
-
-template bool Storage::deserialize_var_map(
-    std::vector<uint8_t>& buffer, uint16_t num_vars,
-    std::unordered_map<std::string, Storage::SerializableVariable>& variables
-);
 }  // namespace micras::proxy

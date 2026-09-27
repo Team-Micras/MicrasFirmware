@@ -5,9 +5,14 @@
 #ifndef ERROR_STATE_HPP
 #define ERROR_STATE_HPP
 
+#include <cstdint>
+
 #include "micras/states/base.hpp"
 
 namespace micras {
+/**
+ * @brief State that keeps the robot stopped after something went wrong.
+ */
 class ErrorState : public BaseState {
 public:
     using BaseState::BaseState;
@@ -15,17 +20,14 @@ public:
     /**
      * @brief Execute the entry function of this state.
      */
-    void on_entry() override {
-        this->micras.stop();
-        this->micras.send_event(Interface::Event::ERROR);
-    }
+    void on_entry() override;
 
     /**
      * @brief Execute this state.
      *
      * @return The id of the next state.
      */
-    uint8_t execute() override { return this->get_id(); }
+    uint8_t execute() override;
 };
 }  // namespace micras
 

@@ -7,7 +7,6 @@
 
 #include <array>
 #include <cstdint>
-#include <memory>
 
 namespace micras::core {
 /**
@@ -69,7 +68,7 @@ private:
  *
  * @note The states are stored in an array indexed by their own id, so running the machine costs an
  * array access rather than a hash lookup. That only works because the ids are a dense enumeration
- * from zero, which the number of states asserts.
+ * from zero.
  *
  * @tparam num_of_states Number of states, and therefore one past the largest valid id.
  */
@@ -84,11 +83,14 @@ public:
     explicit TFsm(uint8_t initial_state_id);
 
     /**
-     * @brief Add a state to the FSM, taking ownership of it.
+     * @brief Add a state to the FSM.
+     *
+     * @note The state is borrowed, not owned: whoever owns the machine holds its states by value,
+     * next to it, so that nothing is allocated and they live exactly as long as the machine does.
      *
      * @param state The state to be added.
      */
-    void add_state(std::unique_ptr<FsmState> state);
+    void add_state(FsmState& state);
 
     /**
      * @brief Run the FSM current state to compute the next state.
@@ -99,11 +101,18 @@ public:
      */
     void update();
 
+    /**
+     * @brief Get the id of the state currently running.
+     *
+     * @return The id of the current state.
+     */
+    uint8_t get_current_state_id() const;
+
 private:
     /**
      * @brief States of the machine, indexed by their id.
      */
-    std::array<std::unique_ptr<FsmState>, num_of_states> states{};
+    std::array<FsmState*, num_of_states> states{};
 
     /**
      * @brief Id of the state currently running.

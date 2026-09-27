@@ -18,7 +18,7 @@ namespace micras::proxy {
  * would jitter by a percent.
  *
  * @note The loop stays a plain loop: the wait spins on the cycle counter and no interrupt is
- * involved. A simulator implements the wait by advancing its physics by one period.
+ * involved.
  */
 class Tick {
 public:
@@ -43,6 +43,14 @@ public:
      * longer than a period, in which case the ticks that were missed are included.
      */
     uint32_t wait();
+
+    /**
+     * @brief Make the next tick one period from now.
+     *
+     * @note For after an operation that stalled the loop on purpose, with the robot stopped, so
+     * that the stall is not reported as missed ticks nor integrated as the time of one iteration.
+     */
+    void restart();
 
     /**
      * @brief Get the time since the last tick.

@@ -2,8 +2,8 @@
  * @file
  */
 
-#ifndef MICRAS_NAV_POSE_HPP
-#define MICRAS_NAV_POSE_HPP
+#ifndef MICRAS_NAV_STATE_HPP
+#define MICRAS_NAV_STATE_HPP
 
 #include "micras/core/vector.hpp"
 #include "micras/nav/grid_pose.hpp"
@@ -22,12 +22,20 @@ struct Pose {
     GridPose to_grid(float cell_size) const;
 
     /**
-     * @brief Convert the pose to a cell reference.
+     * @brief Express in the frame of this pose a pose given relative to it.
      *
-     * @param cell_size The size of the grid cells.
-     * @return The point inside the cell reference.
+     * @param local The pose in the frame defined by this pose.
+     * @return The same pose in the frame this pose is expressed in.
      */
-    core::Vector to_cell(float cell_size) const;
+    Pose compose(const Pose& local) const;
+
+    /**
+     * @brief Express another pose in the frame defined by this pose.
+     *
+     * @param other A pose in the same frame as this pose.
+     * @return The other pose as seen from this one, with the orientation wrapped to [-pi, pi].
+     */
+    Pose relative(const Pose& other) const;
 
     /**
      * @brief The position of the pose.
@@ -69,39 +77,6 @@ struct State {
      */
     Twist velocity;
 };
-
-class RelativePose {
-public:
-    /**
-     * @brief Construct a new Relative Pose object.
-     *
-     * @param absolute_pose The absolute pose to be used as a reference.
-     */
-    explicit RelativePose(const Pose& absolute_pose);
-
-    /**
-     * @brief Get the relative pose.
-     *
-     * @return The pose relative to the reference.
-     */
-    Pose get() const;
-
-    /**
-     * @brief Reset the reference to the current absolute pose.
-     */
-    void reset_reference();
-
-private:
-    /**
-     * @brief A reference to the absolute pose.
-     */
-    const Pose* absolute_pose;
-
-    /**
-     * @brief The reference pose to be used for calculations.
-     */
-    Pose reference_pose{};
-};
 }  // namespace micras::nav
 
-#endif  // MICRAS_NAV_POSE_HPP
+#endif  // MICRAS_NAV_STATE_HPP

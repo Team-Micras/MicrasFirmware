@@ -14,6 +14,8 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     include
 )
 
+# The navigation takes plain data and gives plain data back, so it links nothing that can reach the
+# hardware and builds anywhere micras::core does
 target_link_libraries(${PROJECT_NAME} PUBLIC
-    micras::proxy
+    micras::core
 )

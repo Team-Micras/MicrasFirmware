@@ -25,6 +25,8 @@ echo "Running clang-tidy on all source files..."
 # The filtered lines are the echoed clang-tidy invocations and the per-file diagnostic
 # counters, which include the warnings suppressed in the Cube headers and are always noise.
 # Real diagnostics name their own file, so nothing useful is hidden.
+# The shape of every turn is computed when the firmware is compiled, which takes more evaluation
+# steps than clang allows a constant expression by default.
 run-clang-tidy \
     "${RUN_FLAGS[@]}" \
     -quiet \
@@ -35,6 +37,7 @@ run-clang-tidy \
     -extra-arg-before=--sysroot=@SYSROOT@/ \
     -extra-arg-before=-I@CXX_INCLUDE_DIR@/ \
     -extra-arg-before=-I@CXX_TRIPLE_INCLUDE_DIR@/ \
+    -extra-arg=-fconstexpr-steps=1000000000 \
     "$@" 2>&1 | grep -Ev '^(\[ *[0-9]+/[0-9]+\]|[0-9]+ (warning|error)s? generated\.|clang-tidy(-[0-9.]+)? )'
 
 exit "${PIPESTATUS[0]}"

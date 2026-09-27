@@ -21,10 +21,21 @@ extern "C" {
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
     micras::hal::AdcDma::on_sequence_complete(hadc);
 }
+
+/**
+ * @brief Callback of the vendor HAL for an overrun of a converter or a transfer error of its DMA.
+ *
+ * @param hadc Handle of the converter.
+ */
+// NOLINTNEXTLINE(readability-identifier-naming) the name is fixed by the vendor HAL
+void HAL_ADC_ErrorCallback(ADC_HandleTypeDef* hadc) {
+    micras::hal::AdcDma::on_error(hadc);
+}
 }
 
 namespace micras::hal {
 std::array<AdcDma*, AdcDma::max_instances> AdcDma::instances{};
+uint32_t                                   AdcDma::restarts{};
 
 AdcDma::AdcDma(const Config& config) :
     max_reading{config.max_reading}, reference_voltage{config.reference_voltage}, handle{config.handle} {
@@ -40,6 +51,13 @@ AdcDma::AdcDma(const Config& config) :
     #error "ADC calibration is only supported for STM32H7 and STM32G4 platforms."
 #endif
 
+    auto* const slot = std::ranges::find(instances, nullptr);
+
+    if (slot == instances.end()) {
+        return;
+    }
+
+    *slot = this;
     this->initialized = status == HAL_OK;
 }
 
@@ -48,6 +66,8 @@ AdcDma::~AdcDma() {
 }
 
 bool AdcDma::start_dma(std::span<uint32_t> buffer) {
+    this->transfer = buffer;
+
     if (HAL_ADC_Start_DMA(this->handle, buffer.data(), buffer.size()) != HAL_OK) {
         this->initialized = false;
         return false;
@@ -68,15 +88,6 @@ bool AdcDma::start_dma(std::span<uint16_t> buffer, std::span<uint16_t> snapshot)
 
     this->buffer = buffer;
     this->snapshot = snapshot;
-
-    auto* const slot = std::ranges::find(instances, nullptr);
-
-    if (slot == instances.end()) {
-        this->initialized = false;
-        return false;
-    }
-
-    *slot = this;
 
     return this->start_dma(buffer);
 }
@@ -101,17 +112,49 @@ uint32_t AdcDma::read_snapshot(std::span<uint16_t> destination) const {
 }
 
 void AdcDma::on_sequence_complete(const ADC_HandleTypeDef* handle) {
-    for (AdcDma* instance : instances) {
-        if (instance != nullptr and instance->handle == handle) {
-            std::ranges::copy(instance->buffer, instance->snapshot.begin());
-            instance->sequence = instance->sequence + 1;
-            return;
-        }
+    AdcDma* const instance = find(handle);
+
+    if (instance == nullptr or instance->stopped) {
+        return;
     }
+
+    std::ranges::copy(instance->buffer, instance->snapshot.begin());
+    instance->sequence = instance->sequence + 1;
+}
+
+void AdcDma::on_error(const ADC_HandleTypeDef* handle) {
+    AdcDma* const instance = find(handle);
+
+    if (instance != nullptr) {
+        instance->stopped = true;
+    }
+}
+
+AdcDma* AdcDma::find(const ADC_HandleTypeDef* handle) {
+    const auto* const found = std::ranges::find_if(instances, [handle](const AdcDma* instance) {
+        return instance != nullptr and instance->handle == handle;
+    });
+
+    return found == instances.end() ? nullptr : *found;
 }
 
 void AdcDma::stop_dma() {
     HAL_ADC_Stop_DMA(this->handle);
+}
+
+void AdcDma::recover() {
+    if (not this->stopped) {
+        return;
+    }
+
+    HAL_ADC_Stop_DMA(this->handle);
+    this->handle->State = this->handle->State & ~(HAL_ADC_STATE_ERROR_DMA | HAL_ADC_STATE_ERROR_INTERNAL);
+    this->stopped = HAL_ADC_Start_DMA(this->handle, this->transfer.data(), this->transfer.size()) != HAL_OK;
+    restarts++;
+}
+
+uint32_t AdcDma::get_restarts() {
+    return restarts;
 }
 
 uint16_t AdcDma::get_max_reading() const {

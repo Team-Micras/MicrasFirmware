@@ -5,11 +5,14 @@
 #ifndef INIT_STATE_HPP
 #define INIT_STATE_HPP
 
-#include <utility>
+#include <cstdint>
 
 #include "micras/states/base.hpp"
 
 namespace micras {
+/**
+ * @brief State that checks if every device was initialized.
+ */
 class InitState : public BaseState {
 public:
     using BaseState::BaseState;
@@ -19,13 +22,7 @@ public:
      *
      * @return The id of the next state.
      */
-    uint8_t execute() override {
-        if (not this->micras.check_initialization()) {
-            return std::to_underlying(Micras::State::ERROR);
-        }
-
-        return std::to_underlying(Micras::State::IDLE);
-    }
+    uint8_t execute() override;
 };
 }  // namespace micras
 
