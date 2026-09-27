@@ -57,6 +57,7 @@ NTF Classic Micromouse project with an STM32 microcontroller
 - [micras_hal](./micras_hal/) - Wrapper to the STM32 HAL, implementing the needed functionalities in C++ classes.
 - [micras_proxy](./micras_proxy/) - Intermediate abstraction layer for the hardware components.
 - [micras_nav](./micras_nav/) - Mapping, planning and control algorithms to navigate inside a maze.
+- [micras_comm](./micras_comm/) - The link over the radio: framing, the session and the variables it carries.
 
 Each one is a library in its own right, and they depend downwards only: `micras_proxy` on
 `micras_hal` and that on `micras_core`, while `micras_nav` depends on `micras_core` alone. The
@@ -101,8 +102,8 @@ The button starts everything, and the four switches choose how.
 
 | Switch | Fast run | Extra long press, with the other two of these three off |
 | --- | --- | --- |
-| Fan | The fan runs, and its downforce is counted on. | The fan is not part of the choice. |
-| Racing line | The robot drives the smoothest line through the cells of the fastest route instead of the route itself, if one is found. Every route may use diagonals. | Drive identification: the robot drives forward and back by less than a meter, then turns to each side, and fits the constants of its drive train. |
+| Fan | The fan runs, and its downforce is counted on. | The fan runs during the procedure, but is not part of the choice. |
+| Racing line | The robot drives the smoothest line through the cells of the fastest route instead of the route itself, if one is found. | Drive identification: the robot drives forward and back by less than a meter, then turns to each side, and fits the constants of its drive train. |
 | Boost | A larger share of the available traction is used. | Gyroscope scale calibration: facing a wall, the robot turns five times in place and compares what the gyroscope integrated with what the wall says. |
 | Risky | The turns designed with the smaller safety margin are used. With the racing line, the line through the route of those turns is driven only if it is faster. | |
 
@@ -110,9 +111,9 @@ With none of those three on, an extra long press calibrates the wall sensors in 
 the side sensors, with the robot centered between two walls, and after a pause the front sensors,
 with the robot centered in a cell facing a wall.
 
-The results of the maintenance procedures are not stored. They are published in the `monitor_*`
-variables of `src/micras.cpp`, to be read with a variable monitor and typed into
-`config/targets/<board>/robot.hpp` and `target.hpp`.
+The results of the maintenance procedures are not stored. They are variables of the pool
+(`identification/*`, `gyroscope/*`, `wall_reference/*` and `wall_spread/*`), to be read over the link
+and typed into `config/targets/<board>/robot.hpp` and `target.hpp`.
 
 ## 🔨 Building
 
@@ -181,6 +182,13 @@ It is also possible to build all tests at once, using the command:
 
 ```bash
 make test_all -j
+```
+
+The parts with no hardware behind them, the variable pool, the flash image, the framing and the
+session layer, also have tests that build with the host compiler and run in the terminal:
+
+```bash
+cmake -S tests/host -B build/host && cmake --build build/host && ctest --test-dir build/host
 ```
 
 ## 🐛 Debugging

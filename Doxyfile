@@ -18,7 +18,8 @@ INPUT                  = config/ \
                          micras_core/ \
                          micras_hal/ \
                          micras_proxy/ \
-                         micras_nav/
+                         micras_nav/ \
+                         micras_comm/
 RECURSIVE              = YES
 FILE_PATTERNS          = *.c *.cpp *.h *.hpp *.tpp *.md
 EXTENSION_MAPPING      = tpp=C++

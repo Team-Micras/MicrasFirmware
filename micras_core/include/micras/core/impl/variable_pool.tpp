@@ -41,9 +41,6 @@ VariableId VariablePool::add(std::string_view prefix, std::string_view name, con
         return invalid_id;
     }
 
-    // The pool holds one mutable address for every kind of variable, so that no consumer has to
-    // branch on constness. Casting it away is safe because this overload has just cleared the only
-    // flag through which anything can write.
     *variable = {
         .prefix = prefix,
         .name = name,

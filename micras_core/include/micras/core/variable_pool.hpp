@@ -224,7 +224,9 @@ public:
      * @brief Register a read only variable.
      *
      * @note The write flag is cleared whatever the caller asked for, so that constness is enough to
-     * state the intent at the registration site.
+     * state the intent at the registration site. The pool holds one mutable address for every kind
+     * of variable, so that no consumer has to branch on constness, and casting the constness away is
+     * safe because the flag through which anything can write is cleared.
      *
      * @tparam T Type of the variable.
      * @param prefix Prefix of the name, usually identifying the owner.

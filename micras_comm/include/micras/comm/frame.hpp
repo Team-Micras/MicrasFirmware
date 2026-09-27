@@ -48,7 +48,7 @@ public:
     /**
      * @brief Append a string with no length prefix.
      *
-     * @param text Text to append.
+     * @param value Text to append.
      */
     void text(std::string_view value);
 

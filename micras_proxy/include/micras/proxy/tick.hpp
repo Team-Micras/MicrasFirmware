@@ -18,7 +18,7 @@ namespace micras::proxy {
  * would jitter by a percent.
  *
  * @note The loop stays a plain loop: the wait spins on the cycle counter and no interrupt is
- * involved. A simulator implements the wait by advancing its physics by one period.
+ * involved.
  */
 class Tick {
 public:

@@ -22,9 +22,8 @@ struct Vector {
     std::vector<uint8_t> frame;
 };
 
-// The same table lives in micras-monitor, as src/lib/comm/__tests__/frameVectors.ts. Every writer
-// and reader disagreement this project has had was invisible until something was on the wire, so
-// the two implementations are pinned to the same bytes rather than to each other's good intentions.
+// The same table lives in micras-monitor, as src/lib/comm/__tests__/frameVectors.ts, so that both
+// implementations are pinned to the same bytes.
 const std::vector<Vector> vectors{
     {"hello", MessageType{0x01}, {}, {4, 1, 1, 1, 0}},
     {"hello_ack",

@@ -68,7 +68,7 @@ private:
  *
  * @note The states are stored in an array indexed by their own id, so running the machine costs an
  * array access rather than a hash lookup. That only works because the ids are a dense enumeration
- * from zero, which the number of states asserts.
+ * from zero.
  *
  * @tparam num_of_states Number of states, and therefore one past the largest valid id.
  */
