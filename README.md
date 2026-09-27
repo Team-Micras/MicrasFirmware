@@ -185,9 +185,9 @@ It is also possible to build all tests at once, using the command:
 make test_all -j
 ```
 
-### 🎵 Playing a song on the buzzer
+### 🎵 Playing sounds on the buzzer
 
-`test_chatuba` plays an audio clip through the buzzer, started and stopped by the button. The buzzer PWM works as an 8-bit DAC, so any song fits, as long as its excerpt fits in the flash: about 45 s at the best sample rate, and up to 90 s at a lower one. The clip it plays is `tests/include/chatuba.hpp`, which comes converted with the repository, so flashing the test needs no conversion.
+`test_chatuba` and `test_goofy` play audio clips through the buzzer, started and stopped by the button: a round of Chatuba de Mesquita, and a medley of cartoon sound effects. The buzzer PWM works as an 8-bit DAC, driven by `tests/include/clip_player.hpp`, so any sound fits, as long as it fits in the flash: about 45 s at the best sample rate, and up to 90 s at a lower one. The clips live converted in `tests/include/clips/`, so flashing the tests needs no conversion.
 
 The converter needs [`ffmpeg`](https://ffmpeg.org/) and the Python packages in `scripts/requirements.txt`:
 
@@ -196,14 +196,13 @@ python3 -m venv .venv
 .venv/bin/pip install -r scripts/requirements.txt
 ```
 
-It shapes a song for the buzzer and writes it over `tests/include/chatuba.hpp`:
+It shapes a sound for the buzzer and writes it to `tests/include/clips/<name>.hpp`, the header a test plays with `ClipPlayer<clips::<name>::samples, clips::<name>::sample_rate>`:
 
 ```bash
-.venv/bin/python scripts/buzzer_audio.py song.mp3 --start 0:30 --duration 40 --preview preview
-make flash_test_chatuba -j
+.venv/bin/python scripts/buzzer_audio.py song.mp3 --name song --start 0:30 --duration 40 --preview preview
 ```
 
-The `--preview` directory receives the original excerpt, the signal sent to the buzzer and an approximation of what the buzzer makes of it, to compare settings on a computer. Run the script with `--help` for the settings of the bass, the equalizer and the loudness.
+The `--preview` directory receives the original excerpt, the signal sent to the buzzer and an approximation of what the buzzer makes of it, to compare settings on a computer. `--drive` trades faithfulness for loudness: the song uses the default of 2 dB, the sound effects 12 dB. Run the script with `--help` for the settings of the bass, the equalizer and the loudness.
 
 ## 🐛 Debugging
 

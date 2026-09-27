@@ -3,14 +3,14 @@
  */
 
 #include "clip_player.hpp"
-#include "clips/chatuba.hpp"
+#include "clips/goofy.hpp"
 #include "micras/proxy/button.hpp"
 #include "target.hpp"
 #include "test_core.hpp"
 
 using namespace micras;  // NOLINT(google-build-using-namespace)
 
-using Player = ClipPlayer<clips::chatuba::samples, clips::chatuba::sample_rate>;
+using Player = ClipPlayer<clips::goofy::samples, clips::goofy::sample_rate>;
 
 /**
  * @brief Forward the buzzer timer interrupt to the player.
@@ -20,7 +20,7 @@ extern "C" void TIM15_IRQHandler() {
 }
 
 /**
- * @brief Play a round of Chatuba de Mesquita through the buzzer, started and stopped by the button.
+ * @brief Play a medley of goofy cartoon sound effects through the buzzer, started and stopped by the button.
  */
 int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);
