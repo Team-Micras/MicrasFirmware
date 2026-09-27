@@ -22,7 +22,9 @@ namespace micras::nav {
  * would lie on the face of that wall, allowing for how uncertain the pose is, which the wall model
  * answers from the geometry of the sensors. Every reading taken in those conditions is a vote:
  * for the wall when something is seen at the range the wall would be at, against it when nothing is
- * seen up to beyond that range. A wall is decided when enough votes agree, and it is decided once.
+ * seen up to beyond that range. A blind reading does not vote, since a receiver that ambient light
+ * saturates sees nothing whether the wall is there or not. A wall is decided when enough votes
+ * agree, and it is decided once.
  * A wall that never gets enough votes stays unknown rather than being guessed.
  *
  * @note Every sensor votes on whatever wall it happens to point at, so the wall ahead is decided by

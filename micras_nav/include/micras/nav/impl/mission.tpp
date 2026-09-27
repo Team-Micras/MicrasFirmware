@@ -274,21 +274,20 @@ TMission<width, height>::Status TMission<width, height>::update(
 
     const Segment* watched = this->executor.get_current();
 
+    const float commit_distance = this->get_commit_distance();
+
     if (this->watching_front and watched != nullptr and watched->kind == SegmentKind::STRAIGHT and
-        watched->start.position.distance(this->get_entry_pose(this->watched_cell).position) < watch_tolerance) {
-        const float cell_size = this->dynamics.get_model().maze.cell_size;
-        const float braking = this->search_speed * this->search_speed /
-                              (2.0F * this->dynamics.get_linear_limits(this->config.search_profile).deceleration);
+        watched->start.position.distance(this->get_entry_pose(this->watched_cell).position) <
+            std::max(commit_distance, 0.0F) + watch_tolerance) {
+        const float travelled = watched->start.position.distance(this->get_entry_pose(this->watched_cell).position) +
+                                this->executor.get_reference().distance;
 
         const WallState wall = this->maze.get_wall(this->watched_cell);
 
         if (wall == WallState::NO_WALL) {
             this->watching_front = false;
-        } else if (
-            wall == WallState::WALL or
-            this->executor.get_reference().distance >= cell_size / 2.0F - braking - this->config.commit_margin
-        ) {
-            this->divert_to_center();
+        } else if (wall == WallState::WALL or travelled >= commit_distance) {
+            this->divert_to_center(travelled);
         }
     }
 
@@ -409,15 +408,23 @@ void TMission<width, height>::decide_at_entry() {
     Move       move{};
 
     if (next->orientation == this->cell.orientation) {
-        Segment straight = make_segment(SegmentKind::STRAIGHT, cell_size, entry);
+        const float commit_distance = this->get_commit_distance();
 
         this->watching_front = this->maze.get_wall(this->cell) == WallState::UNKNOWN;
 
-        if (this->watching_front) {
-            straight.max_speed = this->search_speed;
+        if (this->watching_front and commit_distance > 0.0F) {
+            Segment watched = make_segment(SegmentKind::STRAIGHT, commit_distance, entry);
+            watched.max_speed = this->search_speed;
+
+            move.add(watched);
+            move.add(make_segment(
+                SegmentKind::STRAIGHT, cell_size - commit_distance,
+                entry.compose({.position = {.x = commit_distance, .y = 0.0F}, .orientation = 0.0F})
+            ));
+        } else {
+            move.add(make_segment(SegmentKind::STRAIGHT, cell_size, entry));
         }
 
-        move.add(straight);
         this->execute(move, this->search_speed, this->search_speed);
 
         this->watched_cell = this->cell;
@@ -573,10 +580,10 @@ bool TMission<width, height>::finish_at_entry() {
 }
 
 template <uint8_t width, uint8_t height>
-void TMission<width, height>::divert_to_center() {
+void TMission<width, height>::divert_to_center(float travelled) {
     const float      cell_size = this->dynamics.get_model().maze.cell_size;
     const Reference& current = this->executor.get_reference();
-    const float      remaining = cell_size / 2.0F - current.distance;
+    const float      remaining = cell_size / 2.0F - travelled;
 
     this->watching_front = false;
 
@@ -589,8 +596,7 @@ void TMission<width, height>::divert_to_center() {
     Move move{};
     move.add(make_segment(
         SegmentKind::STRAIGHT, remaining,
-        this->get_entry_pose(this->watched_cell)
-            .compose({.position = {.x = current.distance, .y = 0.0F}, .orientation = 0.0F})
+        this->get_entry_pose(this->watched_cell).compose({.position = {.x = travelled, .y = 0.0F}, .orientation = 0.0F})
     ));
 
     if (this->maze.get_wall(this->watched_cell) == WallState::WALL) {
@@ -606,6 +612,15 @@ void TMission<width, height>::divert_to_center() {
 
     this->cell = this->watched_cell;
     this->at_center = true;
+}
+
+template <uint8_t width, uint8_t height>
+float TMission<width, height>::get_commit_distance() const {
+    const float cell_size = this->dynamics.get_model().maze.cell_size;
+    const float braking = this->search_speed * this->search_speed /
+                          (2.0F * this->dynamics.get_linear_limits(this->config.search_profile).deceleration);
+
+    return cell_size / 2.0F - braking - this->config.commit_margin;
 }
 
 template <uint8_t width, uint8_t height>

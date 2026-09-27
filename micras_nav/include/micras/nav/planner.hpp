@@ -62,10 +62,11 @@ struct Route {
  * fastest path of the graph is the fastest route the robot can drive, to within what the velocity
  * planner refines among the candidates. A turn the run cannot reach its speed for is priced at a
  * blend of the two speeds, since the robot accelerates inside it, and a turn that has to leave
- * slower for the next one costs nothing more, since the robot slows in its exit ramp. Over thousands
- * of mazes that prices a route to within about 20 ms of what the velocity planner makes of it.
- * Diagonals, the turns of 135 degrees and the two sizes of the turn of 90 degrees are part of the
- * search rather than a rewrite of its result.
+ * slower for the next one costs nothing more, since the robot slows in its exit ramp. Over
+ * thousands of mazes the price of a route differs from what the velocity planner makes of it by
+ * 20 ms at one standard deviation, and by a few tens of milliseconds at worst. Diagonals, the turns
+ * of 135 degrees and the two sizes of the turn of 90 degrees are part of the search rather than a
+ * rewrite of its result.
  *
  * What the search holds are labels: a way of reaching a node, with its cost, the turn that reached
  * it and how fast that turn is driven, since those fix the speed the next straight starts at and
@@ -136,7 +137,8 @@ public:
      * @brief Advance the search.
      *
      * @note Before the search itself, every pair of arrivals is compared for the dominance, one run
-     * of one pair for each edge of the budget.
+     * of one pair at a time, each charged to the budget for the edges it times, so that no call
+     * takes longer than the budget allows.
      *
      * @param max_edges The largest number of edges to try in this call.
      * @return True if the search has finished.
@@ -449,8 +451,11 @@ private:
 
     /**
      * @brief Compare the next pair of arrivals over the next run, moving on to the next pair after.
+     *
+     * @return The number of edges the comparison may time, at least one, or zero once every pair
+     * was compared.
      */
-    void prepare();
+    uint32_t prepare();
 
     /**
      * @brief Bound how much slower one arrival at full speed can be than another, over one run.

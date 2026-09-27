@@ -121,9 +121,9 @@ void TPlanner<width, height>::begin(
 
 template <uint8_t width, uint8_t height>
 bool TPlanner<width, height>::step(uint32_t max_edges) {
-    for (; max_edges > 0; max_edges--) {
+    while (max_edges > 0) {
         if (this->preparing) {
-            this->prepare();
+            max_edges -= std::min(this->prepare(), max_edges);
             continue;
         }
 
@@ -147,6 +147,7 @@ bool TPlanner<width, height>::step(uint32_t max_edges) {
         }
 
         this->advance_expansion();
+        max_edges--;
     }
 
     return this->is_finished();
@@ -389,7 +390,7 @@ bool TPlanner<width, height>::is_comparable(uint8_t first, uint8_t second) const
 }
 
 template <uint8_t width, uint8_t height>
-void TPlanner<width, height>::prepare() {
+uint32_t TPlanner<width, height>::prepare() {
     while (this->prepare_first < number_of_arrivals and
            not this->is_comparable(this->prepare_first, this->prepare_second)) {
         this->prepare_second++;
@@ -402,13 +403,16 @@ void TPlanner<width, height>::prepare() {
 
     if (this->prepare_first == number_of_arrivals) {
         this->preparing = false;
-        return;
+        return 0;
     }
+
+    const bool     diagonal = ends_diagonal(this->prepare_first);
+    const uint32_t cost = 2U * this->number_of_usable_turns.at(diagonal ? 1 : 0) + (diagonal ? 0U : this->goal_length);
 
     this->compare_arrivals(this->prepare_first, this->prepare_second, this->prepare_run);
     this->prepare_run++;
 
-    const uint8_t longest = ends_diagonal(this->prepare_first) ? max_run : max_straight_run;
+    const uint8_t longest = diagonal ? max_run : max_straight_run;
 
     if (this->prepare_run > longest or std::isinf(this->gaps.at(this->prepare_first).at(this->prepare_second))) {
         this->prepare_run = 0;
@@ -419,6 +423,8 @@ void TPlanner<width, height>::prepare() {
             this->prepare_first++;
         }
     }
+
+    return std::max<uint32_t>(cost, 1);
 }
 
 template <uint8_t width, uint8_t height>

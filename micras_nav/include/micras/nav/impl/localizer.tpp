@@ -5,6 +5,7 @@
 #ifndef MICRAS_NAV_LOCALIZER_TPP
 #define MICRAS_NAV_LOCALIZER_TPP
 
+#include <algorithm>
 #include <cmath>
 #include <cstdint>
 #include <optional>
@@ -49,7 +50,13 @@ void Localizer::correct(
             this->track_edge(sensor, reading, sampled, hit, wall_model, maze);
         }
 
-        if (not reading.valid or not hit.valid or hit.state != WallState::WALL or hit.range > this->config.max_range or
+        if (not reading.valid or not hit.valid or hit.state != WallState::WALL) {
+            continue;
+        }
+
+        const float range = wall_model.get_range(reading.distance, sensor, hit);
+
+        if (std::min(range, hit.range) > this->config.max_range or
             not wall_model.is_footprint_clear(
                 hit, sensor, this->get_position_deviation(), this->get_orientation_deviation()
             )) {
@@ -59,8 +66,7 @@ void Localizer::correct(
         const float deviation = wall_model.get_range_deviation(hit.range);
 
         const bool accepted = this->update(
-            wall_model.get_range(reading.distance, sensor, hit) - hit.range,
-            {hit.jacobian.at(0), hit.jacobian.at(1), hit.jacobian.at(2), 0.0F},
+            range - hit.range, {hit.jacobian.at(0), hit.jacobian.at(1), hit.jacobian.at(2), 0.0F},
             deviation * deviation * this->config.range_correlation, gate, this->config.max_position_correction
         );
 

@@ -117,8 +117,8 @@ constexpr auto saturation_timeout{static_cast<uint16_t>(0.1F * loop_frequency)};
  * that count as it being lost.
  *
  * @note It is 5 ms of them. The unit samples at about the rate of the loop, so an iteration without
- * a sample happens, but never several in a row. It is counted in iterations and not in time, since
- * one iteration after the flash is written lasts seconds.
+ * a sample happens, but never several in a row. It is counted in iterations, since the unit is read
+ * once per iteration.
  */
 constexpr auto imu_timeout{static_cast<uint16_t>(0.005F * loop_frequency)};
 
@@ -410,7 +410,7 @@ const nav::Controller::Config controller_config{
     .steering_blend_speed = 0.1F,
     .friction_speed = 0.02F,
     .voltage_reserve = voltage_reserve,
-    .max_time_scale_rate = 2.0F,
+    .max_time_scale_acceleration = 10.0F,
 };
 
 /**
@@ -446,7 +446,6 @@ const nav::Mission::Config mission_config{
             .spacing = 0.01F,
             .margin = turn_margin,
             .least_margin = turn_margin - 0.002F,
-            .risky_least_margin = risky_turn_margin - 0.002F,
             .trust = 0.03F,
             .scan_step = 0.002F,
             .length_weight = 10.0F,

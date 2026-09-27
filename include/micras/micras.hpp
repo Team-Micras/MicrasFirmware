@@ -76,6 +76,16 @@ public:
     };
 
     /**
+     * @brief What made the robot stop, as the fault variable of the pool shows it.
+     */
+    enum class Fault : uint8_t {
+        NONE = 0,
+        CRASH = 1,
+        SATURATION = 2,
+        IMU = 3,
+    };
+
+    /**
      * @brief Construct a new Micras object.
      */
     Micras();
@@ -182,7 +192,8 @@ public:
      * saturated for longer than the saturation timeout, which is what a robot held against a wall
      * or with an encoder reversed looks like, and the inertial measurement unit silent for longer
      * than its timeout, which is what it looks like after a brownout, since it comes back powered
-     * down.
+     * down. The one that fired is kept in the pool until the next run starts, since the state alone
+     * does not tell them apart.
      *
      * @return True if the robot has to stop.
      */
@@ -396,7 +407,7 @@ private:
     void publish();
 
     /**
-     * @brief Forget the counts of the faults, before the robot starts to move.
+     * @brief Forget the counts of the faults and the last fault, before the robot starts to move.
      */
     void clear_faults();
 
@@ -565,6 +576,11 @@ private:
      * @brief Number of consecutive iterations without a new sample of the inertial measurement unit.
      */
     uint16_t imu_silence{};
+
+    /**
+     * @brief Fault that last stopped the robot, or none since the last run started.
+     */
+    Fault fault{Fault::NONE};
 
     /**
      * @brief Longest control loop body observed since the last reset, in microseconds.

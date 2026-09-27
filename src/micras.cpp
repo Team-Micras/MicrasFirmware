@@ -80,6 +80,7 @@ void Micras::register_variables() {
     this->variables.add("", "battery_voltage", this->telemetry.battery_voltage, {.stream = true});
     this->variables.add("", "adc_restarts", this->telemetry.adc_restarts, {});
     this->variables.add("", "failed_saves", this->telemetry.failed_saves, {});
+    this->variables.add("", "fault", this->fault, {});
 
     this->variables.add("loop/", "elapsed_time", this->elapsed_time, {.stream = true});
     this->variables.add("loop/", "worst_time_us", this->worst_loop_time_us, {.stream = true});
@@ -299,8 +300,15 @@ bool Micras::check_fault() {
 
     this->crash_count = over_threshold ? static_cast<uint8_t>(std::min(this->crash_count + 1, 255)) : 0;
 
-    return this->crash_count >= crash_debounce or this->saturated_streak >= saturation_timeout or
-           this->imu_silence >= imu_timeout;
+    if (this->crash_count >= crash_debounce) {
+        this->fault = Fault::CRASH;
+    } else if (this->saturated_streak >= saturation_timeout) {
+        this->fault = Fault::SATURATION;
+    } else if (this->imu_silence >= imu_timeout) {
+        this->fault = Fault::IMU;
+    }
+
+    return this->fault != Fault::NONE;
 }
 
 void Micras::start_plan() {
@@ -430,6 +438,7 @@ nav::Measurements Micras::measure() const {
         sampled.walls.at(i) = {
             .distance = reading.distance,
             .valid = reading.valid,
+            .blind = reading.blind,
             .is_new = reading.is_new,
         };
     }
@@ -464,6 +473,7 @@ void Micras::follow(const nav::Reference& reference) {
 void Micras::clear_faults() {
     this->crash_count = 0;
     this->saturated_streak = 0;
+    this->fault = Fault::NONE;
 }
 
 void Micras::publish() {

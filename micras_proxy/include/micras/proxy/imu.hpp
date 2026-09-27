@@ -117,6 +117,8 @@ private:
 
     /**
      * @brief Convert the registers that the last transfer brought.
+     *
+     * @note A status that the sensor cannot have sent brings no sample.
      */
     void read_response();
 
@@ -173,6 +175,15 @@ private:
     static constexpr uint8_t accelerometer_ready{0x01};
     static constexpr uint8_t gyroscope_ready{0x02};
     ///@}
+
+    /**
+     * @brief Bits of the status register that always read zero.
+     *
+     * @note A status with any of them set did not come from the sensor: a data line held high, as
+     * when the sensor does not answer, reads all ones, which would otherwise look like a new
+     * sample.
+     */
+    static constexpr uint8_t unused_status_bits{0x48};
 
     /**
      * @brief Conversion constants.

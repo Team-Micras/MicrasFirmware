@@ -18,6 +18,8 @@ namespace micras::nav {
  * sees anything above its noise, so a reading that is not valid means that nothing is within range. A receiver that
  * saturates reports the shortest distance it can measure.
  *
+ * A blind reading is one whose receiver ambient light saturates, which says nothing about a wall.
+ *
  * @note The new flag is set for a single iteration after the sensor produces a value. An estimator
  * that is fed the same sample twice counts it as two independent observations and becomes
  * overconfident, so that is who needs it.
@@ -25,6 +27,7 @@ namespace micras::nav {
 struct WallReading {
     float distance;
     bool  valid;
+    bool  blind;
     bool  is_new;
 };
 

@@ -376,9 +376,17 @@ const proxy::TorqueSensors::Config torque_sensors_config = {
  * off for the 175 us before the scan that reads it dark. The duty cycle also sets the dissipation
  * of the series resistors of the emitters, which at half of the time would be above their rating.
  *
- * @note The reference readings are those of the last calibration, taken with the robot centered in
- * a cell: the side sensors between two walls, the front ones facing a wall. The reference distances
- * are what the geometry of the sensors says they measure from there.
+ * @note The reference readings are placeholders, until the first calibration in the setup of the
+ * README replaces them. They come from a calibration of April 2025, from before that setup, so the
+ * diagonal ones may be those of the wall ahead, at about half the reference distance. The
+ * calibration is not saved, so every boot starts from these. The reference distances are what the
+ * geometry of the sensors says they measure in that setup: the front sensors facing a wall from the
+ * center of a cell, the diagonal ones in a corridor with no wall ahead.
+ *
+ * @note The receiver is an emitter follower from the 3.3 V rail, so ambient light raises its output
+ * towards about 3.1 V, 94 % of the full scale. Above a dark reading of 80 % there is less room left
+ * than a wall at the reference distance of the dimmest sensor adds, and the sensor is taken as
+ * blind.
  *
  * @note Each emitter lens sits 6.5 mm above its receiver lens (the SolidWorks assembly), and the
  * TPS601A receiver halves its sensitivity 10 degrees off its axis (datasheet). The receiver therefore
@@ -451,6 +459,7 @@ const proxy::WallSensors::Config wall_sensors_config = {
     .noise_floor = 0.002F,
     .max_reading = 0.95F,
     .max_distance = wall_sensors_range,
+    .blind_reading = 0.8F,
     .wall_distance = 0.12F,
     .wall_hysteresis = 0.02F,
     .calibration_samples = 500,

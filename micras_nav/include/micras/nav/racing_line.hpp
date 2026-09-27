@@ -57,24 +57,23 @@ public:
      * @brief Configuration struct for the racing line.
      *
      * @note The margin is the distance the line keeps between the outline of the robot and any
-     * obstacle wherever the route leaves room for it, with the risky switch too. The least margins
-     * are what the final check requires everywhere, without and with the risky switch: the margins
-     * the turns were designed with, less what the resampling and the headings of the final line use
-     * up. Where the route itself comes closer than the margin, which the risky turns do, the line
-     * does not move. The trust is how far a sample may slide in one sweep, the scan step the
-     * resolution of the bounds, and the length weight the weight of the first differences, in units
-     * of the spacing. A sweep that slides no sample farther than the convergence tolerance ends the
-     * optimization. The lateral share is the part of the lateral grip of the run the curves of the
-     * line are planned with: the tires slide sideways in proportion to what they are asked for,
-     * which the pose estimate only predicts, and the line holds its curves far longer than a turn
-     * does.
+     * obstacle wherever the route leaves room for it, with the risky switch too. The least margin
+     * is what the final check requires everywhere, whatever the switch: the margin the turns were
+     * designed with, less what the resampling and the headings of the final line use up. Where the
+     * route itself comes closer than the margin, which the risky turns do, the line does not move,
+     * and so it fails the check there, since a line that close to the walls grazed them. The trust
+     * is how far a sample may slide in one sweep, the scan step the resolution of the bounds, and
+     * the length weight the weight of the first differences, in units of the spacing. A sweep that
+     * slides no sample farther than the convergence tolerance ends the optimization. The lateral
+     * share is the part of the lateral grip of the run the curves of the line are planned with: the
+     * tires slide sideways in proportion to what they are asked for, which the pose estimate only
+     * predicts, and the line holds its curves far longer than a turn does.
      */
     // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init) no defaults, so that a missing field is a warning
     struct Config {
         float    spacing;
         float    margin;
         float    least_margin;
-        float    risky_least_margin;
         float    trust;
         float    scan_step;
         float    length_weight;
@@ -365,11 +364,6 @@ private:
      * @brief Profile of the run.
      */
     RunProfile run_profile{};
-
-    /**
-     * @brief Margin the line must keep everywhere, for the run.
-     */
-    float least_margin{};
 
     /**
      * @brief Phase of the optimization.

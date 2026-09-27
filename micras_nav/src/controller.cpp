@@ -49,8 +49,7 @@ Controller::Controller(const Config& config) :
 Controller::Command Controller::update(const Reference& unscaled, const State& estimate, float elapsed_time) {
     const RobotModel& model = this->config.model;
 
-    const float step = this->config.max_time_scale_rate * elapsed_time;
-    const float scale = std::clamp(this->find_time_scale(unscaled), this->time_scale - step, this->time_scale + step);
+    const float scale = this->find_next_time_scale(unscaled, elapsed_time);
     const float scale_rate = (scale - this->time_scale) / elapsed_time;
 
     this->time_scale = scale;
@@ -117,13 +116,69 @@ Controller::Command Controller::update(const Reference& unscaled, const State& e
     };
 }
 
+float Controller::find_next_time_scale(const Reference& reference, float elapsed_time) const {
+    const float half_track = this->config.model.chassis.track_width / 2.0F;
+    const float fastest_wheel = std::abs(reference.twist.linear) + std::abs(reference.twist.angular) * half_track;
+    const float largest_change = this->config.max_time_scale_acceleration * elapsed_time;
+    const float step = largest_change / std::max(fastest_wheel, largest_change);
+    const float target = this->find_time_scale(reference);
+
+    if (target <= this->time_scale) {
+        return std::max(target, this->time_scale - step);
+    }
+
+    const float highest = std::min(target, this->time_scale + step);
+    const float available = this->get_available_voltage();
+
+    float rate = (highest - this->time_scale) / elapsed_time;
+
+    for (const std::array<float, 4>& wheel : this->get_wheel_terms(reference)) {
+        const float voltage = wheel.at(0) + highest * (wheel.at(1) + highest * wheel.at(2));
+        const float rate_term = std::abs(wheel.at(3));
+
+        if (rate_term > 0.0F) {
+            rate = std::min(rate, std::max((available - std::copysign(voltage, wheel.at(3))) / rate_term, 0.0F));
+        }
+    }
+
+    return this->time_scale + rate * elapsed_time;
+}
+
 float Controller::find_time_scale(const Reference& reference) const {
+    const std::array<std::array<float, 4>, 2> wheels = this->get_wheel_terms(reference);
+    const float                               available = this->get_available_voltage();
+
+    const auto fits = [&wheels, available](float scale) {
+        return std::ranges::all_of(wheels, [scale, available](const std::array<float, 4>& wheel) {
+            return std::abs(wheel.at(0) + scale * (wheel.at(1) + scale * wheel.at(2))) <= available * 1.0001F;
+        });
+    };
+
+    if (fits(1.0F)) {
+        return 1.0F;
+    }
+
+    float best = min_time_scale;
+
+    for (const std::array<float, 4>& wheel : wheels) {
+        for (const float limit : {available, -available}) {
+            for (const float root : solve_quadratic(wheel.at(2), wheel.at(1), wheel.at(0) - limit)) {
+                if (root > best and root < 1.0F and fits(root)) {
+                    best = root;
+                }
+            }
+        }
+    }
+
+    return best;
+}
+
+std::array<std::array<float, 4>, 2> Controller::get_wheel_terms(const Reference& reference) const {
     const RobotModel& model = this->config.model;
 
     const float half_track = model.chassis.track_width / 2.0F;
-    const float available = model.drive.supply_voltage * (1.0F - this->config.voltage_reserve);
 
-    std::array<std::array<float, 3>, 2> wheels{};
+    std::array<std::array<float, 4>, 2> wheels{};
 
     for (uint8_t i = 0; i < 2; i++) {
         const float side = i == 0 ? -1.0F : 1.0F;
@@ -135,32 +190,16 @@ float Controller::find_time_scale(const Reference& reference) const {
                 side * model.angular_speed_constant() * reference.twist.angular,
             model.acceleration_constant() * reference.acceleration.linear +
                 side * model.angular_acceleration_constant() * reference.acceleration.angular,
+            model.acceleration_constant() * reference.twist.linear +
+                side * model.angular_acceleration_constant() * reference.twist.angular,
         };
     }
 
-    const auto fits = [&wheels, available](float scale) {
-        return std::ranges::all_of(wheels, [scale, available](const std::array<float, 3>& wheel) {
-            return std::abs(wheel.at(0) + scale * (wheel.at(1) + scale * wheel.at(2))) <= available * 1.0001F;
-        });
-    };
+    return wheels;
+}
 
-    if (fits(1.0F)) {
-        return 1.0F;
-    }
-
-    float best = min_time_scale;
-
-    for (const std::array<float, 3>& wheel : wheels) {
-        for (const float limit : {available, -available}) {
-            for (const float root : solve_quadratic(wheel.at(2), wheel.at(1), wheel.at(0) - limit)) {
-                if (root > best and root < 1.0F and fits(root)) {
-                    best = root;
-                }
-            }
-        }
-    }
-
-    return best;
+float Controller::get_available_voltage() const {
+    return this->config.model.drive.supply_voltage * (1.0F - this->config.voltage_reserve);
 }
 
 float Controller::get_time_scale() const {

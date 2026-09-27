@@ -42,7 +42,9 @@ namespace micras::nav {
  * straight may start with the wall ahead still unknown, since that wall only comes into range
  * inside the cell, but then it is watched: if it turns out to be there, or is still unknown at the
  * last point from which the robot can stop at the center of the cell, the robot stops there and
- * decides again. A wall seen late costs a stop instead of a crash.
+ * decides again. A wall seen late costs a stop instead of a crash. Up to that point the straight is
+ * held to the search speed, which the stop is computed from, and past it the straight is free,
+ * since by then the wall is either known to be absent or the robot is already stopping.
  *
  * The mission keeps its own account of which cell the robot is in, from the moves it made. Whenever
  * the robot stands still at the center of a cell, that account is checked against the pose estimate,
@@ -236,7 +238,8 @@ private:
     static constexpr uint8_t max_move_segments{6};
 
     /**
-     * @brief Distance within which a segment is taken to start where the watched cell is entered.
+     * @brief Distance within which a segment is taken to start on the part of the watched cell that
+     * is watched, which is where the cell is entered or the point the straight is split at.
      */
     static constexpr float watch_tolerance{0.001F};
 
@@ -328,8 +331,18 @@ private:
 
     /**
      * @brief Stop at the center of the cell being crossed instead of going through it.
+     *
+     * @param travelled The distance the reference covered since the robot crossed into the cell.
      */
-    void divert_to_center();
+    void divert_to_center(float travelled);
+
+    /**
+     * @brief Get the distance into a cell of the last point from which the robot, crossing it at
+     * the search speed, can still stop at its center.
+     *
+     * @return The distance from the edge of the cell, less the commit margin.
+     */
+    float get_commit_distance() const;
 
     /**
      * @brief Make a segment.

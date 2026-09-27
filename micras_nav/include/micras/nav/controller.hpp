@@ -5,6 +5,8 @@
 #ifndef MICRAS_NAV_CONTROLLER_HPP
 #define MICRAS_NAV_CONTROLLER_HPP
 
+#include <array>
+
 #include "micras/nav/robot_model.hpp"
 #include "micras/nav/segment.hpp"
 #include "micras/nav/state.hpp"
@@ -57,9 +59,9 @@ public:
      * @note The steering gain is in radians of offset per meter of error and the offset is limited
      * to the largest steering. Below the blend speed the steering fades out, since turning in place
      * cannot reduce an error across the path. The friction speed is the wheel speed over which the
-     * static friction compensation goes from nothing to all of it. The time scale may change by at
-     * most the largest time scale rate per second, since a change of the time scale is itself an
-     * acceleration of the reference, of that rate times the speed.
+     * static friction compensation goes from nothing to all of it. A change of the time scale is
+     * itself an acceleration of the reference, of its rate times the speed, so the rate of the
+     * scale times the speed of the faster wheel is kept within the largest time scale acceleration.
      */
     struct Config {
         RobotModel model;
@@ -70,7 +72,7 @@ public:
         float      steering_blend_speed;
         float      friction_speed;
         float      voltage_reserve;
-        float      max_time_scale_rate;
+        float      max_time_scale_acceleration;
     };
 
     /**
@@ -157,6 +159,19 @@ private:
     static Gains compute_gains(const Axis& axis, float speed_constant, float acceleration_constant);
 
     /**
+     * @brief Find the time scale of this iteration, moving towards the one the reference fits at.
+     *
+     * @note The scale falls as fast as the time scale acceleration allows. It rises no faster than
+     * that either, and only as fast as the voltage left over at the new scale lets through the
+     * acceleration the rise adds, so that rising never saturates the motors by itself.
+     *
+     * @param reference What the robot should be doing, at the full pace.
+     * @param elapsed_time Time since the last iteration.
+     * @return The time scale, in (0, 1].
+     */
+    float find_next_time_scale(const Reference& reference, float elapsed_time) const;
+
+    /**
      * @brief Find the largest time scale at which the feed forward fits in the voltage available.
      *
      * @note The feed forward of each wheel is a quadratic in the scale: the friction does not scale,
@@ -167,6 +182,26 @@ private:
      * @return The time scale, in (0, 1].
      */
     float find_time_scale(const Reference& reference) const;
+
+    /**
+     * @brief Get the terms of the feed forward of each wheel, left then right.
+     *
+     * @note Each wheel has four terms, in volts: the static friction, which does not scale, the
+     * speed term, which scales with the time scale, the acceleration term, which scales with its
+     * square, and the term of the rate of the time scale, which is the acceleration a change of the
+     * scale adds, per unit of that rate.
+     *
+     * @param reference What the robot should be doing, at the full pace.
+     * @return The terms of the feed forward of each wheel.
+     */
+    std::array<std::array<float, 4>, 2> get_wheel_terms(const Reference& reference) const;
+
+    /**
+     * @brief Get the voltage the feed forward may use, with the reserve for the feedback left out.
+     *
+     * @return The voltage available.
+     */
+    float get_available_voltage() const;
 
     /**
      * @brief Parameters of the controller, with the physical description of the robot.

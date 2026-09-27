@@ -57,12 +57,15 @@ public:
      * the fast ranges went through. That filter is slower than the ranges are sampled, so the noise
      * of consecutive ranges is mostly the same noise, and the range correlation is how many of them
      * share it: the variance of each is multiplied by it, so that what a second of ranges is worth
-     * does not depend on how many there are in it. The speed window is the number of iterations the linear
-     * speed is measured over, which trades noise for delay. The rest window is the time over which
-     * the gyroscope is compared with the encoders to measure its bias. The maximum range is the
-     * longest range a reading corrects the pose from: past it the beam of the emitter grows wide
-     * enough to land partly on the floor, the reading loses light the model of the sensor does not
-     * know about, and the range comes out long by several percent.
+     * does not depend on how many there are in it. The speed window is the number of iterations the
+     * linear speed is measured over, which trades noise for delay. The rest window is the time over
+     * which the gyroscope is compared with the encoders to measure its bias. The maximum range is
+     * the longest range a reading corrects the pose from: past it the beam of the emitter grows
+     * wide enough to land partly on the floor, the reading loses light the model of the sensor does
+     * not know about, and the range comes out long by several percent. A reading is used when
+     * either the range it reads or the range the pose predicts is within it, so that a pose that
+     * drifted away from a wall has its readings rejected, and counted towards a recovery, instead
+     * of dropped.
      *
      * The ends of the side walls are used as references along the path. An end is accepted while
      * the robot moves forward faster than the edge speed, since the only time it reverses is to

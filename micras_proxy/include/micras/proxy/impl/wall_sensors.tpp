@@ -30,6 +30,7 @@ TWallSensors<num_of_sensors>::TWallSensors(const Config& config) :
     noise_floor{config.noise_floor},
     max_distance{config.max_distance},
     max_reading{config.max_reading},
+    blind_reading{config.blind_reading},
     wall_distance{config.wall_distance},
     wall_hysteresis{config.wall_hysteresis},
     calibration_samples{config.calibration_samples},
@@ -137,6 +138,7 @@ void TWallSensors<num_of_sensors>::update() {
                                    this->max_distance;
 
         reading.valid = distance < this->max_distance;
+        reading.blind = this->get_dark_reading(i) >= this->blind_reading;
         reading.distance = this->fast_filters.at(i).update(std::min(distance, this->max_distance));
         reading.slow_distance = this->slow_filters.at(i).update(std::min(distance, this->max_distance));
 
@@ -181,6 +183,12 @@ bool TWallSensors<num_of_sensors>::get_wall(uint8_t sensor_index) const {
 template <uint8_t num_of_sensors>
 float TWallSensors<num_of_sensors>::get_intensity(uint8_t sensor_index) const {
     return static_cast<float>(std::abs(this->scans.at(sensor_index) - this->scans.at(sensor_index + num_of_sensors))) /
+           this->adc.get_max_reading();
+}
+
+template <uint8_t num_of_sensors>
+float TWallSensors<num_of_sensors>::get_dark_reading(uint8_t sensor_index) const {
+    return static_cast<float>(std::min(this->scans.at(sensor_index), this->scans.at(sensor_index + num_of_sensors))) /
            this->adc.get_max_reading();
 }
 

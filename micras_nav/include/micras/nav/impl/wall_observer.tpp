@@ -45,7 +45,7 @@ bool TWallObserver<width, height>::update(
     for (uint8_t sensor = 0; sensor < number_of_wall_sensors; sensor++) {
         const WallReading& reading = measurements.walls.at(sensor);
 
-        if (not reading.is_new) {
+        if (not reading.is_new or reading.blind) {
             continue;
         }
 

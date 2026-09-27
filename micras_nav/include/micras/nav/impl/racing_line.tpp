@@ -73,7 +73,6 @@ void TRacingLine<width, height>::begin(
     this->maze = &maze;
     this->segments = segments;
     this->run_profile = profile;
-    this->least_margin = profile.risky ? this->config.risky_least_margin : this->config.least_margin;
     this->openings.fill(0);
     this->sweeps = 0;
 
@@ -409,7 +408,7 @@ void TRacingLine<width, height>::check(uint32_t& budget) {
 
         if (not this->is_clear(
                 {.x = this->line.xs.at(this->cursor), .y = this->line.ys.at(this->cursor)}, std::cos(heading),
-                std::sin(heading), this->least_margin
+                std::sin(heading), this->config.least_margin
             )) {
             this->finish(false);
             return;

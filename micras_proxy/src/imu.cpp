@@ -93,6 +93,10 @@ void Imu::read_response() {
 
     const uint8_t status = std::get<1>(this->response);
 
+    if ((status & unused_status_bits) != 0) {
+        return;
+    }
+
     if ((status & accelerometer_ready) != 0) {
         for (uint8_t axis = 0; axis < 3; axis++) {
             this->linear_acceleration.at(axis) = get_axis(acceleration_offset, axis) * this->xl_factor;

@@ -46,7 +46,9 @@ public:
      * the distance of the maximum reading. A wall is considered present when the slow distance is
      * below the wall distance, and absent again when it goes above it by the hysteresis. The
      * receiver offset is the distance from the optical axis of the emitter to the receiver, and the
-     * receiver half angle the angle off its own axis at which the receiver's sensitivity halves.
+     * receiver half angle the angle off its own axis at which the receiver's sensitivity halves. A
+     * dark reading, taken with the emitter off, at or above the blind reading means that ambient
+     * light saturates the receiver, which then cannot see a wall with the emitter on either.
      */
     struct Config {
         hal::AdcDma::Config                          adc;
@@ -61,6 +63,7 @@ public:
         float                                        noise_floor;
         float                                        max_reading;
         float                                        max_distance;
+        float                                        blind_reading;
         float                                        wall_distance;
         float                                        wall_hysteresis;
         uint16_t                                     calibration_samples;
@@ -71,12 +74,14 @@ public:
      *
      * @note The fast distance is for everything that is a position and the slow one for deciding
      * whether there is a wall. The reading is valid when the sensor sees anything above its noise,
-     * and it is new for a single update after the sensor produces a value.
+     * and it is new for a single update after the sensor produces a value. It is blind when ambient
+     * light saturates the receiver, and then says nothing about a wall.
      */
     struct Reading {
         float distance;
         float slow_distance;
         bool  valid;
+        bool  blind;
         bool  is_new;
     };
 
@@ -129,6 +134,17 @@ public:
      * @return Reading from the sensor from 0 to 1.
      */
     float get_intensity(uint8_t sensor_index) const;
+
+    /**
+     * @brief Get the reading of a sensor with its emitter off, as a fraction of the full scale.
+     *
+     * @note Ambient light raises the output of the receiver, and the emitter raises it further, so
+     * the dark reading is the lower of the pair.
+     *
+     * @param sensor_index Index of the sensor.
+     * @return The dark reading.
+     */
+    float get_dark_reading(uint8_t sensor_index) const;
 
     /**
      * @brief Start calibrating a sensor, with the robot placed at the reference distance.
@@ -319,6 +335,11 @@ private:
      * @brief Reading above which the sensor is saturated.
      */
     float max_reading;
+
+    /**
+     * @brief Dark reading at and above which the receiver is blinded by ambient light.
+     */
+    float blind_reading;
 
     /**
      * @brief Slow distance below which a wall is present.
