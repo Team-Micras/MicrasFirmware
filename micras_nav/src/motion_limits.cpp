@@ -115,7 +115,8 @@ const TurnShape& Dynamics::get_turn(const RunProfile& profile, TurnId turn) cons
 float Dynamics::get_turn_speed(const RunProfile& profile, TurnId turn) const {
     const TurnShape& shape = this->get_turn(profile, turn);
 
-    return this->get_curve_limits(profile).get_speed_limit({.curvature = shape.curvature, .sharpness = shape.sharpness}
+    return this->get_curve_limits(profile).get_speed_limit(
+        {.curvature = shape.curvature, .sharpness = shape.sharpness}
     );
 }
 

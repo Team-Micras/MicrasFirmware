@@ -535,7 +535,7 @@ void TRacingLine<width, height>::solve_slides(std::span<const double> normals_x,
     const uint16_t first = this->window_start;
     const auto     size = static_cast<int32_t>(normals_x.size());
     const double   length_weight = static_cast<double>(this->config.length_weight) *
-                                 static_cast<double>(this->line.spacing) * static_cast<double>(this->line.spacing);
+                                   static_cast<double>(this->line.spacing) * static_cast<double>(this->line.spacing);
 
     this->diagonal.fill(0.0);
     this->first_band.fill(0.0);

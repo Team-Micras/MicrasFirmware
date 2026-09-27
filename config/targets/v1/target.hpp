@@ -155,11 +155,10 @@ const proxy::Tick::Config tick_config{
  *****************************************/
 
 const proxy::Led::Config led_config = {
-    .gpio =
-        {
-            .port = LED_Red_GPIO_Port,
-            .pin = LED_Red_Pin,
-        },
+    .gpio = {
+        .port = LED_Red_GPIO_Port,
+        .pin = LED_Red_Pin,
+    },
 };
 
 /**
@@ -215,13 +214,12 @@ const proxy::DipSwitch::Config dip_switch_config = {
 };
 
 const proxy::Buzzer::Config buzzer_config = {
-    .pwm =
-        {
-            .init_function = MX_TIM15_Init,
-            .handle = &htim15,
-            .timer_channel = TIM_CHANNEL_1,
-            .inverted = false,
-        },
+    .pwm = {
+        .init_function = MX_TIM15_Init,
+        .handle = &htim15,
+        .timer_channel = TIM_CHANNEL_1,
+        .inverted = false,
+    },
 };
 
 /*****************************************
@@ -355,11 +353,10 @@ const proxy::TorqueSensors::Config torque_sensors_config = {
     // measured on these motors, so this is an order of magnitude estimate for a coreless
     // micromouse motor and wants a bench calibration before nav relies on the value.
     .max_torque = 0.01F,
-    .filter =
-        {
-            .cutoff_frequency = torque_filter_cutoff,
-            .sampling_frequency = loop_frequency,
-        },
+    .filter = {
+        .cutoff_frequency = torque_filter_cutoff,
+        .sampling_frequency = loop_frequency,
+    },
 };
 
 /**
@@ -506,11 +503,10 @@ const proxy::Battery::Config battery_config = {
     // A conversion samples for 32 us, since the divider asks for at least 9 us, and a reading is the
     // mean of 32 of them: 957 readings per second, which is plenty for a quantity nothing steers by.
     .voltage_divider = 4.0F,
-    .filter =
-        {
-            .cutoff_frequency = sensor_filter_cutoff,
-            .sampling_frequency = loop_frequency,
-        },
+    .filter = {
+        .cutoff_frequency = sensor_filter_cutoff,
+        .sampling_frequency = loop_frequency,
+    },
 };
 
 /*****************************************

@@ -222,7 +222,8 @@ void TMission<width, height>::start(core::Objective objective) {
             this->flood();
 
             Move move{};
-            move.add(make_segment(SegmentKind::STRAIGHT, cell_size - this->config.start_offset, this->get_start_pose())
+            move.add(
+                make_segment(SegmentKind::STRAIGHT, cell_size - this->config.start_offset, this->get_start_pose())
             );
             this->execute(move, 0.0F, this->search_speed);
             break;
@@ -277,8 +278,10 @@ TMission<width, height>::Status TMission<width, height>::update(
 
         if (wall == WallState::NO_WALL) {
             this->watching_front = false;
-        } else if (wall == WallState::WALL or
-                   this->executor.get_reference().distance >= cell_size / 2.0F - braking - this->config.commit_margin) {
+        } else if (
+            wall == WallState::WALL or
+            this->executor.get_reference().distance >= cell_size / 2.0F - braking - this->config.commit_margin
+        ) {
             this->divert_to_center();
         }
     }
@@ -533,8 +536,10 @@ bool TMission<width, height>::finish_at_entry() {
 
     if (this->objective == core::Objective::EXPLORE and this->maze.is_goal(this->cell.position)) {
         this->add_stop_at_center(move);
-    } else if (this->objective == core::Objective::RETURN and this->explorer.is_complete() and
-               this->cell.position == this->maze.get_start().position) {
+    } else if (
+        this->objective == core::Objective::RETURN and this->explorer.is_complete() and
+        this->cell.position == this->maze.get_start().position
+    ) {
         const GridPose parked{.position = this->cell.position, .orientation = this->maze.get_start().orientation};
 
         this->add_stop_at_center(move);
