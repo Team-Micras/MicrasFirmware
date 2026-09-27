@@ -18,6 +18,14 @@ float MotionLimits::crossover_speed() const {
     return this->motor_speed * (1.0F - this->acceleration / this->motor_acceleration);
 }
 
+float MotionLimits::deceleration_at(float speed) const {
+    return std::min(this->deceleration, this->motor_acceleration * (1.0F + speed / this->motor_speed));
+}
+
+float MotionLimits::braking_crossover_speed() const {
+    return this->motor_speed * (this->deceleration / this->motor_acceleration - 1.0F);
+}
+
 MotionLimits MotionLimits::capped(float speed) const {
     MotionLimits limits = *this;
     limits.max_speed = std::min(limits.max_speed, speed);
@@ -60,7 +68,9 @@ float CurveLimits::get_deceleration(float speed, const Bending& bending) const {
         return 0.0F;
     }
 
-    return spare / (1.0F / this->linear.deceleration + std::abs(bending.curvature) / this->angular);
+    const float grip = spare / (1.0F / this->linear.deceleration + std::abs(bending.curvature) / this->angular);
+
+    return std::min(grip, this->linear.deceleration_at(speed));
 }
 
 float CurveLimits::get_spare(float speed, const Bending& bending) const {

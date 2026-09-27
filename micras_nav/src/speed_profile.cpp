@@ -16,7 +16,7 @@ SpeedProfile::SpeedProfile(float distance, float start_speed, float end_speed, c
         return;
     }
 
-    const float braking_distance = (start_speed * start_speed - end_speed * end_speed) / (2.0F * limits.deceleration);
+    const float braking_distance = get_braking_distance(start_speed, end_speed, limits);
 
     if (braking_distance >= this->total_distance) {
         const float deceleration = (start_speed * start_speed - end_speed * end_speed) / (2.0F * this->total_distance);
@@ -30,8 +30,8 @@ SpeedProfile::SpeedProfile(float distance, float start_speed, float end_speed, c
     float       peak = cap;
 
     const auto excess = [&](float speed) {
-        return get_acceleration_distance(start_speed, speed, limits) +
-               (speed * speed - end_speed * end_speed) / (2.0F * limits.deceleration) - this->total_distance;
+        return get_acceleration_distance(start_speed, speed, limits) + get_braking_distance(speed, end_speed, limits) -
+               this->total_distance;
     };
 
     if (excess(low) >= 0.0F) {
@@ -72,7 +72,7 @@ SpeedProfile::SpeedProfile(float distance, float start_speed, float end_speed, c
     }
 
     const float final_speed = std::min(peak, end_speed);
-    const float braking = (peak * peak - final_speed * final_speed) / (2.0F * limits.deceleration);
+    const float braking = get_braking_distance(peak, final_speed, limits);
 
     float accelerated = 0.0F;
 
@@ -87,8 +87,20 @@ SpeedProfile::SpeedProfile(float distance, float start_speed, float end_speed, c
         this->append({.duration = cruise / peak});
     }
 
-    if (peak > final_speed) {
-        this->append({.duration = (peak - final_speed) / limits.deceleration, .acceleration = -limits.deceleration});
+    const float braking_end = std::clamp(limits.braking_crossover_speed(), final_speed, peak);
+
+    if (peak > braking_end) {
+        this->append({.duration = (peak - braking_end) / limits.deceleration, .acceleration = -limits.deceleration});
+    }
+
+    if (braking_end > final_speed) {
+        const float rate = limits.motor_acceleration / limits.motor_speed;
+
+        this->append({
+            .duration = std::log((limits.motor_speed + braking_end) / (limits.motor_speed + final_speed)) / rate,
+            .rate = rate,
+            .target = -limits.motor_speed,
+        });
     }
 }
 
@@ -191,7 +203,52 @@ float SpeedProfile::get_brakeable_speed(float distance, float end_speed, const M
         return end_speed;
     }
 
-    return std::min(limits.max_speed, std::sqrt(end_speed * end_speed + 2.0F * limits.deceleration * distance));
+    const float unlimited =
+        std::min(limits.max_speed, std::sqrt(end_speed * end_speed + 2.0F * limits.deceleration * distance));
+
+    if (limits.braking_crossover_speed() <= end_speed or end_speed >= limits.max_speed) {
+        return unlimited;
+    }
+
+    if (get_braking_distance(limits.max_speed, end_speed, limits) <= distance) {
+        return limits.max_speed;
+    }
+
+    float low = end_speed;
+    float high = limits.max_speed;
+
+    for (uint8_t i = 0; i < 32; i++) {
+        const float middle = (low + high) / 2.0F;
+
+        if (get_braking_distance(middle, end_speed, limits) > distance) {
+            high = middle;
+        } else {
+            low = middle;
+        }
+    }
+
+    return low;
+}
+
+float SpeedProfile::get_braking_distance(float start_speed, float end_speed, const MotionLimits& limits) {
+    if (start_speed <= end_speed) {
+        return 0.0F;
+    }
+
+    const float braking_end = std::clamp(limits.braking_crossover_speed(), end_speed, start_speed);
+
+    float distance = (start_speed * start_speed - braking_end * braking_end) / (2.0F * limits.deceleration);
+
+    if (braking_end > end_speed) {
+        const float rate = limits.motor_acceleration / limits.motor_speed;
+
+        distance +=
+            ((braking_end - end_speed) -
+             limits.motor_speed * std::log((limits.motor_speed + braking_end) / (limits.motor_speed + end_speed))) /
+            rate;
+    }
+
+    return distance;
 }
 
 float SpeedProfile::get_acceleration_distance(float start_speed, float end_speed, const MotionLimits& limits) {

@@ -613,8 +613,9 @@ void TMission<width, height>::divert_to_center(float travelled) {
 template <uint8_t width, uint8_t height>
 float TMission<width, height>::get_commit_distance() const {
     const float cell_size = this->dynamics.get_model().maze.cell_size;
-    const float braking = this->search_speed * this->search_speed /
-                          (2.0F * this->dynamics.get_linear_limits(this->config.search_profile).deceleration);
+    const float braking = SpeedProfile::get_braking_distance(
+        this->search_speed, 0.0F, this->dynamics.get_linear_limits(this->config.search_profile)
+    );
 
     return cell_size / 2.0F - braking - this->config.commit_margin;
 }

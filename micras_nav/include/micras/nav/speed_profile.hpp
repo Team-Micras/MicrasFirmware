@@ -103,12 +103,24 @@ public:
      */
     static float get_brakeable_speed(float distance, float end_speed, const MotionLimits& limits);
 
+    /**
+     * @brief Get the distance needed to brake between two speeds.
+     *
+     * @param start_speed The speed at the start.
+     * @param end_speed The speed at the end, not negative.
+     * @param limits The limits of the motion.
+     * @return The distance covered while braking as hard as the limits allow, or zero if the end
+     * speed is not lower than the start.
+     */
+    static float get_braking_distance(float start_speed, float end_speed, const MotionLimits& limits);
+
 private:
     /**
      * @brief Stretch of the motion with one law for the acceleration.
      *
      * @note The rate is zero for a constant acceleration. Otherwise the acceleration decays as the
-     * speed approaches the target, as `rate * (target - speed)`, which is the motor limited stretch.
+     * speed approaches the target, as `rate * (target - speed)`, which is a motor limited stretch:
+     * accelerating towards the free speed, or braking towards the free speed backwards.
      */
     struct Phase {
         float duration{};
@@ -120,9 +132,10 @@ private:
     };
 
     /**
-     * @brief Number of phases: traction limited, motor limited, cruise and braking.
+     * @brief Number of phases: traction and motor limited acceleration, cruise, and traction and
+     * motor limited braking.
      */
-    static constexpr uint8_t number_of_phases{4};
+    static constexpr uint8_t number_of_phases{5};
 
     /**
      * @brief Get the distance needed to accelerate between two speeds.

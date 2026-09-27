@@ -31,8 +31,11 @@ struct RunProfile {
  *
  * @details The acceleration is bounded by the tires up to the speed where the motors take over, and
  * from there it falls linearly with the speed, reaching zero at the free running speed, which is
- * how a DC motor fed from a fixed voltage behaves. Braking is not limited by the motors, since the
- * back EMF helps it.
+ * how a DC motor fed from a fixed voltage behaves. The back EMF helps braking instead, so the
+ * braking the motors can give grows with the speed, from what they give accelerating from rest.
+ * Braking is bounded by the tires down to the speed where that falls below them, and by the motors
+ * under it, which only happens when the motors cannot accelerate the robot from rest as hard as the
+ * tires allow.
  */
 struct MotionLimits {
     /**
@@ -49,6 +52,21 @@ struct MotionLimits {
      * @return The crossover speed, which is negative if the motors limit it from rest.
      */
     float crossover_speed() const;
+
+    /**
+     * @brief Get the largest deceleration available at a speed.
+     *
+     * @param speed The current speed.
+     * @return The deceleration limit at that speed, as a positive number.
+     */
+    float deceleration_at(float speed) const;
+
+    /**
+     * @brief Get the speed under which the motors, rather than the tires, limit the braking.
+     *
+     * @return The braking crossover speed, which is negative if the motors never limit it.
+     */
+    float braking_crossover_speed() const;
 
     /**
      * @brief Get the same limits with a lower top speed.
@@ -74,7 +92,8 @@ struct MotionLimits {
  * left of the grip there can change the speed: the lateral part takes its share as on a friction
  * circle, and the angular part, which the two tires make by pushing in opposite directions, takes
  * it from the push each tire has left. A change of speed on a curve also changes the angular speed,
- * and that angular acceleration is counted too.
+ * and that angular acceleration is counted too. The motors bound the change of speed along the path
+ * as they do on a straight.
  *
  * @note On a straight nothing is taken and the limits are those of the linear motion.
  */
