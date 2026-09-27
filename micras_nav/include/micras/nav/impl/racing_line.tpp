@@ -132,24 +132,12 @@ bool TRacingLine<width, height>::step() {
                 this->solve_window();
                 return false;
 
-            case Phase::MEASURE:
-                this->measure(budget);
-                break;
-
             case Phase::RESAMPLE:
-                this->resample(budget);
-                break;
+                this->resample();
+                return false;
 
             case Phase::CHECK:
                 this->check(budget);
-                break;
-
-            case Phase::CURVATURE:
-                this->measure_curvature(budget);
-                break;
-
-            case Phase::SMOOTH:
-                this->smooth_curvature(budget);
                 break;
 
             case Phase::SPEED:
@@ -331,9 +319,7 @@ void TRacingLine<width, height>::solve_window() {
     this->window_start += stride;
 
     if (this->window_start + fixed_samples >= this->line.size) {
-        this->cursor = 0;
-        this->measured_length = 0.0F;
-        this->phase = Phase::MEASURE;
+        this->phase = Phase::RESAMPLE;
         return;
     }
 
@@ -341,78 +327,64 @@ void TRacingLine<width, height>::solve_window() {
 }
 
 template <uint8_t width, uint8_t height>
-void TRacingLine<width, height>::measure(uint32_t& budget) {
-    for (; budget > 0 and this->cursor + 1U < this->line.size; budget--, this->cursor++) {
-        this->measured_length += std::hypot(
-            this->line.xs.at(this->cursor + 1U) - this->line.xs.at(this->cursor),
-            this->line.ys.at(this->cursor + 1U) - this->line.ys.at(this->cursor)
-        );
+void TRacingLine<width, height>::resample() {
+    float length = 0.0F;
+
+    for (uint16_t i = 0; i + 1U < this->line.size; i++) {
+        length +=
+            std::hypot(this->line.xs.at(i + 1U) - this->line.xs.at(i), this->line.ys.at(i + 1U) - this->line.ys.at(i));
     }
 
-    if (this->cursor + 1U < this->line.size) {
-        return;
-    }
-
-    const auto samples = static_cast<int32_t>(std::lround(this->measured_length / this->config.spacing)) + 1;
+    const auto samples = static_cast<int32_t>(std::lround(length / this->config.spacing)) + 1;
 
     if (samples > Line::max_samples or samples < 2 * fixed_samples + 2) {
         this->finish(false);
         return;
     }
 
-    this->resampled_size = static_cast<uint16_t>(samples);
-    this->cursor = 0;
-    this->read_index = 0;
-    this->read_length = 0.0F;
-    this->phase = Phase::RESAMPLE;
-}
+    const auto  size = static_cast<uint16_t>(samples);
+    const float spacing = length / static_cast<float>(size - 1);
 
-template <uint8_t width, uint8_t height>
-void TRacingLine<width, height>::resample(uint32_t& budget) {
-    const float spacing = this->measured_length / static_cast<float>(this->resampled_size - 1);
+    uint16_t read_index = 0;
+    float    read_length = 0.0F;
 
-    for (; budget > 0 and this->cursor < this->resampled_size; budget--, this->cursor++) {
-        if (this->cursor + 1U == this->resampled_size) {
-            this->line.curvatures.at(this->cursor) = this->line.xs.at(this->line.size - 1);
-            this->line.speeds.at(this->cursor) = this->line.ys.at(this->line.size - 1);
+    for (uint16_t i = 0; i < size; i++) {
+        if (i + 1U == size) {
+            this->line.curvatures.at(i) = this->line.xs.at(this->line.size - 1);
+            this->line.speeds.at(i) = this->line.ys.at(this->line.size - 1);
             continue;
         }
 
-        const float distance = static_cast<float>(this->cursor) * spacing;
+        const float distance = static_cast<float>(i) * spacing;
 
         float step_length = 0.0F;
 
         while (true) {
             step_length = std::hypot(
-                this->line.xs.at(this->read_index + 1U) - this->line.xs.at(this->read_index),
-                this->line.ys.at(this->read_index + 1U) - this->line.ys.at(this->read_index)
+                this->line.xs.at(read_index + 1U) - this->line.xs.at(read_index),
+                this->line.ys.at(read_index + 1U) - this->line.ys.at(read_index)
             );
 
-            if (this->read_length + step_length >= distance or this->read_index + 2U >= this->line.size) {
+            if (read_length + step_length >= distance or read_index + 2U >= this->line.size) {
                 break;
             }
 
-            this->read_length += step_length;
-            this->read_index++;
+            read_length += step_length;
+            read_index++;
         }
 
         const float fraction =
-            step_length > 0.0F ? std::clamp((distance - this->read_length) / step_length, 0.0F, 1.0F) : 0.0F;
-        const uint16_t from = this->read_index;
+            step_length > 0.0F ? std::clamp((distance - read_length) / step_length, 0.0F, 1.0F) : 0.0F;
 
-        this->line.curvatures.at(this->cursor) =
-            this->line.xs.at(from) + fraction * (this->line.xs.at(from + 1U) - this->line.xs.at(from));
-        this->line.speeds.at(this->cursor) =
-            this->line.ys.at(from) + fraction * (this->line.ys.at(from + 1U) - this->line.ys.at(from));
+        this->line.curvatures.at(i) = this->line.xs.at(read_index) +
+                                      fraction * (this->line.xs.at(read_index + 1U) - this->line.xs.at(read_index));
+        this->line.speeds.at(i) = this->line.ys.at(read_index) +
+                                  fraction * (this->line.ys.at(read_index + 1U) - this->line.ys.at(read_index));
     }
 
-    if (this->cursor < this->resampled_size) {
-        return;
-    }
-
-    std::copy_n(this->line.curvatures.begin(), this->resampled_size, this->line.xs.begin());
-    std::copy_n(this->line.speeds.begin(), this->resampled_size, this->line.ys.begin());
-    this->line.size = this->resampled_size;
+    std::copy_n(this->line.curvatures.begin(), size, this->line.xs.begin());
+    std::copy_n(this->line.speeds.begin(), size, this->line.ys.begin());
+    this->line.size = size;
     this->line.spacing = spacing;
     this->sweeps++;
 
@@ -442,62 +414,60 @@ void TRacingLine<width, height>::check(uint32_t& budget) {
     }
 
     if (this->cursor == end) {
-        this->cursor = 0;
-        this->phase = Phase::CURVATURE;
-    }
-}
-
-template <uint8_t width, uint8_t height>
-void TRacingLine<width, height>::measure_curvature(uint32_t& budget) {
-    const uint16_t last = this->line.size - 1;
-
-    for (; budget > 0 and this->cursor <= last; budget--, this->cursor++) {
-        if (this->cursor == last) {
-            this->line.times.at(this->cursor) = 0.0F;
-            continue;
-        }
-
-        const float heading = std::atan2(
-            this->line.ys.at(this->cursor + 1U) - this->line.ys.at(this->cursor),
-            this->line.xs.at(this->cursor + 1U) - this->line.xs.at(this->cursor)
-        );
-
-        this->line.times.at(this->cursor) =
-            this->cursor == 0 ? 0.0F : core::math::wrap_angle(heading - this->previous_heading) / this->line.spacing;
-        this->previous_heading = heading;
-    }
-
-    if (this->cursor > last) {
-        this->cursor = 0;
-        this->phase = Phase::SMOOTH;
-    }
-}
-
-template <uint8_t width, uint8_t height>
-void TRacingLine<width, height>::smooth_curvature(uint32_t& budget) {
-    const int32_t last = this->line.size - 1;
-    const int32_t reach = this->config.smoothing;
-
-    for (; budget > 0 and this->cursor < this->line.size; budget--, this->cursor++) {
-        const int32_t from = std::max<int32_t>(this->cursor - reach, 0);
-        const int32_t to = std::min<int32_t>(this->cursor + reach, last);
-
-        float sum = 0.0F;
-
-        for (int32_t i = from; i <= to; i++) {
-            sum += this->line.times.at(i);
-        }
-
-        this->line.curvatures.at(this->cursor) = sum / static_cast<float>(to - from + 1);
-    }
-
-    if (this->cursor == this->line.size) {
         this->phase = Phase::SPEED;
     }
 }
 
 template <uint8_t width, uint8_t height>
+void TRacingLine<width, height>::measure_curvature() {
+    const uint16_t last = this->line.size - 1;
+
+    const auto heading_after = [this](uint16_t index) {
+        return std::atan2(
+            this->line.ys.at(index + 1U) - this->line.ys.at(index),
+            this->line.xs.at(index + 1U) - this->line.xs.at(index)
+        );
+    };
+
+    float heading = heading_after(0);
+    float before = 0.0F;
+    float at = 0.0F;
+
+    for (uint16_t i = 0; i <= last; i++) {
+        float after = 0.0F;
+
+        if (i + 1U < last) {
+            const float next = heading_after(i + 1U);
+            after = core::math::wrap_angle(next - heading) / this->line.spacing;
+            heading = next;
+        }
+
+        float   sum = 0.0F;
+        uint8_t count = 0;
+
+        if (i > 0) {
+            sum += before;
+            count++;
+        }
+
+        sum += at;
+        count++;
+
+        if (i < last) {
+            sum += after;
+            count++;
+        }
+
+        this->line.curvatures.at(i) = sum / static_cast<float>(count);
+        before = at;
+        at = after;
+    }
+}
+
+template <uint8_t width, uint8_t height>
 void TRacingLine<width, height>::plan_speeds() {
+    this->measure_curvature();
+
     const uint16_t size = this->line.size;
     const float    spacing = this->line.spacing;
 

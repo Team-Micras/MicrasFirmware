@@ -36,12 +36,13 @@ namespace micras::nav {
  * windows overlap and sweep the line from its start to its end, and the line is resampled at equal
  * steps after each sweep. A slide is limited per sweep, and the bounds are found again for every
  * window, since the robot needs more room as the line turns it. After the last sweep every sample
- * is checked, the curvature is measured and lightly smoothed, and the speeds are planned along it
- * with the same rule as a turn.
+ * is checked, the curvature is measured and averaged over three samples, and the speeds are planned
+ * along it with the same rule as a turn.
  *
- * Nothing here is bounded to one iteration of the loop as a whole: every phase advances by a budget
- * of samples per call, except for the speeds, which take a few milliseconds in one call, the robot
- * being stopped.
+ * Nothing here is bounded to one iteration of the loop as a whole. Sampling the route, finding the
+ * bounds and checking the line cost the most per sample, and advance by a budget of samples per
+ * call. Solving a window, resampling the line and planning the speeds take one call each, of a few
+ * milliseconds at most, the robot being stopped.
  *
  * @note The first and last samples never move: the line starts where the robot stands and ends
  * where the route comes to rest.
@@ -56,18 +57,17 @@ public:
      * @brief Configuration struct for the racing line.
      *
      * @note The margin is the distance the line keeps between the outline of the robot and any
-     * obstacle wherever the route leaves room for it, with the risky switch too: at the margin of
-     * the risky turns the line hit a wall on 4 to 6 of 10 mazes. The least margins are what the
-     * final check requires everywhere, without and with the risky switch: the margins the turns were
-     * designed with, less what the resampling and the headings of the final line use up. Where the
-     * route itself comes closer than the margin, which the risky turns do, the line does not move. The trust is
-     * how far a sample may slide in one sweep, the scan step the resolution of the bounds, and the
-     * length weight the weight of the first differences, in units of the spacing. A sweep that
-     * slides no sample farther than the convergence tolerance ends the optimization. The smoothing
-     * is the number of samples on each side the curvature is averaged over. The lateral share is the
-     * part of the lateral grip of the run the curves of the line are planned with: the tires slide
-     * sideways in proportion to what they are asked for, which the pose estimate does not see, and
-     * the line holds its curves far longer than a turn does.
+     * obstacle wherever the route leaves room for it, with the risky switch too. The least margins
+     * are what the final check requires everywhere, without and with the risky switch: the margins
+     * the turns were designed with, less what the resampling and the headings of the final line use
+     * up. Where the route itself comes closer than the margin, which the risky turns do, the line
+     * does not move. The trust is how far a sample may slide in one sweep, the scan step the
+     * resolution of the bounds, and the length weight the weight of the first differences, in units
+     * of the spacing. A sweep that slides no sample farther than the convergence tolerance ends the
+     * optimization. The lateral share is the part of the lateral grip of the run the curves of the
+     * line are planned with: the tires slide sideways in proportion to what they are asked for,
+     * which the pose estimate only predicts, and the line holds its curves far longer than a turn
+     * does.
      */
     // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init) no defaults, so that a missing field is a warning
     struct Config {
@@ -81,7 +81,6 @@ public:
         float    convergence;
         float    lateral_share;
         uint8_t  max_sweeps;
-        uint8_t  smoothing;
         uint16_t samples_per_step;
     };
 
@@ -192,12 +191,9 @@ private:
         SAMPLE = 1,
         BOUNDS = 2,
         SOLVE = 3,
-        MEASURE = 4,
-        RESAMPLE = 5,
-        CHECK = 6,
-        CURVATURE = 7,
-        SMOOTH = 8,
-        SPEED = 9,
+        RESAMPLE = 4,
+        CHECK = 5,
+        SPEED = 6,
     };
 
     /**
@@ -220,18 +216,12 @@ private:
     void solve_window();
 
     /**
-     * @brief Measure the length of the line for the resampling.
-     *
-     * @param budget The number of samples left in this call, which is decreased.
-     */
-    void measure(uint32_t& budget);
-
-    /**
      * @brief Resample the line at equal steps, then start the next sweep or the checks.
      *
-     * @param budget The number of samples left in this call, which is decreased.
+     * @note The new samples are written to the curvatures and the speeds of the line, which are
+     * not in use until the speeds are planned, and copied back once they are all known.
      */
-    void resample(uint32_t& budget);
+    void resample();
 
     /**
      * @brief Check the clearance of the next samples of the line.
@@ -241,21 +231,13 @@ private:
     void check(uint32_t& budget);
 
     /**
-     * @brief Measure the curvature at the next samples of the line.
-     *
-     * @param budget The number of samples left in this call, which is decreased.
+     * @brief Measure the curvature of the line, from the turn of its heading between samples,
+     * averaged over each sample and its two neighbors.
      */
-    void measure_curvature(uint32_t& budget);
+    void measure_curvature();
 
     /**
-     * @brief Smooth the curvature at the next samples of the line.
-     *
-     * @param budget The number of samples left in this call, which is decreased.
-     */
-    void smooth_curvature(uint32_t& budget);
-
-    /**
-     * @brief Plan the speeds along the line, time it and mark it ready.
+     * @brief Measure the curvature, plan the speeds along the line, time it and mark it ready.
      */
     void plan_speeds();
 
@@ -408,33 +390,12 @@ private:
     ///@}
 
     /**
-     * @brief Length of the line being resampled, and the distance along it at the sample read.
-     */
-    ///@{
-    float measured_length{};
-    float read_length{};
-    ///@}
-
-    /**
-     * @brief Sample of the line being resampled that is read, and the number of samples written.
-     */
-    ///@{
-    uint16_t read_index{};
-    uint16_t resampled_size{};
-    ///@}
-
-    /**
      * @brief Number of sweeps done, and the farthest slide of the sweep in progress.
      */
     ///@{
     uint8_t sweeps{};
     float   sweep_slide{};
     ///@}
-
-    /**
-     * @brief Heading of the line at the sample before, for the curvature.
-     */
-    float previous_heading{};
 
     /**
      * @brief First sample of the window and its number of samples.

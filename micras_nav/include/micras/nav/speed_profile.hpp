@@ -15,11 +15,12 @@ namespace micras::nav {
  * @brief Fastest motion along one axis between two speeds, as a function of time.
  *
  * @details The motion accelerates as hard as the limits allow, cruises if it reaches the speed
- * limit and brakes at the last moment, which is the time optimal way to cover a distance. It is the
- * single evaluator of the navigation: the planner prices a straight with duration(), the velocity
- * planner chains straights with get_reachable_speed() and get_brakeable_speed(), and the executor
- * plays the very same object back with sample(), so that the time a route is chosen by is the time
- * it takes. The axis is a distance for a straight and an angle for a rotation in place.
+ * limit and brakes at the last moment, which is the time optimal way to cover a distance. It times
+ * and plays back the straights and the rotations in place: the planner prices a straight with
+ * duration(), the velocity planner chains straights with get_reachable_speed() and
+ * get_brakeable_speed(), and the executor plays the very same object back with sample(), so that the
+ * time a route is chosen by is the time it takes. The axis is a distance for a straight and an angle
+ * for a rotation in place.
  */
 class SpeedProfile {
 public:

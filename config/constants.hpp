@@ -20,10 +20,9 @@
 #include "micras/nav/localizer.hpp"
 #include "micras/nav/mission.hpp"
 #include "micras/nav/motion_limits.hpp"
-#include "micras/nav/turn_table.hpp"
 #include "micras/nav/wall_model.hpp"
 #include "robot.hpp"
-#include "two_bend_turns.hpp"
+#include "turn_margins.hpp"
 
 namespace micras {
 /*****************************************
@@ -57,9 +56,8 @@ constexpr uint16_t bluetooth_tx_buffer_size{4096};
  *
  * @note The tires cannot transmit more than the traction with the fan running, so anything above
  * it came from a wall. The margin covers the noise of the accelerometer and the centripetal and
- * tangential acceleration of the IMU, which is not on the axis of rotation. A fixed 35 m/s^2 was
- * below the 32 m/s^2 a fast run plans with the fan, plus the feedback, and stopped fast runs that
- * had touched nothing.
+ * tangential acceleration of the IMU, which is not on the axis of rotation, and the feedback on top
+ * of what a fast run plans with the fan.
  */
 constexpr float crash_acceleration{1.25F * robot_model.traction_acceleration(true)};
 constexpr float fan_speed{100.0F};
@@ -123,8 +121,7 @@ constexpr auto wall_votes{static_cast<int8_t>(0.012F * wall_sensors_frequency)};
  * @brief Number of edges the route planner tries per iteration while a fast run is planned.
  *
  * @note The robot is stopped then, so this only has to keep an iteration well inside the timeout
- * of the watchdog. It is about what 64 nodes of the planner with eight turns cost, and a node of
- * that planner cost some tens of microseconds.
+ * of the watchdog. An edge costs about the same whatever the turn.
  */
 constexpr uint32_t plan_edges_per_iteration{512};
 
@@ -139,11 +136,8 @@ constexpr uint16_t line_samples_per_iteration{16};
 /**
  * @brief Number of edges the route planner tries per iteration while the robot searches.
  *
- * @note A node of the planner with eight turns cost about 8 edges of this one on a PC, and was a good
- * part of what is left of an iteration. A node now tries three to four times as many turns, so a
- * budget in nodes would no longer bound the time of an iteration. The answers of the planner come
- * later with a smaller budget, and the search waits for them: on ten mazes it took 17 % longer with
- * 8 edges, 4 % with 16 and 2 % with 32.
+ * @note An edge costs about the same whatever the turn, so a budget in edges bounds the time of an
+ * iteration. A smaller budget delays the answers of the planner, which the search waits for.
  */
 constexpr uint32_t search_edges_per_iteration{16};
 
@@ -234,58 +228,21 @@ using Mission = TMission<maze_width, maze_height>;
 /**
  * @brief Fraction of the available traction a run asks for, without and with the boost switch.
  *
- * @note In a turn the tires slide sideways in proportion to the grip they are asked for, and the
- * pose estimate does not see it. At three quarters of the traction a turn put the robot 10 to 20 mm
- * off its path; at 0.65 every run of ten mazes, with diagonals and the risky turns, stays clean.
+ * @note In a turn the tires slide sideways in proportion to the grip they are asked for, which the
+ * pose estimate only predicts. Boost stops at 0.65 of the traction for that reason.
  */
 ///@{
 constexpr float normal_utilization{0.6F};
 constexpr float boost_utilization{0.65F};
-///@}
-
-/**
- * @brief Distance kept between the outline of the robot and any obstacle when a turn is designed,
- * without and with the risky switch.
- */
-///@{
-constexpr float turn_margin{0.015F};
-constexpr float risky_turn_margin{0.010F};
-///@}
-
-/**
- * @brief Shape of every turn, computed when the firmware is compiled.
- *
- * @note A turn that does not fit in the maze with the margin asked for stops the build here.
- */
-///@{
-constexpr nav::TurnTable::TwoBendShapes two_bend_shapes{
-    nav::TurnTable::place(robot_model, turn_margin, two_bend_designs)
-};
-constexpr nav::TurnTable::TwoBendShapes risky_two_bend_shapes{
-    nav::TurnTable::place(robot_model, risky_turn_margin, risky_two_bend_designs)
-};
-constexpr nav::TurnTable turn_table{robot_model, turn_margin, two_bend_shapes};
-constexpr nav::TurnTable risky_turn_table{robot_model, risky_turn_margin, risky_two_bend_shapes};
-
-static_assert(turn_table.is_valid(), "a turn does not fit in the maze with the normal margin");
-static_assert(risky_turn_table.is_valid(), "a turn does not fit in the maze with the risky margin");
-static_assert(
-    nav::TurnTable::clears(robot_model, turn_margin, two_bend_designs),
-    "a turn of two bends does not clear the walls with the normal margin: run the turn designer"
-);
-static_assert(
-    nav::TurnTable::clears(robot_model, risky_turn_margin, risky_two_bend_designs),
-    "a turn of two bends does not clear the walls with the risky margin: run the turn designer"
-);
 
 ///@}
 
 /**
  * @brief Make the profile of a fast run from the switches.
  *
- * @note Every route may use diagonals. With the racing line, the risky switch also optimizes a line
- * through the route of the risky turns, which comes as close as they do, and the robot drives it
- * only if it is faster than the line through the route of the normal turns.
+ * @note With the racing line, the risky switch also optimizes a line through the route of the risky
+ * turns, which comes as close as they do, and the robot drives it only if it is faster than the
+ * line through the route of the normal turns.
  *
  * @param racing_line Whether to drive the racing line through the cells of the route instead.
  * @param boost Whether to ask for more of the available traction.
@@ -356,14 +313,12 @@ static_assert(
  */
 constexpr float voltage_reserve{0.15F};
 
-const nav::Dynamics::Config dynamics_config{
-    .model = robot_model,
-    .turns = turn_table,
-    .risky_turns = risky_turn_table,
-    .max_linear_speed = 3.0F,
-    .max_angular_speed = 12.0F,
-    .voltage_reserve = voltage_reserve,
-};
+/**
+ * @brief Configuration of the dynamics, with the shape of every turn.
+ *
+ * @note Defined in dynamics_config.cpp, the one source that designs the turns.
+ */
+extern const nav::Dynamics::Config dynamics_config;
 
 /**
  * @brief Configuration of the wall model.
@@ -385,13 +340,7 @@ const nav::WallModel::Config wall_model_config{
  *
  * @note Ranges only correct the pose out to 120 mm. The beam of an emitter is 11.75 mm above the
  * floor and a few degrees wide, so farther out part of it lands on the floor before the wall and
- * the reading comes out long: 5 mm at 120 mm, 16 mm at 150 mm and 45 mm at 180 mm for the sensors
- * that look forward.
- *
- * @note The end of a side wall is seen 16 mm inside the wall, whichever way the robot crosses it and
- * at 0.4 to 2.6 m/s alike: the reading only changes once most of the spot has crossed the end. That
- * is 1.32 times the half length of the spot the wall model computes from the half angle of the
- * sensors, which is what the edge inset is.
+ * the reading comes out long.
  */
 const nav::Localizer::Config localizer_config{
     .model = robot_model,
@@ -409,7 +358,6 @@ const nav::Localizer::Config localizer_config{
     .range_correlation = wall_sensors_frequency / (2.22F * wall_fast_filter_cutoff),
     .max_range = 0.12F,
     .rest_window = 0.1F,
-    .use_edges = true,
     .edge_deviation = 0.004F,
     .edge_window = 0.025F,
     .edge_speed = 0.1F,
@@ -481,7 +429,6 @@ const nav::Mission::Config mission_config{
             .convergence = 0.0002F,
             .lateral_share = 0.8F,
             .max_sweeps = 12,
-            .smoothing = 1,
             .samples_per_step = line_samples_per_iteration,
         },
     .executor =

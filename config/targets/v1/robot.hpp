@@ -32,14 +32,14 @@ namespace micras {
  * - The outline is the rectangle that encloses whatever can touch a wall: the board, 50 by 90 mm,
  *   with the tires flush with its sides and the housings of the inner wall sensors 1.4 mm ahead of
  *   its nose.
- * - The friction coefficient comes from a tilt test of the robot on the maze floor, and the fan
- *   downforce from a scale under the robot with the fan running. The friction is an estimate; the
- *   downforce, about 3 N at full speed, is the owner's figure. The fan has no
- *   skirt, it draws through a 15 mm hole with a 1 mm gap under the whole board. It pulls over the
- *   hole, 17.5 mm ahead of the axle: the flow through the gap, which leaves the pressure harmonic
- *   between the edges of the board and the hole, puts the center of the suction at 14 to 16 mm.
- *   So the robot rests on the front edge of its board with the fan on, and the edge carries about a
- *   third of the downforce. Scales under the wheels and under the nose settle both.
+ * - The friction coefficient is an estimate, for a tilt test of the robot on the maze floor to
+ *   measure. The fan downforce, about 3 N at full speed, is the owner's figure, for a scale under
+ *   the robot with the fan running to check. The fan has no skirt, it draws through a 15 mm hole
+ *   with a 1 mm gap under the whole board. It pulls over the hole, 17.5 mm ahead of the axle: the
+ *   flow through the gap, which leaves the pressure harmonic between the edges of the board and the
+ *   hole, puts the center of the suction at 14 to 16 mm. So the robot rests on the front edge of
+ *   its board with the fan on, and the edge carries about a third of the downforce. Scales under
+ *   the wheels and under the nose settle both.
  * - The lateral compliance is the simulation's: the tires there slide sideways at 4.8 mm/s per m/s^2
  *   of lateral acceleration, and the real tires are not measured yet. Driving a circle at a known
  *   speed with the fan on, and comparing where the robot ends with where the odometry says, does.

@@ -2,7 +2,6 @@
  * @file
  */
 
-#include <cmath>
 #include <cstdint>
 #include <numbers>
 #include <vector>
@@ -26,10 +25,10 @@ void RouteCompiler::compile(
         return node.to_pose(cell_size).compose({.position = {.x = -distance, .y = 0.0F}, .orientation = 0.0F});
     };
 
-    const auto emit_straight = [&segments](const Pose& start, float length, bool diagonal) {
+    const auto emit_straight = [&segments](const Pose& start, float length) {
         if (length > min_straight) {
             segments.push_back({
-                .kind = diagonal ? SegmentKind::DIAGONAL : SegmentKind::STRAIGHT,
+                .kind = SegmentKind::STRAIGHT,
                 .turn = TurnId::SS90S,
                 .length = length,
                 .start_speed = 0.0F,
@@ -60,7 +59,7 @@ void RouteCompiler::compile(
 
         const TurnShape& shape = dynamics.get_turn(profile, step.turn);
 
-        emit_straight(straight_start, straight_length + shape.pre, node.is_diagonal());
+        emit_straight(straight_start, straight_length + shape.pre);
 
         segments.push_back({
             .kind = SegmentKind::TURN,
@@ -76,6 +75,6 @@ void RouteCompiler::compile(
         straight_length = shape.post;
     }
 
-    emit_straight(straight_start, straight_length + route.stop_distance, node.is_diagonal());
+    emit_straight(straight_start, straight_length + route.stop_distance);
 }
 }  // namespace micras::nav

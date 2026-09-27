@@ -22,13 +22,13 @@ namespace micras::nav {
  * never seen is taken as absent. If that route crosses no unknown wall, the map already proves that
  * nothing faster exists and the search is over. Otherwise the cells next to the unknown walls it
  * crosses are what is worth visiting, and the question is asked again once the map has changed. The
- * test uses the very cost the fast run is chosen by, so a faster route cannot stay hidden, and only
- * cells on some best conceivable route are ever targeted.
+ * test uses the cost of the planner, whose candidates the fast run is chosen among, so a faster
+ * route cannot stay hidden, and only cells on some best conceivable route are ever targeted.
  *
  * The fastest route depends on the profile of the run, so the test is repeated for every profile the
  * map has to be good for and the targets are put together.
  *
- * @note The planner is advanced a bounded number of nodes per call, which lets all of this happen
+ * @note The planner is advanced a bounded number of edges per call, which lets all of this happen
  * while the robot is moving.
  *
  * @tparam width The width of the maze in cells.

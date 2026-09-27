@@ -233,11 +233,6 @@ private:
     static constexpr uint8_t max_move_segments{6};
 
     /**
-     * @brief Shortest straight worth a segment of its own, in meters.
-     */
-    static constexpr float min_straight{1.0e-4F};
-
-    /**
      * @brief Distance within which a segment is taken to start where the watched cell is entered.
      */
     static constexpr float watch_tolerance{0.001F};

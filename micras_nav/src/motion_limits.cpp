@@ -36,9 +36,7 @@ float CurveLimits::get_speed_limit(const Bending& bending) const {
 }
 
 float CurveLimits::get_acceleration(float speed, const Bending& bending) const {
-    const float lateral_use = speed * speed * std::abs(bending.curvature) / this->lateral;
-    const float angular_use = speed * speed * std::abs(bending.sharpness) / this->angular;
-    const float spare = std::sqrt(std::max(1.0F - lateral_use * lateral_use, 0.0F)) - angular_use;
+    const float spare = this->get_spare(speed, bending);
 
     if (spare <= 0.0F) {
         return 0.0F;
@@ -50,15 +48,20 @@ float CurveLimits::get_acceleration(float speed, const Bending& bending) const {
 }
 
 float CurveLimits::get_deceleration(float speed, const Bending& bending) const {
-    const float lateral_use = speed * speed * std::abs(bending.curvature) / this->lateral;
-    const float angular_use = speed * speed * std::abs(bending.sharpness) / this->angular;
-    const float spare = std::sqrt(std::max(1.0F - lateral_use * lateral_use, 0.0F)) - angular_use;
+    const float spare = this->get_spare(speed, bending);
 
     if (spare <= 0.0F) {
         return 0.0F;
     }
 
     return spare / (1.0F / this->linear.deceleration + std::abs(bending.curvature) / this->angular);
+}
+
+float CurveLimits::get_spare(float speed, const Bending& bending) const {
+    const float lateral_use = speed * speed * std::abs(bending.curvature) / this->lateral;
+    const float angular_use = speed * speed * std::abs(bending.sharpness) / this->angular;
+
+    return std::sqrt(std::max(1.0F - lateral_use * lateral_use, 0.0F)) - angular_use;
 }
 
 Dynamics::Dynamics(const Config& config) :
@@ -112,12 +115,7 @@ const TurnShape& Dynamics::get_turn(const RunProfile& profile, TurnId turn) cons
 float Dynamics::get_turn_speed(const RunProfile& profile, TurnId turn) const {
     const TurnShape& shape = this->get_turn(profile, turn);
 
-    const float lateral = profile.utilization * this->model.traction_acceleration(profile.fan);
-    const float angular = profile.utilization * this->model.traction_angular_acceleration(profile.fan);
-
-    return std::min(
-        {std::sqrt(lateral / shape.curvature), std::sqrt(angular / shape.sharpness),
-         this->get_linear_limits(profile).max_speed}
+    return this->get_curve_limits(profile).get_speed_limit({.curvature = shape.curvature, .sharpness = shape.sharpness}
     );
 }
 

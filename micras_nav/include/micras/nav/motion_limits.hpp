@@ -13,8 +13,8 @@ namespace micras::nav {
  * @brief How a run trades time for safety.
  *
  * @note The utilization is the fraction of the available traction the run may ask for, in (0, 1].
- * Whether the run is risky selects the turn table built with the smaller safety margin. The racing
- * line replaces the route by the smoothest line through
+ * The fan adds its downforce to the traction. Whether the run is risky selects the turn table built
+ * with the smaller safety margin. The racing line replaces the route by the smoothest line through
  * its cells, which only a fast run planned with the robot stopped can drive. The speed limit is what
  * makes the search run slow: a fast run leaves it above what the robot can reach.
  */
@@ -62,12 +62,11 @@ struct MotionLimits {
  * changing speed.
  *
  * @details The speed at a point is limited by the lateral acceleration its curvature asks for and
- * by the angular acceleration its sharpness asks for, each against what the tires can give, which
- * is the rule a turn has always been driven by. What is left of the grip there can change the
- * speed: the lateral part takes its share as on a friction circle, and the angular part, which the
- * two tires make by pushing in opposite directions, takes it from the push each tire has left. A
- * change of speed on a curve also changes the angular speed, and that angular acceleration is
- * counted too.
+ * by the angular acceleration its sharpness asks for, each against what the tires can give. What is
+ * left of the grip there can change the speed: the lateral part takes its share as on a friction
+ * circle, and the angular part, which the two tires make by pushing in opposite directions, takes
+ * it from the push each tire has left. A change of speed on a curve also changes the angular speed,
+ * and that angular acceleration is counted too.
  *
  * @note On a straight nothing is taken and the limits are those of the linear motion.
  */
@@ -97,6 +96,15 @@ struct CurveLimits {
      * @return The deceleration along the path in m/s^2, as a positive number.
      */
     float get_deceleration(float speed, const Bending& bending) const;
+
+    /**
+     * @brief Get the share of the grip left for a change of speed at a point, at a speed.
+     *
+     * @param speed The speed there.
+     * @param bending How the path bends there.
+     * @return The share, which is zero or less where the grip is all used.
+     */
+    float get_spare(float speed, const Bending& bending) const;
 
     MotionLimits linear;
     float        lateral;

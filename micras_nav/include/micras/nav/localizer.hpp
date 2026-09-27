@@ -64,12 +64,12 @@ public:
      * enough to land partly on the floor, the reading loses light the model of the sensor does not
      * know about, and the range comes out long by several percent.
      *
-     * The ends of the side walls are used as references along the path when use_edges is set. An
-     * end is accepted while the robot moves forward faster than the edge speed, since the only time
-     * it reverses is to park, from a pose it has just measured. The wall has to be closer than the
-     * edge range, so that nothing can be hiding its end, and the end has to be found within the edge
-     * window of where it was expected. An end is a single event rather than a stream of readings, so it has
-     * a cap of its own. The range tolerance, a constant part plus a part proportional to the range,
+     * The ends of the side walls are used as references along the path. An end is accepted while
+     * the robot moves forward faster than the edge speed, since the only time it reverses is to
+     * park, from a pose it has just measured. The wall has to be closer than the edge range, so
+     * that nothing can be hiding its end, and the end has to be found within the edge window of
+     * where it was expected. An end is a single event rather than a stream of readings, so it has a
+     * cap of its own. The range tolerance, a constant part plus a part proportional to the range,
      * tells a reading that is on a wall from one that is past its end.
      */
     struct Config {
@@ -88,7 +88,6 @@ public:
         float      range_correlation;
         float      max_range;
         float      rest_window;
-        bool       use_edges;
         float      edge_deviation;
         float      edge_window;
         float      edge_speed;

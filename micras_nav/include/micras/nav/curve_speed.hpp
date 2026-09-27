@@ -22,7 +22,7 @@ namespace micras::nav {
  * before, with the grip the curve leaves there, and a pass from the end lowers it to what can be
  * braked from before the one after. Between two samples the acceleration is constant. A turn is
  * therefore braked into as long as its curvature leaves grip to spare and accelerated out of as
- * soon as it does, instead of being driven at the speed of its tightest point.
+ * soon as it does.
  *
  * The passes are written over any curve, given as a function of the index of a sample that returns
  * the curvature at that sample and the sharpness between it and the next one, and over storage that

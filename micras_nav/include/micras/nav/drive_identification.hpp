@@ -174,10 +174,8 @@ private:
 
     /**
      * @brief Move on to the next phase, after a rest.
-     *
-     * @param measurements The current measurements.
      */
-    void advance(const Measurements& measurements);
+    void advance();
 
     /**
      * @brief Parameters of the procedure, with the physical description of the robot.

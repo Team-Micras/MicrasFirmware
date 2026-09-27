@@ -139,7 +139,6 @@ void Executor::start_next() {
 
     switch (segment.kind) {
         case SegmentKind::STRAIGHT:
-        case SegmentKind::DIAGONAL:
             this->speed_profile = SpeedProfile{
                 std::abs(segment.length), segment.start_speed, segment.end_speed,
                 this->dynamics.get_linear_limits(this->run_profile)
@@ -173,8 +172,7 @@ Reference Executor::evaluate() const {
     const float    side = std::copysign(1.0F, segment.length);
 
     switch (segment.kind) {
-        case SegmentKind::STRAIGHT:
-        case SegmentKind::DIAGONAL: {
+        case SegmentKind::STRAIGHT: {
             const SpeedProfile::Sample sample = this->speed_profile.sample(this->clock);
 
             return {

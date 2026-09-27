@@ -438,13 +438,13 @@ void TMission<width, height>::decide_at_entry() {
     );
     turn.turn = TurnId::SS90S;
 
-    if (shape.pre > min_straight) {
+    if (shape.pre > RouteCompiler::min_straight) {
         move.add(make_segment(SegmentKind::STRAIGHT, shape.pre, entry));
     }
 
     move.add(turn);
 
-    if (shape.post > min_straight) {
+    if (shape.post > RouteCompiler::min_straight) {
         move.add(make_segment(
             SegmentKind::STRAIGHT, shape.post,
             this->get_entry_pose(*next).compose({.position = {.x = -shape.post, .y = 0.0F}, .orientation = 0.0F})

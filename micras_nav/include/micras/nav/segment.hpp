@@ -15,13 +15,12 @@ namespace micras::nav {
  * @brief Kinds of motion a route is made of.
  */
 enum class SegmentKind : uint8_t {
-    STRAIGHT = 0,  // Straight line along the grid.
-    DIAGONAL = 1,  // Straight line along a diagonal.
-    TURN = 2,      // Slalom turn from the turn table, braked and accelerated as its curvature allows.
-    SPIN = 3,      // Rotation in place.
-    STOP = 4,      // Stand still for a given time.
-    ATTACH = 5,    // Stand still facing a wall until the pose settles, or for a given time at most.
-    LINE = 6,      // The racing line, from the start to the goal, at the speeds it was planned with.
+    STRAIGHT = 0,  // Straight line, along the grid or along a diagonal.
+    TURN = 1,      // Slalom turn from the turn table, braked and accelerated as its curvature allows.
+    SPIN = 2,      // Rotation in place.
+    STOP = 3,      // Stand still for a given time.
+    ATTACH = 4,    // Stand still facing a wall until the pose settles, or for a given time at most.
+    LINE = 5,      // The racing line, from the start to the goal, at the speeds it was planned with.
 };
 
 /**

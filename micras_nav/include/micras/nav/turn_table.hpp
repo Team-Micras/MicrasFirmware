@@ -283,9 +283,8 @@ struct TurnShape {
     float                           straight_length{};
 
     /**
-     * @brief Heading at the exit relative to the entry, and the largest curvature and sharpness.
+     * @brief Largest curvature and sharpness.
      */
-    float angle{};
     float curvature{};
     float sharpness{};
 
@@ -309,7 +308,6 @@ struct TurnShape {
  * @details The angles are those of the turn to the left, positive to the left, and the curvatures
  * are the peaks asked of each bend. The straight between the bends and the one after them follow
  * from the place of the exit node, so a design is only the choice of how the turn swings.
- *
  */
 struct TwoBendDesign {
     float first_angle;
@@ -581,7 +579,6 @@ private:
             shape.bends.at(0) = to_bend(first, first_angle);
             shape.bends.at(1) = to_bend(second, second_angle);
             shape.number_of_bends = 2;
-            shape.angle = static_cast<float>(first_angle + second_angle);
             shape.curvature = std::max(shape.bends.at(0).curvature, shape.bends.at(1).curvature);
             shape.sharpness = std::max(shape.bends.at(0).sharpness, shape.bends.at(1).sharpness);
             shape.pre = design.pre;
@@ -727,7 +724,6 @@ private:
             TurnShape shape{};
             shape.bends.at(0) = to_bend(candidate, angle);
             shape.number_of_bends = 1;
-            shape.angle = static_cast<float>(angle);
             shape.curvature = static_cast<float>(candidate.curvature);
             shape.sharpness = static_cast<float>(candidate.sharpness);
             shape.pre = static_cast<float>(candidate.pre);

@@ -25,15 +25,11 @@ float VelocityPlanner::plan(
     const MotionLimits linear_limits = dynamics.get_linear_limits(profile);
     const CurveLimits  curve_limits = dynamics.get_curve_limits(profile);
 
-    const auto is_straight = [](const Segment& segment) {
-        return segment.kind == SegmentKind::STRAIGHT or segment.kind == SegmentKind::DIAGONAL;
-    };
-
     for (Segment& segment : route) {
         segment.start_speed = 0.0F;
         segment.end_speed = 0.0F;
 
-        if (is_straight(segment)) {
+        if (segment.kind == SegmentKind::STRAIGHT) {
             segment.start_speed = linear_limits.max_speed;
             segment.end_speed = linear_limits.max_speed;
         } else if (segment.kind == SegmentKind::TURN) {
@@ -49,7 +45,7 @@ float VelocityPlanner::plan(
     for (Segment& segment : route | std::views::reverse) {
         segment.end_speed = std::min(segment.end_speed, next_speed);
 
-        if (is_straight(segment)) {
+        if (segment.kind == SegmentKind::STRAIGHT) {
             segment.start_speed = std::min(
                 segment.start_speed,
                 SpeedProfile::get_brakeable_speed(std::abs(segment.length), segment.end_speed, linear_limits)
@@ -71,7 +67,7 @@ float VelocityPlanner::plan(
     for (Segment& segment : route) {
         segment.start_speed = std::min(segment.start_speed, previous_speed);
 
-        if (is_straight(segment)) {
+        if (segment.kind == SegmentKind::STRAIGHT) {
             segment.end_speed = std::min(
                 segment.end_speed,
                 SpeedProfile::get_reachable_speed(std::abs(segment.length), segment.start_speed, linear_limits)
@@ -100,7 +96,6 @@ float VelocityPlanner::plan(
 float VelocityPlanner::get_duration(const Segment& segment, const Dynamics& dynamics, const RunProfile& profile) {
     switch (segment.kind) {
         case SegmentKind::STRAIGHT:
-        case SegmentKind::DIAGONAL:
             return SpeedProfile{
                 std::abs(segment.length), segment.start_speed, segment.end_speed, dynamics.get_linear_limits(profile)
             }

@@ -59,7 +59,8 @@ struct Route {
  * actually executes, a run of steps ahead followed by a turn, and it exists only if every wall it
  * crosses passes the wall assumption. Its cost is the time of the run, from the evaluator the
  * executor plays back, plus the time of the turn at the speed the run profile gives it, so the
- * fastest path of the graph is the fastest route the robot can drive. Diagonals, the turns of 135
+ * fastest path of the graph is the fastest route the robot can drive, to within what the velocity
+ * planner refines among the candidates. Diagonals, the turns of 135
  * degrees and the two sizes of the turn of 90 degrees are part of the search rather than a rewrite
  * of its result.
  *
@@ -95,10 +96,9 @@ public:
     /**
      * @brief Largest number of labels held at once.
      *
-     * @note On ten contest mazes, whole and with a random part of their walls unknown, the most a
-     * search held was 4519, with every turn and profile, and 4 of 5490 searches held more than 4500.
-     * A search that needs more drops the costliest labels waiting to be expanded, and reports that it
-     * is no longer exact.
+     * @note Sized with a margin over the largest search seen on contest mazes, whole and with part
+     * of their walls unknown. A search that needs more drops the costliest labels waiting to be
+     * expanded, and reports that it is no longer exact.
      */
     static constexpr uint16_t max_labels{6144};
 

@@ -44,7 +44,7 @@ void Localizer::correct(
 
         const RayHit hit = wall_model.cast(sampled, sensor, maze);
 
-        if (this->config.use_edges and wall_model.is_side_looking(sensor)) {
+        if (wall_model.is_side_looking(sensor)) {
             this->track_edge(sensor, reading, sampled, hit, wall_model, maze);
         }
 

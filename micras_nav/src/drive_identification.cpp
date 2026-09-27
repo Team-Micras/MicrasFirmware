@@ -62,7 +62,7 @@ Controller::Command DriveIdentification::update(const Measurements& measurements
 
         if (std::abs(linear_speed) > this->config.breakaway_speed or command >= this->config.linear_command) {
             this->breakaway_voltage = command * to_volts;
-            this->advance(measurements);
+            this->advance();
             return {};
         }
 
@@ -87,7 +87,7 @@ Controller::Command DriveIdentification::update(const Measurements& measurements
         not rotating and std::abs(this->distance) > this->config.max_distance and (this->distance > 0.0F) == positive;
 
     if (this->phase_time >= 2.0F * this->config.step_time or too_far) {
-        this->advance(measurements);
+        this->advance();
         return {};
     }
 
@@ -189,7 +189,7 @@ bool DriveIdentification::Fit::solve(Axis& axis) const {
     return axis.speed_constant > 0.0F and axis.acceleration_constant > 0.0F;
 }
 
-void DriveIdentification::advance(const Measurements& /*measurements*/) {
+void DriveIdentification::advance() {
     this->phase = static_cast<Phase>(static_cast<uint8_t>(this->phase) + 1);
     this->phase_time = 0.0F;
     this->rest_left = this->config.rest_time;
