@@ -16,7 +16,7 @@ tools := root / "tools"
 free_port := python + " -c 'import socket; s = socket.socket(); s.bind((\"127.0.0.1\", 0)); print(s.getsockname()[1])'"
 
 # The current baseline version: one summary per checked run (tools/baseline.py).
-baseline := "baselines/v1"
+baseline := "baselines/v2"
 check_runs := "idle explore"
 # The checked explore is the first 30 s of the scenario: the search to the goal, where
 # the firmware saves the map, and the start of the way back.

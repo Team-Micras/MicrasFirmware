@@ -231,6 +231,7 @@ MicrasBoard bind_devices(RunContext& context, const WorldInfo& world) {
         std::make_unique<CurrentSense>(
             CurrentSense::Config{
                 .currents = {[left] { return left->current(); }, [right] { return right->current(); }},
+                .zero_voltage = torque_sensors_config.zero_reading * torque_sensors_config.adc.reference_voltage,
                 .volts_per_amp = torque_sensors_config.shunt_resistor,
                 .adc_reference = torque_sensors_config.adc.reference_voltage,
                 .adc_max_counts = static_cast<double>(torque_sensors_config.adc.max_reading),
