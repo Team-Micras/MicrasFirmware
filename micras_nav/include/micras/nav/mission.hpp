@@ -142,9 +142,10 @@ public:
      * @note Only to be called with the robot stopped: when the search ends, the best candidates
      * are compiled and timed, which is not bounded to fit in an iteration. When the profile asks
      * for the racing line, it is optimized next, through the cells of the route chosen, and it
-     * replaces the route if it is found and faster. With the risky switch too, a second line goes
-     * through the route planned without the risky turns, and the risky line is only driven if it
-     * is the faster of the two; it is then optimized again, since only one line is kept.
+     * replaces the route if it is found and faster. With the risky switch too, the line goes
+     * through the route planned without the risky turns instead, from a second search: a line
+     * keeps the margin of the careful turns, which a line through the risky ones never does, and
+     * it replaces the risky route only if it is faster.
      *
      * @param max_edges The largest number of edges the planner may try in this call.
      * @return True if the planning has finished.
@@ -220,16 +221,6 @@ private:
         IDLE = 0,
         SEARCH = 1,
         LINE = 2,
-    };
-
-    /**
-     * @brief Which racing line is being optimized: through the route of the profile asked for,
-     * through the route planned without the risky turns, or the first one again.
-     */
-    enum class LinePass : uint8_t {
-        REQUESTED = 0,
-        CAREFUL = 1,
-        AGAIN = 2,
     };
 
     /**
@@ -477,7 +468,8 @@ private:
     Route solve_route;
 
     /**
-     * @brief Route planned without the risky turns, and its segments, for the second racing line.
+     * @brief Route planned without the risky turns, and its segments, for the racing line of a run
+     * with the risky switch.
      */
     ///@{
     Route                careful_route;
@@ -485,22 +477,19 @@ private:
     ///@}
 
     /**
-     * @brief Time of the racing line through the risky route, to compare the second one with.
-     */
-    float risky_line_time{};
-
-    /**
      * @brief Time the planned fast run is expected to take.
      */
     float route_time{};
 
     /**
-     * @brief What the planning of a fast run is doing, and which racing line it is at.
+     * @brief What the planning of a fast run is doing.
      */
-    ///@{
     PlanStage stage{PlanStage::IDLE};
-    LinePass  pass{LinePass::REQUESTED};
-    ///@}
+
+    /**
+     * @brief Whether the search running is the one for the route without the risky turns.
+     */
+    bool careful_search{};
 
     /**
      * @brief Last reference produced.

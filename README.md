@@ -105,7 +105,7 @@ The button starts everything, and the four switches choose how.
 | Fan | The fan runs, and its downforce is counted on. | The fan runs during the procedure, but is not part of the choice. |
 | Racing line | The robot drives the smoothest line through the cells of the fastest route instead of the route itself, if one is found. | Drive identification: the robot drives forward and back within 0.8 m ahead of where it starts, then turns to each side, and fits the constants of its drive train. It needs that stretch of free floor, plus some margin on both ends in case the model it starts from is off. |
 | Boost | A larger share of the available traction is used. | Gyroscope scale calibration: facing a wall, the robot turns five times in place and compares what the gyroscope integrated with what the wall says. |
-| Risky | The turns designed with the smaller safety margin are used. With the racing line, the line through the route of those turns keeps the margin of any other line, so it is driven only where those turns leave room for it, and only if it is faster. | |
+| Risky | The turns designed with the smaller safety margin are used. With the racing line, the line goes through the route planned without those turns, since a line keeps the margin of the careful turns, and it is driven if it is faster than the route of the risky turns. | |
 
 With none of those three on, an extra long press calibrates the wall sensors in two steps: first
 the side sensors, and after a pause the front sensors, with the robot centered in a cell facing a

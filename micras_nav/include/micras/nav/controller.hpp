@@ -104,6 +104,11 @@ public:
     explicit Controller(const Config& config);
 
     /**
+     * @brief Forget the time scale and the saturation of the last run, before the next one starts.
+     */
+    void reset();
+
+    /**
      * @brief Compute the command for this instant.
      *
      * @note The reference is played at the time scale found for it, which scales its speeds by the
@@ -163,7 +168,9 @@ private:
      *
      * @note The scale falls as fast as the time scale acceleration allows. It rises no faster than
      * that either, and only as fast as the voltage left over at the new scale lets through the
-     * acceleration the rise adds, so that rising never saturates the motors by itself.
+     * acceleration the rise adds, so that rising never saturates the motors by itself. It does not
+     * rise at all while the last command saturated the motors, since the feedback is then
+     * catching up with the reference and needs the voltage the rise would take.
      *
      * @param reference What the robot should be doing, at the full pace.
      * @param elapsed_time Time since the last iteration.
@@ -228,6 +235,11 @@ private:
      * voltage available.
      */
     static constexpr float min_time_scale{0.1F};
+
+    /**
+     * @brief Whether the last command asked more of a wheel than the supply gives.
+     */
+    bool saturated{};
 
     /**
      * @brief Errors and terms of the last update.

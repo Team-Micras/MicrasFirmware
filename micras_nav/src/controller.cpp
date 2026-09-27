@@ -46,6 +46,11 @@ Controller::Controller(const Config& config) :
         config.angular, config.model.angular_speed_constant(), config.model.angular_acceleration_constant()
     )} { }
 
+void Controller::reset() {
+    this->time_scale = 1.0F;
+    this->saturated = false;
+}
+
 Controller::Command Controller::update(const Reference& unscaled, const State& estimate, float elapsed_time) {
     const RobotModel& model = this->config.model;
 
@@ -110,10 +115,14 @@ Controller::Command Controller::update(const Reference& unscaled, const State& e
 
     const float to_percent = 100.0F / model.drive.supply_voltage;
 
-    return {
+    const Command command{
         .forward = to_percent * (forward_feed_forward + forward_feedback),
         .rotation = to_percent * (rotation_feed_forward + rotation_feedback),
     };
+
+    this->saturated = std::abs(command.forward) + std::abs(command.rotation) > 100.0F;
+
+    return command;
 }
 
 float Controller::find_next_time_scale(const Reference& reference, float elapsed_time) const {
@@ -127,6 +136,10 @@ float Controller::find_next_time_scale(const Reference& reference, float elapsed
         return std::max(target, this->time_scale - step);
     }
 
+    if (this->saturated) {
+        return this->time_scale;
+    }
+
     const float highest = std::min(target, this->time_scale + step);
     const float available = this->get_available_voltage();
 
@@ -137,7 +150,7 @@ float Controller::find_next_time_scale(const Reference& reference, float elapsed
         const float rate_term = std::abs(wheel.at(3));
 
         if (rate_term > 0.0F) {
-            rate = std::min(rate, std::max((available - std::copysign(voltage, wheel.at(3))) / rate_term, 0.0F));
+            rate = std::min(rate, std::max((available - std::copysign(1.0F, wheel.at(3)) * voltage) / rate_term, 0.0F));
         }
     }
 

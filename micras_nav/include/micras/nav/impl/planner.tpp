@@ -353,6 +353,8 @@ TPlanner<width, height>::Edge
         return {.cost = cached_cost, .speed_ratio = cached_speed_ratio};
     }
 
+    this->computed_edges++;
+
     const float cell_size = this->dynamics.get_model().maze.cell_size;
     const float step = ends_diagonal(arrival) ? cell_size / std::numbers::sqrt2_v<float> : cell_size;
 
@@ -407,10 +409,12 @@ uint32_t TPlanner<width, height>::prepare() {
     }
 
     const bool     diagonal = ends_diagonal(this->prepare_first);
-    const uint32_t cost = 2U * this->number_of_usable_turns.at(diagonal ? 1 : 0) + (diagonal ? 0U : this->goal_length);
+    const uint32_t computed_before = this->computed_edges;
 
     this->compare_arrivals(this->prepare_first, this->prepare_second, this->prepare_run);
     this->prepare_run++;
+
+    const uint32_t cost = this->computed_edges - computed_before + (diagonal ? 0U : this->goal_length);
 
     const uint8_t longest = diagonal ? max_run : max_straight_run;
 

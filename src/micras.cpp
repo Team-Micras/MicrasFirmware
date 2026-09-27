@@ -269,6 +269,7 @@ void Micras::rest() {
 
 void Micras::start_run() {
     this->clear_faults();
+    this->controller.reset();
     this->locomotion.enable();
 
     if (this->objective != core::Objective::RETURN) {
@@ -401,6 +402,7 @@ bool Micras::identify() {
 
 void Micras::start_gyroscope_calibration() {
     this->clear_faults();
+    this->controller.reset();
     this->locomotion.enable();
     this->gyroscope_calibration.start(this->localizer.get_pose(), this->dynamics.get_angular_limits(search_profile));
 }

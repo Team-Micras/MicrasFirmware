@@ -77,8 +77,7 @@ void TMission<width, height>::begin_plan(const RunProfile& profile) {
     this->planner.begin(this->maze, WallAssumption::PESSIMISTIC, profile);
     this->racing_line.reset();
     this->stage = PlanStage::SEARCH;
-    this->pass = LinePass::REQUESTED;
-    this->risky_line_time = std::numeric_limits<float>::infinity();
+    this->careful_search = false;
 }
 
 template <uint8_t width, uint8_t height>
@@ -92,12 +91,21 @@ bool TMission<width, height>::update_plan(uint32_t max_edges) {
                 return false;
             }
 
-            if (this->pass == LinePass::REQUESTED) {
+            if (not this->careful_search) {
                 this->route_time = this->choose_route(this->solve_profile, this->solve_route, this->solve_segments);
 
                 if (not this->solve_profile.racing_line or this->solve_segments.empty()) {
                     this->stage = PlanStage::IDLE;
                     return true;
+                }
+
+                if (this->solve_profile.risky) {
+                    RunProfile careful = this->solve_profile;
+                    careful.risky = false;
+
+                    this->careful_search = true;
+                    this->planner.begin(this->maze, WallAssumption::PESSIMISTIC, careful);
+                    return false;
                 }
 
                 this->racing_line.begin(this->solve_route, this->solve_segments, this->maze, this->solve_profile);
@@ -107,11 +115,11 @@ bool TMission<width, height>::update_plan(uint32_t max_edges) {
                 this->choose_route(careful, this->careful_route, this->careful_segments);
 
                 if (this->careful_segments.empty()) {
-                    this->pass = LinePass::AGAIN;
-                    this->racing_line.begin(this->solve_route, this->solve_segments, this->maze, this->solve_profile);
-                } else {
-                    this->racing_line.begin(this->careful_route, this->careful_segments, this->maze, careful);
+                    this->stage = PlanStage::IDLE;
+                    return true;
                 }
+
+                this->racing_line.begin(this->careful_route, this->careful_segments, this->maze, careful);
             }
 
             this->stage = PlanStage::LINE;
@@ -126,29 +134,11 @@ bool TMission<width, height>::update_plan(uint32_t max_edges) {
     }
 
     const Line& line = this->racing_line.get_line();
-    const float line_time = line.is_ready() ? line.get_finish_time() : std::numeric_limits<float>::infinity();
-
-    if (this->pass == LinePass::REQUESTED and this->solve_profile.risky) {
-        RunProfile careful = this->solve_profile;
-        careful.risky = false;
-
-        this->risky_line_time = line_time;
-        this->pass = LinePass::CAREFUL;
-        this->planner.begin(this->maze, WallAssumption::PESSIMISTIC, careful);
-        this->stage = PlanStage::SEARCH;
-        return false;
-    }
-
-    if (this->pass == LinePass::CAREFUL and this->risky_line_time < line_time) {
-        this->pass = LinePass::AGAIN;
-        this->racing_line.begin(this->solve_route, this->solve_segments, this->maze, this->solve_profile);
-        return false;
-    }
 
     this->stage = PlanStage::IDLE;
 
-    if (line.is_ready() and line_time < this->route_time) {
-        this->route_time = line_time;
+    if (line.is_ready() and line.get_finish_time() < this->route_time) {
+        this->route_time = line.get_finish_time();
         this->solve_segments.clear();
         this->solve_segments.push_back(make_segment(SegmentKind::LINE, line.length(), line.get_start()));
     }
@@ -422,7 +412,13 @@ void TMission<width, height>::decide_at_entry() {
                 entry.compose({.position = {.x = commit_distance, .y = 0.0F}, .orientation = 0.0F})
             ));
         } else {
-            move.add(make_segment(SegmentKind::STRAIGHT, cell_size, entry));
+            Segment straight = make_segment(SegmentKind::STRAIGHT, cell_size, entry);
+
+            if (this->watching_front) {
+                straight.max_speed = this->search_speed;
+            }
+
+            move.add(straight);
         }
 
         this->execute(move, this->search_speed, this->search_speed);

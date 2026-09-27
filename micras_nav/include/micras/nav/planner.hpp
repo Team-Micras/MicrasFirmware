@@ -137,8 +137,8 @@ public:
      * @brief Advance the search.
      *
      * @note Before the search itself, every pair of arrivals is compared for the dominance, one run
-     * of one pair at a time, each charged to the budget for the edges it times, so that no call
-     * takes longer than the budget allows.
+     * of one pair at a time, each charged to the budget for the edges it times that were not
+     * timed before, so that no call takes longer than the budget allows.
      *
      * @param max_edges The largest number of edges to try in this call.
      * @return True if the search has finished.
@@ -452,8 +452,8 @@ private:
     /**
      * @brief Compare the next pair of arrivals over the next run, moving on to the next pair after.
      *
-     * @return The number of edges the comparison may time, at least one, or zero once every pair
-     * was compared.
+     * @return The number of edges the comparison timed, counting each way into the goal as one,
+     * at least one, or zero once every pair was compared.
      */
     uint32_t prepare();
 
@@ -623,6 +623,12 @@ private:
      * @brief Largest number of cells of the goal in a line, which bounds where the robot stops.
      */
     uint8_t goal_length{};
+
+    /**
+     * @brief Number of edges timed rather than read from the cache, of which only differences
+     * count.
+     */
+    uint32_t computed_edges{};
 
     /**
      * @brief Edge of every pair of an arrival at full speed and a turn, for every run, filled in when
