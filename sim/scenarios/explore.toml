@@ -7,7 +7,7 @@ seconds = 180
 seed = 1
 
 # Where the firmware expects to be placed (constants.hpp start_offset): its origin
-# 40 mm in front of the face of the back wall, the board 3.5 mm clear of it.
+# about 40 mm in front of the face of the back wall, the board clear of it.
 [start]
 x = 0.09
 y = 0.0463

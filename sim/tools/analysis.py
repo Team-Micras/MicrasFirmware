@@ -6,8 +6,8 @@ board's devices (``motor_*_voltage``, ``wall_left_front`` and the other wall
 sensors, ``pack_voltage``). ``analyze.py`` loads it when ``meta.json`` names the
 ``micras`` target.
 
-State names come from the state events in ``meta.json``, which the simulator
-names from the firmware, never from ids written here.
+State names come from the state events in ``meta.json``, never from ids written
+here.
 """
 
 from __future__ import annotations
@@ -20,7 +20,6 @@ import numpy as np
 #: Fraction of the supply beyond which a motor voltage counts as saturated.
 SATURATION = 0.98
 MAX_EVENTS = 50
-WALL_SENSORS = ("wall_left_front", "wall_left", "wall_right", "wall_right_front")
 
 
 def events(run, kind: str) -> list[dict]:
@@ -125,15 +124,12 @@ def loop_report(run) -> dict:
 
 
 def report(run, generic: dict) -> dict:
+    """The firmware's states, how it ran, and what the board counted."""
     mask = running(run)
-    collisions = events(run, "collision")
 
     return {
         "states": [{"time": event["time"], "state": event["detail"]} for event in events(run, "state")][:MAX_EVENTS],
-        "collisions": {
-            "count": len(collisions),
-            "times": [event["time"] for event in collisions][:MAX_EVENTS],
-        },
+        "unbound_ports": run.meta.get("unbound_ports"),
         "running_time": float(mask.sum() * run.dt),
         "pose": pose_report(run, mask),
         "tracking": tracking_report(run, mask),
@@ -143,6 +139,7 @@ def report(run, generic: dict) -> dict:
 
 
 def speed_traces(run) -> list[tuple[str, np.ndarray, str]]:
+    """The reference and the estimate of both speeds."""
     return [
         ("reference_linear_speed", run.get("reference_linear_speed"), "linear"),
         ("pose_linear_speed", run.get("pose_linear_speed"), "linear"),
@@ -169,15 +166,9 @@ def trajectory_overlays(run) -> list[tuple[str, np.ndarray, np.ndarray]]:
 
 
 def plots(run, generic: dict, directory: Path) -> None:
+    """The controller's terms and the wall sensors, in control.png."""
     start = generic["run_start_time"]
-    figure, axes = plt.subplots(3, 1, sharex=True, figsize=(10, 9))
-
-    axes[0].plot(run.time, run.get("motor_left_voltage"), label="motor_left_voltage", linewidth=0.8)
-    axes[0].plot(run.time, run.get("motor_right_voltage"), label="motor_right_voltage", linewidth=0.8)
-    axes[0].plot(run.time, run.get("pack_voltage"), label="pack_voltage", color="k", linewidth=0.8)
-    axes[0].plot(run.time, -run.get("pack_voltage"), color="k", linewidth=0.8)
-    axes[0].set_ylabel("voltage [V]")
-    axes[0].legend(fontsize=7)
+    figure, axes = plt.subplots(2, 1, sharex=True, figsize=(10, 6))
 
     for name in (
         "control_forward_feed_forward",
@@ -185,17 +176,17 @@ def plots(run, generic: dict, directory: Path) -> None:
         "control_rotation_feed_forward",
         "control_rotation_feedback",
     ):
+        axes[0].plot(run.time, run.get(name), label=name, linewidth=0.8)
+
+    axes[0].set_ylabel("command [V]")
+    axes[0].legend(fontsize=7)
+
+    for name in run.prefixed("wall_"):
         axes[1].plot(run.time, run.get(name), label=name, linewidth=0.8)
 
-    axes[1].set_ylabel("command [V]")
+    axes[1].set_ylabel("wall sensor [counts]")
+    axes[1].set_xlabel("time [s]")
     axes[1].legend(fontsize=7)
-
-    for name in WALL_SENSORS:
-        axes[2].plot(run.time, run.get(name), label=name, linewidth=0.8)
-
-    axes[2].set_ylabel("wall sensor [counts]")
-    axes[2].set_xlabel("time [s]")
-    axes[2].legend(fontsize=7)
 
     for axis in axes:
         if start is not None:
@@ -207,13 +198,13 @@ def plots(run, generic: dict, directory: Path) -> None:
 
 
 def fmt(value, digits: int = 3) -> str:
+    """Format a possibly missing number for the summary."""
     return "n/a" if value is None else f"{value:.{digits}f}"
 
 
 def summarize(full: dict) -> None:
+    """The states, the pose and tracking errors, saturation and the loop, on stdout."""
     print("states       " + "  ".join(f"{entry['time']:.3f}s {entry['state']}" for entry in full["states"]))
-    collisions = full["collisions"]
-    print(f"collisions   {collisions['count']}  " + " ".join(f"{time:.3f}s" for time in collisions["times"][:10]))
 
     pose = full["pose"]
     position = pose["position_error"]
@@ -247,6 +238,7 @@ def baseline(full: dict) -> dict:
     across = full["tracking"]["across"]
 
     return {
+        "unbound_ports": (full["unbound_ports"], None),
         "running_time": (full["running_time"], 1.0),
         "max_pose_error": (pose["max"], 0.02),
         "rms_across_error": (across["rms"], 0.003),

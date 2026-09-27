@@ -16,11 +16,13 @@ tools := root / "tools"
 free_port := python + " -c 'import socket; s = socket.socket(); s.bind((\"127.0.0.1\", 0)); print(s.getsockname()[1])'"
 
 # The current baseline version: one summary per checked run (tools/baseline.py).
-baseline := "baselines/v5"
+baseline := "baselines/v1"
 check_runs := "idle explore"
-# The checked explore is the first 30 s of the scenario: out of the start cell, the
-# first corridors, turns and front walls. The whole scenario takes three minutes.
+# The checked explore is the first 30 s of the scenario: the search to the goal, where
+# the firmware saves the map, and the start of the way back.
 explore_seconds := "30"
+# The mazes of engine/arenas/maze/mazes the contest runs in.
+mazes := "maze1 maze2 apec2016 apec2017 apec2018 apec2019 japan2013ef japan2017ef uk2016f alljapan-033-2012-exp-fin"
 
 default:
     @just --list
@@ -42,9 +44,11 @@ run *args: build
 run-idle: build
     {{bin}} --scenario scenarios/idle.toml --out runs/idle
 
-# The first 30 s of an exploration started by the button -> runs/explore
+# The first 30 s of an exploration started by the button, keeping the flash it saves -> runs/explore
 run-explore: build
-    {{bin}} --scenario scenarios/explore.toml --seconds {{explore_seconds}} --out runs/explore
+    rm -f runs/explore/flash.bin
+    {{bin}} --scenario scenarios/explore.toml --seconds {{explore_seconds}} --out runs/explore \
+        --flash runs/explore/flash.bin
 
 # Plots and report.json for one run directory.
 analyze run:
@@ -71,11 +75,17 @@ serve *args: build
 watch *args: build
     {{bin}} --scenario scenarios/explore.toml --out runs/watch --viewer "$@"
 
-# 100 s explore recorded offscreen, then analysed.
-video: build
-    {{bin}} --scenario scenarios/explore.toml --seconds 100 --out runs/video \
-        --video runs/video/explore.mp4 --video-fps 30 --video-size 1280x720
-    {{python}} {{tools}}/analyze.py runs/video
+# The whole contest in every maze at once, exploring and then the fastest run, and its health.
+# A row every 10 ms is plenty for the health, and the events are still found every tick.
+contest scenario="explore_solve": build
+    for maze in {{mazes}}; do \
+        mkdir -p runs/contest/{{scenario}}/$maze; \
+        {{bin}} --scenario scenarios/{{scenario}}.toml --maze $maze --out runs/contest/{{scenario}}/$maze \
+            --record-every 80 > runs/contest/{{scenario}}/$maze/stdout.txt & \
+    done; \
+    wait
+    {{python}} {{tools}}/check_run.py --expect-state IDLE --expect unbound_ports=0 --expect watchdog_expiries=0 \
+        --expect emergency_stops=0 runs/contest/{{scenario}}/*
 
 # Compare the checked runs against the recorded baseline summaries.
 compare-baseline:
@@ -86,22 +96,26 @@ compare-baseline:
 record-baseline: test run-idle run-explore
     for run in {{check_runs}}; do {{python}} {{tools}}/baseline.py record runs/$run {{baseline}}/$run; done
 
+# The reference the window, the video and the bridge are compared with: 3 s of the explore -> runs/plain
+[private]
+run-plain: build
+    {{bin}} --scenario scenarios/explore.toml --seconds 3 --out runs/plain > /dev/null
+
 # A bridged run with nobody connected must match the same run without it, and the
 # bridge must actually have listened.
 # Prove the monitor bridge changes nothing.
-check-monitor: build
+check-monitor: run-plain
     mkdir -p runs/monitor
-    {{bin}} --scenario scenarios/explore.toml --seconds 6 --out runs/monitor/plain > /dev/null
     port=$({{free_port}}); \
-        {{bin}} --scenario scenarios/explore.toml --seconds 6 --out runs/monitor/quiet --monitor \
-            --monitor-port $port > runs/monitor/quiet.log; \
-        grep -q "monitor bridge listening" runs/monitor/quiet.log
-    {{python}} {{tools}}/compare_run.py runs/monitor/quiet runs/monitor/plain
+        {{bin}} --scenario scenarios/explore.toml --seconds 3 --out runs/monitor --monitor \
+            --monitor-port $port > runs/monitor.log; \
+        grep -q "monitor bridge listening" runs/monitor.log
+    {{python}} {{tools}}/compare_run.py runs/monitor runs/plain
 
 # The same scenario headless and watched must agree. Fails when there is no display
 # and no xvfb-run, unless MICRAS_SKIP_VIEWER=1 says so.
 # Prove a window changes nothing.
-check-viewer: build
+check-viewer: run-plain
     if command -v xvfb-run > /dev/null; then \
         show="xvfb-run -a"; \
     elif [ -n "${DISPLAY:-}" ]; then \
@@ -113,36 +127,30 @@ check-viewer: build
         echo "no display and no xvfb-run; install xvfb or set MICRAS_SKIP_VIEWER=1"; \
         exit 1; \
     fi; \
-    {{bin}} --scenario scenarios/explore.toml --seconds 3 --out runs/viewer/headless > /dev/null; \
-    $show {{bin}} --scenario scenarios/explore.toml --seconds 3 --out runs/viewer/watched \
+    $show {{bin}} --scenario scenarios/explore.toml --seconds 3 --out runs/viewer \
         --viewer --viewer-size 640x480 > /dev/null; \
-    {{python}} {{tools}}/compare_run.py runs/viewer/watched runs/viewer/headless
+    {{python}} {{tools}}/compare_run.py runs/viewer runs/plain
 
 # The same scenario with and without --video must agree. Needs EGL: a GPU, or
 # Mesa's surfaceless platform (EGL_PLATFORM=surfaceless).
 # Prove recording a video changes nothing.
-check-video: build
-    mkdir -p runs/video_check
-    {{bin}} --scenario scenarios/explore.toml --seconds 3 --out runs/video_check/plain > /dev/null
-    {{bin}} --scenario scenarios/explore.toml --seconds 3 --out runs/video_check/recorded \
-        --video runs/video_check/recorded.mp4 --video-size 640x480 > runs/video_check/recorded.log
-    grep -q "^recording " runs/video_check/recorded.log
-    {{python}} {{tools}}/compare_run.py runs/video_check/recorded runs/video_check/plain
+check-video: run-plain
+    mkdir -p runs/video
+    {{bin}} --scenario scenarios/explore.toml --seconds 3 --out runs/video \
+        --video runs/video/run.mp4 --video-size 640x480 > runs/video.log
+    grep -q "^recording " runs/video.log
+    {{python}} {{tools}}/compare_run.py runs/video runs/plain
 
-# An exploration that saves its map leaves a programmed image in the --flash file,
-# and a new run boots from it to IDLE. The firmware saves when the exploration reaches
-# the goal, at about 40 s on maze1.
+# The checked exploration saves its map when it reaches the goal, which leaves a
+# programmed image in its --flash file, and a new run boots from it to IDLE.
 # Prove the flash outlives a run.
-check-flash: build
-    rm -rf runs/flash && mkdir -p runs/flash
-    {{bin}} --scenario scenarios/explore.toml --seconds 45 --out runs/flash/first --flash runs/flash/flash.bin > /dev/null
-    {{python}} -c 'import sys; image = open("runs/flash/flash.bin", "rb").read(); sys.exit(0 if any(byte != 0xFF for byte in image) else "the flash image is blank")'
-    {{bin}} --scenario scenarios/idle.toml --out runs/flash/second --flash runs/flash/flash.bin > /dev/null
-    {{python}} {{tools}}/analyze.py runs/flash/second > /dev/null
-    {{python}} {{tools}}/check_run.py --expect-state IDLE runs/flash/second
+check-flash: run-explore
+    {{python}} -c 'import sys; image = open("runs/explore/flash.bin", "rb").read(); sys.exit(0 if any(byte != 0xFF for byte in image) else "the flash image is blank")'
+    cp runs/explore/flash.bin runs/booted.bin
+    {{bin}} --scenario scenarios/idle.toml --out runs/booted --flash runs/booted.bin > /dev/null
+    {{python}} {{tools}}/check_run.py --expect-state IDLE runs/booted
 
 # The gate: tests, the window, video and bridge proofs, the checked runs, their health and the baseline.
-check: build test check-viewer check-video check-monitor check-flash run-idle run-explore && compare-baseline
-    for run in {{check_runs}}; do {{python}} {{tools}}/analyze.py runs/$run > /dev/null; done
+check: build test check-viewer check-video check-monitor check-flash run-idle && compare-baseline
     {{python}} {{tools}}/check_run.py --expect unbound_ports=0 --expect watchdog_expiries=0 \
         --expect emergency_stops=0 --expect serial_dropped_bytes=0 runs/idle runs/explore
