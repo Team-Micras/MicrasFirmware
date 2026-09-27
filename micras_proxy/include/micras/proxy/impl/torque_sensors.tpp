@@ -28,6 +28,8 @@ void TTorqueSensors<num_of_sensors>::calibrate() {
 
 template <uint8_t num_of_sensors>
 void TTorqueSensors<num_of_sensors>::update() {
+    this->adc.recover();
+
     for (uint8_t i = 0; i < num_of_sensors; i++) {
         this->filters.at(i).update(this->get_adc_reading(i));
     }

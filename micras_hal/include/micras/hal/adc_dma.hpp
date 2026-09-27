@@ -32,6 +32,9 @@ public:
     /**
      * @brief Construct a new AdcDma object.
      *
+     * @note The object registers itself for the interrupts to find it, and a converter that finds
+     * no free place is not initialized.
+     *
      * @param config ADC DMA configuration struct.
      */
     explicit AdcDma(const Config& config);
@@ -101,6 +104,23 @@ public:
     void stop_dma();
 
     /**
+     * @brief Restart the conversions if an error stopped them.
+     *
+     * @details After an overrun the converter stops requesting transfers until its overrun flag is
+     * cleared, and clearing only the flag would leave one conversion missing and every following
+     * value in the place of another channel. A restart begins the buffer again at its first
+     * channel. The error callback only marks the converter, since stopping and starting it waits on
+     * the hardware, and this restarts it outside the interrupt. A transfer error of the DMA calls
+     * the error callback too, and leaves the vendor HAL in an error state that only a new
+     * initialization clears and that turns every complete transfer into another error, so that
+     * state is cleared before the start.
+     *
+     * @note To be called once per iteration by the owner of the converter. No sequence completes
+     * until then, so read_snapshot reports none as new.
+     */
+    void recover();
+
+    /**
      * @brief Get the maximum reading of the ADC.
      *
      * @return Maximum reading of the ADC.
@@ -125,7 +145,16 @@ public:
     bool was_initialized() const;
 
     /**
-     * @brief Copy the buffer of the converter that completed a sequence to its snapshot.
+     * @brief Get the number of times any converter was restarted.
+     *
+     * @note Anything but zero means that a converter stopped, and how often.
+     *
+     * @return Number of restarts since power on.
+     */
+    static uint32_t get_restarts();
+
+    /**
+     * @brief Count a complete sequence of a converter and copy its buffer to its snapshot.
      *
      * @note To be called by the conversion complete callback only.
      *
@@ -133,16 +162,38 @@ public:
      */
     static void on_sequence_complete(const ADC_HandleTypeDef* handle);
 
+    /**
+     * @brief Mark a converter that an error stopped, for recover to restart it.
+     *
+     * @note To be called by the error callback only.
+     *
+     * @param handle Handle of the converter that stopped.
+     */
+    static void on_error(const ADC_HandleTypeDef* handle);
+
 private:
     /**
-     * @brief Largest number of converters that can keep a snapshot.
+     * @brief Find the object of a converter.
+     *
+     * @param handle Handle of the converter.
+     * @return Object of the converter, or nullptr if none was constructed for it.
+     */
+    static AdcDma* find(const ADC_HandleTypeDef* handle);
+
+    /**
+     * @brief Largest number of converters.
      */
     static constexpr uint8_t max_instances{4};
 
     /**
-     * @brief Converters that keep a snapshot, for the interrupt to find the one that completed.
+     * @brief Every converter, for the interrupts to find the one that completed or stopped.
      */
     static std::array<AdcDma*, max_instances> instances;
+
+    /**
+     * @brief Number of times any converter was restarted.
+     */
+    static uint32_t restarts;
 
     /**
      * @brief Maximum ADC reading.
@@ -160,7 +211,12 @@ private:
     ADC_HandleTypeDef* handle;
 
     /**
-     * @brief Destination buffer of the DMA.
+     * @brief Destination of the DMA as the vendor HAL takes it, whose size is the number of transfers.
+     */
+    std::span<uint32_t> transfer;
+
+    /**
+     * @brief Destination buffer of the DMA, of a converter that keeps a snapshot.
      */
     std::span<uint16_t> buffer;
 
@@ -173,6 +229,11 @@ private:
      * @brief Number of sequences completed so far.
      */
     volatile uint32_t sequence{};
+
+    /**
+     * @brief Flag set by the error callback when an error stopped the converter.
+     */
+    volatile bool stopped{};
 
     /**
      * @brief Flag to check if the ADC was calibrated and started.

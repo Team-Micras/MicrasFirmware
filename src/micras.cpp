@@ -13,6 +13,7 @@
 #include "micras/comm/link.hpp"
 #include "micras/core/types.hpp"
 #include "micras/core/variable_pool.hpp"
+#include "micras/hal/adc_dma.hpp"
 #include "micras/hal/mcu.hpp"
 #include "micras/interface.hpp"
 #include "micras/micras.hpp"
@@ -74,6 +75,7 @@ void Micras::register_variables() {
     this->variables.add("imu/", "accel_y", this->telemetry.linear_acceleration.at(1), {.stream = true});
     this->variables.add("imu/", "accel_z", this->telemetry.linear_acceleration.at(2), {.stream = true});
     this->variables.add("", "battery_voltage", this->telemetry.battery_voltage, {.stream = true});
+    this->variables.add("", "adc_restarts", this->telemetry.adc_restarts, {});
 
     this->variables.add("loop/", "elapsed_time", this->elapsed_time, {.stream = true});
     this->variables.add("loop/", "worst_time_us", this->worst_loop_time_us, {.stream = true});
@@ -443,6 +445,7 @@ void Micras::publish() {
     };
 
     this->telemetry.battery_voltage = this->battery.get_voltage();
+    this->telemetry.adc_restarts = hal::AdcDma::get_restarts();
 
     this->telemetry.gyroscope_bias = this->localizer.get_gyroscope_bias();
     this->telemetry.position_deviation = this->localizer.get_position_deviation();

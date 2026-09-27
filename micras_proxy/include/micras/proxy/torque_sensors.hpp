@@ -46,6 +46,8 @@ public:
 
     /**
      * @brief Update the torque sensors readings.
+     *
+     * @note Restarts the converter first if an error stopped it.
      */
     void update();
 

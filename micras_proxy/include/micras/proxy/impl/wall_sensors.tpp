@@ -115,6 +115,8 @@ void TWallSensors<num_of_sensors>::turn_off() {
 
 template <uint8_t num_of_sensors>
 void TWallSensors<num_of_sensors>::update() {
+    this->adc.recover();
+
     const uint32_t current_sequence = this->adc.read_snapshot(this->scans);
     const bool     is_new = current_sequence != this->sequence;
 

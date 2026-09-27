@@ -101,7 +101,8 @@ public:
      * @brief Update the wall sensors readings.
      *
      * @note Nothing is recomputed unless the converter completed a sequence since the last call,
-     * so this can be called faster than the sensors produce values.
+     * so this can be called faster than the sensors produce values. Restarts the converter first if
+     * an error stopped it.
      */
     void update();
 

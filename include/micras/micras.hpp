@@ -301,12 +301,14 @@ private:
      * @note Some of what is worth watching is computed on the way out of its owner: the battery is
      * scaled into volts, the deviations of the estimate come out of its covariance. Publishing means
      * copying those into somewhere that stays put. The route time is zero while no route is planned.
-     * The results of the maintenance procedures are copied once, when a procedure ends.
+     * The restarts of the converters are counted by the HAL, in a static member. The results of the
+     * maintenance procedures are copied once, when a procedure ends.
      */
     struct Telemetry {
         std::array<float, 3>                           angular_velocity{};
         std::array<float, 3>                           linear_acceleration{};
         float                                          battery_voltage{};
+        uint32_t                                       adc_restarts{};
         float                                          gyroscope_bias{};
         float                                          position_deviation{};
         float                                          orientation_deviation{};
