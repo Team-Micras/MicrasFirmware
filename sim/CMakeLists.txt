@@ -34,6 +34,7 @@ file(GLOB MICRAS_FIRMWARE_SOURCES CONFIGURE_DEPENDS
     "${MICRAS_FIRMWARE_DIR}/micras_proxy/src/*.cpp"
     "${MICRAS_FIRMWARE_DIR}/src/*.cpp"
     "${MICRAS_FIRMWARE_DIR}/src/states/*.cpp"
+    "${MICRAS_FIRMWARE_DIR}/config/*.cpp"
 )
 list(REMOVE_ITEM MICRAS_FIRMWARE_SOURCES
     "${MICRAS_FIRMWARE_DIR}/micras_proxy/src/imu.cpp"
