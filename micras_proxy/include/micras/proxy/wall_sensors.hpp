@@ -74,12 +74,15 @@ public:
      *
      * @note The fast distance is for everything that is a position and the slow one for deciding
      * whether there is a wall. The reading is valid when the sensor sees anything above its noise,
-     * and it is new for a single update after the sensor produces a value. It is blind when ambient
-     * light saturates the receiver, and then says nothing about a wall.
+     * and it is new for a single update after the sensor produces a value. The dark reading is the
+     * one taken with the emitter off, as a fraction of the full scale, which is the ambient light
+     * the receiver sees. The reading is blind when that light saturates the receiver, and then says
+     * nothing about a wall.
      */
     struct Reading {
         float distance;
         float slow_distance;
+        float dark;
         bool  valid;
         bool  blind;
         bool  is_new;

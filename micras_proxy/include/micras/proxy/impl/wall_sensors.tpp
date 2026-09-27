@@ -138,7 +138,8 @@ void TWallSensors<num_of_sensors>::update() {
                                    this->max_distance;
 
         reading.valid = distance < this->max_distance;
-        reading.blind = this->get_dark_reading(i) >= this->blind_reading;
+        reading.dark = this->get_dark_reading(i);
+        reading.blind = reading.dark >= this->blind_reading;
         reading.distance = this->fast_filters.at(i).update(std::min(distance, this->max_distance));
         reading.slow_distance = this->slow_filters.at(i).update(std::min(distance, this->max_distance));
 

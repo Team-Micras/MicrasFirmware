@@ -42,9 +42,10 @@ public:
      * @brief Construct a new Speed Profile object.
      *
      * @note Speeds that the distance does not allow are not an error. A start speed too high to
-     * brake from is braked harder than the limit, and an end speed that cannot be reached leaves
-     * the motion accelerating all the way, so the profile always covers exactly the distance. It is
-     * the velocity planner that keeps the speeds it asks for feasible.
+     * brake from is braked harder than the limit, the tires and the motors alike by the same
+     * factor, and an end speed that cannot be reached leaves the motion accelerating all the way,
+     * so the profile always covers exactly the distance. It is the velocity planner that keeps the
+     * speeds it asks for feasible.
      *
      * @param distance The distance to cover, which must not be negative.
      * @param start_speed The speed at the start.
@@ -138,6 +139,14 @@ private:
     static constexpr uint8_t number_of_phases{5};
 
     /**
+     * @brief Newton steps that find the speed that can be braked from where the motors limit it.
+     *
+     * @note The braking distance grows faster the higher the speed there, so the steps, started
+     * from the crossover above the answer, close in on it from above without overshooting.
+     */
+    static constexpr uint8_t newton_steps{8};
+
+    /**
      * @brief Get the distance needed to accelerate between two speeds.
      *
      * @param start_speed The speed at the start.
@@ -146,6 +155,15 @@ private:
      * @return The distance covered while accelerating as hard as the limits allow.
      */
     static float get_acceleration_distance(float start_speed, float end_speed, const MotionLimits& limits);
+
+    /**
+     * @brief Append the phases that brake between two speeds as hard as the limits allow.
+     *
+     * @param start_speed The speed at the start of the braking.
+     * @param end_speed The speed at its end, not higher than the start.
+     * @param limits The limits of the motion.
+     */
+    void append_braking(float start_speed, float end_speed, const MotionLimits& limits);
 
     /**
      * @brief Append a phase, advancing the state of the motion to its end.

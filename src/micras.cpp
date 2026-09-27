@@ -71,6 +71,10 @@ void Micras::register_variables() {
         this->variables.add("wall/", sensor_names.at(i), this->wall_sensors.get_reading(i).distance, {.stream = true});
     }
 
+    for (uint8_t i = 0; i < nav::number_of_wall_sensors; i++) {
+        this->variables.add("wall_dark/", sensor_names.at(i), this->wall_sensors.get_reading(i).dark, {.stream = true});
+    }
+
     this->variables.add("imu/", "gyro_x", this->telemetry.angular_velocity.at(0), {.stream = true});
     this->variables.add("imu/", "gyro_y", this->telemetry.angular_velocity.at(1), {.stream = true});
     this->variables.add("imu/", "gyro_z", this->telemetry.angular_velocity.at(2), {.stream = true});
