@@ -10,7 +10,6 @@
 #include <cstddef>
 #include <span>
 
-#include "micras/nav/curve_speed.hpp"
 #include "micras/nav/motion_limits.hpp"
 #include "micras/nav/turn_table.hpp"
 

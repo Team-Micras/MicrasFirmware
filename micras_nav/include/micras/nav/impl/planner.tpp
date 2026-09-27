@@ -336,10 +336,10 @@ float TPlanner<width, height>::get_offset(uint8_t arrival) const {
 template <uint8_t width, uint8_t height>
 TPlanner<width, height>::Edge
     TPlanner<width, height>::get_edge(uint8_t arrival, uint8_t speed_ratio, uint8_t run, TurnId turn) {
-    const bool    at_full_speed = arrival == rest or speed_ratio == full_speed;
-    const int16_t pair = edge_pairs.index.at(arrival).at(std::to_underlying(turn));
-    float&        cached_cost = this->edge_costs.at(pair).at(run);
-    uint8_t&      cached_speed_ratio = this->edge_speed_ratios.at(pair).at(run);
+    const bool at_full_speed = arrival == rest or speed_ratio == full_speed;
+    const auto pair = static_cast<std::size_t>(edge_pairs.index.at(arrival).at(std::to_underlying(turn)));
+    float&     cached_cost = this->edge_costs.at(pair).at(run);
+    uint8_t&   cached_speed_ratio = this->edge_speed_ratios.at(pair).at(run);
 
     if (at_full_speed and cached_cost >= 0.0F) {
         return {.cost = cached_cost, .speed_ratio = cached_speed_ratio};

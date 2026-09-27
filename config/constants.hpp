@@ -316,7 +316,7 @@ constexpr float voltage_reserve{0.15F};
 /**
  * @brief Configuration of the dynamics, with the shape of every turn.
  *
- * @note Defined in dynamics_config.cpp, the one source that designs the turns.
+ * @note Defined in config/dynamics_config.cpp, the one source that designs the turns.
  */
 extern const nav::Dynamics::Config dynamics_config;
 

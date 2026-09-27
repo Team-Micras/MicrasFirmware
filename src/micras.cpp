@@ -12,6 +12,7 @@
 #include "constants.hpp"
 #include "micras/comm/link.hpp"
 #include "micras/core/types.hpp"
+#include "micras/core/variable_pool.hpp"
 #include "micras/hal/mcu.hpp"
 #include "micras/interface.hpp"
 #include "micras/micras.hpp"

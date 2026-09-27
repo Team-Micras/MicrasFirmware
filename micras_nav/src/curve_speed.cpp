@@ -6,6 +6,7 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <iterator>
 #include <span>
 
 #include "micras/nav/curve_speed.hpp"
@@ -109,10 +110,12 @@ void CurveSpeed::integrate(std::span<const float> speeds, float spacing, std::sp
         return;
     }
 
-    times[0] = 0.0F;
+    times.front() = 0.0F;
 
-    for (std::size_t i = 1; i < times.size(); i++) {
-        times[i] = times[i - 1] + 2.0F * spacing / std::max(speeds[i - 1] + speeds[i], min_speed_sum);
+    auto speed = speeds.begin();
+
+    for (auto time = times.begin(); std::next(time) != times.end(); ++time, ++speed) {
+        *std::next(time) = *time + 2.0F * spacing / std::max(*speed + *std::next(speed), min_speed_sum);
     }
 }
 
@@ -128,10 +131,12 @@ SpeedProfile::Sample
     std::size_t index = next == times.begin() ? 0 : static_cast<std::size_t>(next - times.begin()) - 1;
     index = std::min(index, times.size() - 2);
 
-    const float start = speeds[index];
-    const float end = speeds[index + 1];
-    const float acceleration = (end * end - start * start) / (2.0F * spacing);
-    const float elapsed = std::min(time - times[index], times[index + 1] - times[index]);
+    const std::span<const float> interval_speeds = speeds.subspan(index, 2);
+    const std::span<const float> interval_times = times.subspan(index, 2);
+    const float                  start = interval_speeds.front();
+    const float                  end = interval_speeds.back();
+    const float                  acceleration = (end * end - start * start) / (2.0F * spacing);
+    const float elapsed = std::min(time - interval_times.front(), interval_times.back() - interval_times.front());
 
     return {
         .distance = static_cast<float>(index) * spacing +

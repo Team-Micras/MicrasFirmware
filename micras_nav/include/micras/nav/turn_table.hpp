@@ -9,6 +9,7 @@
 #include <array>
 #include <concepts>
 #include <cstdint>
+#include <iterator>
 #include <numbers>
 #include <utility>
 
@@ -358,7 +359,7 @@ public:
             this->shapes.at(i) = designer.design(static_cast<TurnId>(i));
         }
 
-        std::ranges::copy(two_bend_shapes, this->shapes.begin() + first_two_bend_turn);
+        std::ranges::copy(two_bend_shapes, std::next(this->shapes.begin(), first_two_bend_turn));
     }
 
     /**
@@ -529,8 +530,8 @@ private:
             }
 
             const Layout layout = this->get_layout(get_primitive(turn));
-            const double total = shape.total_length();
-            const auto   samples = static_cast<uint16_t>(total / sample_spacing) + 2;
+            const auto   total = static_cast<double>(shape.total_length());
+            const auto   samples = static_cast<uint16_t>((total / sample_spacing) + 2.0);
 
             for (uint16_t i = 0; i < samples; i++) {
                 if (not this->is_clear(get_placement(shape, layout, total * i / (samples - 1)), layout)) {
@@ -561,19 +562,22 @@ private:
                 return {};
             }
 
-            const double first_angle = design.first_angle;
-            const double second_angle = design.second_angle;
+            const auto   first_angle = static_cast<double>(design.first_angle);
+            const auto   second_angle = static_cast<double>(design.second_angle);
             const double turned = (first_angle + second_angle) / (std::numbers::pi / 4.0) - primitive.rotation;
             const double revolutions = turned / 8.0;
-            const double rounded = revolutions < 0.0 ? -static_cast<double>(static_cast<int32_t>(0.5 - revolutions)) :
-                                                       static_cast<double>(static_cast<int32_t>(revolutions + 0.5));
+            // NOLINTNEXTLINE(bugprone-incorrect-roundings) lround is not constexpr, and the value is positive
+            const auto   whole = static_cast<double>(static_cast<int32_t>(core::math::abs(revolutions) + 0.5));
+            const double rounded = revolutions < 0.0 ? -whole : whole;
 
             if (core::math::abs(turned - 8.0 * rounded) > 1.0e-4) {
                 return {};
             }
 
-            const Candidate first = this->make_curve(core::math::abs(first_angle), design.first_curvature);
-            const Candidate second = this->make_curve(core::math::abs(second_angle), design.second_curvature);
+            const Candidate first =
+                this->make_curve(core::math::abs(first_angle), static_cast<double>(design.first_curvature));
+            const Candidate second =
+                this->make_curve(core::math::abs(second_angle), static_cast<double>(design.second_curvature));
 
             TurnShape shape{};
             shape.bends.at(0) = to_bend(first, first_angle);
@@ -597,11 +601,11 @@ private:
             const auto   first_end = shape.bends.at(0).template sample<double>(1.0e3);
             const auto   second_end = shape.bends.at(1).template sample<double>(1.0e3);
             const double remaining_x =
-                layout.exit_x - shape.pre * core::math::cos(entry) -
+                layout.exit_x - static_cast<double>(shape.pre) * core::math::cos(entry) -
                 (core::math::cos(entry) * first_end.x - core::math::sin(entry) * first_end.y) -
                 (core::math::cos(middle) * second_end.x - core::math::sin(middle) * second_end.y);
             const double remaining_y =
-                layout.exit_y - shape.pre * core::math::sin(entry) -
+                layout.exit_y - static_cast<double>(shape.pre) * core::math::sin(entry) -
                 (core::math::sin(entry) * first_end.x + core::math::cos(entry) * first_end.y) -
                 (core::math::sin(middle) * second_end.x + core::math::cos(middle) * second_end.y);
 
@@ -823,8 +827,8 @@ private:
         static constexpr Placement get_placement(const TurnShape& shape, const Layout& layout, double distance) {
             const double cosine = core::math::cos(layout.entry_heading);
             const double sine = core::math::sin(layout.entry_heading);
-            const double pre = shape.pre;
-            const double length = shape.length();
+            const auto   pre = static_cast<double>(shape.pre);
+            const auto   length = static_cast<double>(shape.length());
 
             double local_x = distance;
             double local_y = 0.0;

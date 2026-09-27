@@ -304,7 +304,10 @@ void TRacingLine<width, height>::solve_window() {
                 continue;
             }
 
-            for (int32_t k = std::max<int32_t>(j - 4, 0); k <= std::min<int32_t>(j + 2, size - 1); k++) {
+            const auto from = static_cast<std::size_t>(std::max(j - 4, 0));
+            const auto to = static_cast<std::size_t>(std::min(j + 2, size - 1));
+
+            for (std::size_t k = from; k <= to; k++) {
                 this->slides.at(k) *= 0.5;
             }
         }
@@ -532,10 +535,10 @@ float TRacingLine<width, height>::get_heading(uint16_t index) const {
 
 template <uint8_t width, uint8_t height>
 void TRacingLine<width, height>::solve_slides(std::span<const double> normals_x, std::span<const double> normals_y) {
-    const uint16_t first = this->window_start;
-    const auto     size = static_cast<int32_t>(normals_x.size());
-    const double   length_weight = static_cast<double>(this->config.length_weight) *
-                                   static_cast<double>(this->line.spacing) * static_cast<double>(this->line.spacing);
+    const uint16_t    first = this->window_start;
+    const std::size_t size = normals_x.size();
+    const double      length_weight = static_cast<double>(this->config.length_weight) *
+                                      static_cast<double>(this->line.spacing) * static_cast<double>(this->line.spacing);
 
     this->diagonal.fill(0.0);
     this->first_band.fill(0.0);
@@ -553,16 +556,18 @@ void TRacingLine<width, height>::solve_slides(std::span<const double> normals_x,
         }
 
         for (std::size_t k = 0; k < weights.size(); k++) {
-            const int32_t j = row + static_cast<int32_t>(k) - first;
+            const int32_t offset = row + static_cast<int32_t>(k) - first;
 
-            if (j < 0 or j >= size) {
+            if (offset < 0 or static_cast<std::size_t>(offset) >= size) {
                 continue;
             }
+
+            const auto j = static_cast<std::size_t>(offset);
 
             this->linear.at(j) += scale * weights[k] * (base_x * normals_x[j] + base_y * normals_y[j]);
 
             for (std::size_t l = k; l < weights.size(); l++) {
-                const int32_t m = row + static_cast<int32_t>(l) - first;
+                const std::size_t m = j + (l - k);
 
                 if (m >= size) {
                     continue;
@@ -585,15 +590,17 @@ void TRacingLine<width, height>::solve_slides(std::span<const double> normals_x,
     constexpr std::array<double, 3> second_difference{1.0, -2.0, 1.0};
     constexpr std::array<double, 2> first_difference{-1.0, 1.0};
 
-    for (int32_t row = first - 2; row <= first + size - 1; row++) {
+    const auto last_row = static_cast<int32_t>(first + size - 1);
+
+    for (int32_t row = first - 2; row <= last_row; row++) {
         add_row(row, second_difference, 1.0);
     }
 
-    for (int32_t row = first - 1; row <= first + size - 1; row++) {
+    for (int32_t row = first - 1; row <= last_row; row++) {
         add_row(row, first_difference, length_weight);
     }
 
-    const auto product = [this, size](int32_t j, std::span<const double> values) {
+    const auto product = [this, size](std::size_t j, std::span<const double> values) {
         double result = this->diagonal.at(j) * values[j];
 
         if (j + 1 < size) {
@@ -618,14 +625,14 @@ void TRacingLine<width, height>::solve_slides(std::span<const double> normals_x,
     const auto objective = [&](std::span<const double> values) {
         double result = 0.0;
 
-        for (int32_t j = 0; j < size; j++) {
+        for (std::size_t j = 0; j < size; j++) {
             result += values[j] * (product(j, values) + 2.0 * this->linear.at(j));
         }
 
         return result;
     };
 
-    const auto coupling = [this](int32_t from, int32_t to) {
+    const auto coupling = [this](std::size_t from, std::size_t to) {
         if (to - from == 1) {
             return this->first_band.at(from);
         }
@@ -635,18 +642,18 @@ void TRacingLine<width, height>::solve_slides(std::span<const double> normals_x,
 
     this->slides.fill(0.0);
 
-    const std::span<const double> current{this->slides.data(), static_cast<std::size_t>(size)};
-    const std::span<const double> candidate{this->trial.data(), static_cast<std::size_t>(size)};
+    const std::span<const double> current{this->slides.data(), size};
+    const std::span<const double> candidate{this->trial.data(), size};
 
     double value = 0.0;
 
     for (uint8_t iteration = 0; iteration < max_newton_iterations; iteration++) {
         uint8_t free = 0;
 
-        for (int32_t j = 0; j < size; j++) {
+        for (std::size_t j = 0; j < size; j++) {
             const double slope = product(j, current) + this->linear.at(j);
-            const double low = this->lower.at(j);
-            const double high = this->upper.at(j);
+            const auto   low = static_cast<double>(this->lower.at(j));
+            const auto   high = static_cast<double>(this->upper.at(j));
 
             this->gradient.at(j) = slope;
             this->direction.at(j) = 0.0;
@@ -707,7 +714,7 @@ void TRacingLine<width, height>::solve_slides(std::span<const double> normals_x,
             this->trial.at(c) = result;
         }
 
-        for (int32_t c = free - 1; c >= 0; c--) {
+        for (std::size_t c = free; c-- > 0;) {
             double result = this->trial.at(c) / this->factor_diagonal.at(c);
 
             if (c + 1 < free) {
@@ -729,7 +736,7 @@ void TRacingLine<width, height>::solve_slides(std::span<const double> normals_x,
             double decrease = 0.0;
             moved = 0.0;
 
-            for (int32_t j = 0; j < size; j++) {
+            for (std::size_t j = 0; j < size; j++) {
                 this->trial.at(j) = std::clamp(
                     this->slides.at(j) + step * this->direction.at(j), static_cast<double>(this->lower.at(j)),
                     static_cast<double>(this->upper.at(j))
@@ -766,8 +773,8 @@ bool TRacingLine<width, height>::is_clear(const core::Vector& position, float co
     const float half_cell = cell_size / 2.0F;
     const float half_wall = this->dynamics.get_model().maze.wall_thickness / 2.0F;
 
-    const auto post_x = static_cast<int32_t>(2 * std::lround(position.x / cell_size));
-    const auto post_y = static_cast<int32_t>(2 * std::lround(position.y / cell_size));
+    const int32_t post_x = 2 * static_cast<int32_t>(std::round(position.x / cell_size));
+    const int32_t post_y = 2 * static_cast<int32_t>(std::round(position.y / cell_size));
 
     const core::Vector post{.x = static_cast<float>(post_x) * half_cell, .y = static_cast<float>(post_y) * half_cell};
 

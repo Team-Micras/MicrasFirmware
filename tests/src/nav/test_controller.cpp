@@ -9,6 +9,7 @@
 #include "micras/nav/controller.hpp"
 #include "micras/nav/executor.hpp"
 #include "micras/nav/lattice.hpp"
+#include "micras/nav/line.hpp"
 #include "micras/nav/localizer.hpp"
 #include "micras/nav/measurements.hpp"
 #include "micras/nav/motion_limits.hpp"
@@ -55,10 +56,11 @@ int main(int argc, char* argv[]) {
     const proxy::RotarySensor rotary_sensor_right{rotary_sensor_right_config};
     proxy::Tick               tick{tick_config};
 
-    const nav::Dynamics dynamics{dynamics_config};
-    nav::Localizer      localizer{localizer_config};
-    nav::Controller     controller{controller_config};
-    nav::Executor       executor{dynamics, mission_config.executor};
+    const nav::Dynamics    dynamics{dynamics_config};
+    nav::Localizer         localizer{localizer_config};
+    nav::Controller        controller{controller_config};
+    static const nav::Line line{};
+    nav::Executor          executor{dynamics, line, mission_config.executor};
 
     const float       distance = 3.0F * robot_model.maze.cell_size;
     const nav::Pose   origin{.position = {.x = 0.0F, .y = 0.0F}, .orientation = 0.0F};
@@ -72,35 +74,30 @@ int main(int argc, char* argv[]) {
          .length = distance,
          .start_speed = 0.0F,
          .end_speed = 0.0F,
-         .max_speed = 0.0F,
          .start = origin},
         {.kind = nav::SegmentKind::STOP,
          .turn = unused,
          .length = 0.2F,
          .start_speed = 0.0F,
          .end_speed = 0.0F,
-         .max_speed = 0.0F,
          .start = far_end},
         {.kind = nav::SegmentKind::SPIN,
          .turn = unused,
          .length = std::numbers::pi_v<float>,
          .start_speed = 0.0F,
          .end_speed = 0.0F,
-         .max_speed = 0.0F,
          .start = far_end},
         {.kind = nav::SegmentKind::STOP,
          .turn = unused,
          .length = 0.2F,
          .start_speed = 0.0F,
          .end_speed = 0.0F,
-         .max_speed = 0.0F,
          .start = turned},
         {.kind = nav::SegmentKind::STRAIGHT,
          .turn = unused,
          .length = distance,
          .start_speed = 0.0F,
          .end_speed = 0.0F,
-         .max_speed = 0.0F,
          .start = turned},
     }};
 

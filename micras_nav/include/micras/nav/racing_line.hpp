@@ -349,7 +349,7 @@ private:
     /**
      * @brief Walls the line may cross, one bit per point of the lattice.
      */
-    std::array<uint8_t, (lattice_width * lattice_height + 7) / 8> openings{};
+    std::array<uint8_t, ((static_cast<std::size_t>(lattice_width) * lattice_height) + 7) / 8> openings{};
 
     /**
      * @brief Map of the walls, while the line is optimized.
