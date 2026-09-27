@@ -138,9 +138,13 @@ public:
     Maintenance get_maintenance() const;
 
     /**
-     * @brief Get the robot ready to move: sensors on, and the fan too if the run uses it.
+     * @brief Get the robot ready to move: sensors on, and the fan too if what follows uses it.
+     *
+     * @note A fast run and a maintenance procedure run the fan when its switch is on, a search never.
+     *
+     * @param run Whether a run follows, rather than a maintenance procedure.
      */
-    void prepare();
+    void prepare(bool run);
 
     /**
      * @brief Check if what prepare started is ready.
@@ -292,16 +296,32 @@ public:
 
 private:
     /**
-     * @brief Values published over the link that no object holds at a stable address.
+     * @brief Values in the variable pool that no object holds at a stable address.
      *
-     * @note Most of what is worth watching is computed on the way out of its sensor: the yaw rate
-     * has the calibration subtracted from it, the battery is scaled into volts. Publishing means
-     * copying those into somewhere that stays put.
+     * @note Some of what is worth watching is computed on the way out of its owner: the battery is
+     * scaled into volts, the deviations of the estimate come out of its covariance. Publishing means
+     * copying those into somewhere that stays put. The route time is zero while no route is planned.
+     * The results of the maintenance procedures are copied once, when a procedure ends.
      */
     struct Telemetry {
-        std::array<float, 3> angular_velocity{};
-        std::array<float, 3> linear_acceleration{};
-        float                battery_voltage{};
+        std::array<float, 3>                           angular_velocity{};
+        std::array<float, 3>                           linear_acceleration{};
+        float                                          battery_voltage{};
+        float                                          gyroscope_bias{};
+        float                                          position_deviation{};
+        float                                          orientation_deviation{};
+        float                                          route_time{};
+        std::array<float, nav::number_of_wall_sensors> wall_reference_readings{};
+        std::array<float, nav::number_of_wall_sensors> wall_calibration_spreads{};
+        bool                                           identification_valid{};
+        float                                          breakaway_voltage{};
+        nav::DriveIdentification::Axis                 linear_drive{};
+        nav::DriveIdentification::Axis                 angular_drive{};
+        float                                          torque_constant{};
+        float                                          resistance{};
+        float                                          yaw_inertia{};
+        bool                                           gyroscope_scale_valid{};
+        float                                          gyroscope_scale{};
     };
 
     /**
@@ -354,7 +374,7 @@ private:
     void follow(const nav::Reference& reference);
 
     /**
-     * @brief Copy what is worth watching to the variables a monitor can read and to the telemetry.
+     * @brief Copy what is worth watching and has no stable address to the telemetry.
      */
     void publish();
 

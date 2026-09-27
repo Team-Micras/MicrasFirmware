@@ -15,7 +15,7 @@ WaitState::WaitState(State id, Micras& micras, State next_state, uint16_t wait_t
 
 void WaitState::on_entry() {
     this->wait_stopwatch.reset_ms();
-    this->micras.prepare();
+    this->micras.prepare(this->next_state_id == std::to_underlying(State::RUN));
 }
 
 uint8_t WaitState::execute() {

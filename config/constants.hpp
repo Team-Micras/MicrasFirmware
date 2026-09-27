@@ -32,7 +32,7 @@ namespace micras {
 constexpr uint8_t  maze_width{16};
 constexpr uint8_t  maze_height{16};
 constexpr uint32_t loop_time_us{125};
-constexpr uint8_t  max_variables{64};
+constexpr uint8_t  max_variables{96};
 
 /**
  * @brief Size of the buffer the radio receives into.

@@ -27,61 +27,6 @@
 #include "micras/states/base.hpp"
 #include "target.hpp"
 
-// NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
-static volatile float    monitor_pose_x;
-static volatile float    monitor_pose_y;
-static volatile float    monitor_pose_orientation;
-static volatile float    monitor_linear_speed;
-static volatile float    monitor_angular_speed;
-static volatile float    monitor_gyroscope_bias;
-static volatile float    monitor_position_deviation;
-static volatile float    monitor_orientation_deviation;
-static volatile float    monitor_innovation_level;
-static volatile uint32_t monitor_corrections_accepted;
-static volatile uint32_t monitor_corrections_rejected;
-static volatile uint32_t monitor_edges_used;
-
-static volatile float monitor_reference_x;
-static volatile float monitor_reference_y;
-static volatile float monitor_reference_orientation;
-static volatile float monitor_reference_linear_speed;
-static volatile float monitor_reference_angular_speed;
-static volatile float monitor_along_error;
-static volatile float monitor_across_error;
-static volatile float monitor_orientation_error;
-static volatile float monitor_forward_feed_forward;
-static volatile float monitor_rotation_feed_forward;
-static volatile float monitor_forward_feedback;
-static volatile float monitor_rotation_feedback;
-
-// NOLINTBEGIN(*-avoid-c-arrays) a volatile std::array cannot be written to
-static volatile float monitor_wall_distances[4];
-static volatile float monitor_wall_reference_readings[4];
-static volatile float monitor_wall_calibration_spreads[4];
-// NOLINTEND(*-avoid-c-arrays)
-
-static volatile uint32_t monitor_worst_loop_time_us;
-static volatile uint32_t monitor_missed_ticks;
-static volatile uint32_t monitor_saturated_iterations;
-static volatile float    monitor_route_time;
-
-static volatile bool  monitor_identification_valid;
-static volatile float monitor_breakaway_voltage;
-static volatile float monitor_linear_static_friction;
-static volatile float monitor_linear_speed_constant;
-static volatile float monitor_linear_acceleration_constant;
-static volatile float monitor_angular_static_friction;
-static volatile float monitor_angular_speed_constant;
-static volatile float monitor_angular_acceleration_constant;
-static volatile float monitor_identified_torque_constant;
-static volatile float monitor_identified_resistance;
-static volatile float monitor_identified_yaw_inertia;
-
-static volatile bool  monitor_gyroscope_scale_valid;
-static volatile float monitor_gyroscope_scale;
-
-// NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
-
 namespace micras {
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables) set once, by the constructor
 static const Micras* last_constructed{};
@@ -159,6 +104,44 @@ void Micras::register_variables() {
     this->variables.add("control/", "rotation_feed_forward", control.rotation_feed_forward, {.stream = true});
     this->variables.add("control/", "forward_feedback", control.forward_feedback, {.stream = true});
     this->variables.add("control/", "rotation_feedback", control.rotation_feedback, {.stream = true});
+
+    const nav::Localizer::Status& filter = this->localizer.get_status();
+
+    this->variables.add("localizer/", "gyroscope_bias", this->telemetry.gyroscope_bias, {.stream = true});
+    this->variables.add("localizer/", "position_deviation", this->telemetry.position_deviation, {.stream = true});
+    this->variables.add("localizer/", "orientation_deviation", this->telemetry.orientation_deviation, {.stream = true});
+    this->variables.add("localizer/", "innovation_level", filter.innovation_level, {.stream = true});
+    this->variables.add("localizer/", "accepted", filter.accepted, {.stream = true});
+    this->variables.add("localizer/", "rejected", filter.rejected, {.stream = true});
+    this->variables.add("localizer/", "edges", filter.edges, {.stream = true});
+
+    for (uint8_t i = 0; i < nav::number_of_wall_sensors; i++) {
+        this->variables.add("wall_reference/", sensor_names.at(i), this->telemetry.wall_reference_readings.at(i), {});
+        this->variables.add("wall_spread/", sensor_names.at(i), this->telemetry.wall_calibration_spreads.at(i), {});
+    }
+
+    this->variables.add("", "route_time", this->telemetry.route_time, {.stream = true});
+
+    this->variables.add("identification/", "valid", this->telemetry.identification_valid, {});
+    this->variables.add("identification/", "breakaway_voltage", this->telemetry.breakaway_voltage, {});
+    this->variables.add("identification/", "linear_static_friction", this->telemetry.linear_drive.static_friction, {});
+    this->variables.add("identification/", "linear_speed_constant", this->telemetry.linear_drive.speed_constant, {});
+    this->variables.add(
+        "identification/", "linear_acceleration_constant", this->telemetry.linear_drive.acceleration_constant, {}
+    );
+    this->variables.add(
+        "identification/", "angular_static_friction", this->telemetry.angular_drive.static_friction, {}
+    );
+    this->variables.add("identification/", "angular_speed_constant", this->telemetry.angular_drive.speed_constant, {});
+    this->variables.add(
+        "identification/", "angular_acceleration_constant", this->telemetry.angular_drive.acceleration_constant, {}
+    );
+    this->variables.add("identification/", "torque_constant", this->telemetry.torque_constant, {});
+    this->variables.add("identification/", "resistance", this->telemetry.resistance, {});
+    this->variables.add("identification/", "yaw_inertia", this->telemetry.yaw_inertia, {});
+
+    this->variables.add("gyroscope/", "scale_valid", this->telemetry.gyroscope_scale_valid, {});
+    this->variables.add("gyroscope/", "scale", this->telemetry.gyroscope_scale, {});
 
     this->variables.add("", "objective", this->objective, {.stream = true, .write = true, .idle = true});
     this->variables.add("", "run_profile", this->run_profile, {.stream = true, .write = true, .persist = true});
@@ -255,10 +238,10 @@ Micras::Maintenance Micras::get_maintenance() const {
     return Maintenance::WALL_SENSORS;
 }
 
-void Micras::prepare() {
+void Micras::prepare(bool run) {
     this->wall_sensors.turn_on();
 
-    if (this->objective == core::Objective::SOLVE and this->is_selected(Interface::Profile::FAN)) {
+    if ((not run or this->objective == core::Objective::SOLVE) and this->is_selected(Interface::Profile::FAN)) {
         this->fan.enable();
         this->fan.set_speed(fan_speed);
     }
@@ -369,17 +352,13 @@ bool Micras::identify() {
 
     const nav::RobotModel identified = this->drive_identification.get_model();
 
-    monitor_identification_valid = this->drive_identification.is_valid();
-    monitor_breakaway_voltage = this->drive_identification.get_breakaway_voltage();
-    monitor_linear_static_friction = this->drive_identification.get_linear().static_friction;
-    monitor_linear_speed_constant = this->drive_identification.get_linear().speed_constant;
-    monitor_linear_acceleration_constant = this->drive_identification.get_linear().acceleration_constant;
-    monitor_angular_static_friction = this->drive_identification.get_angular().static_friction;
-    monitor_angular_speed_constant = this->drive_identification.get_angular().speed_constant;
-    monitor_angular_acceleration_constant = this->drive_identification.get_angular().acceleration_constant;
-    monitor_identified_torque_constant = identified.drive.torque_constant;
-    monitor_identified_resistance = identified.drive.resistance;
-    monitor_identified_yaw_inertia = identified.chassis.yaw_inertia;
+    this->telemetry.identification_valid = this->drive_identification.is_valid();
+    this->telemetry.breakaway_voltage = this->drive_identification.get_breakaway_voltage();
+    this->telemetry.linear_drive = this->drive_identification.get_linear();
+    this->telemetry.angular_drive = this->drive_identification.get_angular();
+    this->telemetry.torque_constant = identified.drive.torque_constant;
+    this->telemetry.resistance = identified.drive.resistance;
+    this->telemetry.yaw_inertia = identified.chassis.yaw_inertia;
 
     return true;
 }
@@ -398,8 +377,8 @@ bool Micras::calibrate_gyroscope() {
         return false;
     }
 
-    monitor_gyroscope_scale_valid = this->gyroscope_calibration.is_valid();
-    monitor_gyroscope_scale = this->gyroscope_calibration.get_scale();
+    this->telemetry.gyroscope_scale_valid = this->gyroscope_calibration.is_valid();
+    this->telemetry.gyroscope_scale = this->gyroscope_calibration.get_scale();
 
     return true;
 }
@@ -421,7 +400,6 @@ nav::Measurements Micras::measure() const {
 
         sampled.walls.at(i) = {
             .distance = reading.distance,
-            .slow_distance = reading.slow_distance,
             .valid = reading.valid,
             .is_new = reading.is_new,
         };
@@ -465,49 +443,15 @@ void Micras::publish() {
 
     this->telemetry.battery_voltage = this->battery.get_voltage();
 
-    const nav::State&              state = this->localizer.get_state();
-    const nav::Localizer::Status&  filter = this->localizer.get_status();
-    const nav::Reference&          reference = this->mission.get_reference();
-    const nav::Controller::Status& control = this->controller.get_status();
+    this->telemetry.gyroscope_bias = this->localizer.get_gyroscope_bias();
+    this->telemetry.position_deviation = this->localizer.get_position_deviation();
+    this->telemetry.orientation_deviation = this->localizer.get_orientation_deviation();
+    this->telemetry.route_time = std::isfinite(this->mission.get_route_time()) ? this->mission.get_route_time() : 0.0F;
 
-    monitor_pose_x = state.pose.position.x;
-    monitor_pose_y = state.pose.position.y;
-    monitor_pose_orientation = state.pose.orientation;
-    monitor_linear_speed = state.velocity.linear;
-    monitor_angular_speed = state.velocity.angular;
-    monitor_gyroscope_bias = this->localizer.get_gyroscope_bias();
-    monitor_position_deviation = this->localizer.get_position_deviation();
-    monitor_orientation_deviation = this->localizer.get_orientation_deviation();
-    monitor_innovation_level = filter.innovation_level;
-    monitor_corrections_accepted = filter.accepted;
-    monitor_corrections_rejected = filter.rejected;
-    monitor_edges_used = filter.edges;
-
-    monitor_reference_x = reference.pose.position.x;
-    monitor_reference_y = reference.pose.position.y;
-    monitor_reference_orientation = reference.pose.orientation;
-    monitor_reference_linear_speed = reference.twist.linear;
-    monitor_reference_angular_speed = reference.twist.angular;
-    monitor_along_error = control.along_error;
-    monitor_across_error = control.across_error;
-    monitor_orientation_error = control.orientation_error;
-    monitor_forward_feed_forward = control.forward_feed_forward;
-    monitor_rotation_feed_forward = control.rotation_feed_forward;
-    monitor_forward_feedback = control.forward_feedback;
-    monitor_rotation_feedback = control.rotation_feedback;
-
-    // NOLINTBEGIN(cppcoreguidelines-pro-bounds-constant-array-index) the arrays have one entry per sensor
     for (uint8_t i = 0; i < nav::number_of_wall_sensors; i++) {
-        monitor_wall_distances[i] = this->measurements.walls.at(i).distance;
-        monitor_wall_reference_readings[i] = this->wall_sensors.get_reference_reading(i);
-        monitor_wall_calibration_spreads[i] = this->wall_sensors.get_calibration_spread(i);
+        this->telemetry.wall_reference_readings.at(i) = this->wall_sensors.get_reference_reading(i);
+        this->telemetry.wall_calibration_spreads.at(i) = this->wall_sensors.get_calibration_spread(i);
     }
-    // NOLINTEND(cppcoreguidelines-pro-bounds-constant-array-index)
-
-    monitor_worst_loop_time_us = this->worst_loop_time_us;
-    monitor_missed_ticks = this->missed_ticks;
-    monitor_saturated_iterations = this->saturated_iterations;
-    monitor_route_time = this->mission.get_route_time();
 }
 
 bool Micras::is_idle() const {

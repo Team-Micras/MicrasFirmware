@@ -14,11 +14,9 @@ namespace micras::nav {
 /**
  * @brief Reading of one wall sensor.
  *
- * @details The distance is measured along the optical axis, in meters, and comes in two versions:
- * a fast one for everything that is a position, and a slow one for deciding whether there is
- * something there at all. It is valid when the receiver sees anything above its noise, so a reading
- * that is not valid means that nothing is within range. A receiver that saturates reports the
- * shortest distance it can measure.
+ * @details The distance is measured along the optical axis, in meters. It is valid when the receiver
+ * sees anything above its noise, so a reading that is not valid means that nothing is within range. A receiver that
+ * saturates reports the shortest distance it can measure.
  *
  * @note The new flag is set for a single iteration after the sensor produces a value. An estimator
  * that is fed the same sample twice counts it as two independent observations and becomes
@@ -26,7 +24,6 @@ namespace micras::nav {
  */
 struct WallReading {
     float distance;
-    float slow_distance;
     bool  valid;
     bool  is_new;
 };
