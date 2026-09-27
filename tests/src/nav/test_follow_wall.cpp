@@ -2,12 +2,17 @@
  * @file
  */
 
-#include <tuple>
-
 #include "constants.hpp"
 #include "micras/nav/follow_wall.hpp"
 #include "micras/nav/odometry.hpp"
 #include "micras/nav/speed_controller.hpp"
+#include "micras/nav/state.hpp"
+#include "micras/proxy/button.hpp"
+#include "micras/proxy/imu.hpp"
+#include "micras/proxy/locomotion.hpp"
+#include "micras/proxy/rotary_sensor.hpp"
+#include "micras/proxy/stopwatch.hpp"
+#include "target.hpp"
 #include "test_core.hpp"
 
 using namespace micras;  // NOLINT(google-build-using-namespace)
@@ -30,23 +35,22 @@ static volatile float test_right_ff{};
 int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);
 
-    proxy::Stopwatch  loop_stopwatch{stopwatch_config};
+    proxy::Stopwatch  loop_stopwatch;
     proxy::Button     button{button_config};
     proxy::Argb       argb{argb_config};
     proxy::Locomotion locomotion{locomotion_config};
 
-    auto imu{std::make_shared<proxy::Imu>(imu_config)};
-    auto wall_sensors{std::make_shared<proxy::WallSensors>(wall_sensors_config)};
+    proxy::Imu                imu{imu_config};
+    proxy::WallSensors        wall_sensors{wall_sensors_config};
+    const proxy::RotarySensor rotary_sensor_left{rotary_sensor_left_config};
+    const proxy::RotarySensor rotary_sensor_right{rotary_sensor_right_config};
 
-    nav::Odometry odometry{
-        std::make_shared<proxy::RotarySensor>(rotary_sensor_left_config),
-        std::make_shared<proxy::RotarySensor>(rotary_sensor_right_config), imu, odometry_config
-    };
+    nav::Odometry odometry{rotary_sensor_left, rotary_sensor_right, imu, odometry_config};
 
-    nav::FollowWall      follow_wall{wall_sensors, odometry.get_state().pose, follow_wall_config};
+    nav::FollowWall      follow_wall{wall_sensors, follow_wall_config};
     nav::SpeedController speed_controller{speed_controller_config};
 
-    if (not imu->was_initialized()) {
+    if (not imu.was_initialized()) {
         argb.set_color(proxy::Argb::Colors::red);
         return -1;
     }
@@ -60,21 +64,21 @@ int main(int argc, char* argv[]) {
 
     loop_stopwatch.reset_us();
 
-    wall_sensors->turn_on();
+    wall_sensors.turn_on();
 
     locomotion.enable();
 
     TestCore::loop([&]() {
-        while (loop_stopwatch.elapsed_time_us() < 1000) { }
+        while (loop_stopwatch.elapsed_time_us() < loop_time_us) { }
         const float elapsed_time = loop_stopwatch.elapsed_time_us() / 1000000.0F;
         loop_stopwatch.reset_us();
 
         button.update();
-        imu->update();
-        wall_sensors->update();
+        imu.update();
+        wall_sensors.update();
         odometry.update(elapsed_time);
 
-        const nav::State& state = odometry.get_state();
+        nav::State& state = odometry.get_state();
 
         test_position_x = state.pose.position.x;
         test_position_y = state.pose.position.y;
@@ -82,15 +86,15 @@ int main(int argc, char* argv[]) {
         test_linear_velocity = state.velocity.linear;
         test_angular_velocity = state.velocity.angular;
 
-        test_front_wall = wall_sensors->get_wall(wall_sensors_index.left_front) and
-                          wall_sensors->get_wall(wall_sensors_index.right_front);
+        test_front_wall = wall_sensors.get_wall(wall_sensors_index.left_front) and
+                          wall_sensors.get_wall(wall_sensors_index.right_front);
 
-        // color_right.blue = wall_sensors->get_wall(wall_sensors_index.right) ? 255 : 0;
-        // color_right.red = wall_sensors->get_wall(wall_sensors_index.right_front) ? 255 : 0;
+        // color_right.blue = wall_sensors.get_wall(wall_sensors_index.right) ? 255 : 0;
+        // color_right.red = wall_sensors.get_wall(wall_sensors_index.right_front) ? 255 : 0;
         // argb.set_color(color_right, 0);
 
-        // color_left.blue = wall_sensors->get_wall(wall_sensors_index.left) ? 255 : 0;
-        // color_left.red = wall_sensors->get_wall(wall_sensors_index.left_front) ? 255 : 0;
+        // color_left.blue = wall_sensors.get_wall(wall_sensors_index.left) ? 255 : 0;
+        // color_left.red = wall_sensors.get_wall(wall_sensors_index.left_front) ? 255 : 0;
         // argb.set_color(color_left, 1);
 
         color_left.green = follow_wall.get_is_following_left() ? 255 : 0;
@@ -101,7 +105,7 @@ int main(int argc, char* argv[]) {
         if (button.get_status() == proxy::Button::Status::SHORT_PRESS) {
             if (not running) {
                 running = true;
-                imu->calibrate();
+                imu.calibrate();
                 odometry.reset();
                 speed_controller.reset();
             } else {
@@ -121,7 +125,7 @@ int main(int argc, char* argv[]) {
         //     return;
         // }
 
-        const float angular_correction = follow_wall.compute_angular_correction(elapsed_time, state.velocity.linear);
+        const float angular_correction = follow_wall.compute_angular_correction(elapsed_time, state);
         test_angular_correction = angular_correction;
 
         const nav::Twist desired_speeds{

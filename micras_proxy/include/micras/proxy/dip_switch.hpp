@@ -19,9 +19,13 @@ class TDipSwitch {
 public:
     /**
      * @brief Configuration struct for the Dip Switch.
+     *
+     * @note A switch wired between the pin and ground with an internal pull up reads low when it is
+     * closed, so the sense of the reading is a property of the board and not of this class.
      */
     struct Config {
         std::array<hal::Gpio::Config, num_of_switches> gpio_array;
+        bool                                           active_low;
     };
 
     /**
@@ -51,9 +55,14 @@ private:
      * @brief Array of GPIOs for the switches.
      */
     std::array<hal::Gpio, num_of_switches> gpio_array;
+
+    /**
+     * @brief Whether a closed switch pulls its pin low.
+     */
+    bool active_low;
 };
 }  // namespace micras::proxy
 
-#include "../src/dip_switch.cpp"  // NOLINT(bugprone-suspicious-include, misc-header-include-cycle)
+#include "micras/proxy/impl/dip_switch.tpp"  // IWYU pragma: export
 
 #endif  // MICRAS_PROXY_DIP_SWITCH_HPP

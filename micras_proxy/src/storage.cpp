@@ -4,9 +4,14 @@
 
 #include <algorithm>
 #include <bit>
+#include <cstddef>
+#include <cstdint>
 #include <span>
+#include <string>
+#include <unordered_map>
 #include <vector>
 
+#include "micras/core/serializable.hpp"
 #include "micras/hal/flash.hpp"
 #include "micras/proxy/storage.hpp"
 
@@ -19,6 +24,7 @@ namespace micras::proxy {
  * @return Value read from the buffer.
  */
 static uint16_t read_uint16(std::span<const uint8_t> buffer, uint16_t address) {
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
     return static_cast<uint16_t>(buffer[address] | buffer[address + 1U] << 8);
 }
 
@@ -90,9 +96,10 @@ void Storage::create(const std::string& name, const core::ISerializable& data) {
 }
 
 void Storage::sync(const std::string& name, core::ISerializable& data) {
-    if (this->serializables.contains(name) and this->serializables.at(name).ram_pointer == nullptr) {
-        const auto& serializable = this->serializables.at(name);
-        data.deserialize(&this->buffer.at(serializable.buffer_address), serializable.size);
+    const auto serializable = this->serializables.find(name);
+
+    if (serializable != this->serializables.end() and serializable->second.ram_pointer == nullptr) {
+        data.deserialize(&this->buffer.at(serializable->second.buffer_address), serializable->second.size);
     }
 
     this->create(name, data);
@@ -154,11 +161,11 @@ bool Storage::save() {
         return false;
     }
 
-    if (hal::Flash::erase_sectors(this->start_sector, this->number_of_sectors) != hal::Flash::OK) {
+    if (hal::Flash::erase_sectors(this->start_sector, this->number_of_sectors) != hal::Flash::Status::OK) {
         return false;
     }
 
-    if (hal::Flash::write(this->start_sector, 0, this->buffer) != hal::Flash::OK) {
+    if (hal::Flash::write(this->start_sector, 0, this->buffer) != hal::Flash::Status::OK) {
         return false;
     }
 
@@ -195,7 +202,7 @@ bool Storage::deserialize_var_map(
             return false;
         }
 
-        const uint8_t var_name_len = buffer[current_addr];
+        const uint8_t var_name_len = buffer.at(current_addr);
 
         if (current_addr + var_name_len + 5UL > buffer.size()) {
             return false;

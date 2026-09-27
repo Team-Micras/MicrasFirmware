@@ -55,6 +55,13 @@ public:
      */
     void wait(uint32_t interval);
 
+    /**
+     * @brief Check if the PWM was successfully initialized.
+     *
+     * @return True if the initialization was successful, false otherwise.
+     */
+    bool was_initialized() const;
+
 private:
     /**
      * @brief PWM object.

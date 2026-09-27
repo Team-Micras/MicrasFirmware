@@ -6,7 +6,8 @@
 #define MICRAS_HAL_GPIO_HPP
 
 #include <cstdint>
-#include <gpio.h>
+
+#include <main.h>
 
 namespace micras::hal {
 /**

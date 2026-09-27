@@ -6,6 +6,7 @@
 #define MICRAS_PROXY_STORAGE_HPP
 
 #include <cstdint>
+#include <cstring>
 #include <string>
 #include <type_traits>
 #include <unordered_map>
@@ -46,8 +47,9 @@ public:
      */
     template <Fundamental T>
     void create(const std::string& name, const T& data) {
-        this->primitives[name].ram_pointer = &data;
-        this->primitives.at(name).size = sizeof(T);
+        auto& variable = this->primitives[name];
+        variable.ram_pointer = &data;
+        variable.size = sizeof(T);
     }
 
     /**
@@ -67,10 +69,11 @@ public:
      */
     template <Fundamental T>
     void sync(const std::string& name, T& data) {
-        if (this->primitives.contains(name) and this->primitives.at(name).ram_pointer == nullptr and
-            this->primitives.at(name).size == sizeof(T)) {
-            // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-            data = reinterpret_cast<T&>(this->buffer.at(this->primitives.at(name).buffer_address));
+        const auto variable = this->primitives.find(name);
+
+        if (variable != this->primitives.end() and variable->second.ram_pointer == nullptr and
+            variable->second.size == sizeof(T)) {
+            std::memcpy(&data, &this->buffer.at(variable->second.buffer_address), sizeof(T));
         }
 
         this->create<T>(name, data);

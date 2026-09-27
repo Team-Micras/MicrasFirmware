@@ -5,6 +5,8 @@
 #ifndef RUN_STATE_HPP
 #define RUN_STATE_HPP
 
+#include <utility>
+
 #include "micras/states/base.hpp"
 
 namespace micras {
@@ -27,7 +29,7 @@ public:
      */
     uint8_t execute() override {
         if (this->micras.check_crash()) {
-            return Micras::State::ERROR;
+            return std::to_underlying(Micras::State::ERROR);
         }
 
         if (not this->micras.run()) {
@@ -38,18 +40,18 @@ public:
             case core::Objective::EXPLORE:
                 this->micras.set_objective(core::Objective::RETURN);
                 this->micras.save_best_route();
-                return Micras::State::WAIT_FOR_RUN;
+                return std::to_underlying(Micras::State::WAIT_FOR_RUN);
 
             case core::Objective::RETURN:
                 this->micras.set_objective(core::Objective::SOLVE);
                 this->micras.save_best_route();
-                return Micras::State::IDLE;
+                return std::to_underlying(Micras::State::IDLE);
 
             case core::Objective::SOLVE:
-                return Micras::State::IDLE;
+                return std::to_underlying(Micras::State::IDLE);
         }
 
-        return Micras::State::ERROR;
+        return std::to_underlying(Micras::State::ERROR);
     }
 };
 }  // namespace micras

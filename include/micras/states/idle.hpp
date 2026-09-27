@@ -5,6 +5,8 @@
 #ifndef IDLE_STATE_HPP
 #define IDLE_STATE_HPP
 
+#include <utility>
+
 #include "micras/states/base.hpp"
 
 namespace micras {
@@ -26,21 +28,23 @@ public:
      * @return The id of the next state.
      */
     uint8_t execute() override {
+        this->micras.handle_events();
+
         if (this->micras.acknowledge_event(Interface::Event::EXPLORE)) {
             this->micras.set_objective(core::Objective::EXPLORE);
 
-            return Micras::State::WAIT_FOR_RUN;
+            return std::to_underlying(Micras::State::WAIT_FOR_RUN);
         }
 
         if (this->micras.acknowledge_event(Interface::Event::SOLVE)) {
             this->micras.set_objective(core::Objective::SOLVE);
             this->micras.load_best_route();
 
-            return Micras::State::WAIT_FOR_RUN;
+            return std::to_underlying(Micras::State::WAIT_FOR_RUN);
         }
 
         if (this->micras.acknowledge_event(Interface::Event::CALIBRATE)) {
-            return Micras::State::WAIT_FOR_CALIBRATE;
+            return std::to_underlying(Micras::State::WAIT_FOR_CALIBRATE);
         }
 
         return this->get_id();

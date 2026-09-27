@@ -2,6 +2,7 @@
  * @file
  */
 
+#include <cstdint>
 #include "micras/proxy/buzzer.hpp"
 
 namespace micras::proxy {
@@ -39,5 +40,9 @@ void Buzzer::wait(uint32_t interval) {
 void Buzzer::stop() {
     this->is_playing = false;
     this->pwm.set_duty_cycle(0.0F);
+}
+
+bool Buzzer::was_initialized() const {
+    return this->pwm.was_initialized();
 }
 }  // namespace micras::proxy

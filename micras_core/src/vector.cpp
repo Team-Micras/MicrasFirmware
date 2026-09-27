@@ -21,15 +21,15 @@ float Vector::angle_between(const Vector& other) const {
 
 Vector Vector::move_towards(const Vector& other, float distance) const {
     const float angle = this->angle_between(other);
-    return {this->x + distance * std::cos(angle), this->y + distance * std::sin(angle)};
+    return {.x = this->x + distance * std::cos(angle), .y = this->y + distance * std::sin(angle)};
 }
 
 Vector Vector::operator+(const Vector& other) const {
-    return {this->x + other.x, this->y + other.y};
+    return {.x = this->x + other.x, .y = this->y + other.y};
 }
 
 Vector Vector::operator-(const Vector& other) const {
-    return {this->x - other.x, this->y - other.y};
+    return {.x = this->x - other.x, .y = this->y - other.y};
 }
 
 bool Vector::operator==(const Vector& other) const {
@@ -37,6 +37,6 @@ bool Vector::operator==(const Vector& other) const {
 }
 
 Vector Vector::operator%(float value) const {
-    return {std::fmod(this->x, value), std::fmod(this->y, value)};
+    return {.x = std::fmod(this->x, value), .y = std::fmod(this->y, value)};
 }
 }  // namespace micras::core

@@ -5,8 +5,6 @@
 #ifndef MICRAS_NAV_ODOMETRY_HPP
 #define MICRAS_NAV_ODOMETRY_HPP
 
-#include <memory>
-
 #include "micras/core/butterworth_filter.hpp"
 #include "micras/nav/state.hpp"
 #include "micras/proxy/imu.hpp"
@@ -22,9 +20,9 @@ public:
      * @brief Configuration for the odometry.
      */
     struct Config {
-        float linear_cutoff_frequency;
-        float wheel_radius;
-        Pose  initial_pose;
+        core::ButterworthFilter::Config linear_filter;
+        float                           wheel_radius;
+        Pose                            initial_pose;
     };
 
     /**
@@ -36,9 +34,8 @@ public:
      * @param config Configuration for the odometry.
      */
     Odometry(
-        const std::shared_ptr<const proxy::RotarySensor>& left_rotary_sensor,
-        const std::shared_ptr<const proxy::RotarySensor>& right_rotary_sensor, const std::shared_ptr<proxy::Imu>& imu,
-        Config config
+        const proxy::RotarySensor& left_rotary_sensor, const proxy::RotarySensor& right_rotary_sensor,
+        const proxy::Imu& imu, Config config
     );
 
     /**
@@ -61,6 +58,13 @@ public:
     const State& get_state() const;
 
     /**
+     * @brief Get the state of the robot.
+     *
+     * @return Current state of the robot in space.
+     */
+    State& get_state();
+
+    /**
      * @brief Set the state of the robot.
      *
      * @param state New state of the robot.
@@ -68,25 +72,32 @@ public:
     void set_state(const State& new_state);
 
 private:
+    // NOLINTBEGIN(*-avoid-const-or-ref-data-members) borrowed for the lifetime of the robot
     /**
      * @brief Left rotary sensor.
      */
-    std::shared_ptr<const proxy::RotarySensor> left_rotary_sensor;
+    const proxy::RotarySensor& left_rotary_sensor;
 
     /**
      * @brief Right rotary sensor.
      */
-    std::shared_ptr<const proxy::RotarySensor> right_rotary_sensor;
+    const proxy::RotarySensor& right_rotary_sensor;
 
     /**
      * @brief IMU sensor.
      */
-    std::shared_ptr<proxy::Imu> imu;
+    const proxy::Imu& imu;
+    // NOLINTEND(*-avoid-const-or-ref-data-members)
 
     /**
      * @brief Wheel radius.
      */
     float wheel_radius;
+
+    /**
+     * @brief Initial pose of the robot.
+     */
+    Pose initial_pose;
 
     /**
      * @brief Last left rotary sensor position.

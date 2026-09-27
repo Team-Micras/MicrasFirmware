@@ -6,7 +6,8 @@
 #define MICRAS_HAL_PWM_HPP
 
 #include <cstdint>
-#include <tim.h>
+
+#include <main.h>
 
 namespace micras::hal {
 /**
@@ -16,15 +17,25 @@ class Pwm {
 public:
     /**
      * @brief PWM configuration struct.
+     *
+     * @note An inverted output is active for the last part of the period instead of the first. On a
+     * center aligned timer that centers its pulse on the overflow instead of the underflow, which
+     * is how two groups of channels of one timer are made to take turns. The duty cycle keeps
+     * meaning the fraction of the period the output is active for, so zero is always off.
      */
     struct Config {
         void (*init_function)();
         TIM_HandleTypeDef* handle;
         uint32_t           timer_channel;
+        bool               inverted;
     };
 
     /**
-     * @brief Construct a new Pwm object.
+     * @brief Construct a new Pwm object, with its output at a duty cycle of zero.
+     *
+     * @note The compare register is preloaded, so a value written to it waits for the next update
+     * of the timer. The first one is written around the preload: an inverted output would otherwise
+     * start fully on, since zero is what the register holds until then.
      *
      * @param config Configuration for the PWM.
      */
@@ -33,7 +44,7 @@ public:
     /**
      * @brief Set the PWM duty cycle.
      *
-     * @param duty_cycle Duty cycle value.
+     * @param duty_cycle Duty cycle value in percent, which is clamped to the range from 0 to 100.
      */
     void set_duty_cycle(float duty_cycle);
 
@@ -50,6 +61,23 @@ public:
      */
     void set_frequency(uint32_t frequency);
 
+    /**
+     * @brief Get the frequency of the PWM signal from the registers of the timer.
+     *
+     * @note A timer that counts up and down takes twice its autoreload value to complete a period,
+     * where one that counts in a single direction takes the autoreload value plus one.
+     *
+     * @return Frequency value in Hz.
+     */
+    float get_frequency() const;
+
+    /**
+     * @brief Check if the PWM was successfully started.
+     *
+     * @return True if the initialization was successful, false otherwise.
+     */
+    bool was_initialized() const;
+
 private:
     /**
      * @brief Timer handle.
@@ -60,6 +88,16 @@ private:
      * @brief Channel number of the timer.
      */
     uint32_t channel;
+
+    /**
+     * @brief Whether the output is active for the last part of the period.
+     */
+    bool inverted;
+
+    /**
+     * @brief Flag to check if the PWM was started.
+     */
+    bool initialized{};
 };
 }  // namespace micras::hal
 

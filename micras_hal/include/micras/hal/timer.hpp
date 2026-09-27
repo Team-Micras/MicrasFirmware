@@ -6,33 +6,41 @@
 #define MICRAS_HAL_TIMER_HPP
 
 #include <cstdint>
-#include <tim.h>
 
 namespace micras::hal {
 /**
- * @brief Class to handle timer peripheral on STM32 microcontrollers.
+ * @brief Class providing the timebases of the microcontroller.
+ *
+ * @note The microsecond timebase comes from the Cortex-M cycle counter instead of a hardware timer:
+ * it costs no peripheral, resolves single cycles and is present on every Cortex-M3, M4 and M7, so
+ * the same implementation ports unchanged. Cortex-M0 and M0+ have no cycle counter and would need a
+ * timer here.
  */
 class Timer {
 public:
     /**
-     * @brief Timer configuration struct.
+     * @brief Deleted constructor for static class.
      */
-    struct Config {
-        void (*init_function)();
-        TIM_HandleTypeDef* handle;
-    };
+    Timer() = delete;
 
     /**
-     * @brief Construct a new Timer object.
-     */
-    Timer() = default;
-
-    /**
-     * @brief Construct a new Timer object.
+     * @brief Start the cycle counter and compute the conversion to microseconds.
      *
-     * @param config Configuration for the timer.
+     * @note Must be called after the system clock is configured, since the conversion depends on
+     * the core clock frequency.
      */
-    explicit Timer(const Config& config);
+    static void init();
+
+    /**
+     * @brief Get the current value of the free running cycle counter.
+     *
+     * @note Wraps every 2^32 core clock cycles, which bounds the longest measurable interval to
+     * about 7.8 s at 550 MHz. Differences taken with unsigned arithmetic are correct across the
+     * wrap, so no special case is needed below that bound.
+     *
+     * @return Current value of the cycle counter.
+     */
+    static uint32_t get_counter();
 
     /**
      * @brief Get the current timer counter.
@@ -42,22 +50,26 @@ public:
     static uint32_t get_counter_ms();
 
     /**
-     * @brief Get the current timer counter.
+     * @brief Convert a number of core clock cycles to microseconds.
      *
-     * @return Current timer counter in microseconds.
+     * @param cycles Number of core clock cycles.
+     * @return Equivalent time in microseconds.
      */
-    uint32_t get_counter_us() const;
+    static uint32_t to_microseconds(uint32_t cycles);
+
+    /**
+     * @brief Convert a time in microseconds to core clock cycles.
+     *
+     * @param microseconds Time in microseconds.
+     * @return Equivalent number of core clock cycles.
+     */
+    static uint32_t to_cycles(uint32_t microseconds);
 
 private:
     /**
-     * @brief Timer handle.
+     * @brief Core clock cycles in one microsecond, resolved by init.
      */
-    TIM_HandleTypeDef* handle{};
-
-    /**
-     * @brief Flag to enable microseconds.
-     */
-    bool enable_microseconds{false};
+    static uint32_t cycles_per_microsecond;
 };
 }  // namespace micras::hal
 

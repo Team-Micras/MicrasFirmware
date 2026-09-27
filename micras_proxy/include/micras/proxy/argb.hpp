@@ -107,6 +107,13 @@ public:
      */
     void update();
 
+    /**
+     * @brief Check if the PWM was successfully initialized.
+     *
+     * @return True if the initialization was successful, false otherwise.
+     */
+    bool was_initialized() const;
+
 private:
     /**
      * @brief Encode a color into the data buffer.
@@ -154,10 +161,10 @@ private:
     /**
      * @brief Data buffer to send to the addressable RGB LED.
      */
-    std::array<uint16_t, num_of_leds * bits_per_led + reset_length> buffer{};
+    std::array<uint16_t, static_cast<std::size_t>(num_of_leds) * bits_per_led + reset_length> buffer{};
 };
 }  // namespace micras::proxy
 
-#include "../src/argb.cpp"  // NOLINT(bugprone-suspicious-include, misc-header-include-cycle)
+#include "micras/proxy/impl/argb.tpp"  // IWYU pragma: export
 
 #endif  // MICRAS_PROXY_ARGB_HPP

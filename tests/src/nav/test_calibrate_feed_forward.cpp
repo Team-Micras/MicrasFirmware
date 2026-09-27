@@ -3,8 +3,17 @@
  */
 
 #include <array>
+#include <cstdint>
+#include <cstdlib>
 
 #include "constants.hpp"
+#include "micras/nav/odometry.hpp"
+#include "micras/proxy/button.hpp"
+#include "micras/proxy/imu.hpp"
+#include "micras/proxy/locomotion.hpp"
+#include "micras/proxy/rotary_sensor.hpp"
+#include "micras/proxy/stopwatch.hpp"
+#include "target.hpp"
 #include "test_core.hpp"
 
 using namespace micras;  // NOLINT(google-build-using-namespace)
@@ -29,19 +38,18 @@ static volatile float test_angular_accelerations[commands.size()] = {};
 int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);
 
-    proxy::Stopwatch            loop_stopwatch{stopwatch_config};
-    proxy::Stopwatch            running_stopwatch{};
-    proxy::Button               button{button_config};
-    proxy::Locomotion           locomotion{locomotion_config};
-    proxy::Argb                 argb{argb_config};
-    std::shared_ptr<proxy::Imu> imu{std::make_shared<proxy::Imu>(imu_config)};
+    proxy::Stopwatch          loop_stopwatch;
+    proxy::Stopwatch          running_stopwatch{};
+    proxy::Button             button{button_config};
+    proxy::Locomotion         locomotion{locomotion_config};
+    proxy::Argb               argb{argb_config};
+    proxy::Imu                imu{imu_config};
+    const proxy::RotarySensor rotary_sensor_left{rotary_sensor_left_config};
+    const proxy::RotarySensor rotary_sensor_right{rotary_sensor_right_config};
 
-    nav::Odometry odometry{
-        std::make_shared<proxy::RotarySensor>(rotary_sensor_left_config),
-        std::make_shared<proxy::RotarySensor>(rotary_sensor_right_config), imu, odometry_config
-    };
+    nav::Odometry odometry{rotary_sensor_left, rotary_sensor_right, imu, odometry_config};
 
-    if (not imu->was_initialized()) {
+    if (not imu.was_initialized()) {
         argb.set_color(proxy::Argb::Colors::red);
         return -1;
     }
@@ -61,12 +69,12 @@ int main(int argc, char* argv[]) {
 
     TestCore::loop([&locomotion, &argb, &button, &loop_stopwatch, &running_stopwatch, &waiting, &running, &odometry,
                     &imu, &last_linear_speed, &last_angular_speed, &iterator, &test_type]() {
-        while (loop_stopwatch.elapsed_time_us() < 1000) { }
+        while (loop_stopwatch.elapsed_time_us() < loop_time_us) { }
 
         const float elapsed_time = loop_stopwatch.elapsed_time_us() / 1000000.0F;
         loop_stopwatch.reset_us();
 
-        imu->update();
+        imu.update();
         odometry.update(elapsed_time);
         button.update();
         const auto& state = odometry.get_state();
@@ -84,7 +92,7 @@ int main(int argc, char* argv[]) {
         }
 
         if (waiting and running_stopwatch.elapsed_time_ms() > 2000) {
-            imu->calibrate();
+            imu.calibrate();
             locomotion.set_wheel_command(
                 commands.at(iterator) * left_multiplier.at(test_type),
                 commands.at(iterator) * right_multiplier.at(test_type)
@@ -109,11 +117,12 @@ int main(int argc, char* argv[]) {
                 last_linear_speed = state.velocity.linear;
                 last_angular_speed = state.velocity.angular;
 
+                // NOLINTNEXTLINE(readability-use-std-min-max) std::max cannot bind volatile
                 if (current_linear_acceleration > test_linear_accelerations[iterator]) {
                     test_linear_accelerations[iterator] = current_linear_acceleration;
                 }
 
-                if (current_angular_acceleration > test_angular_accelerations[iterator]) {
+                if (std::abs(current_angular_acceleration) > std::abs(test_angular_accelerations[iterator])) {
                     test_angular_accelerations[iterator] = current_angular_acceleration;
                 }
             } else if (running_stopwatch.elapsed_time_ms() > 1000) {

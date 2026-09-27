@@ -20,9 +20,9 @@ public:
      * @brief Configuration struct for the battery.
      */
     struct Config {
-        hal::AdcDma::Config adc;
-        float               voltage_divider;
-        float               filter_cutoff;
+        hal::AdcDma::Config             adc;
+        float                           voltage_divider;
+        core::ButterworthFilter::Config filter;
     };
 
     /**
@@ -58,6 +58,13 @@ public:
      */
     float get_adc_reading() const;
 
+    /**
+     * @brief Check if the ADC was successfully initialized.
+     *
+     * @return True if the initialization was successful, false otherwise.
+     */
+    bool was_initialized() const;
+
 private:
     /**
      * @brief Adc object.
@@ -78,6 +85,11 @@ private:
      * @brief Butterworth filter for the battery reading.
      */
     core::ButterworthFilter filter;
+
+    /**
+     * @brief Flag to check if the ADC was initialized.
+     */
+    bool initialized{};
 };
 }  // namespace micras::proxy
 

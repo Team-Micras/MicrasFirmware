@@ -5,14 +5,29 @@
 #ifndef MICRAS_NAV_MAZE_CPP
 #define MICRAS_NAV_MAZE_CPP
 
+#include <algorithm>
+#include <array>
 #include <cmath>
+#include <cstdint>
+#include <limits>
+#include <list>
+#include <queue>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
+#include "micras/core/types.hpp"
+#include "micras/nav/costmap.hpp"
 #include "micras/nav/grid_pose.hpp"
 #include "micras/nav/maze.hpp"
 
 namespace micras::nav {
 template <uint8_t width, uint8_t height>
-TMaze<width, height>::TMaze(Config config) : start{config.start}, goal{config.goal}, cost_margin(config.cost_margin) {
+TMaze<width, height>::TMaze(const Config& config) :
+    action_queuer(config.action_queuer_config),
+    start{config.start},
+    goal{config.goal},
+    cost_margin{config.cost_margin} {
     this->costmap.update_wall(this->start, false);
     this->costmap.update_wall(start.turned_right(), true);
 
@@ -34,15 +49,15 @@ TMaze<width, height>::TMaze(Config config) : start{config.start}, goal{config.go
     }
 
     for (const auto& position : this->goal) {
-        this->costmap.update_cost(position, Layer::EXPLORE, 0);
+        this->costmap.update_cost(position, std::to_underlying(Layer::EXPLORE), 0);
     }
 
     for (const auto& position : this->goal) {
-        this->costmap.compute(position, Layer::EXPLORE);
+        this->costmap.compute(position, std::to_underlying(Layer::EXPLORE));
     }
 
-    this->costmap.update_cost(this->start.position, Layer::RETURN, 0);
-    this->costmap.compute(this->start.position, Layer::RETURN);
+    this->costmap.update_cost(this->start.position, std::to_underlying(Layer::RETURN), 0);
+    this->costmap.compute(this->start.position, std::to_underlying(Layer::RETURN));
 }
 
 template <uint8_t width, uint8_t height>
@@ -71,8 +86,8 @@ void TMaze<width, height>::update_walls(const GridPose& pose, const core::Observ
 template <uint8_t width, uint8_t height>
 GridPose TMaze<width, height>::get_next_goal(const GridPose& pose, bool returning) {
     if (returning and not this->finished_discovery) {
-        this->compute_best_route();
-        const auto& next_goal = this->get_next_bfs_goal(pose, true);
+        this->compute_minimum_cost();
+        const auto& [next_goal, _] = this->get_next_bfs_goal(pose, true);
 
         if (next_goal != this->start) {
             return next_goal;
@@ -84,9 +99,14 @@ GridPose TMaze<width, height>::get_next_goal(const GridPose& pose, bool returnin
     int16_t  current_cost = max_cost;
     GridPose next_pose = {};
 
-    for (Side side :
-         {pose.turned_right().orientation, pose.turned_left().orientation, pose.orientation,
-          pose.turned_back().orientation}) {
+    auto sides_order = {
+        pose.turned_right().orientation,
+        pose.turned_left().orientation,
+        pose.orientation,
+        pose.turned_back().orientation,
+    };
+
+    for (Side side : sides_order) {
         if (this->costmap.has_wall({pose.position, side})) {
             continue;
         }
@@ -94,7 +114,10 @@ GridPose TMaze<width, height>::get_next_goal(const GridPose& pose, bool returnin
         GridPoint     front_position = pose.position + side;
         const int16_t flip_cost = pose.turned_back().orientation == side ? 1 : 0;
         const int16_t front_cost =
-            this->costmap.get_cost(front_position, returning ? Layer::RETURN : Layer::EXPLORE) + flip_cost;
+            this->costmap.get_cost(
+                front_position, returning ? std::to_underlying(Layer::RETURN) : std::to_underlying(Layer::EXPLORE)
+            ) +
+            flip_cost;
 
         if (front_cost < current_cost) {
             current_cost = front_cost;
@@ -112,33 +135,87 @@ bool TMaze<width, height>::finished(const GridPoint& position, bool returning) c
 }
 
 template <uint8_t width, uint8_t height>
-void TMaze<width, height>::compute_best_route() {
-    GridPose current_pose = this->start;
-    this->best_route.clear();
-    this->best_route.emplace_back(this->start);
-
-    while (not this->goal.contains(current_pose.position)) {
-        current_pose = this->get_next_bfs_goal(current_pose, false);
-        this->best_route.emplace_back(current_pose);
-    }
-
-    this->minimum_cost = this->best_route.size();
+void TMaze<width, height>::compute_minimum_cost() {
+    this->minimum_cost = static_cast<int16_t>(this->get_next_bfs_goal(this->start, false).second);
 }
 
 template <uint8_t width, uint8_t height>
-const std::list<GridPose>& TMaze<width, height>::get_best_route() const {
+void TMaze<width, height>::compute_best_route() {
+    std::unordered_set<GridPoint> visited;
+    std::list<GridPoint>          current_route;
+
+    visited.insert(this->start.position);
+    current_route.push_back(this->start.position);
+
+    this->recursive_backtracking(this->start.position, current_route, visited);
+}
+
+template <uint8_t width, uint8_t height>
+void TMaze<width, height>::recursive_backtracking(
+    const GridPoint& position, std::list<GridPoint>& route, std::unordered_set<GridPoint>& visited
+) {
+    if (this->goal.contains(position)) {
+        float current_route_time = get_route_time(route);
+
+        if (current_route_time < this->best_route_time) {
+            this->best_route_time = current_route_time;
+            this->best_route = route;
+        }
+
+        return;
+    }
+
+    if (not this->best_route.empty() and
+        route.size() + this->heuristic(position) >= this->cost_margin * this->best_route.size()) {
+        return;
+    }
+
+    for (const Side side : all_sides) {
+        if (this->costmap.has_wall({position, side}, true)) {
+            continue;
+        }
+
+        GridPoint next_position = position + side;
+
+        if (not TMaze<width, height>::was_visited(this->costmap.get_cell(next_position)) or
+            visited.contains(next_position)) {
+            continue;
+        }
+
+        visited.insert(next_position);
+        route.push_back(next_position);
+        this->recursive_backtracking(next_position, route, visited);
+        visited.erase(next_position);
+        route.pop_back();
+    }
+}
+
+template <uint8_t width, uint8_t height>
+uint16_t TMaze<width, height>::heuristic(const GridPoint& position) const {
+    uint16_t minimum_distance = std::numeric_limits<uint16_t>::max();
+
+    for (const auto& goal_position : this->goal) {
+        const uint16_t distance = std::abs(position.x - goal_position.x) + std::abs(position.y - goal_position.y);
+
+        minimum_distance = std::min(distance, minimum_distance);
+    }
+
+    return minimum_distance;
+}
+
+template <uint8_t width, uint8_t height>
+const std::list<GridPoint>& TMaze<width, height>::get_best_route() const {
     return this->best_route;
 }
 
 template <uint8_t width, uint8_t height>
 std::vector<uint8_t> TMaze<width, height>::serialize() const {
     std::vector<uint8_t> buffer;
-    buffer.reserve(3 * this->best_route.size());
+    buffer.reserve(2 * this->best_route.size());
 
-    for (const auto& grid_pose : this->best_route) {
-        buffer.emplace_back(grid_pose.position.x);
-        buffer.emplace_back(grid_pose.position.y);
-        buffer.emplace_back(grid_pose.orientation);
+    for (const auto& grid_point : this->best_route) {
+        buffer.emplace_back(grid_point.x);
+        buffer.emplace_back(grid_point.y);
     }
 
     return buffer;
@@ -148,10 +225,10 @@ template <uint8_t width, uint8_t height>
 void TMaze<width, height>::deserialize(const uint8_t* buffer, uint16_t size) {
     this->best_route.clear();
 
-    for (uint32_t i = 0; i < size; i += 3) {
+    for (uint32_t i = 0; i < size; i += 2) {
         this->best_route.emplace_back(
             // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-            GridPoint{buffer[i], buffer[i + 1]}, static_cast<Side>(buffer[i + 2])
+            GridPoint{.x = buffer[i], .y = buffer[i + 1]}
         );
     }
 }
@@ -159,16 +236,16 @@ void TMaze<width, height>::deserialize(const uint8_t* buffer, uint16_t size) {
 template <uint8_t width, uint8_t height>
 void TMaze<width, height>::update_cell(const GridPoint& position) {
     if (not this->goal.contains(position)) {
-        this->costmap.recompute(position, Layer::EXPLORE);
+        this->costmap.recompute(position, std::to_underlying(Layer::EXPLORE));
     }
 
     if (position != this->start.position) {
-        this->costmap.recompute(position, Layer::RETURN);
+        this->costmap.recompute(position, std::to_underlying(Layer::RETURN));
     }
 
     GridPoint dead_end_position = position;
 
-    while (this->is_dead_end(this->costmap.get_cell(dead_end_position))) {
+    while (TMaze<width, height>::is_dead_end(this->costmap.get_cell(dead_end_position))) {
         for (Side side : {Side::UP, Side::DOWN, Side::LEFT, Side::RIGHT}) {
             if (not this->costmap.has_wall({dead_end_position, side}, true)) {
                 this->costmap.add_virtual_wall({dead_end_position, side});
@@ -180,61 +257,78 @@ void TMaze<width, height>::update_cell(const GridPoint& position) {
 }
 
 template <uint8_t width, uint8_t height>
-GridPose TMaze<width, height>::get_next_bfs_goal(const GridPose& pose, bool discover) const {
-    std::queue<GridPose>                        queue;
-    std::array<std::array<bool, width>, height> checked{};
-    GridPose                                    next_goal = this->start;
+std::pair<GridPose, uint16_t> TMaze<width, height>::get_next_bfs_goal(const GridPose& pose, bool discover) const {
+    std::queue<GridPose>                            queue;
+    std::array<std::array<uint16_t, width>, height> distance{};
+    std::pair<GridPose, uint16_t>                   result_pair = {this->start, 0};
 
-    checked.at(pose.position.y).at(pose.position.x) = true;
+    distance.at(pose.position.y).at(pose.position.x) = 1;
 
-    for (Side side :
-         {pose.turned_right().orientation, pose.turned_left().orientation, pose.orientation,
-          pose.turned_back().orientation}) {
+    auto sides_order = {
+        pose.turned_right().orientation,
+        pose.turned_left().orientation,
+        pose.orientation,
+        pose.turned_back().orientation,
+    };
+
+    for (Side side : sides_order) {
         if (not this->costmap.has_wall({pose.position, side})) {
-            queue.emplace(pose.position + side, side);
+            GridPoint next_position = pose.position + side;
+            queue.emplace(next_position, side);
+            distance.at(next_position.y).at(next_position.x) = 1;
         }
     }
 
     while (not queue.empty()) {
         GridPose current_pose = queue.front();
         queue.pop();
-        checked.at(current_pose.position.y).at(current_pose.position.x) = true;
 
-        if ((discover and
-             this->must_visit(
-                 this->costmap.get_cell(current_pose.position), std::round(this->minimum_cost * this->cost_margin)
-             )) or
+        if ((discover and TMaze<width, height>::must_visit(
+                              this->costmap.get_cell(current_pose.position),
+                              static_cast<int16_t>(std::round(this->minimum_cost * this->cost_margin))
+                          )) or
             (not discover and this->goal.contains(current_pose.position))) {
-            next_goal = {pose.position + current_pose.orientation, current_pose.orientation};
+            result_pair = {
+                {pose.position + current_pose.orientation, current_pose.orientation},
+                distance.at(current_pose.position.y).at(current_pose.position.x)
+            };
             break;
         }
 
-        for (uint8_t i = Side::RIGHT; i <= Side::DOWN; i++) {
-            Side side = static_cast<Side>(i);
-
+        for (const Side side : all_sides) {
             if (this->costmap.has_wall({current_pose.position, side})) {
                 continue;
             }
 
             const GridPoint front_position = current_pose.position + side;
 
-            if ((discover or this->was_visited(this->costmap.get_cell(front_position))) and
-                not checked.at(front_position.y).at(front_position.x)) {
+            if ((discover or TMaze<width, height>::was_visited(this->costmap.get_cell(front_position))) and
+                distance.at(front_position.y).at(front_position.x) == 0) {
                 queue.emplace(front_position, current_pose.orientation);
+                distance.at(front_position.y).at(front_position.x) =
+                    distance.at(current_pose.position.y).at(current_pose.position.x) + 1;
             }
         }
     }
 
-    return next_goal;
+    return result_pair;
 }
 
 template <uint8_t width, uint8_t height>
-bool TMaze<width, height>::is_dead_end(const Costmap<width, height, Layer::NUM_OF_LAYERS>::Cell& cell) {
+float TMaze<width, height>::get_route_time(const std::list<GridPoint>& route) {
+    this->action_queuer.recompute(route);
+    return this->action_queuer.get_total_time();
+}
+
+template <uint8_t width, uint8_t height>
+bool TMaze<width, height>::is_dead_end(
+    const Costmap<width, height, std::to_underlying(Layer::NUM_OF_LAYERS)>::Cell& cell
+) {
     uint8_t wall_count = 0;
 
     for (const auto& wall : cell.walls) {
-        if (wall == Costmap<width, height, Layer::NUM_OF_LAYERS>::WallState::WALL or
-            wall == Costmap<width, height, Layer::NUM_OF_LAYERS>::WallState::VIRTUAL) {
+        if (wall == Costmap<width, height, std::to_underlying(Layer::NUM_OF_LAYERS)>::WallState::WALL or
+            wall == Costmap<width, height, std::to_underlying(Layer::NUM_OF_LAYERS)>::WallState::VIRTUAL) {
             wall_count++;
         }
     }
@@ -243,20 +337,28 @@ bool TMaze<width, height>::is_dead_end(const Costmap<width, height, Layer::NUM_O
 }
 
 template <uint8_t width, uint8_t height>
-bool TMaze<width, height>::was_visited(const Costmap<width, height, Layer::NUM_OF_LAYERS>::Cell& cell) {
+bool TMaze<width, height>::was_visited(
+    const Costmap<width, height, std::to_underlying(Layer::NUM_OF_LAYERS)>::Cell& cell
+) {
     return not(
-        cell.walls[Side::UP] == Costmap<width, height, Layer::NUM_OF_LAYERS>::WallState::UNKNOWN or
-        cell.walls[Side::DOWN] == Costmap<width, height, Layer::NUM_OF_LAYERS>::WallState::UNKNOWN or
-        cell.walls[Side::LEFT] == Costmap<width, height, Layer::NUM_OF_LAYERS>::WallState::UNKNOWN or
-        cell.walls[Side::RIGHT] == Costmap<width, height, Layer::NUM_OF_LAYERS>::WallState::UNKNOWN
+        cell.walls[std::to_underlying(Side::UP)] ==
+            Costmap<width, height, std::to_underlying(Layer::NUM_OF_LAYERS)>::WallState::UNKNOWN or
+        cell.walls[std::to_underlying(Side::DOWN)] ==
+            Costmap<width, height, std::to_underlying(Layer::NUM_OF_LAYERS)>::WallState::UNKNOWN or
+        cell.walls[std::to_underlying(Side::LEFT)] ==
+            Costmap<width, height, std::to_underlying(Layer::NUM_OF_LAYERS)>::WallState::UNKNOWN or
+        cell.walls[std::to_underlying(Side::RIGHT)] ==
+            Costmap<width, height, std::to_underlying(Layer::NUM_OF_LAYERS)>::WallState::UNKNOWN
     );
 }
 
 template <uint8_t width, uint8_t height>
 bool TMaze<width, height>::must_visit(
-    const Costmap<width, height, Layer::NUM_OF_LAYERS>::Cell& cell, int16_t cost_threshold
+    const Costmap<width, height, std::to_underlying(Layer::NUM_OF_LAYERS)>::Cell& cell, int16_t cost_threshold
 ) {
-    return not was_visited(cell) and (cell.costs[Layer::EXPLORE] + cell.costs[Layer::RETURN] <= cost_threshold);
+    return not was_visited(cell) and
+           (cell.costs[std::to_underlying(Layer::EXPLORE)] + cell.costs[std::to_underlying(Layer::RETURN)] <=
+            cost_threshold);
 }
 }  // namespace micras::nav
 

@@ -5,11 +5,11 @@
 #ifndef MICRAS_INTERFACE_HPP
 #define MICRAS_INTERFACE_HPP
 
-#include <memory>
+#include <array>
+#include <cstdint>
+#include <utility>
 
-#include "micras/proxy/argb.hpp"
 #include "micras/proxy/button.hpp"
-#include "micras/proxy/buzzer.hpp"
 #include "micras/proxy/dip_switch.hpp"
 #include "micras/proxy/led.hpp"
 
@@ -22,28 +22,33 @@ public:
     /**
      * @brief Enum for the events that can be sent to the interface.
      */
-    enum Event : uint8_t {
+    enum class Event : uint8_t {
         EXPLORE = 0,
         SOLVE = 1,
         CALIBRATE = 2,
         ERROR = 3,
-        NUMBER_OF_EVENTS = 4,
+        TURN_ON_FAN = 4,
+        TURN_OFF_FAN = 5,
+        TURN_ON_DIAGONAL = 6,
+        TURN_OFF_DIAGONAL = 7,
+        TURN_ON_BOOST = 8,
+        TURN_OFF_BOOST = 9,
+        TURN_ON_RISKY = 10,
+        TURN_OFF_RISKY = 11,
+        NUMBER_OF_EVENTS = 12,
     };
 
     /**
      * @brief Construct a new Interface object.
      *
-     * @param argb Shared pointer to the addressable RGB LED object.
-     * @param button Shared pointer to the button object.
-     * @param buzzer Shared pointer to the buzzer object.
-     * @param dip_switch Shared pointer to the DIP switch object.
-     * @param led Shared pointer to the LED object.
+     * @note The proxies are borrowed, not owned: they live in the Micras object for the whole
+     * program, so they are taken by reference.
+     *
+     * @param button The button object.
+     * @param dip_switch The DIP switch object.
+     * @param led The LED object.
      */
-    Interface(
-        const std::shared_ptr<proxy::TArgb<2>>& argb, const std::shared_ptr<proxy::Button>& button,
-        const std::shared_ptr<proxy::Buzzer>& buzzer, const std::shared_ptr<proxy::TDipSwitch<4>>& dip_switch,
-        const std::shared_ptr<proxy::Led>& led
-    );
+    Interface(const proxy::Button& button, const proxy::TDipSwitch<4>& dip_switch, proxy::Led& led);
 
     /**
      * @brief Update the interface.
@@ -75,34 +80,41 @@ public:
 
 private:
     /**
-     * @brief Addressable RGB LED object.
+     * @brief Enum for what each dip switch pin does.
      */
-    std::shared_ptr<proxy::TArgb<2>> argb;
+    enum class DipSwitchPins : uint8_t {
+        FAN = 0,
+        DIAGONAL = 1,
+        BOOST = 2,
+        RISKY = 3,
+    };
 
+    // NOLINTBEGIN(*-avoid-const-or-ref-data-members) borrowed for the lifetime of the robot
     /**
      * @brief Button object.
      */
-    std::shared_ptr<proxy::Button> button;
-
-    /**
-     * @brief Buzzer object.
-     */
-    std::shared_ptr<proxy::Buzzer> buzzer;
+    const proxy::Button& button;
 
     /**
      * @brief Dip switch object.
      */
-    std::shared_ptr<proxy::TDipSwitch<4>> dip_switch;
+    const proxy::TDipSwitch<4>& dip_switch;
 
     /**
      * @brief LED object.
      */
-    std::shared_ptr<proxy::Led> led;
+    proxy::Led& led;
+    // NOLINTEND(*-avoid-const-or-ref-data-members)
 
     /**
      * @brief Array of the listed events.
      */
-    std::array<bool, Event::NUMBER_OF_EVENTS> events{};
+    std::array<bool, std::to_underlying(Event::NUMBER_OF_EVENTS)> events{};
+
+    /**
+     * @brief Array to store the last dip switch states.
+     */
+    std::array<bool, 4> dip_switch_states{};
 };
 }  // namespace micras
 

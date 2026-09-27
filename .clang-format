@@ -1,5 +1,6 @@
 ---
 Language:        Cpp
+BasedOnStyle:    LLVM
 AccessModifierOffset: -4
 AlignAfterOpenBracket: BlockIndent
 AlignConsecutiveBitFields:
@@ -26,20 +27,25 @@ IncludeCategories:
     SortPriority:    1
   - Regex:           '^".*"'
     SortPriority:    2
-IncludeIsMainRegex: '$'
+# No include is treated as the main header, so that sorting preserves the existing
+# grouping instead of promoting the header matching the source file name
+IncludeIsMainRegex: 'NO_MAIN_INCLUDE'
 IndentCaseLabels: true
 IndentExternBlock: NoIndent
 IndentPPDirectives: BeforeHash
 IndentRequiresClause: false
 IndentWidth:     4
 IndentWrappedFunctionNames: true
+InsertNewlineAtEOF: true
 KeepEmptyLinesAtTheStartOfBlocks: false
+LineEnding:      LF
 PackConstructorInitializers: NextLine
 PointerAlignment: Left
 SeparateDefinitionBlocks: Always
 ShortNamespaceLines: 0
-SortIncludes:    Never
+SortIncludes:    CaseSensitive
 SpaceInEmptyBlock: true
 SpacesBeforeTrailingComments: 2
+Standard:        Latest
 TabWidth:        4
 ...

@@ -12,7 +12,6 @@ cube/*
 .devcontainer.json
 .gitignore
 .gitmodules
-Doxyfile
 LICENSE
 
 *.yaml

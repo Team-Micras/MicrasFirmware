@@ -1,0 +1,58 @@
+name: Publish documentation
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Only one deployment at a time, and in-flight ones are allowed to finish
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: 📝 Build and publish to GitHub Pages
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: 🔀 Checkout
+        uses: actions/checkout@v7
+
+      - name: 🗃️ Restore generated cube files
+        id: cube
+        uses: actions/cache/restore@v6
+        with:
+          path: cube
+          key: cube-${{ hashFiles('cube/*.ioc', '.docker/Dockerfile') }}
+
+      - name: ⚙️ Generate cube files
+        if: steps.cube.outputs.cache-hit != 'true'
+        run: docker build --file .docker/Dockerfile --target generated --output type=local,dest=cube .
+
+      - name: 🐋 Build Docker image
+        run: docker build --file .docker/Dockerfile --build-context generated=cube --target build --tag micras:build .
+
+      - name: 📝 Generate documentation
+        run: |
+          docker run --name docs micras:build make -C build --no-print-directory docs
+          docker cp docs:/project/docs/html html/
+
+      - name: 📦 Upload Pages artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: html/
+
+      - name: 🚀 Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v5

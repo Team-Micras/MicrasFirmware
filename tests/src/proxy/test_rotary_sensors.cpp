@@ -2,6 +2,10 @@
  * @file
  */
 
+#include "micras/proxy/button.hpp"
+#include "micras/proxy/locomotion.hpp"
+#include "micras/proxy/rotary_sensor.hpp"
+#include "target.hpp"
 #include "test_core.hpp"
 
 using namespace micras;  // NOLINT(google-build-using-namespace)

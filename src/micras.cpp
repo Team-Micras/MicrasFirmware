@@ -2,35 +2,36 @@
  * @file
  */
 
+#include <algorithm>
+#include <cmath>
+#include <memory>
 #include <tuple>
 
+#include "constants.hpp"
+#include "micras/core/types.hpp"
+#include "micras/hal/mcu.hpp"
 #include "micras/micras.hpp"
+#include "micras/proxy/button.hpp"
+#include "micras/proxy/buzzer.hpp"
+#include "micras/proxy/imu.hpp"
 #include "micras/states/calibrate.hpp"
 #include "micras/states/error.hpp"
 #include "micras/states/idle.hpp"
 #include "micras/states/init.hpp"
 #include "micras/states/run.hpp"
 #include "micras/states/wait.hpp"
-#include "target.hpp"
 
 namespace micras {
 Micras::Micras() :
-    argb{std::make_shared<proxy::Argb>(argb_config)},
-    button{std::make_shared<proxy::Button>(button_config)},
-    buzzer{std::make_shared<proxy::Buzzer>(buzzer_config)},
-    dip_switch{std::make_shared<proxy::DipSwitch>(dip_switch_config)},
-    led{std::make_shared<proxy::Led>(led_config)},
-    imu{std::make_shared<proxy::Imu>(imu_config)},
-    rotary_sensor_left{std::make_shared<proxy::RotarySensor>(rotary_sensor_left_config)},
-    rotary_sensor_right{std::make_shared<proxy::RotarySensor>(rotary_sensor_right_config)},
-    wall_sensors{std::make_shared<proxy::WallSensors>(wall_sensors_config)},
     action_queuer{action_queuer_config},
     maze{maze_config},
     odometry{rotary_sensor_left, rotary_sensor_right, imu, odometry_config},
     speed_controller{speed_controller_config},
-    follow_wall{wall_sensors, odometry.get_state().pose, follow_wall_config},
-    interface{argb, button, buzzer, dip_switch, led},
+    follow_wall{wall_sensors, follow_wall_config},
+    interface{button, dip_switch, led},
     action_pose{odometry.get_state().pose} {
+    hal::Mcu::set_watchdog_timeout(watchdog_timeout_ms);
+
     this->fsm.add_state(std::make_unique<CalibrateState>(State::CALIBRATE, *this));
     this->fsm.add_state(std::make_unique<ErrorState>(State::ERROR, *this));
     this->fsm.add_state(std::make_unique<IdleState>(State::IDLE, *this));
@@ -41,35 +42,41 @@ Micras::Micras() :
 }
 
 void Micras::update() {
-    this->elapsed_time = loop_stopwatch.elapsed_time_us() / 1e6F;
-    loop_stopwatch.reset_us();
+    this->elapsed_time = static_cast<float>(this->loop_stopwatch.elapsed_time_us()) / 1e6F;
+    this->loop_stopwatch.reset_us();
 
-    this->button->update();
-    this->buzzer->update();
+    hal::Mcu::refresh_watchdog();
+
+    this->button.update();
+    this->buzzer.update();
     this->interface.update();
 
+    this->battery.update();
     this->fan.update();
-    this->imu->update();
-    this->wall_sensors->update();
+    this->imu.update();
+    this->torque_sensors.update();
+    this->wall_sensors.update();
 
     this->fsm.update();
 
-    while (loop_stopwatch.elapsed_time_us() < loop_time_us) { }
+    this->worst_loop_time_us = std::max(this->worst_loop_time_us, this->loop_stopwatch.elapsed_time_us());
+
+    while (this->loop_stopwatch.elapsed_time_us() < loop_time_us) { }
 }
 
 bool Micras::calibrate() {
     switch (this->calibration_type) {
         case CalibrationType::SIDE_WALLS:
-            this->wall_sensors->calibrate_sensor(wall_sensors_index.left);
-            this->wall_sensors->calibrate_sensor(wall_sensors_index.right);
+            this->wall_sensors.calibrate_sensor(wall_sensors_index.left);
+            this->wall_sensors.calibrate_sensor(wall_sensors_index.right);
             this->calibration_type = CalibrationType::FRONT_WALL;
             return false;
 
         case CalibrationType::FRONT_WALL:
-            this->wall_sensors->calibrate_sensor(wall_sensors_index.left_front);
-            this->wall_sensors->calibrate_sensor(wall_sensors_index.right_front);
+            this->wall_sensors.calibrate_sensor(wall_sensors_index.left_front);
+            this->wall_sensors.calibrate_sensor(wall_sensors_index.right_front);
             this->calibration_type = CalibrationType::SIDE_WALLS;
-            this->wall_sensors->turn_off();
+            this->wall_sensors.turn_off();
             return true;
     }
 
@@ -89,16 +96,18 @@ void Micras::prepare() {
 bool Micras::run() {
     this->odometry.update(this->elapsed_time);
 
-    const micras::nav::State& state = this->odometry.get_state();
-    core::Observation         observation{};
+    micras::nav::State& state = this->odometry.get_state();
+    core::Observation   observation{};
 
     if (this->current_action->finished(this->action_pose.get())) {
         if (this->finished) {
             this->finished = false;
             this->locomotion.stop();
 
-            if (this->objective == core::Objective::EXPLORE) {
+            if (this->objective != core::Objective::SOLVE) {
+                hal::Mcu::set_watchdog_timeout(stopped_watchdog_timeout_ms);
                 this->maze.compute_best_route();
+                hal::Mcu::set_watchdog_timeout(watchdog_timeout_ms);
             }
 
             return true;
@@ -127,21 +136,16 @@ bool Micras::run() {
                 next_goal = this->maze.get_next_goal(this->grid_pose, returning);
             }
 
-            this->action_queuer.push(this->grid_pose, next_goal.position);
+            this->action_queuer.push_exploring(this->grid_pose, next_goal.position);
             this->current_action = this->action_queuer.pop();
             this->grid_pose = next_goal;
         }
-
-        if (this->current_action->allow_follow_wall()) {
-            this->follow_wall.reset();
-        }
     }
 
-    this->desired_speeds = this->current_action->get_speeds(this->action_pose.get());
+    this->desired_speeds = this->current_action->get_speeds(this->action_pose.get(), this->elapsed_time);
 
     if (this->current_action->allow_follow_wall()) {
-        this->desired_speeds.angular =
-            this->follow_wall.compute_angular_correction(this->elapsed_time, state.velocity.linear);
+        this->desired_speeds.angular = this->follow_wall.compute_angular_correction(this->elapsed_time, state);
     }
 
     std::tie(this->left_response, this->right_response) =
@@ -156,40 +160,45 @@ bool Micras::run() {
 }
 
 void Micras::stop() {
-    this->wall_sensors->turn_off();
+    this->wall_sensors.turn_off();
     this->locomotion.stop();
     this->locomotion.disable();
     this->fan.stop();
 }
 
 void Micras::init() {
-    this->wall_sensors->turn_on();
+    this->wall_sensors.turn_on();
     this->locomotion.enable();
-    this->odometry.reset();
-    this->imu->calibrate();
+    this->imu.calibrate();
     this->action_pose.reset_reference();
 }
 
 void Micras::reset() {
     this->grid_pose = maze_config.start;
+    this->odometry.reset();
     this->finished = false;
 }
 
 bool Micras::check_crash() const {
     return std::hypot(
-               this->imu->get_linear_acceleration(proxy::Imu::Axis::X),
-               this->imu->get_linear_acceleration(proxy::Imu::Axis::Y)
+               this->imu.get_linear_acceleration(proxy::Imu::Axis::X),
+               this->imu.get_linear_acceleration(proxy::Imu::Axis::Y)
            ) > crash_acceleration;
 }
 
 void Micras::save_best_route() {
+    hal::Mcu::set_watchdog_timeout(stopped_watchdog_timeout_ms);
+
     this->maze_storage.create("maze", this->maze);
     this->maze_storage.save();
+
+    hal::Mcu::set_watchdog_timeout(watchdog_timeout_ms);
 }
 
 void Micras::load_best_route() {
     this->maze_storage.sync("maze", this->maze);
-    this->action_queuer.recompute(this->maze.get_best_route());
+    this->action_queuer.recompute(this->maze.get_best_route(), false);
+    this->fan.set_speed(fan_speed);
 }
 
 core::Objective Micras::get_objective() const {
@@ -201,7 +210,11 @@ void Micras::set_objective(core::Objective objective) {
 }
 
 bool Micras::check_initialization() const {
-    return this->imu->was_initialized();
+    return not hal::Mcu::was_reset_by_watchdog() and hal::Mcu::is_cpu_frequency_supported() and
+           this->imu.was_initialized() and this->rotary_sensor_left.was_initialized() and
+           this->rotary_sensor_right.was_initialized() and this->wall_sensors.was_initialized() and
+           this->battery.was_initialized() and this->torque_sensors.was_initialized() and
+           this->fan.was_initialized() and this->locomotion.was_initialized();
 }
 
 void Micras::send_event(Interface::Event event) {
@@ -214,5 +227,13 @@ bool Micras::acknowledge_event(Interface::Event event) {
 
 bool Micras::peek_event(Interface::Event event) const {
     return this->interface.peek_event(event);
+}
+
+void Micras::handle_events() {
+    if (this->interface.acknowledge_event(Interface::Event::TURN_ON_FAN)) {
+        this->fan.enable();
+    } else if (this->interface.acknowledge_event(Interface::Event::TURN_OFF_FAN)) {
+        this->fan.disable();
+    }
 }
 }  // namespace micras

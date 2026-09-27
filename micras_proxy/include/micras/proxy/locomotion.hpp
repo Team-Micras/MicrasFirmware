@@ -53,6 +53,9 @@ public:
     /**
      * @brief Set the linear and angular commands of the robot.
      *
+     * @note Both wheels are scaled by the same factor when a command saturates, so the commanded
+     * ratio, and with it the turn radius, survives the saturation.
+     *
      * @param linear Linear command of the robot.
      * @param angular Angular command of the robot.
      */
@@ -62,6 +65,13 @@ public:
      * @brief Stop the motors.
      */
     void stop();
+
+    /**
+     * @brief Check if both motors were successfully initialized.
+     *
+     * @return True if the initialization was successful, false otherwise.
+     */
+    bool was_initialized() const;
 
 private:
     /**

@@ -2,6 +2,12 @@
  * @file
  */
 
+#include <cstdint>
+#include "constants.hpp"
+#include "micras/proxy/button.hpp"
+#include "micras/proxy/locomotion.hpp"
+#include "micras/proxy/stopwatch.hpp"
+#include "target.hpp"
 #include "test_core.hpp"
 
 using namespace micras;  // NOLINT(google-build-using-namespace)
@@ -47,7 +53,7 @@ int main(int argc, char* argv[]) {
             test_current_raw[i] = torque_sensors.get_current_raw(i);
         }
 
-        proxy::Stopwatch::sleep_ms(2);
+        proxy::Stopwatch::sleep_us(loop_time_us);
     });
 
     return 0;
