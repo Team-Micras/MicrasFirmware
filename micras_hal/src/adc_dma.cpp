@@ -114,7 +114,7 @@ uint32_t AdcDma::read_snapshot(std::span<uint16_t> destination) const {
 void AdcDma::on_sequence_complete(const ADC_HandleTypeDef* handle) {
     AdcDma* const instance = find(handle);
 
-    if (instance == nullptr) {
+    if (instance == nullptr or instance->stopped) {
         return;
     }
 

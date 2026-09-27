@@ -3,6 +3,7 @@
  */
 
 #include <cstdint>
+#include <limits>
 #include <numbers>
 #include <vector>
 
@@ -33,6 +34,7 @@ void RouteCompiler::compile(
                 .length = length,
                 .start_speed = 0.0F,
                 .end_speed = 0.0F,
+                .max_speed = std::numeric_limits<float>::infinity(),
                 .start = start,
             });
         }
@@ -67,6 +69,7 @@ void RouteCompiler::compile(
             .length = step.side == TurnSide::LEFT ? shape.length() : -shape.length(),
             .start_speed = 0.0F,
             .end_speed = 0.0F,
+            .max_speed = std::numeric_limits<float>::infinity(),
             .start = retreat(node, -shape.pre),
         });
 

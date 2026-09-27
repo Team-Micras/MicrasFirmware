@@ -3,6 +3,7 @@
  */
 
 #include <array>
+#include <limits>
 #include <numbers>
 
 #include "constants.hpp"
@@ -74,30 +75,35 @@ int main(int argc, char* argv[]) {
          .length = distance,
          .start_speed = 0.0F,
          .end_speed = 0.0F,
+         .max_speed = std::numeric_limits<float>::infinity(),
          .start = origin},
         {.kind = nav::SegmentKind::STOP,
          .turn = unused,
          .length = 0.2F,
          .start_speed = 0.0F,
          .end_speed = 0.0F,
+         .max_speed = std::numeric_limits<float>::infinity(),
          .start = far_end},
         {.kind = nav::SegmentKind::SPIN,
          .turn = unused,
          .length = std::numbers::pi_v<float>,
          .start_speed = 0.0F,
          .end_speed = 0.0F,
+         .max_speed = std::numeric_limits<float>::infinity(),
          .start = far_end},
         {.kind = nav::SegmentKind::STOP,
          .turn = unused,
          .length = 0.2F,
          .start_speed = 0.0F,
          .end_speed = 0.0F,
+         .max_speed = std::numeric_limits<float>::infinity(),
          .start = turned},
         {.kind = nav::SegmentKind::STRAIGHT,
          .turn = unused,
          .length = distance,
          .start_speed = 0.0F,
          .end_speed = 0.0F,
+         .max_speed = std::numeric_limits<float>::infinity(),
          .start = turned},
     }};
 
@@ -144,7 +150,7 @@ int main(int argc, char* argv[]) {
         }
 
         const nav::Reference reference = executor.update(loop_time, controller.get_time_scale(), localizer.get_state());
-        const nav::Controller::Command command = controller.update(reference, localizer.get_state());
+        const nav::Controller::Command command = controller.update(reference, localizer.get_state(), loop_time);
 
         locomotion.set_command(command.forward, command.rotation);
 

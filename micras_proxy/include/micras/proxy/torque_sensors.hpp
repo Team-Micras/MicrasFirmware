@@ -20,10 +20,15 @@ class TTorqueSensors {
 public:
     /**
      * @brief Configuration struct for torque sensors.
+     *
+     * @note The zero reading is the reading with no current, as a fraction of the range of the
+     * converter, which is where a bidirectional amplifier sits. The currents and torques are signed
+     * about it.
      */
     struct Config {
         hal::AdcDma::Config             adc;
         float                           shunt_resistor;
+        float                           zero_reading;
         float                           max_torque;
         core::ButterworthFilter::Config filter;
     };
@@ -38,9 +43,10 @@ public:
     /**
      * @brief Calibrate the torque sensors.
      *
-     * @note The amplifiers on this board are bidirectional about half the reference voltage, so the
-     * uncalibrated reading carries a large offset and this has to be called before any reading is
-     * meaningful. Calling it again refines the baseline rather than discarding it.
+     * @note The readings start out signed about the zero reading of the configuration, which leaves
+     * the offset of each amplifier. This takes the current reading as the one of no current, so it
+     * is to be called with the motors disabled. Calling it again refines the baseline rather than
+     * discarding it.
      */
     void calibrate();
 
@@ -115,7 +121,7 @@ private:
     std::array<float, num_of_sensors> base_reading{};
 
     /**
-     * @brief Value of the maximum current that can be measured by the sensor.
+     * @brief Current that moves the reading across the whole range of the converter, in amps.
      */
     float max_current;
 

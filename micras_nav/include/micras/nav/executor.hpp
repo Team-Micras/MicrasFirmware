@@ -63,9 +63,9 @@ public:
     /**
      * @brief Queue segments after the ones already queued.
      *
-     * @note Nothing is allocated as long as the number of segments waiting stays within the
-     * capacity, which a route planned with the robot stopped may exceed and the few segments
-     * queued per cell while exploring never do.
+     * @note The segments already done are dropped first, so nothing is allocated as long as the
+     * number of segments waiting stays within the capacity, which a route planned with the robot
+     * stopped may exceed and the few segments queued per cell while exploring never do.
      *
      * @param segments The segments, with their speeds already planned.
      */
@@ -75,12 +75,13 @@ public:
      * @brief Advance the clock and get the reference for this instant.
      *
      * @note A time scale below one plays the reference in slow motion: the clock advances by less
-     * than the time that passed and the speeds are scaled to match, so the path stays the same.
+     * than the time that passed. The reference comes out at the full pace, and the controller
+     * scales its speeds to match, so the path stays the same.
      *
      * @param elapsed_time Time since the last update, in seconds.
      * @param time_scale Factor applied to the elapsed time, in (0, 1].
      * @param estimate The estimated state of the robot, which only tells when it has settled.
-     * @return The reference in the maze frame.
+     * @return The reference in the maze frame, at the full pace.
      */
     Reference update(float elapsed_time, float time_scale, const State& estimate);
 

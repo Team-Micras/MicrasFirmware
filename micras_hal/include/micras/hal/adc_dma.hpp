@@ -156,7 +156,9 @@ public:
     /**
      * @brief Count a complete sequence of a converter and copy its buffer to its snapshot.
      *
-     * @note To be called by the conversion complete callback only.
+     * @note To be called by the conversion complete callback only. Nothing is counted while the
+     * converter is stopped: after an overrun the vendor HAL clears the flag and the transfers go
+     * on out of line with the sequence until the converter is restarted.
      *
      * @param handle Handle of the converter that completed a sequence.
      */

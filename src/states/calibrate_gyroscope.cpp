@@ -15,7 +15,7 @@ void CalibrateGyroscopeState::on_entry() {
 }
 
 uint8_t CalibrateGyroscopeState::execute() {
-    if (this->micras.check_crash()) {
+    if (this->micras.check_fault()) {
         return std::to_underlying(State::ERROR);
     }
 

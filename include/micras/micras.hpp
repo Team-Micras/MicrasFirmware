@@ -7,6 +7,7 @@
 
 #include <array>
 #include <cstdint>
+#include <optional>
 #include <utility>
 
 #include "constants.hpp"
@@ -141,6 +142,7 @@ public:
      * @brief Get the robot ready to move: sensors on, and the fan too if what follows uses it.
      *
      * @note A fast run and a maintenance procedure run the fan when its switch is on, a search never.
+     * The current sensors are zeroed here, while the motors are still disabled.
      *
      * @param run Whether a run follows, rather than a maintenance procedure.
      */
@@ -174,11 +176,17 @@ public:
     nav::Mission::Status run();
 
     /**
-     * @brief Use the imu to check if the robot crashed.
+     * @brief Check if something went wrong that the robot has to stop for.
      *
-     * @return True if the robot crashed, false otherwise.
+     * @note Three things are checked: an acceleration over the crash threshold, the motors
+     * saturated for longer than the saturation timeout, which is what a robot held against a wall
+     * or with an encoder reversed looks like, and the inertial measurement unit silent for longer
+     * than its timeout, which is what it looks like after a brownout, since it comes back powered
+     * down.
+     *
+     * @return True if the robot has to stop.
      */
-    bool check_crash();
+    bool check_fault();
 
     /**
      * @brief Load the maze from the non-volatile storage and start planning a fast run.
@@ -203,8 +211,13 @@ public:
      * @brief Save the maze to the non-volatile storage.
      *
      * @note This stalls the core for seconds, so it is only to be called with the robot stopped.
+     * The LED is on for as long as it lasts, since switching the robot off then loses the saved
+     * map, and the loop is paced again from its end. A failed save is counted in the telemetry and
+     * nothing else changes, since the map is still in memory for the runs until the next reset.
+     *
+     * @return True if the maze was saved.
      */
-    void save_maze();
+    bool save_maze();
 
     /**
      * @brief Start the calibration of the pair of wall sensors that is next in line.
@@ -301,14 +314,16 @@ private:
      * @note Some of what is worth watching is computed on the way out of its owner: the battery is
      * scaled into volts, the deviations of the estimate come out of its covariance. Publishing means
      * copying those into somewhere that stays put. The route time is zero while no route is planned.
-     * The restarts of the converters are counted by the HAL, in a static member. The results of the
-     * maintenance procedures are copied once, when a procedure ends.
+     * The restarts of the converters are counted by the HAL, in a static member. The failed saves are
+     * counted as they fail. The results of the maintenance procedures are copied once, when a
+     * procedure ends.
      */
     struct Telemetry {
         std::array<float, 3>                           angular_velocity{};
         std::array<float, 3>                           linear_acceleration{};
         float                                          battery_voltage{};
         uint32_t                                       adc_restarts{};
+        uint32_t                                       failed_saves{};
         float                                          gyroscope_bias{};
         float                                          position_deviation{};
         float                                          orientation_deviation{};
@@ -338,7 +353,7 @@ private:
      * @brief Enum for the type of calibration being performed.
      */
     enum class CalibrationType : uint8_t {
-        SIDE_WALLS = 0,  // Calibrate the sensors that look at the side walls, between two walls.
+        SIDE_WALLS = 0,  // Calibrate the sensors that look at the side walls, in a corridor with no wall ahead.
         FRONT_WALL = 1,  // Calibrate the sensors that look forward, facing a wall.
     };
 
@@ -381,9 +396,32 @@ private:
     void publish();
 
     /**
+     * @brief Forget the counts of the faults, before the robot starts to move.
+     */
+    void clear_faults();
+
+    /**
      * @brief Watchdog, started before anything that could hang.
      */
     proxy::Watchdog watchdog{watchdog_config};
+
+    /**
+     * @brief Longer timeout of the watchdog while the robot is being constructed.
+     *
+     * @note Some proxies wait for their chips as they start, the inertial measurement unit for
+     * 40 ms, which is longer than the timeout of the control loop. The constructor ends it once
+     * every member is built.
+     */
+    std::optional<proxy::Watchdog::Extension> startup_extension{std::in_place, watchdog, stopped_watchdog_timeout_ms};
+
+    /**
+     * @brief Longer timeout of the watchdog while a fast run is planned.
+     *
+     * @note The robot is stopped then, and the iteration that chooses among the candidate routes
+     * and starts the racing line does all of that at once, which can outlast the timeout of the
+     * control loop. It lives from the start of the planning to its end.
+     */
+    std::optional<proxy::Watchdog::Extension> plan_extension;
 
     /**
      * @brief Pace of the control loop.
@@ -502,7 +540,9 @@ private:
      * @brief Options of the next run, written by the switches and by the link alike.
      *
      * @note Last writer wins, which is a rule that can be predicted from the outside. The switches
-     * write it when they move, the link whenever it likes.
+     * write it when they move, the link whenever it likes. It is not saved: at boot it is what the
+     * switches say, since a saved value would win exactly when every switch is off, which is when
+     * nobody expects it.
      */
     uint8_t run_profile{};
 
@@ -515,6 +555,16 @@ private:
      * @brief Number of consecutive iterations with an acceleration over the crash threshold.
      */
     uint8_t crash_count{};
+
+    /**
+     * @brief Number of consecutive iterations in which the motors could not deliver the command.
+     */
+    uint16_t saturated_streak{};
+
+    /**
+     * @brief Number of consecutive iterations without a new sample of the inertial measurement unit.
+     */
+    uint16_t imu_silence{};
 
     /**
      * @brief Longest control loop body observed since the last reset, in microseconds.
@@ -536,9 +586,10 @@ private:
     /**
      * @brief Number of periods of the control loop that went by without an iteration.
      *
-     * @note The planning and the saving of the maze take many periods and are counted here too,
-     * with the robot stopped, and so are the one or two that flooding the maze takes whenever a
-     * search decides a wall. What matters is that it does not grow during a fast run.
+     * @note The planning of a fast run can take more than a period per iteration and is counted
+     * here too, with the robot stopped, and so are the one or two that flooding the maze takes
+     * whenever a search decides a wall. The saving of the maze is not: the loop is paced again
+     * from its end. What matters is that it does not grow during a fast run.
      */
     uint32_t missed_ticks{};
 

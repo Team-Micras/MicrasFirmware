@@ -45,6 +45,14 @@ public:
     uint32_t wait();
 
     /**
+     * @brief Make the next tick one period from now.
+     *
+     * @note For after an operation that stalled the loop on purpose, with the robot stopped, so
+     * that the stall is not reported as missed ticks nor integrated as the time of one iteration.
+     */
+    void restart();
+
+    /**
      * @brief Get the time since the last tick.
      *
      * @return The time in microseconds, which is how long the body of the loop has taken so far.

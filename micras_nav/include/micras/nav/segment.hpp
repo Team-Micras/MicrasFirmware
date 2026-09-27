@@ -30,7 +30,8 @@ enum class SegmentKind : uint8_t {
  * curve for a turn, negative for the mirror of the turn of the table, which is the turn to the right,
  * in radians for a rotation in place, positive to the left, in seconds for the two kinds that stand
  * still, and in meters for the racing line. The speeds are those at the ends of the segment and are
- * filled in by the velocity planner, except for the racing line, which carries its own.
+ * filled in by the velocity planner, except for the racing line, which carries its own. The largest
+ * speed caps a straight below the limit of the run, and is infinite otherwise.
  *
  * @note The start is the pose the segment nominally starts from in the maze frame. It comes from the
  * route on the grid and never from a measurement, so the references generated from it do not move
@@ -43,6 +44,7 @@ struct Segment {
     float       length;
     float       start_speed;
     float       end_speed;
+    float       max_speed;
     Pose        start;
 };
 

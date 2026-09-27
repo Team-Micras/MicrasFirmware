@@ -347,8 +347,11 @@ const proxy::TorqueSensors::Config torque_sensors_config = {
             .max_reading = 49151,
             .reference_voltage = adc_reference_voltage,
         },
-    // 40 mOhm shunts into current sense amplifiers of gain 20
+    // 40 mOhm shunts, in series with the motors, into current sense amplifiers of gain 20
     .shunt_resistor = 0.04F * 20,
+    // The amplifiers are referenced to half their supply, which is the reference of the converter
+    // too, so no current reads half the range whatever that supply is
+    .zero_reading = 0.5F,
     // Full scale current times the torque constant of the motor. The torque constant has not been
     // measured on these motors, so this is an order of magnitude estimate for a coreless
     // micromouse motor and wants a bench calibration before nav relies on the value.

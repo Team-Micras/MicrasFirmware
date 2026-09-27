@@ -167,7 +167,10 @@ public:
      * @brief Start a run.
      *
      * @note Exploring and solving start from the start pose. Returning starts from wherever the
-     * exploration ended, with the robot stopped at the center of a cell.
+     * exploration ended, with the robot stopped at the center of a cell. The first exploration
+     * after a reset forgets the map restored from the flash, which may be of another maze and whose
+     * walls could never be revised; a fast run after a reset uses it, and so does an exploration
+     * that is tried again before the next reset.
      *
      * @param objective What the run is for.
      */
@@ -419,6 +422,11 @@ private:
      * @brief Whether the robot is crossing a cell whose wall ahead was unknown when it entered.
      */
     bool watching_front{};
+
+    /**
+     * @brief Whether an exploration has cleared the map since the last reset.
+     */
+    bool map_cleared{};
 
     /**
      * @brief Cell being crossed while the wall ahead of it is watched.

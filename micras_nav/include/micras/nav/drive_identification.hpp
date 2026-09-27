@@ -28,8 +28,10 @@ namespace micras::nav {
  * The constants come out in volts, and get_model() turns them into the physical constants of the
  * robot model, so the result of a run is a set of numbers to type into the configuration.
  *
- * @note The robot travels forward by about the distance limit and comes back, so it needs that much
- * free floor ahead of it. It should run with the fan as it is used in a fast run.
+ * @note The robot stays between where it started and the distance limit ahead of it, as far as the
+ * model it starts from is right: a step ends early enough for the robot to coast to a stop inside
+ * that stretch. It needs that much free floor ahead of it, and some margin on both sides for a
+ * model that is off. It should run with the fan as it is used in a fast run.
  */
 class DriveIdentification {
 public:
@@ -38,8 +40,9 @@ public:
      *
      * @note The commands are in percent of the motor supply. The ramp rate is in percent per
      * second, and the wheels count as turning once they are faster than the breakaway speed. Each
-     * level of a step lasts for the step time, a step forward or backward also ends when the
-     * distance limit is reached, and the robot rests for the rest time between two steps.
+     * level of a step lasts for the step time, a step forward also ends once the robot would coast
+     * past the distance limit and a step backward once it would coast past where it started, and the
+     * robot rests for the rest time between two steps.
      */
     struct Config {
         RobotModel model;

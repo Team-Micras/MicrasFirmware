@@ -60,7 +60,11 @@ struct Route {
  * crosses passes the wall assumption. Its cost is the time of the run, from the evaluator the
  * executor plays back, plus the time of the turn at the speed the run profile gives it, so the
  * fastest path of the graph is the fastest route the robot can drive, to within what the velocity
- * planner refines among the candidates. Diagonals, the turns of 135
+ * planner refines among the candidates. That speed is the one of the tightest point of the turn,
+ * and the robot drives the rest of it faster, braking into that point and accelerating out of it,
+ * so the time of each turn is its length at that speed times a factor, the time the executor
+ * takes over the length at that speed. Without it every turn is overpriced, and a route of many
+ * turns, such as a diagonal one, loses to one of few that is slower. Diagonals, the turns of 135
  * degrees and the two sizes of the turn of 90 degrees are part of the search rather than a rewrite
  * of its result.
  *
@@ -380,6 +384,27 @@ private:
     float get_stop_distance(const LatticePose& node) const;
 
     /**
+     * @brief Get the time a part of a turn takes at a speed.
+     *
+     * @param turn The turn.
+     * @param length The length of the part of the turn, in meters.
+     * @param speed The speed the turn is priced at, in m/s.
+     * @return The time in seconds.
+     */
+    float get_turn_time(TurnId turn, float length, float speed) const;
+
+    /**
+     * @brief Compute the factor of the time of every turn for the run being planned, or take it
+     * from the ones computed before.
+     *
+     * @note Each factor times the whole motion of a turn, which is too much work for an iteration
+     * of the control loop, so the factors of the last few profiles are kept. The explorer goes
+     * through the same few profiles again and again, and only the first time is done with the robot
+     * stopped, at the goal.
+     */
+    void load_turn_factors();
+
+    /**
      * @brief Get the speed a label leaves its node with.
      *
      * @param arrival The arrival of the label.
@@ -578,6 +603,36 @@ private:
      * @brief Speed of each turn, for the run being planned.
      */
     std::array<float, number_of_turns> turn_speeds{};
+
+    /**
+     * @brief Factors of the time of the turns of one run profile.
+     */
+    struct TurnFactors {
+        RunProfile                         profile;
+        std::array<float, number_of_turns> factors;
+        bool                               valid;
+    };
+
+    /**
+     * @brief Number of profiles whose factors are kept, which covers every profile of the explorer
+     * and the fast run.
+     */
+    static constexpr uint8_t kept_profiles{6};
+
+    /**
+     * @brief Factor of the time of each turn, for the run being planned.
+     */
+    std::array<float, number_of_turns> turn_factors{};
+
+    /**
+     * @brief Factors of the profiles planned last.
+     */
+    std::array<TurnFactors, kept_profiles> kept_factors{};
+
+    /**
+     * @brief Slot of the kept factors to be replaced next.
+     */
+    uint8_t next_kept{};
 
     /**
      * @brief Turns that can be driven on the run being planned, from a heading along the grid and

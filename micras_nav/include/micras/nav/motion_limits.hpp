@@ -50,6 +50,14 @@ struct MotionLimits {
      */
     float crossover_speed() const;
 
+    /**
+     * @brief Get the same limits with a lower top speed.
+     *
+     * @param speed The top speed, which is ignored where it is above the current one.
+     * @return The limits with the lower of the two top speeds.
+     */
+    MotionLimits capped(float speed) const;
+
     float max_speed;
     float acceleration;
     float deceleration;

@@ -3,13 +3,42 @@
  */
 
 #include <algorithm>
+#include <array>
 #include <cmath>
+#include <cstdint>
+#include <limits>
 
 #include "micras/nav/controller.hpp"
 #include "micras/nav/segment.hpp"
 #include "micras/nav/state.hpp"
 
 namespace micras::nav {
+/**
+ * @brief Find the real roots of a quadratic, in the form that keeps its precision.
+ *
+ * @param quadratic The coefficient of the square.
+ * @param linear The coefficient of the variable.
+ * @param constant The constant term.
+ * @return The roots, not a number where there is none, and only the first one of a linear equation.
+ */
+static std::array<float, 2> solve_quadratic(float quadratic, float linear, float constant) {
+    constexpr float none = std::numeric_limits<float>::quiet_NaN();
+
+    if (std::abs(quadratic) < 1.0e-9F) {
+        return {std::abs(linear) > 0.0F ? -constant / linear : none, none};
+    }
+
+    const float discriminant = linear * linear - 4.0F * quadratic * constant;
+
+    if (discriminant < 0.0F) {
+        return {none, none};
+    }
+
+    const float half = -0.5F * (linear + std::copysign(std::sqrt(discriminant), linear));
+
+    return {half / quadratic, std::abs(half) > 0.0F ? constant / half : none};
+}
+
 Controller::Controller(const Config& config) :
     config{config},
     linear_gains{compute_gains(config.linear, config.model.speed_constant(), config.model.acceleration_constant())},
@@ -17,8 +46,21 @@ Controller::Controller(const Config& config) :
         config.angular, config.model.angular_speed_constant(), config.model.angular_acceleration_constant()
     )} { }
 
-Controller::Command Controller::update(const Reference& reference, const State& estimate) {
+Controller::Command Controller::update(const Reference& unscaled, const State& estimate, float elapsed_time) {
     const RobotModel& model = this->config.model;
+
+    const float step = this->config.max_time_scale_rate * elapsed_time;
+    const float scale = std::clamp(this->find_time_scale(unscaled), this->time_scale - step, this->time_scale + step);
+    const float scale_rate = (scale - this->time_scale) / elapsed_time;
+
+    this->time_scale = scale;
+
+    Reference reference = unscaled;
+    reference.twist.linear = scale * unscaled.twist.linear;
+    reference.twist.angular = scale * unscaled.twist.angular;
+    reference.acceleration.linear = scale * scale * unscaled.acceleration.linear + scale_rate * unscaled.twist.linear;
+    reference.acceleration.angular =
+        scale * scale * unscaled.acceleration.angular + scale_rate * unscaled.twist.angular;
 
     const float half_track = model.chassis.track_width / 2.0F;
     const float left_speed = reference.twist.linear - reference.twist.angular * half_track;
@@ -34,11 +76,6 @@ Controller::Command Controller::update(const Reference& reference, const State& 
     const float rotation_feed_forward = model.angular_speed_constant() * reference.twist.angular +
                                         model.angular_acceleration_constant() * reference.acceleration.angular +
                                         model.drive.static_friction_voltage * (right_friction - left_friction) / 2.0F;
-
-    const float available = model.drive.supply_voltage * (1.0F - this->config.voltage_reserve);
-    const float demand = std::abs(forward_feed_forward) + std::abs(rotation_feed_forward);
-
-    this->time_scale = demand > 0.0F ? std::min(1.0F, this->time_scale * available / demand) : 1.0F;
 
     const Pose seen = reference.pose.relative(estimate.pose);
 
@@ -78,6 +115,52 @@ Controller::Command Controller::update(const Reference& reference, const State& 
         .forward = to_percent * (forward_feed_forward + forward_feedback),
         .rotation = to_percent * (rotation_feed_forward + rotation_feedback),
     };
+}
+
+float Controller::find_time_scale(const Reference& reference) const {
+    const RobotModel& model = this->config.model;
+
+    const float half_track = model.chassis.track_width / 2.0F;
+    const float available = model.drive.supply_voltage * (1.0F - this->config.voltage_reserve);
+
+    std::array<std::array<float, 3>, 2> wheels{};
+
+    for (uint8_t i = 0; i < 2; i++) {
+        const float side = i == 0 ? -1.0F : 1.0F;
+        const float speed = reference.twist.linear + side * reference.twist.angular * half_track;
+
+        wheels.at(i) = {
+            model.drive.static_friction_voltage * std::clamp(speed / this->config.friction_speed, -1.0F, 1.0F),
+            model.speed_constant() * reference.twist.linear +
+                side * model.angular_speed_constant() * reference.twist.angular,
+            model.acceleration_constant() * reference.acceleration.linear +
+                side * model.angular_acceleration_constant() * reference.acceleration.angular,
+        };
+    }
+
+    const auto fits = [&wheels, available](float scale) {
+        return std::ranges::all_of(wheels, [scale, available](const std::array<float, 3>& wheel) {
+            return std::abs(wheel.at(0) + scale * (wheel.at(1) + scale * wheel.at(2))) <= available * 1.0001F;
+        });
+    };
+
+    if (fits(1.0F)) {
+        return 1.0F;
+    }
+
+    float best = min_time_scale;
+
+    for (const std::array<float, 3>& wheel : wheels) {
+        for (const float limit : {available, -available}) {
+            for (const float root : solve_quadratic(wheel.at(2), wheel.at(1), wheel.at(0) - limit)) {
+                if (root > best and root < 1.0F and fits(root)) {
+                    best = root;
+                }
+            }
+        }
+    }
+
+    return best;
 }
 
 float Controller::get_time_scale() const {

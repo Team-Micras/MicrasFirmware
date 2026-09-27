@@ -37,6 +37,7 @@ void Localizer::reset(const Pose& pose, const Measurements& measurements) {
     this->window_distance = 0.0F;
     this->window_duration = 0.0F;
     this->status = {};
+    this->rejection_streak = 0;
 
     this->set_covariance({
         this->config.initial_position_deviation * this->config.initial_position_deviation,
@@ -249,6 +250,31 @@ void Localizer::propagate(const Matrix& transition, const Matrix& noise_input, c
             }
         }
     }
+}
+
+void Localizer::count_range(bool accepted, bool stationary) {
+    if (accepted or stationary) {
+        this->rejection_streak = 0;
+        return;
+    }
+
+    this->rejection_streak++;
+
+    if (this->rejection_streak < this->config.recovery_rejections) {
+        return;
+    }
+
+    Matrix identity{};
+
+    for (uint8_t i = 0; i < number_of_states; i++) {
+        identity.at(i).at(i) = 1.0F;
+    }
+
+    const float variance = this->config.recovery_deviation * this->config.recovery_deviation;
+
+    this->propagate(identity, identity, {variance, variance, 0.0F, 0.0F});
+    this->rejection_streak = 0;
+    this->status.recoveries++;
 }
 
 bool Localizer::update(

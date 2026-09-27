@@ -14,6 +14,7 @@ namespace micras::proxy {
 template <uint8_t num_of_sensors>
 TTorqueSensors<num_of_sensors>::TTorqueSensors(const Config& config) :
     adc{config.adc},
+    base_reading{core::make_array<float, num_of_sensors>(config.zero_reading)},
     max_current{config.adc.reference_voltage / config.shunt_resistor},
     max_torque{config.max_torque},
     filters{core::make_array<core::ButterworthFilter, num_of_sensors>(config.filter)},

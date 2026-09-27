@@ -18,6 +18,12 @@ float MotionLimits::crossover_speed() const {
     return this->motor_speed * (1.0F - this->acceleration / this->motor_acceleration);
 }
 
+MotionLimits MotionLimits::capped(float speed) const {
+    MotionLimits limits = *this;
+    limits.max_speed = std::min(limits.max_speed, speed);
+    return limits;
+}
+
 float CurveLimits::get_speed_limit(const Bending& bending) const {
     const float curvature = std::abs(bending.curvature);
     const float sharpness = std::abs(bending.sharpness);

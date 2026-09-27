@@ -28,7 +28,8 @@ void Localizer::correct(
         return;
     }
 
-    const float gate = this->is_stationary() ? this->config.stationary_gate : this->config.gate;
+    const bool  stationary = this->is_stationary();
+    const float gate = stationary ? this->config.stationary_gate : this->config.gate;
 
     for (uint8_t sensor = 0; sensor < number_of_wall_sensors; sensor++) {
         const WallReading& reading = measurements.walls.at(sensor);
@@ -57,11 +58,13 @@ void Localizer::correct(
 
         const float deviation = wall_model.get_range_deviation(hit.range);
 
-        this->update(
+        const bool accepted = this->update(
             wall_model.get_range(reading.distance, sensor, hit) - hit.range,
             {hit.jacobian.at(0), hit.jacobian.at(1), hit.jacobian.at(2), 0.0F},
             deviation * deviation * this->config.range_correlation, gate, this->config.max_position_correction
         );
+
+        this->count_range(accepted, stationary);
     }
 }
 

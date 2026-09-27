@@ -83,8 +83,8 @@ Controller::Command DriveIdentification::update(const Measurements& measurements
     (rotating ? this->angular_fit : this->linear_fit)
         .add({this->sign_integral, this->position, speed - this->start_speed}, this->voltage_integral);
 
-    const bool too_far =
-        not rotating and std::abs(this->distance) > this->config.max_distance and (this->distance > 0.0F) == positive;
+    const float coast_end = this->distance + linear_speed * model.acceleration_constant() / model.speed_constant();
+    const bool  too_far = not rotating and (positive ? coast_end >= this->config.max_distance : coast_end <= 0.0F);
 
     if (this->phase_time >= 2.0F * this->config.step_time or too_far) {
         this->advance();

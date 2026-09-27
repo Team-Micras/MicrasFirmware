@@ -58,6 +58,9 @@ Micras::Micras() :
 
     this->register_variables();
 
+    this->startup_extension.reset();
+    this->tick.restart();
+
     last_constructed = this;
 }
 
@@ -76,6 +79,7 @@ void Micras::register_variables() {
     this->variables.add("imu/", "accel_z", this->telemetry.linear_acceleration.at(2), {.stream = true});
     this->variables.add("", "battery_voltage", this->telemetry.battery_voltage, {.stream = true});
     this->variables.add("", "adc_restarts", this->telemetry.adc_restarts, {});
+    this->variables.add("", "failed_saves", this->telemetry.failed_saves, {});
 
     this->variables.add("loop/", "elapsed_time", this->elapsed_time, {.stream = true});
     this->variables.add("loop/", "worst_time_us", this->worst_loop_time_us, {.stream = true});
@@ -117,6 +121,7 @@ void Micras::register_variables() {
     this->variables.add("localizer/", "accepted", filter.accepted, {.stream = true});
     this->variables.add("localizer/", "rejected", filter.rejected, {.stream = true});
     this->variables.add("localizer/", "edges", filter.edges, {.stream = true});
+    this->variables.add("localizer/", "recoveries", filter.recoveries, {.stream = true});
 
     for (uint8_t i = 0; i < nav::number_of_wall_sensors; i++) {
         this->variables.add("wall_reference/", sensor_names.at(i), this->telemetry.wall_reference_readings.at(i), {});
@@ -147,7 +152,7 @@ void Micras::register_variables() {
     this->variables.add("gyroscope/", "scale", this->telemetry.gyroscope_scale, {});
 
     this->variables.add("", "objective", this->objective, {.stream = true, .write = true, .idle = true});
-    this->variables.add("", "run_profile", this->run_profile, {.stream = true, .write = true, .persist = true});
+    this->variables.add("", "run_profile", this->run_profile, {.stream = true, .write = true});
     this->variables.add("", "maze", this->mission.get_maze(), {.persist = true});
 
     this->link.register_variables(this->variables, "link/");
@@ -180,6 +185,8 @@ void Micras::update() {
     this->bluetooth.update();
 
     this->measurements = this->measure();
+    this->imu_silence =
+        this->measurements.imu_is_new ? 0 : static_cast<uint16_t>(std::min(this->imu_silence + 1, 65535));
     this->localizer.predict(this->measurements, this->elapsed_time);
 
     this->fsm.update();
@@ -242,6 +249,7 @@ Micras::Maintenance Micras::get_maintenance() const {
 }
 
 void Micras::prepare(bool run) {
+    this->torque_sensors.calibrate();
     this->wall_sensors.turn_on();
 
     if ((not run or this->objective == core::Objective::SOLVE) and this->is_selected(Interface::Profile::FAN)) {
@@ -259,7 +267,7 @@ void Micras::rest() {
 }
 
 void Micras::start_run() {
-    this->crash_count = 0;
+    this->clear_faults();
     this->locomotion.enable();
 
     if (this->objective != core::Objective::RETURN) {
@@ -285,31 +293,47 @@ nav::Mission::Status Micras::run() {
     return status;
 }
 
-bool Micras::check_crash() {
+bool Micras::check_fault() {
     const bool over_threshold =
         std::hypot(this->measurements.acceleration.x, this->measurements.acceleration.y) > crash_acceleration;
 
     this->crash_count = over_threshold ? static_cast<uint8_t>(std::min(this->crash_count + 1, 255)) : 0;
 
-    return this->crash_count >= crash_debounce;
+    return this->crash_count >= crash_debounce or this->saturated_streak >= saturation_timeout or
+           this->imu_silence >= imu_timeout;
 }
 
 void Micras::start_plan() {
+    this->plan_extension.emplace(this->watchdog, stopped_watchdog_timeout_ms);
     this->mission.begin_plan(this->get_run_profile());
 }
 
 bool Micras::plan() {
-    return this->mission.update_plan(plan_edges_per_iteration);
+    if (not this->mission.update_plan(plan_edges_per_iteration)) {
+        return false;
+    }
+
+    this->plan_extension.reset();
+    return true;
 }
 
 bool Micras::has_route() const {
     return this->mission.has_route();
 }
 
-void Micras::save_maze() {
+bool Micras::save_maze() {
     const auto extension = this->watchdog.extend(stopped_watchdog_timeout_ms);
 
-    this->maze_storage.save(this->variables);
+    this->led.turn_on();
+    const bool saved = this->maze_storage.save(this->variables);
+    this->led.turn_off();
+    this->tick.restart();
+
+    if (not saved) {
+        this->telemetry.failed_saves++;
+    }
+
+    return saved;
 }
 
 void Micras::start_calibration() {
@@ -340,6 +364,7 @@ bool Micras::is_calibration_complete() const {
 }
 
 void Micras::start_identification() {
+    this->clear_faults();
     this->locomotion.enable();
     this->drive_identification.start(this->measurements);
 }
@@ -367,6 +392,7 @@ bool Micras::identify() {
 }
 
 void Micras::start_gyroscope_calibration() {
+    this->clear_faults();
     this->locomotion.enable();
     this->gyroscope_calibration.start(this->localizer.get_pose(), this->dynamics.get_angular_limits(search_profile));
 }
@@ -423,12 +449,21 @@ bool Micras::is_selected(Interface::Profile option) const {
 }
 
 void Micras::follow(const nav::Reference& reference) {
-    const nav::Controller::Command   command = this->controller.update(reference, this->localizer.get_state());
+    const nav::Controller::Command command =
+        this->controller.update(reference, this->localizer.get_state(), this->elapsed_time);
     const proxy::Locomotion::Command applied = this->locomotion.set_command(command.forward, command.rotation);
 
     if (applied.linear != command.forward or applied.angular != command.rotation) {
         this->saturated_iterations++;
+        this->saturated_streak = static_cast<uint16_t>(std::min(this->saturated_streak + 1, 65535));
+    } else {
+        this->saturated_streak = 0;
     }
+}
+
+void Micras::clear_faults() {
+    this->crash_count = 0;
+    this->saturated_streak = 0;
 }
 
 void Micras::publish() {
@@ -493,8 +528,7 @@ comm::CommandResult Micras::handle_command(uint8_t code, uint32_t argument) {
                 return comm::CommandResult::REFUSED;
             }
 
-            this->save_maze();
-            return comm::CommandResult::OK;
+            return this->save_maze() ? comm::CommandResult::OK : comm::CommandResult::REFUSED;
 
         case Command::RESET:
             if (not this->is_idle()) {

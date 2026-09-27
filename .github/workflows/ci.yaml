@@ -46,6 +46,13 @@ jobs:
       - name: 🔀 Checkout
         uses: actions/checkout@v7
 
+      # The host tests need no cube files nor the ARM toolchain, only the compiler of the runner
+      - name: 🧪 Run host tests
+        run: |
+          cmake -S tests/host -B build/host
+          cmake --build build/host --parallel
+          ctest --test-dir build/host --output-on-failure
+
       - name: 🗃️ Restore generated cube files
         id: cube
         uses: actions/cache/restore@v6

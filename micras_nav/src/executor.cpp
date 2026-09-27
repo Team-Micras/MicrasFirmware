@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <span>
 
 #include "micras/nav/curve_speed.hpp"
@@ -43,6 +44,12 @@ void Executor::push(std::span<const Segment> segments) {
         this->durations.clear();
         this->index = 0;
         this->queued_time = 0.0F;
+    } else {
+        const auto done = static_cast<std::ptrdiff_t>(this->index);
+
+        this->segments.erase(this->segments.begin(), this->segments.begin() + done);
+        this->durations.erase(this->durations.begin(), this->durations.begin() + done);
+        this->index = 0;
     }
 
     for (const Segment& segment : segments) {
@@ -91,10 +98,6 @@ Reference Executor::update(float elapsed_time, float time_scale, const State& es
     }
 
     this->reference = this->evaluate();
-    this->reference.twist.linear *= time_scale;
-    this->reference.twist.angular *= time_scale;
-    this->reference.acceleration.linear *= time_scale * time_scale;
-    this->reference.acceleration.angular *= time_scale * time_scale;
 
     return this->reference;
 }
@@ -141,7 +144,7 @@ void Executor::start_next() {
         case SegmentKind::STRAIGHT:
             this->speed_profile = SpeedProfile{
                 std::abs(segment.length), segment.start_speed, segment.end_speed,
-                this->dynamics.get_linear_limits(this->run_profile)
+                this->dynamics.get_linear_limits(this->run_profile).capped(segment.max_speed)
             };
             this->duration = this->speed_profile.duration();
             break;

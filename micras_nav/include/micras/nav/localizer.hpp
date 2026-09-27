@@ -71,6 +71,11 @@ public:
      * where it was expected. An end is a single event rather than a stream of readings, so it has a
      * cap of its own. The range tolerance, a constant part plus a part proportional to the range,
      * tells a reading that is on a wall from one that is past its end.
+     *
+     * A pose off by more than the gate allows rejects every reading, and nothing would bring it
+     * back. So after the recovery rejections in a row with the robot moving, the variance of the
+     * position grows by the square of the recovery deviation, which lets the next readings through
+     * and the pose converge to them again.
      */
     struct Config {
         RobotModel model;
@@ -95,6 +100,8 @@ public:
         float      max_edge_correction;
         float      range_tolerance;
         float      relative_range_tolerance;
+        uint16_t   recovery_rejections;
+        float      recovery_deviation;
         uint8_t    speed_window;
     };
 
@@ -102,13 +109,15 @@ public:
      * @brief Diagnostics of the filter, for a monitor.
      *
      * @note The innovation level is the running mean of the squared innovations in variances, which
-     * stays near one while the filter is consistent.
+     * stays near one while the filter is consistent. The recoveries count the times the position
+     * was let loose after too many rejections in a row.
      */
     struct Status {
         float    innovation_level;
         uint32_t accepted;
         uint32_t rejected;
         uint32_t edges;
+        uint32_t recoveries;
     };
 
     /**
@@ -323,6 +332,15 @@ private:
     void propagate(const Matrix& transition, const Matrix& noise_input, const Vector& noise_variances);
 
     /**
+     * @brief Count a range the gate accepted or rejected, and let the position loose after too many
+     * rejections in a row with the robot moving.
+     *
+     * @param accepted Whether the range was accepted.
+     * @param stationary Whether the robot is standing still.
+     */
+    void count_range(bool accepted, bool stationary);
+
+    /**
      * @brief Apply one scalar measurement, with the algorithm of Bierman.
      *
      * @param innovation The measurement minus its prediction.
@@ -441,6 +459,11 @@ private:
      * @brief Diagnostics of the filter.
      */
     Status status{};
+
+    /**
+     * @brief Number of ranges rejected in a row with the robot moving.
+     */
+    uint16_t rejection_streak{};
 };
 }  // namespace micras::nav
 

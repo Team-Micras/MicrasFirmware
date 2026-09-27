@@ -2,7 +2,6 @@
  * @file
  */
 
-#include <bit>
 #include <cstdint>
 #include <cstring>
 #include <optional>
@@ -131,7 +130,7 @@ uint32_t VariablePool::schema_hash() const {
         hash = mix(hash, variable.prefix);
         hash = mix(hash, variable.name);
         hash = mix(hash, std::to_underlying(variable.type));
-        hash = mix(hash, std::bit_cast<uint8_t>(variable.access));
+        hash = mix(hash, variable.access.to_byte());
     }
 
     return hash;

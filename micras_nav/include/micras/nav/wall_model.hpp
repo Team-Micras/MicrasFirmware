@@ -142,10 +142,12 @@ public:
      * @brief Get the range a sensor reads with the robot centered in a cell, facing along it.
      *
      * @note This is the pose the sensors are calibrated in: the side sensors against the walls of
-     * a corridor and the front ones against a wall ahead.
+     * a corridor and the front ones against a wall ahead. A side sensor points 45 degrees ahead and
+     * reaches the plane of the side walls past the cell the robot is in, so its range is the one to
+     * the side wall of the next cell: the corridor has to be two cells long, with no wall ahead.
      *
      * @param sensor The index of the sensor.
-     * @return The range to the wall the sensor points at, or zero if it points at none.
+     * @return The range to the plane of the wall the sensor points at.
      */
     float get_centered_range(uint8_t sensor) const;
 

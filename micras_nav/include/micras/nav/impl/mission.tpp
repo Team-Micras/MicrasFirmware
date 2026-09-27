@@ -216,6 +216,12 @@ void TMission<width, height>::start(core::Objective objective) {
 
     switch (objective) {
         case core::Objective::EXPLORE: {
+            if (not this->map_cleared) {
+                this->maze.reset();
+                this->observer.reset();
+                this->map_cleared = true;
+            }
+
             this->executor.reset(this->get_start_pose(), this->config.search_profile);
             this->cell = this->maze.get_start().front();
             this->at_center = false;
@@ -403,10 +409,17 @@ void TMission<width, height>::decide_at_entry() {
     Move       move{};
 
     if (next->orientation == this->cell.orientation) {
-        move.add(make_segment(SegmentKind::STRAIGHT, cell_size, entry));
-        this->execute(move, this->search_speed, this->search_speed);
+        Segment straight = make_segment(SegmentKind::STRAIGHT, cell_size, entry);
 
         this->watching_front = this->maze.get_wall(this->cell) == WallState::UNKNOWN;
+
+        if (this->watching_front) {
+            straight.max_speed = this->search_speed;
+        }
+
+        move.add(straight);
+        this->execute(move, this->search_speed, this->search_speed);
+
         this->watched_cell = this->cell;
         this->cell = *next;
         return;
@@ -603,6 +616,7 @@ Segment TMission<width, height>::make_segment(SegmentKind kind, float length, co
         .length = length,
         .start_speed = 0.0F,
         .end_speed = 0.0F,
+        .max_speed = std::numeric_limits<float>::infinity(),
         .start = start,
     };
 }

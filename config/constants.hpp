@@ -103,6 +103,26 @@ constexpr float wall_sensors_frequency{2000.0F};
 constexpr auto crash_debounce{static_cast<uint8_t>(0.005F * loop_frequency)};
 
 /**
+ * @brief Number of consecutive iterations with the motors saturated that count as the robot being
+ * stuck.
+ *
+ * @note It is 100 ms of them. A stalled motor takes the whole supply, which is several times what
+ * its winding is rated for, and no planned motion saturates the motors at all, so a run never
+ * comes close.
+ */
+constexpr auto saturation_timeout{static_cast<uint16_t>(0.1F * loop_frequency)};
+
+/**
+ * @brief Number of consecutive iterations without a new sample of the inertial measurement unit
+ * that count as it being lost.
+ *
+ * @note It is 5 ms of them. The unit samples at about the rate of the loop, so an iteration without
+ * a sample happens, but never several in a row. It is counted in iterations and not in time, since
+ * one iteration after the flash is written lasts seconds.
+ */
+constexpr auto imu_timeout{static_cast<uint16_t>(0.005F * loop_frequency)};
+
+/**
  * @brief Number of iterations the speed of the wheels is measured over, which is 2 ms of them.
  *
  * @note One count of an encoder in one iteration would read as 34 mm/s. Over this window it is
@@ -158,8 +178,9 @@ constexpr uint32_t watchdog_timeout_ms{10};
  * stopped.
  *
  * @note Erasing a flash sector stalls the core for around 2 s, and up to 4 s in the worst case,
- * since the flash cannot be read while it is being erased. The route planner never stalls the loop:
- * it advances by a bounded number of edges per iteration.
+ * since the flash cannot be read while it is being erased. It also covers the construction of the
+ * robot, where the proxies wait for their chips, and the planning of a fast run, whose search is
+ * bounded per iteration but whose choice among the candidate routes is done in one.
  */
 constexpr uint32_t stopped_watchdog_timeout_ms{8000};
 
@@ -365,6 +386,8 @@ const nav::Localizer::Config localizer_config{
     .max_edge_correction = 0.01F,
     .range_tolerance = 0.015F,
     .relative_range_tolerance = 0.15F,
+    .recovery_rejections = static_cast<uint16_t>(0.05F * wall_sensors_frequency),
+    .recovery_deviation = 0.01F,
     .speed_window = speed_window,
 };
 
@@ -387,6 +410,7 @@ const nav::Controller::Config controller_config{
     .steering_blend_speed = 0.1F,
     .friction_speed = 0.02F,
     .voltage_reserve = voltage_reserve,
+    .max_time_scale_rate = 2.0F,
 };
 
 /**

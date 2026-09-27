@@ -30,8 +30,8 @@ float VelocityPlanner::plan(
         segment.end_speed = 0.0F;
 
         if (segment.kind == SegmentKind::STRAIGHT) {
-            segment.start_speed = linear_limits.max_speed;
-            segment.end_speed = linear_limits.max_speed;
+            segment.start_speed = linear_limits.capped(segment.max_speed).max_speed;
+            segment.end_speed = segment.start_speed;
         } else if (segment.kind == SegmentKind::TURN) {
             const TurnShape& shape = dynamics.get_turn(profile, segment.turn);
 
@@ -48,7 +48,9 @@ float VelocityPlanner::plan(
         if (segment.kind == SegmentKind::STRAIGHT) {
             segment.start_speed = std::min(
                 segment.start_speed,
-                SpeedProfile::get_brakeable_speed(std::abs(segment.length), segment.end_speed, linear_limits)
+                SpeedProfile::get_brakeable_speed(
+                    std::abs(segment.length), segment.end_speed, linear_limits.capped(segment.max_speed)
+                )
             );
         } else if (segment.kind == SegmentKind::TURN) {
             segment.start_speed = std::min(
@@ -70,7 +72,9 @@ float VelocityPlanner::plan(
         if (segment.kind == SegmentKind::STRAIGHT) {
             segment.end_speed = std::min(
                 segment.end_speed,
-                SpeedProfile::get_reachable_speed(std::abs(segment.length), segment.start_speed, linear_limits)
+                SpeedProfile::get_reachable_speed(
+                    std::abs(segment.length), segment.start_speed, linear_limits.capped(segment.max_speed)
+                )
             );
         } else if (segment.kind == SegmentKind::TURN) {
             segment.end_speed = std::min(
@@ -97,7 +101,8 @@ float VelocityPlanner::get_duration(const Segment& segment, const Dynamics& dyna
     switch (segment.kind) {
         case SegmentKind::STRAIGHT:
             return SpeedProfile{
-                std::abs(segment.length), segment.start_speed, segment.end_speed, dynamics.get_linear_limits(profile)
+                std::abs(segment.length), segment.start_speed, segment.end_speed,
+                dynamics.get_linear_limits(profile).capped(segment.max_speed)
             }
                 .duration();
 

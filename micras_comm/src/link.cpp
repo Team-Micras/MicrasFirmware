@@ -331,7 +331,7 @@ void Link::send_schema_page() {
         }
 
         writer.u8(std::to_underlying(variable.type));
-        writer.u8(std::bit_cast<uint8_t>(variable.access));
+        writer.u8(variable.access.to_byte());
         writer.u8(name_size);
         writer.text(variable.prefix);
         writer.text(variable.name);

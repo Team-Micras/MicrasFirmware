@@ -36,11 +36,6 @@ bool TExplorer<width, height>::update(const TMaze<width, height>& maze, uint32_t
         return false;
     }
 
-    if (this->planning and maze.get_revision() != this->round_revision) {
-        this->planning = false;
-        this->profile_index = 0;
-    }
-
     if (not this->planning) {
         if (this->answered and maze.get_revision() == this->answered_revision) {
             return false;
@@ -86,6 +81,10 @@ bool TExplorer<width, height>::update(const TMaze<width, height>& maze, uint32_t
     }
 
     this->profile_index = 0;
+
+    if (this->number_collected == 0 and maze.get_revision() != this->round_revision) {
+        return false;
+    }
 
     const bool changed =
         not this->answered or this->number_collected != this->number_of_targets or

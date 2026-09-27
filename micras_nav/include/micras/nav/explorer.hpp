@@ -29,7 +29,11 @@ namespace micras::nav {
  * map has to be good for and the targets are put together.
  *
  * @note The planner is advanced a bounded number of edges per call, which lets all of this happen
- * while the robot is moving.
+ * while the robot is moving. A round of every profile takes seconds, and a wall is decided about
+ * once per cell, so a round is not restarted when the map changes: it runs to its end and the next
+ * one starts from the new map, which keeps the targets at most one round old. The planner reads the
+ * map as it goes, so a round the map changed during may name targets but never proves the search
+ * over; only a round on an unchanged map does.
  *
  * @tparam width The width of the maze in cells.
  * @tparam height The height of the maze in cells.

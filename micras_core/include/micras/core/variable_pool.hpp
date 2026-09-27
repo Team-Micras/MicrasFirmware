@@ -140,6 +140,21 @@ struct Access {
      * @brief Whether the variable is part of the flash image.
      */
     bool persist : 1 {};
+
+    /**
+     * @brief Get the flags as one byte, the first one in the lowest bit.
+     *
+     * @note The byte of the struct itself also holds four bits no field owns, whose value is not
+     * defined, so it is never copied as it is.
+     *
+     * @return The flags.
+     */
+    constexpr uint8_t to_byte() const {
+        return static_cast<uint8_t>(
+            static_cast<uint8_t>(this->stream) | static_cast<uint8_t>(this->write) << 1U |
+            static_cast<uint8_t>(this->idle) << 2U | static_cast<uint8_t>(this->persist) << 3U
+        );
+    }
 };
 
 /**

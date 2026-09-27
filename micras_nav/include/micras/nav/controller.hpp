@@ -40,8 +40,10 @@ public:
     /**
      * @brief Closed loop behavior asked of one axis.
      *
-     * @note The natural frequency is in rad/s. The error is clamped before it is used, which bounds
-     * what the feedback can ask for when the robot is held or has crashed.
+     * @note The natural frequency is in rad/s. The error is clamped before it is used, which keeps a
+     * large error from swamping the rest of the command. It does not keep the motors from
+     * saturating when the robot is held, since the proportional term alone can reach the supply
+     * within the clamp; the robot stops on the saturation timeout for that.
      */
     struct Axis {
         float natural_frequency;
@@ -55,7 +57,9 @@ public:
      * @note The steering gain is in radians of offset per meter of error and the offset is limited
      * to the largest steering. Below the blend speed the steering fades out, since turning in place
      * cannot reduce an error across the path. The friction speed is the wheel speed over which the
-     * static friction compensation goes from nothing to all of it.
+     * static friction compensation goes from nothing to all of it. The time scale may change by at
+     * most the largest time scale rate per second, since a change of the time scale is itself an
+     * acceleration of the reference, of that rate times the speed.
      */
     struct Config {
         RobotModel model;
@@ -66,6 +70,7 @@ public:
         float      steering_blend_speed;
         float      friction_speed;
         float      voltage_reserve;
+        float      max_time_scale_rate;
     };
 
     /**
@@ -99,21 +104,27 @@ public:
     /**
      * @brief Compute the command for this instant.
      *
-     * @param reference What the robot should be doing, in the maze frame.
+     * @note The reference is played at the time scale found for it, which scales its speeds by the
+     * scale and its accelerations by the square of the scale, plus the rate of the scale times the
+     * speed.
+     *
+     * @param unscaled What the robot should be doing, in the maze frame, at the full pace.
      * @param estimate What the robot is doing, as far as it is known.
+     * @param elapsed_time Time since the previous update, in seconds.
      * @return The command for the locomotion.
      */
-    Command update(const Reference& reference, const State& estimate);
+    Command update(const Reference& unscaled, const State& estimate, float elapsed_time);
 
     /**
      * @brief Get how much slower the reference has to be played for the motors to follow it.
      *
      * @note The feed forward alone may ask for more voltage than there is. Slowing the clock of
      * the reference scales its linear and angular speeds together, so the robot stays on the same
-     * path and only takes longer, instead of cutting the turn it is in. With the limits of a run
-     * derived from the same model this should stay at one. The reference was already played at the
-     * scale in force, so the scale is updated from that one and settles where the demand meets the
-     * voltage available.
+     * path and only takes longer, instead of cutting the turn it is in. While the grip limits the
+     * planned motions this stays at one; where the motors limit them, a straight uses the whole of
+     * the voltage on the forward axis, and any rotation on top needs it. The scale is the largest
+     * one at which the feed forward of both wheels fits in the voltage available, found from the
+     * reference at the full pace, so it does not depend on the scale of the previous iteration.
      *
      * @return The factor to apply to the elapsed time of the reference, in (0, 1].
      */
@@ -146,6 +157,18 @@ private:
     static Gains compute_gains(const Axis& axis, float speed_constant, float acceleration_constant);
 
     /**
+     * @brief Find the largest time scale at which the feed forward fits in the voltage available.
+     *
+     * @note The feed forward of each wheel is a quadratic in the scale: the friction does not scale,
+     * the speed term scales with it and the acceleration term with its square. So the scale is the
+     * largest root in (0, 1] of the wheels reaching the limit, or one if they never do.
+     *
+     * @param reference What the robot should be doing, at the full pace.
+     * @return The time scale, in (0, 1].
+     */
+    float find_time_scale(const Reference& reference) const;
+
+    /**
      * @brief Parameters of the controller, with the physical description of the robot.
      */
     Config config;
@@ -164,6 +187,12 @@ private:
      * @brief Factor to apply to the elapsed time of the reference.
      */
     float time_scale{1.0F};
+
+    /**
+     * @brief Smallest time scale, which is only reached if the friction alone takes more than the
+     * voltage available.
+     */
+    static constexpr float min_time_scale{0.1F};
 
     /**
      * @brief Errors and terms of the last update.
