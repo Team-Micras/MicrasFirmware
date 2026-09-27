@@ -2,10 +2,10 @@
   "target": "micras",
   "scenario": "scenarios/explore.toml",
   "args": "--scenario scenarios/explore.toml --seconds 30 --out runs/explore --flash runs/explore/flash.bin",
-  "firmware_sha": "3489bdef74670fdd4fe7b68910e356e4cbf17174",
+  "firmware_sha": "4deedba0ada16668ebe7ec8a328a8342a3783e4a",
   "mujoco_version": "3.14.0",
   "compiler": "GNU 13.4.0",
-  "data_sha256": "aad6b5750cc6a5b472b9ee398f5a2497e1a06d8fef72c706a6d4019e49a98b01",
+  "data_sha256": "1f7024131268ff2671fb71ffdfc8d0df9b96a82e9c7486223bc4abd0116ad2dc",
   "states": [
     [
       0.000125,

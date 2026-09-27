@@ -40,7 +40,7 @@ struct MicrasBoard {
 };
 
 /**
- * @brief Micras on the firmware's high-level-review branch, through the host micras_hal.
+ * @brief Micras on the firmware's main branch, through the host micras_hal.
  *
  * @note The firmware runs as it does on the robot: its own main, its own proxies
  *       and its own configuration, over the host backend in hal_host/ and the
