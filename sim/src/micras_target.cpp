@@ -147,8 +147,12 @@ RunContext& MicrasTarget::context() {
     return this->run_context;
 }
 
+std::filesystem::path MicrasTarget::directory() const {
+    return std::filesystem::path{MICRAS_TARGET_DIR};
+}
+
 std::filesystem::path MicrasTarget::robot_file() const {
-    return std::filesystem::path{MICRAS_TARGET_DIR} / "robot.toml";
+    return this->directory() / "robot.toml";
 }
 
 GroundTruthConfig MicrasTarget::ground_truth() const {

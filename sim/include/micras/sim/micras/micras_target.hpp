@@ -105,6 +105,13 @@ public:
     RunContext& context() override;
 
     /**
+     * @brief Get the folder of this target.
+     *
+     * @return Path of targets/micras.
+     */
+    std::filesystem::path directory() const override;
+
+    /**
      * @brief Get the robot's physical description.
      *
      * @return Path of targets/micras/robot.toml.
