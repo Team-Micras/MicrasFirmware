@@ -20,6 +20,26 @@ add_custom_target(micras_firmware_sha
 )
 
 ###############################################################################
+## ST's register driver of the LSM6DSV and the chip models
+###############################################################################
+
+# The commit of v5.1.1, the tag the firmware fetches. The IMU proxy's configuration names the
+# driver's enums, and the proxy drives the chip through the driver's source.
+include(FetchContent)
+FetchContent_Declare(lsm6dsv
+    URL      "https://github.com/STMicroelectronics/lsm6dsv-pid/archive/6ede05a3fde7eae80bc1b47affc08257191c1aba.tar.gz"
+    URL_HASH "SHA256=bed616e902886809054b34ed25d5af0624542f00ef9bb2e171fe9c525844d064"
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+)
+FetchContent_MakeAvailable(lsm6dsv)
+
+add_library(lsm6dsv_headers INTERFACE)
+target_include_directories(lsm6dsv_headers SYSTEM INTERFACE "${lsm6dsv_SOURCE_DIR}")
+
+# The SPI chips the bindings attach to the host HAL's buses: micras::hal_host_models.
+add_subdirectory("${PROJECT_SOURCE_DIR}/hal_host/models" "${CMAKE_CURRENT_BINARY_DIR}/hal_host_models")
+
+###############################################################################
 ## The firmware, compiled for the host
 ###############################################################################
 
@@ -95,7 +115,7 @@ target_compile_options(micras_sim PRIVATE -Wall -Wextra)
 ## Tests
 ###############################################################################
 
-if(MICRAS_TESTS)
+if(MICRAS_SIM_TESTS)
     add_subdirectory(tests)
 endif()
 
