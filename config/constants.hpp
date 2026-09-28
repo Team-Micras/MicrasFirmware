@@ -205,7 +205,25 @@ constexpr float wall_slow_filter_cutoff{4.0F};
  */
 constexpr float wall_sensors_range{0.25F};
 
-constexpr core::WallSensorsIndex wall_sensors_index{
+/**
+ * @brief Index of each wall sensor in the readings of the wall sensors.
+ */
+struct WallSensorsIndex {
+    /**
+     * @brief Index of the sensor named after where it looks.
+     */
+    ///@{
+    uint8_t left_front{};
+    uint8_t left{};
+    uint8_t right{};
+    uint8_t right_front{};
+    ///@}
+};
+
+/**
+ * @brief Where each wall sensor of the robot is in the readings of the wall sensors.
+ */
+constexpr WallSensorsIndex wall_sensors_index{
     .left_front = 0,
     .left = 1,
     .right = 2,

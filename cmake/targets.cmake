@@ -242,7 +242,7 @@ function(generate_test_targets TEST_FILES)
             ${MICRAS_CUBE_OBJECT_LIBRARIES}
         )
 
-        micras_apply_warnings(${TEST_NAME})
+        micras_apply_warnings(${TEST_NAME} WERROR ${MICRAS_WERROR})
 
         generate_map_file(${TEST_NAME})
         generate_hex_file(${TEST_NAME})

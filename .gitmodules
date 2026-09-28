@@ -1,0 +1,4 @@
+[submodule "external/micras-lib"]
+	path = external/micras-lib
+	url = https://github.com/Team-Micras/micras-lib.git
+	branch = refactor/restructure
