@@ -120,7 +120,7 @@ void Link::execute(bool robot_is_idle) {
             return;
 
         case MessageType::PING:
-            this->send(MessageType::PONG, {});
+            this->on_ping();
             return;
 
         default:
@@ -153,6 +153,13 @@ void Link::on_hello() {
     writer.text(this->config.robot_name);
 
     this->send(MessageType::HELLO_ACK, writer.done());
+}
+
+void Link::on_ping() {
+    Writer writer{this->payload};
+    writer.u32(this->window.sent_total());
+
+    this->send(MessageType::PONG, writer.done());
 }
 
 void Link::on_schema_request(Reader& reader) {

@@ -52,7 +52,9 @@ constexpr uint16_t credit_window{256};
  * frame can be told from its type alone.
  *
  * @note PING exists because a radio link can stall without either end being told, and because the
- * only other round trip that proves the robot is alive is HELLO, which resets the session.
+ * only other round trip that proves the robot is alive is HELLO, which resets the session. It is also
+ * a barrier for the credit: PONG carries the total the robot sent, which is how the application
+ * recovers the frames it lost and so could not count.
  *
  * @note The payload of each message is listed next to it, field by field and in order, every
  * integer little endian. A name is its bytes with no terminator, its length given before it.
@@ -66,7 +68,7 @@ enum class MessageType : uint8_t {
     WRITE = 0x06,           ///< u16 id, the new value.
     READ = 0x07,            ///< u16 id.
     COMMAND = 0x08,         ///< u8 code, u32 argument.
-    PING = 0x09,            ///< Empty.
+    PING = 0x09,            ///< Empty. Answered at once, after every frame sent before it.
 
     /**
      * @brief u8 protocol version, u32 schema hash, u16 variable count, u32 loop time in us, u16
@@ -85,7 +87,7 @@ enum class MessageType : uint8_t {
     WRITE_ACK = 0x86,    ///< u16 id, u8 write status.
     VALUE = 0x87,        ///< u16 id, the value, or the serialized object for a BLOB.
     COMMAND_ACK = 0x88,  ///< u8 code, u8 command result, u8 reason, which the robot defines.
-    PONG = 0x89,         ///< Empty.
+    PONG = 0x89,         ///< u32 metered bytes sent since HELLO, wrapping, counting every frame before it.
     LOG = 0x8A,          ///< u8 severity, u32 timestamp in us, text, the rest of the payload.
     ERROR = 0x8F         ///< u8 error code, u16 context.
 };

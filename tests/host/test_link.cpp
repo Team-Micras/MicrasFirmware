@@ -414,8 +414,29 @@ int main() {
         link.poll(true);
         CHECK(read_variable<int32_t>(pool, "link/credit") == closed);
 
-        // a total ahead of what was sent opens the window only as far as what was sent
+        // a total ahead of what was sent is ignored, and the window stays as it was
         send(io, MessageType::CREDIT, le32(app.consumed_total + 100000));
+        link.poll(true);
+        CHECK(read_variable<int32_t>(pool, "link/credit") == closed);
+        send(io, MessageType::CREDIT, le32(app.consumed_total));
+        link.poll(true);
+        CHECK(read_variable<int32_t>(pool, "link/credit") == credit_window);
+    }
+
+    // --- PONG carries the total sent, which resynchronizes an application that lost count ---
+    {
+        settle(now, 40);
+        app.drain(io, false);
+        const int32_t narrowed = read_variable<int32_t>(pool, "link/credit");
+        CHECK(narrowed < credit_window);
+
+        send(io, MessageType::PING, {});
+        link.poll(true);
+        const Msg pong = only(app.drain(io, false), MessageType::PONG);
+        CHECK(pong.payload.size() == 4);
+
+        app.consumed_total = u32(pong.payload, 0);
+        send(io, MessageType::CREDIT, le32(app.consumed_total));
         link.poll(true);
         CHECK(read_variable<int32_t>(pool, "link/credit") == credit_window);
     }
@@ -423,6 +444,32 @@ int main() {
     send(io, MessageType::GROUP_ENABLE, {0, 0});
     settle(now, 8);
     app.drain(io);
+
+    // --- a page of the schema that never arrives narrows the window until PONG resynchronizes it ---
+    {
+        settle(now, 4);
+        app.drain(io);
+        link.poll(true);
+        CHECK(read_variable<int32_t>(pool, "link/credit") == credit_window);
+
+        send(io, MessageType::SCHEMA_REQUEST, {0, 0});
+        link.poll(true);
+        link.pump(now += 125);
+        CHECK(!io.from_robot.empty());
+        io.from_robot.clear();
+
+        settle(now, 40);
+        app.drain(io);
+        link.poll(true);
+        CHECK(read_variable<int32_t>(pool, "link/credit") < credit_window);
+
+        send(io, MessageType::PING, {});
+        link.poll(true);
+        app.consumed_total = u32(only(app.drain(io, false), MessageType::PONG).payload, 0);
+        send(io, MessageType::CREDIT, le32(app.consumed_total));
+        link.poll(true);
+        CHECK(read_variable<int32_t>(pool, "link/credit") == credit_window);
+    }
 
     // --- a corrupted frame costs only itself, and is counted ---
     app.drain(io);

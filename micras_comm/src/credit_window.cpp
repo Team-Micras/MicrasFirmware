@@ -24,15 +24,13 @@ void CreditWindow::charge(std::size_t size) {
 }
 
 void CreditWindow::acknowledge(uint32_t consumed_total) {
-    constexpr uint32_t half_range{UINT32_C(1) << 31U};
-
-    const uint32_t advance = consumed_total - this->consumed;
-
-    if (advance >= half_range) {
-        return;
+    if (consumed_total - this->consumed <= this->outstanding()) {
+        this->consumed = consumed_total;
     }
+}
 
-    this->consumed += std::min(advance, this->outstanding());
+uint32_t CreditWindow::sent_total() const {
+    return this->sent;
 }
 
 uint32_t CreditWindow::outstanding() const {

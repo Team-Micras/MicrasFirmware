@@ -85,13 +85,19 @@ what both the microcontroller and `DataView` in the browser already are.
   setpoint captured two iterations later is not a plot of a control loop.
 - **The application has to return credit.** The robot may have at most `credit_window` bytes
   outstanding of what it sends on its own: `SAMPLE`, `SCHEMA_PAGE` and `LOG`. `CREDIT` carries the
-  total of those bytes the application has consumed since HELLO, each frame counted whole with its
-  delimiter, wrapping at 32 bits. Being a total, a lost `CREDIT` is made good by the next one; one
-  that arrives late, behind the last, is ignored, and one ahead of what was sent counts as all of
-  it, so an application may count a frame it could not decode. When the window is closed, samples
-  and logs are dropped and counted, and the sequence number shows the gap; replies to requests are
-  not charged to the window, because they are already bounded by the rate of the requests
-  themselves.
+  total of those bytes the application has consumed since HELLO, wrapping at 32 bits. Being a
+  total, a lost `CREDIT` is made good by the next one; one that arrives late, behind the last, is
+  ignored, and so is one ahead of what was sent, so that an application that counts wrong stalls
+  where it can be seen instead of overrunning the radio. When the window is closed, samples and logs
+  are dropped and counted, and the sequence number shows the gap; replies to requests are not
+  charged to the window, because they are already bounded by the rate of the requests themselves.
+- **How the application counts.** It counts the metered frames that arrive intact, each one whole:
+  every encoded byte and the delimiter. A frame that arrives corrupted or not at all cannot be
+  counted, and the bytes it took stay in flight, narrowing the window. `PING` resynchronizes: `PONG`
+  carries the total the robot sent before it, and the application, which has by then received
+  everything that was sent before the `PONG`, takes that total as its own and returns it in
+  `CREDIT`, which opens the window again. Pinging now and then, which proves the link alive too, is
+  therefore enough to recover from any loss.
 - **Writes are levels and commands are edges.** `WRITE` sets a gain or a flag and is acknowledged
   with a result; the `idle` flag on a variable refuses the dangerous ones while the robot is moving.
   `COMMAND` happens once, when it arrives, or not at all: `COMMAND_ACK` answers at once with a

@@ -17,6 +17,10 @@ namespace micras::comm {
  * CREDIT lost on the way costs nothing: the next one carries everything the lost one did. The
  * totals wrap around at 32 bits, and the difference of two unsigned totals is right across the wrap
  * for as long as it stays below half the range, which the window guarantees by far.
+ *
+ * @note A frame the application never counts, because it arrived corrupted or not at all, stays in
+ * flight for good and narrows the window. PONG carries the total sent, so that the application can
+ * take everything sent before it as consumed and open the window again.
  */
 class CreditWindow {
 public:
@@ -43,13 +47,20 @@ public:
     /**
      * @brief Take the total the application says it consumed.
      *
-     * @note A total behind the last one taken arrived late and is ignored. A total ahead of what
-     * was sent is taken as everything sent, so that an application that cannot tell a frame that
-     * counts from one that does not, such as one it could not decode, may count it anyway.
+     * @note A total behind the last one taken arrived late, and is ignored. So is a total ahead of
+     * what was sent, which only an application that counts wrong can send: the window then stays
+     * as it was and the application stalls where it can be seen, instead of overrunning the radio.
      *
      * @param consumed_total Metered bytes the application consumed since HELLO, wrapping around.
      */
     void acknowledge(uint32_t consumed_total);
+
+    /**
+     * @brief Get the total sent, which PONG tells the application.
+     *
+     * @return Metered bytes sent since HELLO, wrapping around.
+     */
+    uint32_t sent_total() const;
 
     /**
      * @brief Get the number of bytes sent that the application has not consumed yet.

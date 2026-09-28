@@ -213,6 +213,7 @@ private:
      */
     ///@{
     void on_hello();
+    void on_ping();
     void on_schema_request(Reader& reader);
     void on_group_define(Reader& reader);
     void on_group_enable(Reader& reader);

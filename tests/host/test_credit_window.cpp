@@ -30,7 +30,7 @@ int main() {
         CHECK(window.allows(206));
     }
 
-    // --- a late total is ignored, a total ahead of what was sent stops at what was sent ---
+    // --- a late total is ignored ---
     {
         CreditWindow window;
         window.charge(100);
@@ -39,12 +39,31 @@ int main() {
         CHECK(window.outstanding() == 20);
         window.acknowledge(80);
         CHECK(window.outstanding() == 20);
+    }
 
+    // --- a total ahead of what was sent is ignored, and a partial one after it still counts ---
+    {
+        CreditWindow window;
+        window.charge(100);
+        window.acknowledge(101);
+        CHECK(window.outstanding() == 100);
         window.acknowledge(5000);
+        CHECK(window.outstanding() == 100);
+        window.acknowledge(60);
+        CHECK(window.outstanding() == 40);
+        window.acknowledge(100);
         CHECK(window.outstanding() == 0);
-        window.charge(30);
-        CHECK(window.outstanding() == 30);
-        window.acknowledge(130);
+        CHECK(window.sent_total() == 100);
+    }
+
+    // --- the total sent is what an application resynchronizes to ---
+    {
+        CreditWindow window;
+        window.charge(90);
+        window.charge(70);
+        window.acknowledge(90);
+        CHECK(window.outstanding() == 70);
+        window.acknowledge(window.sent_total());
         CHECK(window.outstanding() == 0);
     }
 
