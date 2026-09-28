@@ -75,6 +75,33 @@ public:
     SpeedProfile::Sample sample(float time) const;
 
     /**
+     * @brief Construct the motion that brakes as hard as a curve allows, from a point of it.
+     *
+     * @note The motion ends at rest, or where the curve does if it cannot stop before, at the last
+     * sample that fits in the curve. Braking takes what the bending leaves of the grip, so a curve
+     * driven at the speed its bending allows is not braked at all until the bending eases. The
+     * samples are spaced as for a turn, and further apart where the braking is too long for them.
+     *
+     * @tparam F Type of the function giving the bending at a distance along the curve.
+     * @param bending The bending of the curve, called at the distance of every sample.
+     * @param start_distance The distance along the curve the braking starts at.
+     * @param end_distance The distance along the curve where it ends.
+     * @param start_speed The speed at the start of the braking.
+     * @param limits The limits of the run.
+     * @return The motion, whose distances are along the whole curve.
+     */
+    template <typename F>
+    static CurveSpeed
+        braking(F&& bending, float start_distance, float end_distance, float start_speed, const CurveLimits& limits);
+
+    /**
+     * @brief Get the speed the motion ends at.
+     *
+     * @return The speed at the last sample.
+     */
+    float end_speed() const;
+
+    /**
      * @brief Get the largest speed a turn can be entered at.
      *
      * @param shape The shape of the turn.
@@ -140,6 +167,26 @@ private:
     static constexpr float min_speed_sum{1.0e-3F};
 
     /**
+     * @brief Number of times the spacing of a braking is doubled at most, when the samples are too
+     * few for it, which covers 128 steps of 1.28 m.
+     */
+    static constexpr uint8_t max_spacing_doublings{8};
+
+    /**
+     * @brief Fill in the samples of a braking at one spacing.
+     *
+     * @tparam F Type of the function giving the bending at a distance along the curve.
+     * @param bending The bending of the curve.
+     * @param available The distance left along the curve.
+     * @param start_speed The speed at the start of the braking.
+     * @param spacing The distance between two samples.
+     * @param limits The limits of the run.
+     * @return True if the braking ended, at rest or at the end of the curve, within the samples.
+     */
+    template <typename F>
+    bool plan_braking(F& bending, float available, float start_speed, float spacing, const CurveLimits& limits);
+
+    /**
      * @brief Get the number of steps a turn is sampled with.
      *
      * @param shape The shape of the turn.
@@ -176,6 +223,11 @@ private:
      * @brief Distance between two samples.
      */
     float spacing{};
+
+    /**
+     * @brief Distance along the curve of the first sample, which is zero but for a braking.
+     */
+    float start_distance{};
 };
 }  // namespace micras::nav
 

@@ -117,7 +117,10 @@ float VelocityPlanner::get_duration(const Segment& segment, const Dynamics& dyna
             return 0.0F;
 
         case SegmentKind::SPIN:
-            return SpeedProfile{std::abs(segment.length), 0.0F, 0.0F, dynamics.get_angular_limits(profile)}.duration();
+            return SpeedProfile{
+                std::abs(segment.length), segment.start_speed, segment.end_speed, dynamics.get_angular_limits(profile)
+            }
+                .duration();
 
         case SegmentKind::STOP:
         case SegmentKind::ATTACH:

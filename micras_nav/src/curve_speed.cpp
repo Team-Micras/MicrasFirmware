@@ -59,10 +59,17 @@ float CurveSpeed::duration() const {
 }
 
 SpeedProfile::Sample CurveSpeed::sample(float time) const {
-    return sample(
+    SpeedProfile::Sample motion = sample(
         std::span{this->speeds}.first(this->intervals + 1U), std::span{this->times}.first(this->intervals + 1U),
         this->spacing, time
     );
+
+    motion.distance += this->start_distance;
+    return motion;
+}
+
+float CurveSpeed::end_speed() const {
+    return this->speeds.at(this->intervals);
 }
 
 float CurveSpeed::get_entry_speed(const TurnShape& shape, float end_speed, const CurveLimits& limits) {

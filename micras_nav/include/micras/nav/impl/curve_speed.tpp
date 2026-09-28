@@ -8,12 +8,62 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
 #include <span>
 
 #include "micras/nav/motion_limits.hpp"
 #include "micras/nav/turn_table.hpp"
 
 namespace micras::nav {
+template <typename F>
+CurveSpeed CurveSpeed::braking(
+    F&& bending, float start_distance, float end_distance, float start_speed, const CurveLimits& limits
+) {
+    CurveSpeed motion;
+    motion.start_distance = start_distance;
+
+    const float available = std::max(end_distance - start_distance, 0.0F);
+    float       spacing = turn_spacing;
+
+    for (uint8_t doublings = 0; doublings < max_spacing_doublings; doublings++) {
+        if (motion.plan_braking(bending, available, start_speed, spacing, limits)) {
+            break;
+        }
+
+        spacing *= 2.0F;
+    }
+
+    const std::size_t samples = motion.intervals + std::size_t{1};
+
+    integrate(std::span{motion.speeds}.first(samples), motion.spacing, std::span{motion.times}.first(samples));
+
+    return motion;
+}
+
+template <typename F>
+bool CurveSpeed::plan_braking(
+    F& bending, float available, float start_speed, float spacing, const CurveLimits& limits
+) {
+    this->spacing = spacing;
+    this->speeds.front() = start_speed;
+
+    uint8_t steps = 0;
+
+    while (steps < max_intervals and this->speeds.at(steps) > 0.0F and
+           static_cast<float>(steps + 1) * spacing <= available) {
+        const float speed = this->speeds.at(steps);
+        const float deceleration =
+            limits.get_deceleration(speed, bending(this->start_distance + static_cast<float>(steps) * spacing));
+
+        this->speeds.at(steps + 1) = std::sqrt(std::max(speed * speed - 2.0F * spacing * deceleration, 0.0F));
+        steps++;
+    }
+
+    this->intervals = steps;
+
+    return this->speeds.at(steps) <= 0.0F or static_cast<float>(steps + 1) * spacing > available;
+}
+
 template <typename F>
 void CurveSpeed::plan(
     F&& bending, std::span<float> speeds, float spacing, float start_speed, float end_speed, const CurveLimits& limits

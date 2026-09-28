@@ -115,6 +115,17 @@ public:
      */
     static float get_braking_distance(float start_speed, float end_speed, const MotionLimits& limits);
 
+    /**
+     * @brief Get the lowest speed that can be braked to over a distance.
+     *
+     * @param distance The distance available to brake.
+     * @param start_speed The speed at the start.
+     * @param limits The limits of the motion.
+     * @return The speed at the end when braking all the way, zero if the motion can stop in the
+     * distance.
+     */
+    static float get_braked_speed(float distance, float start_speed, const MotionLimits& limits);
+
 private:
     /**
      * @brief Stretch of the motion with one law for the acceleration.
@@ -145,6 +156,12 @@ private:
      * from the crossover above the answer, close in on it from above without overshooting.
      */
     static constexpr uint8_t newton_steps{8};
+
+    /**
+     * @brief Halvings of the interval that find the speed a braking over a distance ends at, which
+     * leave it within a sixteen millionth of the start speed.
+     */
+    static constexpr uint8_t bisection_steps{24};
 
     /**
      * @brief Get the distance needed to accelerate between two speeds.

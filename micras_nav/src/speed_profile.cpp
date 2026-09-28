@@ -243,6 +243,27 @@ float SpeedProfile::get_braking_distance(float start_speed, float end_speed, con
     return distance;
 }
 
+float SpeedProfile::get_braked_speed(float distance, float start_speed, const MotionLimits& limits) {
+    if (get_braking_distance(start_speed, 0.0F, limits) <= distance) {
+        return 0.0F;
+    }
+
+    float low = 0.0F;
+    float high = start_speed;
+
+    for (uint8_t i = 0; i < bisection_steps; i++) {
+        const float middle = (low + high) / 2.0F;
+
+        if (get_braking_distance(start_speed, middle, limits) > distance) {
+            low = middle;
+        } else {
+            high = middle;
+        }
+    }
+
+    return high;
+}
+
 void SpeedProfile::append_braking(float start_speed, float end_speed, const MotionLimits& limits) {
     const float braking_end = std::clamp(limits.braking_crossover_speed(), end_speed, start_speed);
 
