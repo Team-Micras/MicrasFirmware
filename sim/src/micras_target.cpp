@@ -187,7 +187,7 @@ std::string MicrasTarget::video_camera() const {
 }
 
 FirmwareThread::Program MicrasTarget::program() {
-    return [] { micras_firmware_main(); };
+    return [](FirmwareThread&) { micras_firmware_main(); };
 }
 
 Wiring MicrasTarget::wire(FirmwareThread& firmware, const WorldInfo& world) {

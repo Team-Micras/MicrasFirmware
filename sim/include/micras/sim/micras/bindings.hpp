@@ -9,7 +9,7 @@
 
 #include <array>
 
-#include "micras/sim/app/target.hpp"
+#include "micras/sim/app/wiring.hpp"
 #include "micras/sim/core/run_context.hpp"
 #include "micras/sim/micras/micras_target.hpp"
 
