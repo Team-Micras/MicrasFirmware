@@ -24,6 +24,7 @@
 #include "micras/nav/measurements.hpp"
 #include "micras/nav/motion_limits.hpp"
 #include "micras/nav/wall_model.hpp"
+#include "micras/states/brake.hpp"
 #include "micras/states/calibrate.hpp"
 #include "micras/states/calibrate_gyroscope.hpp"
 #include "micras/states/error.hpp"
@@ -247,6 +248,22 @@ public:
     bool save_maze();
 
     /**
+     * @brief Start bringing the robot to a standstill, from the state the stop arrived in.
+     *
+     * @note A run brakes along its path, the calibration of the gyroscope ramps its rotation down,
+     * and the identification of the drive train holds a null command with the drivers on, which
+     * brakes the motors with their own back EMF.
+     */
+    void start_brake();
+
+    /**
+     * @brief Advance the brake by one iteration.
+     *
+     * @return True once the robot stands still.
+     */
+    bool brake();
+
+    /**
      * @brief Start the calibration of the pair of wall sensors that is next in line.
      */
     void start_calibration();
@@ -440,12 +457,20 @@ private:
     /**
      * @brief Stop whatever the robot is doing and make it idle.
      *
-     * @note The robot stays in the error state, and in the initialization it has not finished, if
-     * it is there. During a save the stop waits for the save to end.
+     * @note A robot driving its motors brakes to a standstill first, in the brake state. The robot
+     * stays in the error state, and in the initialization it has not finished, if it is there.
+     * During a save the stop waits for the save to end.
      *
-     * @return Whether the robot stopped at once or will once the maze is saved.
+     * @return Whether the robot stopped, or will once the maze is saved.
      */
     comm::CommandReply halt();
+
+    /**
+     * @brief Check if the robot is at rest, from the estimate of its speeds.
+     *
+     * @return True if both speeds are below those the robot is taken to have settled at.
+     */
+    bool is_at_rest() const;
 
     /**
      * @brief Make the robot idle again after an error, unless the error came from the start.
@@ -563,6 +588,7 @@ private:
     WaitState               wait_for_gyroscope_state{State::WAIT_FOR_GYROSCOPE, *this, State::CALIBRATE_GYROSCOPE};
     CalibrateGyroscopeState calibrate_gyroscope_state{State::CALIBRATE_GYROSCOPE, *this};
     ErrorState              error_state{State::ERROR, *this};
+    BrakeState              brake_state{State::BRAKE, *this, brake_timeout_ms};
     ///@}
 
     /**
@@ -604,6 +630,11 @@ private:
      * @brief Whether a stop arrived while the maze was to be saved.
      */
     bool stop_deferred{};
+
+    /**
+     * @brief State the robot was in when a stop made it brake, which says how to brake.
+     */
+    State braked_state{State::RUN};
 
     /**
      * @brief Current objective of the robot.

@@ -191,6 +191,14 @@ constexpr uint32_t watchdog_timeout_ms{10};
 constexpr uint32_t stopped_watchdog_timeout_ms{8000};
 
 /**
+ * @brief Longest a brake after a stop may take, in milliseconds, after which the robot coasts.
+ *
+ * @note A fast run brakes from its top speed in a few tenths of a second and then stands still for
+ * the stop time, so this only ends a brake that went wrong.
+ */
+constexpr uint16_t brake_timeout_ms{2000};
+
+/**
  * @brief Cutoff frequencies of the sensor filters, in hertz.
  *
  * @note The wall sensors are filtered twice: fast for everything that is a position, slow for

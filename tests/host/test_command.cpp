@@ -26,6 +26,7 @@ constexpr std::array busy_states{
     State::IDENTIFY,
     State::WAIT_FOR_GYROSCOPE,
     State::CALIBRATE_GYROSCOPE,
+    State::BRAKE,
 };
 
 constexpr std::array idle_commands{

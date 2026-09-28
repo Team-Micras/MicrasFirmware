@@ -44,6 +44,16 @@ static std::array<uint8_t, bluetooth_tx_buffer_size> bluetooth_tx_buffer;
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 /**
+ * @brief Check if a state drives the motors, so that a stop has to brake it to a standstill.
+ *
+ * @param state The state.
+ * @return True for a run and the procedures that move the robot.
+ */
+static bool drives_the_motors(State state) {
+    return state == State::RUN or state == State::IDENTIFY or state == State::CALIBRATE_GYROSCOPE;
+}
+
+/**
  * @brief Make the reply to a command.
  *
  * @param result Whether the command ran.
@@ -75,6 +85,7 @@ Micras::Micras() :
     this->fsm.add_state(this->wait_for_gyroscope_state);
     this->fsm.add_state(this->calibrate_gyroscope_state);
     this->fsm.add_state(this->error_state);
+    this->fsm.add_state(this->brake_state);
 
     this->register_variables();
 
@@ -384,6 +395,38 @@ bool Micras::save_maze() {
     return saved;
 }
 
+void Micras::start_brake() {
+    switch (this->braked_state) {
+        case State::RUN:
+            this->mission.brake();
+            return;
+
+        case State::CALIBRATE_GYROSCOPE:
+            this->gyroscope_calibration.brake(this->dynamics.get_angular_limits(search_profile));
+            return;
+
+        default:
+            return;
+    }
+}
+
+bool Micras::brake() {
+    switch (this->braked_state) {
+        case State::RUN:
+            return this->run() != nav::Mission::Status::RUNNING;
+
+        case State::CALIBRATE_GYROSCOPE:
+            this->follow(this->gyroscope_calibration.update(
+                this->measurements, this->localizer.get_gyroscope_bias(), this->elapsed_time
+            ));
+            return this->gyroscope_calibration.is_finished();
+
+        default:
+            this->locomotion.set_command(0.0F, 0.0F);
+            return this->is_at_rest();
+    }
+}
+
 void Micras::start_calibration() {
     this->wall_sensors.turn_on();
 
@@ -621,14 +664,32 @@ comm::CommandReply Micras::halt() {
         return reply(comm::CommandResult::DEFERRED, Reason::BUSY_SAVING);
     }
 
-    this->stop();
     this->interface.discard_presses();
+
+    if (state == State::BRAKE) {
+        return reply(comm::CommandResult::OK);
+    }
+
+    if (this->fsm.has_entered_current_state() and drives_the_motors(state)) {
+        this->braked_state = state;
+        this->fsm.transition_to(std::to_underlying(State::BRAKE));
+        return reply(comm::CommandResult::OK);
+    }
+
+    this->stop();
 
     if (state != State::INIT and state != State::ERROR) {
         this->fsm.transition_to(std::to_underlying(State::IDLE));
     }
 
     return reply(comm::CommandResult::OK);
+}
+
+bool Micras::is_at_rest() const {
+    const nav::State& state = this->localizer.get_state();
+
+    return std::abs(state.velocity.linear) < mission_config.executor.settle_linear_speed and
+           std::abs(state.velocity.angular) < mission_config.executor.settle_angular_speed;
 }
 
 comm::CommandReply Micras::leave_error() {

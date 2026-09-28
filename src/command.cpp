@@ -70,6 +70,7 @@ static constexpr std::array<CommandRule, std::to_underlying(State::NUMBER_OF_STA
     {.state = State::WAIT_FOR_GYROSCOPE, .accepted = busy_commands},
     {.state = State::CALIBRATE_GYROSCOPE, .accepted = busy_commands},
     {.state = State::ERROR, .accepted = command_set({Command::STOP, Command::LEAVE_ERROR})},
+    {.state = State::BRAKE, .accepted = busy_commands},
 }};
 
 /**

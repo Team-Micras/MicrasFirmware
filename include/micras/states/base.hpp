@@ -33,7 +33,8 @@ enum class State : uint8_t {
     WAIT_FOR_GYROSCOPE = 10,   // Timer for entering the CALIBRATE_GYROSCOPE state.
     CALIBRATE_GYROSCOPE = 11,  // Measuring the scale factor of the gyroscope.
     ERROR = 12,                // Error state.
-    NUMBER_OF_STATES = 13
+    BRAKE = 13,                // Braking to a standstill after a stop.
+    NUMBER_OF_STATES = 14
 };
 
 /**
@@ -53,6 +54,7 @@ constexpr std::array<std::string_view, std::to_underlying(State::NUMBER_OF_STATE
     "WAIT_FOR_GYROSCOPE",
     "CALIBRATE_GYROSCOPE",
     "ERROR",
+    "BRAKE",
 };
 
 static_assert(std::ranges::none_of(state_names, &std::string_view::empty), "every state needs a name");
