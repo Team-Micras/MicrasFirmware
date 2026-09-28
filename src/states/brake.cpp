@@ -24,6 +24,7 @@ uint8_t BrakeState::execute() {
     }
 
     if (this->micras.brake() or this->stopwatch.elapsed_time_ms() > this->timeout_ms) {
+        this->micras.discard_presses();
         return std::to_underlying(State::IDLE);
     }
 

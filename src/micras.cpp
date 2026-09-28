@@ -267,6 +267,10 @@ bool Micras::acknowledge_event(Interface::Event event) {
     return this->interface.acknowledge_event(event);
 }
 
+void Micras::discard_presses() {
+    this->interface.discard_presses();
+}
+
 void Micras::send_event(Interface::Event event) {
     this->interface.send_event(event);
 }

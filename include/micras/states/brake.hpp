@@ -15,7 +15,9 @@ namespace micras {
  * @brief State that brings a moving robot to a standstill after a stop, before it is idle.
  *
  * @note The faults are still watched while braking. A brake that has not ended by the timeout
- * gives up and leaves the robot to coast, which the idle state does by disabling the drivers.
+ * gives up and leaves the robot to coast, which the idle state does by disabling the drivers. The
+ * presses of the button while braking are forgotten once it ends, so the idle state never starts a
+ * run with a press made during the stop.
  */
 class BrakeState : public BaseState {
 public:

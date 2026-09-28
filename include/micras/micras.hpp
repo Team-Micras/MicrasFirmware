@@ -132,6 +132,11 @@ public:
     bool acknowledge_event(Interface::Event event);
 
     /**
+     * @brief Forget the presses of the button that no state has acted on yet.
+     */
+    void discard_presses();
+
+    /**
      * @brief Send an event to the interface.
      *
      * @param event The event to send.
