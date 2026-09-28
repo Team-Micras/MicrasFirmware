@@ -1,0 +1,176 @@
+# Micras, v2 main board, as built.
+#
+# The physical truth the simulator builds its model and devices from; the
+# firmware's config/targets/v1/robot.hpp is the robot's belief about itself, and
+# the `sim_robot_report` target shows where the two differ.
+#
+# Frames follow robot.hpp: x forward, y left, z up, origin on the floor under the
+# midpoint of the wheel axle. Lengths in meters, masses in kilograms, angles in
+# degrees where the key ends in _deg. From the CAD, in millimeters: the KiCad board
+# gives x = 113.5036 - y_KiCad, y = 148.5011 - x_KiCad, with the KiCad rotation as
+# the yaw; the SolidWorks assembly gives x = 1033.6 - Z_sw, y = -(X_sw + 4.9091),
+# z = Y_sw + 11.3503.
+#
+# Sources: "datasheet" (named), "CAD" (the KiCad board or the SolidWorks
+# assembly), "firmware" (target.hpp, the CubeMX project), "owner", "estimate".
+
+schema = 1
+name = "micras"
+
+[integration]
+# One firmware loop; halving it changed neither the contacts nor the trace.
+timestep = { value = 0.000125, source = "measured: tire contact, penetration and the explore trace unchanged at 62.5 and 31.25 us" }
+
+[chassis]
+mass = { value = 0.062, source = "estimate: 70 g for the whole robot (modeled parts, three 6 g cells, 5 g of components), less the two wheels; weigh it" }
+center_of_mass = { value = [-0.0008, 0.0, 0.017], source = "estimate: CAD volumes with assumed densities" }
+inertia = { value = [1.16e-5, 2.37e-5, 2.45e-5], source = "estimate: 2.9e-5 yaw for the whole robot from CAD volumes, less the wheels; roll and pitch scaled" }
+outline = { value = [[0.0535, 0.0150], [0.03456, 0.02447], [0.0323, 0.0250], [-0.0365, 0.0250], [-0.0365, -0.0250], [0.0323, -0.0250], [0.03456, -0.02447], [0.0535, -0.0150]], source = "CAD: KiCad board edge, nose chamfers at 26.6 deg, fillets as corners" }
+board_bottom = { value = 0.001, source = "CAD: BoardToFloorHeight" }
+board_top = { value = 0.002, source = "CAD: 1.04 mm FR-4" }
+friction = { value = 0.3, source = "estimate: FR-4 on a painted floor" }
+
+[[chassis.boxes]]
+name = "bearing_block_left"
+min = { value = [-0.0185, 0.00575, 0.002], source = "CAD" }
+max = { value = [0.0055, 0.02225, 0.025], source = "CAD" }
+
+[[chassis.boxes]]
+name = "bearing_block_right"
+min = { value = [-0.0185, -0.02225, 0.002], source = "CAD" }
+max = { value = [0.0055, -0.00575, 0.025], source = "CAD" }
+
+[[chassis.boxes]]
+name = "fan_holder"
+min = { value = [-0.0185, -0.0225, 0.025], source = "estimate: spans the bearing blocks and the impeller" }
+max = { value = [0.031, 0.0225, 0.027], source = "estimate" }
+
+[[chassis.boxes]]
+name = "battery_cells"
+min = { value = [-0.0198, -0.023, 0.022], source = "CAD: the three 46 x 12 x 7 mm cell bodies; where the third one sits is open" }
+max = { value = [0.0114, 0.023, 0.034], source = "CAD" }
+
+[[chassis.cylinders]]
+name = "fan_impeller"
+base = { value = [0.0175, 0.0, 0.0025], source = "CAD" }
+radius = { value = 0.0135, source = "CAD: 27 mm impeller" }
+height = { value = 0.007, source = "CAD" }
+
+[[chassis.cylinders]]
+name = "fan_motor"
+base = { value = [0.0175, 0.0, 0.0095], source = "CAD" }
+radius = { value = 0.005, source = "CAD: 10 mm coreless motor" }
+height = { value = 0.022, source = "CAD" }
+
+# The real robot has no third contact point: it rests on the rear edge of its board,
+# and on the front edge with the fan on or when it brakes. Two 1 mm skids stand in
+# for those edges. They are frictionless, since a sliding frictional contact would
+# lift the board off the floor in MuJoCo.
+[[chassis.skids]]
+name = "rear_skid"
+center = { value = [-0.034, 0.0, 0.001], source = "simulation: under the rear edge of the board, touching the floor when level" }
+radius = { value = 0.001, source = "simulation" }
+
+[[chassis.skids]]
+name = "front_skid"
+center = { value = [0.050, 0.0, 0.0013], source = "simulation: under the nose, 0.3 mm clear of the floor when level" }
+radius = { value = 0.001, source = "simulation" }
+
+[wheels]
+radius = { value = 0.011, source = "CAD: 1.0 mm tire band on a 20 mm hub seat" }
+width = { value = 0.00425, source = "CAD: WheelTireWidth" }
+track = { value = 0.04575, source = "CAD: tire center to tire center" }
+mass = { value = 0.004, source = "estimate: printed hub with its gear, and the tire" }
+spin_inertia = { value = 1.9e-7, source = "estimate: CAD volumes" }
+friction = { value = 1.0, source = "estimate: Kyosho MZW40-20 slick on a maze floor; measure by tilting" }
+torsional_friction = { value = 0.0005, source = "estimate: half the contact patch width" }
+contact_time_constant = { value = 0.008, source = "estimate: 1 mm silicone band, E ~ 0.5 MPa over a 4.25 x 3 mm patch, ~5000 N/m; 5 ms or more also keeps the tires on the floor when they slide" }
+contact_damping_ratio = { value = 1.0, source = "estimate" }
+
+[drive]
+winding_resistance = { value = 12.0, source = "datasheet: Maxon DCX 8 M, 4.2 V winding" }
+bridge_resistance = { value = 0.62, source = "datasheet: L6205D, one conducting path at 25 C" }
+torque_constant = { value = 0.00336, source = "datasheet: DCX 8 M 4.2 V" }
+speed_constant = { value = 0.003351, source = "datasheet: 2850 rpm/V" }
+no_load_current = { value = 0.00693, source = "datasheet: DCX 8 M 4.2 V" }
+rotor_inertia = { value = 3.79e-9, source = "datasheet: 0.0379 g cm^2" }
+gear_ratio = { value = 5.25, source = "CAD: 4 mm pinion to 21 mm wheel gear pitch circles" }
+gear_efficiency = { value = 0.9, source = "estimate: one printed spur stage" }
+supply_voltage = { value = 19.63, source = "CAD and datasheet: TPS611781 feedback divider" }
+
+[encoders]
+counts_per_revolution = { value = 16384, source = "firmware: AS5047U ABIRES 4096 pulses, four edges, magnet on the axle" }
+
+[imu]
+position = { value = [0.00066, 0.0, 0.0024], source = "CAD: IC2, 0.4 mm above the board top" }
+chip_x = { value = [0.0, -1.0, 0.0], source = "CAD and datasheet: pin 1 at the front left" }
+chip_y = { value = [1.0, 0.0, 0.0], source = "CAD and datasheet" }
+gyro_noise_density = { value = 4.887e-5, source = "datasheet: LSM6DSV 2.8 mdps/sqrt(Hz), in rad/s/sqrt(Hz)" }
+gyro_bias = { value = 0.005236, source = "estimate: one third of the +-1 dps zero-rate level, in rad/s" }
+gyro_scale_error = { value = 0.001, source = "estimate: one third of the +-0.3 % sensitivity tolerance" }
+gyro_resolution = { value = 0.0024435, source = "firmware: +-4000 dps full scale, 140 mdps per LSB, in rad/s" }
+accel_noise_density = { value = 5.884e-4, source = "datasheet: 60 ug/sqrt(Hz), in m/s^2/sqrt(Hz)" }
+accel_bias = { value = 0.0392, source = "estimate: one third of the +-12 mg zero-g offset, in m/s^2" }
+accel_resolution = { value = 0.0023929, source = "firmware: +-8 g full scale, 0.244 mg per LSB, in m/s^2" }
+bandwidth = { value = 281.0, source = "firmware and datasheet: LPF1 ultra light at 8 kHz" }
+output_rate = { value = 8000.0, source = "firmware: high accuracy ODR" }
+clock_error = { value = 0.005, source = "estimate: within the datasheet's +-1 % in high accuracy mode" }
+
+[fan]
+position = { value = [0.0175, 0.0, 0.0025], source = "CAD: impeller over the 15 mm hole" }
+max_downforce = { value = 3.0, source = "owner: about 3 N at full speed" }
+nominal_voltage = { value = 12.3, source = "the charged pack the simulation runs from, so full speed gives max_downforce" }
+time_constant = { value = 0.15, source = "estimate: coreless motor with a 27 mm impeller" }
+
+[battery]
+cells = { value = 3, source = "owner" }
+cell_voltage = { value = 4.1, source = "estimate: a charged cell under a light load" }
+
+[link]
+baud_rate = { value = 115200, source = "firmware: usart.c, UART4 to the HM-19" }
+
+[wall_sensors]
+emitter_half_angle_deg = { value = 3.0, source = "datasheet: SFH4550" }
+emitter_intensity = { value = 1.8, source = "datasheet and CAD: 1100 mW/sr at 100 mA, driven at about 164 mA" }
+receiver_half_angle_deg = { value = 10.0, source = "datasheet: TPS601A" }
+receiver_responsivity = { value = 4.0e-4, source = "datasheet: TPS601A rank B, mid range; the rank is unknown" }
+load_resistance = { value = 1000.0, source = "CAD" }
+saturation_voltage = { value = 2.9, source = "CAD" }
+adc_reference = { value = 3.3, source = "firmware" }
+adc_max_counts = { value = 65535.0, source = "firmware: 16-bit, 8x oversampled and shifted by 3" }
+adc_noise_counts = { value = 20.0, source = "estimate" }
+settle_fraction = { value = 0.976, source = "estimate: 75 us of settling against a 20 us receiver time constant" }
+ambient_irradiance = { value = 0.01, source = "estimate: indoor lighting in the receiver's band, in W/m^2" }
+rays = { value = 16, source = "simulation: rays per emitter cone" }
+
+[[wall_sensors.sensors]]
+name = "left_front"
+emitter = { value = [0.0434, 0.0215, 0.01175], source = "CAD: W1 lens tip" }
+receiver = { value = [0.0444, 0.0215, 0.00525], source = "CAD: W1 lens tip" }
+yaw_deg = { value = 0.0, source = "CAD" }
+group = { value = 0, source = "firmware: TIM4 channel 1, not inverted" }
+gain = { value = 1.8815, source = "calibrated: target.hpp reference_readings over the simulated reading at the calibration pose (tools/wall_calibration)" }
+
+[[wall_sensors.sensors]]
+name = "left"
+emitter = { value = [0.05229, 0.01491, 0.01175], source = "CAD: W2 lens tip" }
+receiver = { value = [0.053, 0.01562, 0.00525], source = "CAD: W2 lens tip" }
+yaw_deg = { value = 45.0, source = "CAD" }
+group = { value = 1, source = "firmware: TIM4 channel 2, inverted" }
+gain = { value = 3.7461, source = "calibrated: target.hpp reference_readings over the simulated reading at the calibration pose (tools/wall_calibration)" }
+
+[[wall_sensors.sensors]]
+name = "right"
+emitter = { value = [0.05229, -0.01491, 0.01175], source = "CAD: W3 lens tip" }
+receiver = { value = [0.053, -0.01562, 0.00525], source = "CAD: W3 lens tip" }
+yaw_deg = { value = -45.0, source = "CAD" }
+group = { value = 0, source = "firmware: TIM4 channel 3, not inverted" }
+gain = { value = 4.1181, source = "calibrated: target.hpp reference_readings over the simulated reading at the calibration pose (tools/wall_calibration)" }
+
+[[wall_sensors.sensors]]
+name = "right_front"
+emitter = { value = [0.0434, -0.0215, 0.01175], source = "CAD: W4 lens tip" }
+receiver = { value = [0.0444, -0.0215, 0.00525], source = "CAD: W4 lens tip" }
+yaw_deg = { value = 0.0, source = "CAD" }
+group = { value = 1, source = "firmware: TIM4 channel 4, inverted" }
+gain = { value = 1.0478, source = "calibrated: target.hpp reference_readings over the simulated reading at the calibration pose (tools/wall_calibration)" }
