@@ -66,11 +66,6 @@ static double yaw_inertia(const RobotDescription& robot) {
            2.0 * (transverse + wheels.mass * offset * offset);
 }
 
-/**
- * @brief Print robot.toml against the firmware's robot.hpp, field by field.
- *
- * @return The exit status.
- */
 static int run() {
     const RobotDescription robot = RobotDescription::load(std::filesystem::path{MICRAS_TARGET_DIR} / "robot.toml");
     const micras::nav::RobotModel& model = micras::robot_model;

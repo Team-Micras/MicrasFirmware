@@ -341,11 +341,6 @@ static void report(float margin, const std::vector<Result>& results) {
     }
 }
 
-/**
- * @brief Design every turn of two bends and print the firmware's header.
- *
- * @return The exit status.
- */
 static int run() {
     const std::array<float, 2> margins{micras::turn_margin, micras::risky_turn_margin};
 

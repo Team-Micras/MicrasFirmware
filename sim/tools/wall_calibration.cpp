@@ -264,13 +264,6 @@ static void sweep(const RobotDescription& robot) {
     }
 }
 
-/**
- * @brief Print each wall sensor's gain, or with --sweep the firmware's distances against the true ones.
- *
- * @param argc Number of arguments.
- * @param argv The arguments.
- * @return The exit status.
- */
 static int run(int argc, char** argv) {
     const std::span<char*> arguments(argv, static_cast<std::size_t>(argc));
     const RobotDescription robot = RobotDescription::load(std::filesystem::path{MICRAS_TARGET_DIR} / "robot.toml");

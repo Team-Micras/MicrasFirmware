@@ -85,11 +85,6 @@ constexpr std::array<std::pair<const char*, Micras::Command>, 5> commands{{
 }};
 }  // namespace
 
-/**
- * @brief Get the names of the states, as the panel, the overlay and the scenarios take them.
- *
- * @return The names, in the order of State.
- */
 static const std::vector<std::string>& state_names() {
     static const std::vector<std::string> names{state_name_table.begin(), state_name_table.end()};
     return names;
