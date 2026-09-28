@@ -10,7 +10,7 @@
  *       own check accepts, clear of every post and of every wall the turn does not cross, is the
  *       design. The firmware checks it again when it is compiled.
  *
- *       Usage: micras_turn_designer > MicrasFirmware/config/two_bend_turns.hpp
+ *       Usage: micras_turn_designer > config/two_bend_turns.hpp
  *       The table of what was found, speeds and radii, goes to stderr.
  */
 
@@ -364,7 +364,8 @@ static int run() {
     }
 
     std::cout << "/**\n * @file\n *\n * @brief Designs of the turns of two bends, for each margin.\n *\n"
-                 " * @note Written by the turn designer of the simulator (`just micras turn-designs`), which searches\n"
+                 " * @note Written by the turn designer of the simulation (the `sim_turn_designs` target), which "
+                 "searches\n"
                  " * for the fastest two bends that clear the walls. Do not edit by hand: the build checks every "
                  "design\n"
                  " * against the robot and the maze, and a change to either that makes one no longer fit stops it, "
