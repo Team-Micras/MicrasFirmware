@@ -336,7 +336,8 @@ private:
      * copying those into somewhere that stays put. The route time is zero while no route is planned.
      * The restarts of the converters are counted by the HAL, in a static member. The failed saves are
      * counted as they fail. The results of the maintenance procedures are copied once, when a
-     * procedure ends.
+     * procedure ends. The revision of the maze lets an application read the map again only when it
+     * changed.
      */
     struct Telemetry {
         std::array<float, 3>                           angular_velocity{};
@@ -359,6 +360,7 @@ private:
         float                                          yaw_inertia{};
         bool                                           gyroscope_scale_valid{};
         float                                          gyroscope_scale{};
+        uint32_t                                       maze_revision{};
     };
 
     /**

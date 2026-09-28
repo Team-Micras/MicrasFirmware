@@ -56,7 +56,7 @@ void TMaze<width, height>::reset() {
         }
     }
 
-    this->revision = 0;
+    this->revision++;
     this->flood(this->goal);
 }
 

@@ -145,9 +145,13 @@ public:
     std::span<const GridPoint> get_goal() const;
 
     /**
-     * @brief Get a number that changes every time a wall is recorded.
+     * @brief Get a number that changes every time the walls do.
      *
-     * @return The number of changes since the map was last reset.
+     * @note It never goes back, not even when the map is reset, so that whoever compares it with a
+     * value read earlier, such as an application watching the map over the link, cannot be fooled
+     * by a reset that happens to end at the same count.
+     *
+     * @return The number of changes since the map was constructed.
      */
     uint32_t get_revision() const;
 
@@ -247,7 +251,7 @@ private:
     std::span<const GridPoint> goal;
 
     /**
-     * @brief Number of walls recorded since the last reset.
+     * @brief Number of walls recorded and of resets since construction.
      */
     uint32_t revision{};
 };

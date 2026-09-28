@@ -177,6 +177,7 @@ void Micras::register_variables() {
     this->variables.add("", "maze", this->mission.get_maze(), {.persist = true});
 
     this->link.register_variables(this->variables, "link/");
+    this->variables.add("maze/", "revision", this->telemetry.maze_revision, {.stream = true});
 
     this->maze_storage.restore(this->variables);
 }
@@ -532,6 +533,7 @@ void Micras::publish() {
     this->telemetry.position_deviation = this->localizer.get_position_deviation();
     this->telemetry.orientation_deviation = this->localizer.get_orientation_deviation();
     this->telemetry.route_time = std::isfinite(this->mission.get_route_time()) ? this->mission.get_route_time() : 0.0F;
+    this->telemetry.maze_revision = this->mission.get_maze().get_revision();
 
     for (uint8_t i = 0; i < nav::number_of_wall_sensors; i++) {
         this->telemetry.wall_reference_readings.at(i) = this->wall_sensors.get_reference_reading(i);
