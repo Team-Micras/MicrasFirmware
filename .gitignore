@@ -1,4 +1,5 @@
-docs/
+docs/*
+!docs/*.md
 build/
 cube/*
 !**/*.ioc

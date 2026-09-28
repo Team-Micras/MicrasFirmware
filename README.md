@@ -45,50 +45,40 @@ NTF Classic Micromouse project with an STM32 microcontroller
 - **cmake/** - Functions to include in the main CMake.
 - **config/** - Target and constants configuration values.
 - **cube/** - STM32CubeMX configuration and build files.
-- **docs/** - Generated documentation output, not tracked by Git.
+- **docs/** - Hand-written notes, such as the [Bluetooth link](docs/bluetooth.md); the generated
+  documentation is written here too, and is not tracked by Git.
+- **external/** - The team's libraries, as git submodules, see [Packages](#️-packages).
 - **include/** - Header files for class definitions.
-- **micras_\*/** - Project packages, see [Packages](#️-packages).
 - **src/** - Source file for class implementations and executables.
 - **tests/** - Executable test files.
 
 ## 📦️ Packages
 
-- [micras_core](./micras_core/) - Hardware independent building blocks, such as controllers, filters and the state machine.
-- [micras_hal](./micras_hal/) - Wrapper to the STM32 HAL, implementing the needed functionalities in C++ classes.
-- [micras_proxy](./micras_proxy/) - Intermediate abstraction layer for the hardware components.
-- [micras_nav](./micras_nav/) - Mapping, planning and control algorithms to navigate inside a maze.
-- [micras_comm](./micras_comm/) - The link over the radio: framing, the session and the variables it carries.
+The libraries live in [micras-lib](https://github.com/Team-Micras/micras-lib), a repository of their
+own that this one carries as a git submodule in `external/micras-lib`:
 
-Each one is a library in its own right, and they depend downwards only: `micras_proxy` on
-`micras_hal` and that on `micras_core`, while `micras_nav` depends on `micras_core` alone. The
-navigation takes plain measurements in and gives a plain motor command out, so it cannot reach the
-hardware and builds on anything with a C++23 compiler, which is how it is simulated and tested on a
-computer. The application in `src/` is the only place where the proxies and the navigation meet.
+- `micras_core` - Hardware independent building blocks, such as controllers, filters and the variable pool.
+- `micras_hal` - Wrapper to the STM32 HAL, implementing the needed functionalities in C++ classes.
+- `micras_proxy` - Intermediate abstraction layer for the hardware components.
+- `micras_nav` - Mapping, planning and control algorithms to navigate inside a maze.
+- `micras_comm` - The link over the radio: framing, the session and the variables it carries.
 
-None of the packages names a file or a symbol that STM32CubeMX generates for a particular project,
+They depend downwards only: `micras_proxy` on `micras_hal` and that on `micras_core`, while
+`micras_nav` depends on `micras_core` alone. The navigation takes plain measurements in and gives a
+plain motor command out, so it cannot reach the hardware and builds on anything with a C++23
+compiler, which is how it is simulated and tested on a computer. The application in `src/` is the
+only place where the proxies and the navigation meet.
+
+None of the libraries names a file or a symbol that STM32CubeMX generates for a particular project,
 so the generated tree is reached only from `config/targets/`, where the handles and the
-initialization functions of a board are written down and handed to the packages through their
+initialization functions of a board are written down and handed to the libraries through their
 configuration structs. The same directory holds `robot.hpp`, the physical description of the robot
 that every speed, turn, gain and sensing window of the navigation is computed from.
 
-The one name `micras_hal` uses from outside itself is `stm32cubemx`, the interface target the
-STM32CubeMX CMake generator writes for every project, carrying the CMSIS and vendor HAL include
-directories and the device macros. Any generated project already has it, so another project reuses
-the packages by adding their sources and linking the layer it wants:
-
-```cmake
-add_subdirectory(micras_core)
-add_subdirectory(micras_hal)
-add_subdirectory(micras_proxy)
-add_subdirectory(micras_nav)
-
-target_link_libraries(your_target PRIVATE micras::nav micras::proxy)
-```
-
-Everything else travels through the targets: the include directories, the C++ standard the sources
-need, and the vendor HAL headers. `FetchContent_MakeAvailable` works the same way, and is the
-sensible option for a cross compiled target, where a prebuilt archive is only usable by a project
-whose architecture flags match exactly.
+The root `CMakeLists.txt` adds micras-lib after the STM32CubeMX project, whose `stm32cubemx` target
+is the board the HAL is built against, and links the application to `micras::nav`, `micras::comm`
+and `micras::proxy`. What a project must provide to use the libraries, and how they are tested, is
+in [micras-lib's README](https://github.com/Team-Micras/micras-lib#readme).
 
 ## 🐭 Operating the robot
 
@@ -124,7 +114,17 @@ and typed into `config/targets/<board>/robot.hpp` and `target.hpp`.
 To build the project, it is first necessary to install some dependencies:
 
 ```bash
-sudo apt install cmake make gcc-arm-none-eabi libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib
+sudo apt install cmake make gcc-arm-none-eabi libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib clang-format-22 clang-tidy-22
+```
+
+The clang tools are found by their versioned names, and configuring fails without them, see
+[Code style](#-code-style).
+
+The libraries are a git submodule, which a clone brings with `--recurse-submodules`. In a clone made
+without it, fetch the one the robot needs with:
+
+```bash
+git submodule update --init external/micras-lib
 ```
 
 The [STM32CubeMX](https://www.st.com/en/development-tools/stm32cubemx.html) program is also required. After the installation is completed, it is necessary to set the `CUBE_CMD` environment variable to the path of the STM32CubeMX executable or add it to the `PATH`.
@@ -142,17 +142,24 @@ cmake ..
 ```
 
 The board revision to build for is selected with the `BOARD_VERSION` variable, which must match
-one of the `cube/micras_<version>.ioc` files. It defaults to `v1`:
-
-```bash
-cmake .. -DBOARD_VERSION=v0
-```
+one of the `cube/micras_<version>.ioc` files. It defaults to `v1`, the only board that builds today.
 
 The project can then be compiled by running:
 
 ```bash
 make -j
 ```
+
+The same build is also a CMake preset, run from the project root, which configures `build/` with
+Unix Makefiles and a Release build:
+
+```bash
+cmake --preset stm32
+cmake --build --preset stm32 -j
+```
+
+`MICRAS_WERROR=ON` turns the warnings of the firmware's own targets into errors, and
+`MICRAS_LIB_WERROR=ON` those of the libraries; the CI sets both.
 
 You can list all available `make` commands by running:
 
@@ -188,12 +195,9 @@ It is also possible to build all tests at once, using the command:
 make test_all -j
 ```
 
-The parts with no hardware behind them, the variable pool, the flash image, the framing and the
-session layer, also have tests that build with the host compiler and run in the terminal:
-
-```bash
-cmake -S tests/host -B build/host && cmake --build build/host && ctest --test-dir build/host
-```
+These are programs for the robot, each exercising one device or one part of the navigation on
+the bench. The libraries' unit tests, which build with the host compiler and run in the terminal,
+live in [micras-lib](https://github.com/Team-Micras/micras-lib#readme) and run in its CI.
 
 ## 🐛 Debugging
 
@@ -245,10 +249,10 @@ make jflash_[test_name] -j
 
 ### 🎨 Format
 
-The project uses `clang-format` to format files, there is a `.clang-format` with the formatting rules for the project. To install it, on Ubuntu, run the following command on the terminal:
+The project uses `clang-format` 22 to format files, there is a `.clang-format` with the formatting rules for the project. It is found by its versioned name, `clang-format-22`, so that another version on the `PATH` cannot change the rules. To install it, on Ubuntu, run the following command on the terminal:
 
 ```bash
-sudo apt install clang-format
+sudo apt install clang-format-22
 ```
 
 In order to format the project, run the following command in the `build` folder:
@@ -261,10 +265,10 @@ To only check if the files are formatted, without changing them, run `make forma
 
 ### 🚨 Linter
 
-The project uses a linter in order to follow the best code practices. The linter used is `clang-tidy`, there is a `.clang-tidy` with the linting rules for the project. To install it on Ubuntu, run the following command on the terminal:
+The project uses a linter in order to follow the best code practices. The linter used is `clang-tidy` 22, found as `clang-tidy-22` and `run-clang-tidy-22`, there is a `.clang-tidy` with the linting rules for the project. To install it on Ubuntu, run the following command on the terminal:
 
 ```bash
-sudo apt install clang-tidy
+sudo apt install clang-tidy-22
 ```
 
 The linting process is done by running the following command in the `build` folder:
@@ -279,17 +283,27 @@ It is also possible to lint the project and let the linter fix it using its sugg
 make lint_fix
 ```
 
+The formatting and the linting cover the firmware's own sources; micras-lib checks its own. The
+`.clang-format`, `.clang-tidy`, `tests/.clang-tidy` and `cmake/templates/run_clang_tidy.sh.in` files
+are micras-lib's, byte for byte, and the CI compares them with the submodule's.
+
 ## 🐋 Docker
 
 Docker can be used to build the project inside a container, which makes it possible to implement CI/CD pipelines and develop in any environment, for this, it is necessary to have [Docker](https://docs.docker.com/get-started/introduction/get-docker-desktop/) installed on your system.
 
 ### 🐳 Building
 
-The project can be built without entering a container by running the following command:
+The project can be built without entering a container by running the following command, with the
+submodule checked out, since the image is built from the working tree:
 
 ```bash
 docker compose run build
 ```
+
+The image builds on the host stage of `.docker/Dockerfile` (Ubuntu 26.04 with GCC 15, clang 22,
+CMake, Ninja and Doxygen), which micras-lib's and micras-simulation's Dockerfiles share line for line,
+and adds the ARM toolchain. It configures the robot build with `MICRAS_WERROR` and
+`MICRAS_LIB_WERROR` on.
 
 This also works for formatting (`docker compose run check-format`) and linting (`docker compose run lint`).
 
@@ -315,7 +329,7 @@ sudo apt install doxygen graphviz texlive-latex-recommended texlive-latex-extra 
 
 For other operating systems, you can see download options on the [official Doxygen page](https://www.doxygen.nl/download.html).
 
-The HTML documentation is published to GitHub Pages on every push to `main`. To generate it
+The HTML documentation is built on every push and published to GitHub Pages from `main`. To generate it
 locally, run the following command inside the **build** folder. The output is written to the
 **docs/** folder, which is not tracked by Git:
 
@@ -331,7 +345,8 @@ make docs_pdf
 ```
 
 The configuration is in the file [Doxyfile](./Doxyfile), and the HTML theme is
-[doxygen-awesome-css](https://github.com/jothepro/doxygen-awesome-css), fetched by CMake.
+[doxygen-awesome-css](https://github.com/jothepro/doxygen-awesome-css), fetched by CMake. The
+documentation covers the firmware, the notes in `docs/` and the libraries in `external/micras-lib`.
 
 ## 🛠️ Windows Development Environment
 
