@@ -56,6 +56,28 @@ static void write_schema_entry(Writer& writer, const core::Variable& variable) {
     }
 }
 
+/**
+ * @brief Mix the seed of a boot with the time of its first HELLO into its identifier.
+ *
+ * @note The finalizer of MurmurHash3, so that a change of one bit of either input changes about half
+ * of the bits of the identifier.
+ *
+ * @param seed Boot seed of the configuration.
+ * @param time_us Time of the first HELLO, in microseconds.
+ * @return The identifier of the boot.
+ */
+static uint32_t make_boot_id(uint32_t seed, uint32_t time_us) {
+    uint32_t hash = seed ^ (time_us * 0x9E3779B9U);
+
+    hash ^= hash >> 16U;
+    hash *= 0x85EBCA6BU;
+    hash ^= hash >> 13U;
+    hash *= 0xC2B2AE35U;
+    hash ^= hash >> 16U;
+
+    return hash;
+}
+
 Link::Link(core::IByteStream& stream, core::VariablePool& pool, ICommandHandler& commands, const Config& config) :
     stream{stream}, pool{pool}, commands{commands}, config{config} { }
 
@@ -139,7 +161,7 @@ void Link::on_hello() {
     this->refresh_credit();
 
     if (not this->boot_id.has_value()) {
-        this->boot_id = this->last_timestamp_us;
+        this->boot_id = make_boot_id(this->config.boot_seed, this->last_timestamp_us);
     }
 
     Writer writer{this->payload};

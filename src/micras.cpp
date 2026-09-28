@@ -55,7 +55,12 @@ static comm::CommandReply reply(comm::CommandResult result, Micras::Reason reaso
 
 Micras::Micras() :
     bluetooth{bluetooth_config, bluetooth_rx_buffer, bluetooth_tx_buffer},
-    link{bluetooth, variables, *this, {.loop_time_us = loop_time_us, .robot_name = robot_name}} {
+    link{
+        bluetooth,
+        variables,
+        *this,
+        {.loop_time_us = loop_time_us, .robot_name = robot_name, .boot_seed = hal::Mcu::get_boot_seed()}
+    } {
     this->fsm.add_state(this->init_state);
     this->fsm.add_state(this->idle_state);
     this->fsm.add_state(this->wait_for_run_state);

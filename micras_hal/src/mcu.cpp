@@ -3,6 +3,7 @@
  */
 
 #include <algorithm>
+#include <bit>
 #include <cstdint>
 #include <span>
 
@@ -155,6 +156,10 @@ void Mcu::refresh_watchdog() {
 
 bool Mcu::was_reset_by_watchdog() {
     return watchdog_reset;
+}
+
+uint32_t Mcu::get_boot_seed() {
+    return HAL_GetUIDw0() ^ std::rotl(HAL_GetUIDw1(), 11) ^ std::rotl(HAL_GetUIDw2(), 22) ^ DWT->CYCCNT;
 }
 
 bool Mcu::is_cpu_frequency_supported() {

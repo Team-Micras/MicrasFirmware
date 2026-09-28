@@ -228,7 +228,7 @@ int main() {
     Commands    commands;
     Loopback    io;
     Application app;
-    Link        link{io, pool, commands, {.loop_time_us = 125, .robot_name = "test-bot"}};
+    Link        link{io, pool, commands, {.loop_time_us = 125, .robot_name = "test-bot", .boot_seed = 77}};
     link.register_variables(pool, "link/");
     const uint16_t total = uint16_t(pool.all().size());
 
@@ -255,7 +255,6 @@ int main() {
     CHECK(hello.count == total);
     CHECK(hello.loop_time_us == 125);
     CHECK(hello.window == credit_window && credit_window == 256);
-    CHECK(hello.boot_id == 1000);
     CHECK(hello.name == "test-bot");
 
     // --- the boot id stays for the whole boot, and another boot gets another one ---
@@ -266,16 +265,21 @@ int main() {
     msgs = app.drain(io);
     CHECK(parse_hello_ack(only(msgs, MessageType::HELLO_ACK).payload).boot_id == hello.boot_id);
     app.restart();
-    {
+
+    const auto boot_id_of = [&pool, &commands](uint32_t seed, uint32_t first_hello_us) {
         Loopback    other_io;
         Application other_app;
-        Link        rebooted{other_io, pool, commands, {.loop_time_us = 125, .robot_name = "test-bot"}};
-        rebooted.pump(4321);
+        Link rebooted{other_io, pool, commands, {.loop_time_us = 125, .robot_name = "test-bot", .boot_seed = seed}};
+        rebooted.pump(first_hello_us);
         send(other_io, MessageType::HELLO, {});
         rebooted.poll(true);
-        const HelloAck other = parse_hello_ack(only(other_app.drain(other_io), MessageType::HELLO_ACK).payload);
-        CHECK(other.boot_id == 4321 && other.boot_id != hello.boot_id);
-    }
+        return parse_hello_ack(only(other_app.drain(other_io), MessageType::HELLO_ACK).payload).boot_id;
+    };
+
+    CHECK(boot_id_of(77, 1000) == hello.boot_id);
+    CHECK(boot_id_of(78, 1000) != hello.boot_id);
+    CHECK(boot_id_of(77, 1001) != hello.boot_id);
+    CHECK(boot_id_of(0, 0) != boot_id_of(1, 0));
 
     // --- schema, paged, with the type tag of the blob only ---
     send(io, MessageType::SCHEMA_REQUEST, {0, 0});

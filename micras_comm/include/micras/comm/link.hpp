@@ -102,6 +102,11 @@ public:
          * the robot by. Expected to be a string literal.
          */
         std::string_view robot_name;
+
+        /**
+         * @brief Number that tells this board and this boot apart, mixed into the boot identifier.
+         */
+        uint32_t boot_seed;
     };
 
     /**
@@ -322,13 +327,13 @@ private:
     uint32_t last_timestamp_us{};
 
     /**
-     * @brief Identifier of this boot, taken from the clock when the first HELLO arrives.
+     * @brief Identifier of this boot, mixed from the boot seed and the clock when the first HELLO
+     * arrives.
      *
      * @note The board enables no source of randomness, and everything the robot does at startup
-     * runs from the same clock, so a value computed then could come out the same on every boot. The
-     * moment an application first connects differs, to the microsecond. Every later HELLO of the
-     * same boot gets the same identifier, which is how the application tells a reconnection from a
-     * reboot.
+     * runs from the same clock, so the seed alone could come out the same on two boots. The moment
+     * an application first connects differs, to the microsecond. Every later HELLO of the same boot
+     * gets the same identifier, which is how the application tells a reconnection from a reboot.
      */
     std::optional<uint32_t> boot_id;
 

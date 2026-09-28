@@ -114,6 +114,18 @@ public:
      */
     static bool is_cpu_frequency_supported();
 
+    /**
+     * @brief Get a number to tell this board and this boot apart from others.
+     *
+     * @note The unique identifier of the chip mixed with the cycle counter, which by the time the
+     * robot asks has counted through a start whose length depends on the chips it waited for. It
+     * is not random, and two boots of one board may give the same number, so it is only a seed for
+     * identifiers that mix in something else too.
+     *
+     * @return The seed.
+     */
+    static uint32_t get_boot_seed();
+
 private:
     /**
      * @brief Whether the last reset was caused by the independent watchdog.

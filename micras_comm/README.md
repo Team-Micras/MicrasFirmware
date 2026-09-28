@@ -71,8 +71,9 @@ what both the microcontroller and `DataView` in the browser already are.
 
 - **`HELLO_ACK` says which robot this is and which boot.** It carries the robot's name, which the
   application chooses its view of the robot by, and a `boot_id`, which stays the same for every
-  HELLO of one boot and changes with the next one. It is the robot's clock when the first HELLO of
-  the boot arrived: the board enables no source of randomness, and that moment is what differs.
+  HELLO of one boot and changes with the next one. It mixes a seed the board gives, from the unique
+  identifier of the chip and its cycle counter, with the robot's clock when the first HELLO of the
+  boot arrived: the board enables no source of randomness, and that moment is what differs most.
 - **The schema is fetched once per firmware build, not once per connection.** `HELLO_ACK` carries a
   `schema_hash` over every name, type, access flag and type tag in order. Identifiers are
   registration order, so adding one variable shifts every later one; comparing the hash against the
