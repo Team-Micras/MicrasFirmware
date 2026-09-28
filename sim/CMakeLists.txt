@@ -153,7 +153,6 @@ if(PROJECT_IS_TOP_LEVEL)
         "maze1;maze2;apec2016;apec2017;apec2018;apec2019;japan2013ef;japan2017ef;uk2016f;alljapan-033-2012-exp-fin"
         CACHE STRING "The mazes sim_contest and sim_contest_all run in"
     )
-    option(MICRAS_SIM_EXACT "Make the baseline checks also require byte identical runs" OFF)
 
     set(MICRAS_SIM_SCRIPTS "${CMAKE_CURRENT_SOURCE_DIR}/scripts")
     set(MICRAS_SIM_SCENARIOS "${CMAKE_CURRENT_SOURCE_DIR}/scenarios")
