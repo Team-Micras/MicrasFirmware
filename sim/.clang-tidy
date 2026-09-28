@@ -1,5 +1,6 @@
 ---
-# The firmware's own headers are linted by the firmware, and the host HAL's by micras-lib.
+# The firmware's own headers are linted by the robot build, which compiles them for the robot; the
+# simulation's build lints the headers of sim/.
 InheritParentConfig: true
-ExcludeHeaderFilterRegex: '(_deps|external|MicrasFirmware|hal_host)/'
+HeaderFilterRegex: 'sim/include/.*\.hpp$'
 ...

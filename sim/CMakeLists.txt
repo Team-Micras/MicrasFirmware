@@ -165,6 +165,16 @@ micras_apply_warnings(micras_host_board micras_app micras_sim_micras micras_sim 
 add_subdirectory(tests)
 
 ###############################################################################
+## Lint: the sources of sim/, over this build's compilation database
+###############################################################################
+
+# The robot build formats them with the rest of the firmware and lints what it compiles for the ARM core
+include(${PROJECT_SOURCE_DIR}/cmake/style.cmake)
+
+file(GLOB_RECURSE SIM_LINT_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
+generate_lint_target(SIM_LINT_SOURCES)
+
+###############################################################################
 ## Recipes: the runs, the contest, the baseline and the robot tools
 ###############################################################################
 

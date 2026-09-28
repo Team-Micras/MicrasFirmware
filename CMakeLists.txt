@@ -84,9 +84,14 @@ include(cmake/docs.cmake)
 ## Input files
 ###############################################################################
 
-# The firmware's own sources: the libraries are formatted and linted in micras-lib
-file(GLOB_RECURSE FORMAT_SOURCES CONFIGURE_DEPENDS "src/*.cpp" "config/*.cpp" "tests/*.cpp")
-file(GLOB_RECURSE FORMAT_HEADERS CONFIGURE_DEPENDS "include/*.hpp" "config/*.hpp" "tests/*.hpp")
+# The firmware's own sources: the libraries are formatted and linted in micras-lib. The simulation's
+# sources are formatted here and linted by the host build, which compiles them.
+file(GLOB_RECURSE LINT_SOURCES CONFIGURE_DEPENDS "src/*.cpp" "config/*.cpp" "tests/*.cpp")
+file(GLOB_RECURSE SIM_SOURCES CONFIGURE_DEPENDS "sim/*.cpp")
+set(FORMAT_SOURCES ${LINT_SOURCES} ${SIM_SOURCES})
+file(GLOB_RECURSE FORMAT_HEADERS CONFIGURE_DEPENDS
+    "include/*.hpp" "config/*.hpp" "tests/*.hpp" "sim/*.hpp" "sim/*.h"
+)
 
 include(cmake/app_sources.cmake)
 file(GLOB_RECURSE PROJECT_TESTS CONFIGURE_DEPENDS "tests/src/*/*.c*")
@@ -116,7 +121,7 @@ add_subdirectory(external/micras-lib EXCLUDE_FROM_ALL)
 
 include(external/micras-lib/cmake/micras_warnings.cmake)
 
-generate_lint_target(FORMAT_SOURCES)
+generate_lint_target(LINT_SOURCES)
 
 ###############################################################################
 ## Configuration computed when the firmware is compiled
