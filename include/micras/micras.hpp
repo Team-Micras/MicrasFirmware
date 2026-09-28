@@ -24,6 +24,7 @@
 #include "micras/nav/measurements.hpp"
 #include "micras/nav/motion_limits.hpp"
 #include "micras/nav/wall_model.hpp"
+#include "micras/proxy/microsecond_clock.hpp"
 #include "micras/states/brake.hpp"
 #include "micras/states/calibrate.hpp"
 #include "micras/states/calibrate_gyroscope.hpp"
@@ -609,7 +610,7 @@ private:
     /**
      * @brief Free running clock the samples are stamped with.
      */
-    proxy::Stopwatch telemetry_stopwatch;
+    proxy::MicrosecondClock telemetry_clock;
 
     /**
      * @brief Finite state machine for the robot.

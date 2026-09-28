@@ -34,9 +34,11 @@ target_include_directories(micras_host_comm PUBLIC ${MICRAS_ROOT}/micras_comm/in
 target_link_libraries(micras_host_comm PUBLIC micras_host_core)
 
 # The flash of the storage is stood in for by a buffer that can be told to stop accepting writes,
-# which is the only way to test what an interrupted save leaves behind
+# which is the only way to test what an interrupted save leaves behind, and the cycle counter by one
+# the test winds, which is how the microsecond clock is taken past its wrap
 add_library(micras_host_proxy STATIC
     ${MICRAS_ROOT}/micras_proxy/src/storage.cpp
+    ${MICRAS_ROOT}/micras_proxy/src/microsecond_clock.cpp
 )
 
 target_include_directories(micras_host_proxy PUBLIC
@@ -63,7 +65,7 @@ add_library(micras_host_nav STATIC
 target_include_directories(micras_host_nav PUBLIC ${MICRAS_ROOT}/micras_nav/include)
 target_link_libraries(micras_host_nav PUBLIC micras_host_core)
 
-foreach(TEST_NAME variable_pool cobs frame storage link credit_window command fsm maze)
+foreach(TEST_NAME variable_pool cobs frame storage microsecond_clock link credit_window command fsm maze)
     add_executable(test_${TEST_NAME} test_${TEST_NAME}.cpp)
     target_include_directories(test_${TEST_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
     target_compile_options(test_${TEST_NAME} PRIVATE -Wall -Wextra -fsanitize=address,undefined)
@@ -78,6 +80,7 @@ target_link_libraries(test_frame PRIVATE micras_host_comm)
 # The frame vectors are also kept as JSON for micras-monitor, and this fails when the copy is stale
 add_test(NAME frame_vectors COMMAND test_frame ${CMAKE_CURRENT_SOURCE_DIR}/vectors/v2.json)
 target_link_libraries(test_storage PRIVATE micras_host_proxy)
+target_link_libraries(test_microsecond_clock PRIVATE micras_host_proxy)
 target_link_libraries(test_link PRIVATE micras_host_comm)
 target_link_libraries(test_credit_window PRIVATE micras_host_comm)
 target_link_libraries(test_command PRIVATE micras_host_command)

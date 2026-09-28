@@ -231,7 +231,7 @@ void Micras::update() {
     this->fsm.update();
     this->publish();
 
-    const uint32_t timestamp_us = this->telemetry_stopwatch.elapsed_time_us();
+    const uint32_t timestamp_us = this->telemetry_clock.now_us();
 
     this->link.poll(this->is_idle());
     this->report_state(timestamp_us);
