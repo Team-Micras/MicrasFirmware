@@ -1,6 +1,7 @@
 docs/*
 !docs/*.md
 build/
+sim/tools/__pycache__/
 cube/*
 !**/*.ioc
 

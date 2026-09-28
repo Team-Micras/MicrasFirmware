@@ -43,6 +43,23 @@ set(MICRAS_TARGET_DIRECTORY "config/targets/${BOARD_VERSION}")
 # micras-lib has a switch of its own, MICRAS_LIB_WERROR
 option(MICRAS_WERROR "Treat the warnings of the firmware's own targets as errors" OFF)
 
+###############################################################################
+## Host dispatch
+###############################################################################
+
+# The host backend builds the simulation of sim/ with the host compilers, before the board
+# validation, the .ioc parsing and the ARM toolchain. It never includes the toolchain file, so the
+# exceptions and RTTI the simulator's firmware thread unwinds with stay on.
+set(MICRAS_LIB_HAL_BACKEND "stm32" CACHE STRING "stm32 builds the robot image, host the simulation")
+set_property(CACHE MICRAS_LIB_HAL_BACKEND PROPERTY STRINGS stm32 host)
+
+if(MICRAS_LIB_HAL_BACKEND STREQUAL "host")
+    project(micras_host C CXX)
+    enable_testing()
+    add_subdirectory(sim)
+    return()
+endif()
+
 set(LAUNCH_JSON_PATH "${CMAKE_CURRENT_SOURCE_DIR}/.vscode/launch.json")
 set(DEBUG_FILE_NAME ${CMAKE_PROJECT_NAME})
 

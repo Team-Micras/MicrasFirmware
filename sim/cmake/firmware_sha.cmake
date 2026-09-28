@@ -3,7 +3,7 @@
 ###############################################################################
 
 # Run as a script (cmake -P) by the micras_firmware_sha target on every build, so a
-# submodule bump is picked up without reconfiguring. file(CONFIGURE) rewrites the
+# new commit is picked up without reconfiguring. file(CONFIGURE) rewrites the
 # header only when the text changes, so an unchanged commit rebuilds nothing.
 # Expects FIRMWARE_DIR and OUTPUT.
 
