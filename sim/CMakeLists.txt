@@ -23,10 +23,12 @@ add_custom_target(micras_firmware_sha
 ## The firmware, compiled for the host
 ###############################################################################
 
-# Everything but micras_hal, which hal_host replaces, and the proxies of the two SPI
-# chips, which proxy/ replaces. FmacFilter is unused and needs the FMAC. The firmware's
-# own main is compiled under another name, and the simulator runs it on the firmware
-# thread.
+# Everything but micras_hal, which hal_host replaces, and FmacFilter, which is unused
+# and needs the FMAC. The proxies of the two SPI chips talk to the chip models over the
+# host SPI, through ST's register driver of the LSM6DSV, which is C. The firmware's own
+# main is compiled under another name, and the simulator runs it on the firmware thread.
+enable_language(C)
+
 file(GLOB MICRAS_FIRMWARE_SOURCES CONFIGURE_DEPENDS
     "${MICRAS_FIRMWARE_DIR}/micras_core/src/*.cpp"
     "${MICRAS_FIRMWARE_DIR}/micras_nav/src/*.cpp"
@@ -36,21 +38,20 @@ file(GLOB MICRAS_FIRMWARE_SOURCES CONFIGURE_DEPENDS
     "${MICRAS_FIRMWARE_DIR}/src/states/*.cpp"
     "${MICRAS_FIRMWARE_DIR}/config/*.cpp"
 )
-list(REMOVE_ITEM MICRAS_FIRMWARE_SOURCES
-    "${MICRAS_FIRMWARE_DIR}/micras_proxy/src/imu.cpp"
-    "${MICRAS_FIRMWARE_DIR}/micras_proxy/src/rotary_sensor.cpp"
-    "${MICRAS_FIRMWARE_DIR}/micras_proxy/src/fmac_filter.cpp"
-)
+list(REMOVE_ITEM MICRAS_FIRMWARE_SOURCES "${MICRAS_FIRMWARE_DIR}/micras_proxy/src/fmac_filter.cpp")
 set_source_files_properties("${MICRAS_FIRMWARE_DIR}/src/main.cpp"
     PROPERTIES COMPILE_DEFINITIONS "main=micras_firmware_main"
 )
 
+# The firmware silences the vendor driver's warnings the same way.
+set(MICRAS_LSM6DSV_SOURCES "${lsm6dsv_SOURCE_DIR}/lsm6dsv_reg.c")
+set_source_files_properties(${MICRAS_LSM6DSV_SOURCES} PROPERTIES COMPILE_OPTIONS "-w")
+
 add_library(micras_firmware STATIC
     ${MICRAS_FIRMWARE_SOURCES}
+    ${MICRAS_LSM6DSV_SOURCES}
     ${MICRAS_SIM_HAL_HOST_SOURCES}
     cube/handles.cpp
-    proxy/imu.cpp
-    proxy/rotary_sensor.cpp
 )
 
 # The fake Cube layer comes first, so <main.h> and friends resolve to it.
@@ -68,6 +69,7 @@ target_include_directories(micras_firmware PUBLIC
 )
 target_link_libraries(micras_firmware PUBLIC lsm6dsv_headers)
 target_compile_features(micras_firmware PUBLIC cxx_std_23)
+set_target_properties(micras_firmware PROPERTIES C_STANDARD 17 C_EXTENSIONS ON)
 
 ###############################################################################
 ## The target
@@ -80,7 +82,7 @@ add_library(micras_sim_micras STATIC
 )
 target_include_directories(micras_sim_micras PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_include_directories(micras_sim_micras PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/generated")
-target_link_libraries(micras_sim_micras PUBLIC micras_firmware micras::sim_app)
+target_link_libraries(micras_sim_micras PUBLIC micras_firmware micras::hal_host_models micras::sim_app)
 target_compile_definitions(micras_sim_micras PRIVATE MICRAS_TARGET_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
 target_compile_options(micras_sim_micras PRIVATE -Wall -Wextra)
 add_dependencies(micras_sim_micras micras_firmware_sha)

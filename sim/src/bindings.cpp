@@ -88,20 +88,32 @@ DcMotor* bind_motor(
 }
 
 /**
+ * @brief Attach a chip to the bus and chip select the firmware's configuration names.
+ *
+ * @param spi The firmware's configuration of the chip's SPI.
+ * @param chip The chip.
+ */
+void attach(const hal::Spi::Config& spi, hal::host::SpiDevice& chip) {
+    Board::spi_device(spi.handle, spi.cs_gpio.port, spi.cs_gpio.pin, chip);
+}
+
+/**
  * @brief Build one wheel's encoder.
  *
  * @param context Context whose devices are added to.
  * @param world The robot.
  * @param sensor The firmware's configuration of the rotary sensor.
+ * @param chip The rotary sensor's chip.
  * @param side "left" or "right".
  */
 void bind_encoder(
-    RunContext& context, const WorldInfo& world, const proxy::RotarySensor::Config& sensor, const std::string& side
+    RunContext& context, const WorldInfo& world, const proxy::RotarySensor::Config& sensor, models::As5047uModel& chip,
+    const std::string& side
 ) {
     const RobotModelNames   names = RobotModelNames::of(*world.robot);
     hal::host::EncoderPort& port = Board::encoder(sensor.encoder.handle);
     port.bound = true;
-    gpio_port(sensor.spi.cs_gpio);
+    attach(sensor.spi, chip);
 
     add(context, std::make_unique<QuadratureEncoder>(
                      context.world,
@@ -136,18 +148,17 @@ DigitalInput* bind_input(RunContext& context, const std::string& name, const hal
 }
 }  // namespace
 
-MicrasBoard bind_devices(RunContext& context, const WorldInfo& world) {
+MicrasBoard bind_devices(RunContext& context, const WorldInfo& world, MicrasChips& chips) {
     const RobotModelNames names = RobotModelNames::of(*world.robot);
     MicrasBoard           board;
 
     board.left_motor = bind_motor(context, world, locomotion_config.left_motor, "left");
     board.right_motor = bind_motor(context, world, locomotion_config.right_motor, "right");
-    bind_encoder(context, world, rotary_sensor_left_config, "left");
-    bind_encoder(context, world, rotary_sensor_right_config, "right");
+    bind_encoder(context, world, rotary_sensor_left_config, chips.left_encoder, "left");
+    bind_encoder(context, world, rotary_sensor_right_config, chips.right_encoder, "right");
 
-    hal::host::SamplePort& imu = Board::samples("imu");
-    imu.bound = true;
-    gpio_port(imu_config.spi.cs_gpio);
+    attach(imu_config.spi, chips.imu);
+    const ImuDescription& imu = world.robot->imu;
 
     add(context, std::make_unique<Imu>(
                      context.world,
@@ -155,11 +166,14 @@ MicrasBoard bind_devices(RunContext& context, const WorldInfo& world) {
                          .name = "lsm6dsv",
                          .gyro = names.gyro,
                          .accelerometer = names.accelerometer,
-                         .description = world.robot->imu,
+                         .description = imu,
                          .write =
-                             [&imu](std::span<const float> sample) {
-                                 std::ranges::copy(sample, imu.values.begin());
-                                 imu.sequence++;
+                             [&chip = chips.imu, gyro = imu.gyro_resolution,
+                              accel = imu.accel_resolution](std::span<const float> sample) {
+                                 chip.push_sample(
+                                     {sample[0] * gyro, sample[1] * gyro, sample[2] * gyro},
+                                     {sample[3] * accel, sample[4] * accel, sample[5] * accel}
+                                 );
                              },
                      },
                      context.noise

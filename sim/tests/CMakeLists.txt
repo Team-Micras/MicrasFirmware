@@ -1,12 +1,13 @@
 ###############################################################################
-## Micras target unit tests: the host micras_hal, the fake Cube layer and the SPI
-## device slot
+## Micras target unit tests: the host micras_hal, the fake Cube layer, the SPI device
+## slot and the firmware's SPI chip proxies over the chip models
 ###############################################################################
 
 include(GoogleTest)
 
 add_executable(micras_target_tests
     unit/hal_host_test.cpp
+    unit/spi_chips_test.cpp
     unit/spi_slot_test.cpp
 )
 

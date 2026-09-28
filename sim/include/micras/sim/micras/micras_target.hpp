@@ -13,6 +13,8 @@
 #include <string>
 #include <vector>
 
+#include "micras/models/as5047u_model.hpp"
+#include "micras/models/lsm6dsv_model.hpp"
 #include "micras/sim/app/target.hpp"
 #include "micras/sim/devices/dc_motor.hpp"
 #include "micras/sim/devices/digital_input.hpp"
@@ -40,12 +42,30 @@ struct MicrasBoard {
 };
 
 /**
+ * @brief The SPI chips of the board, which the firmware talks to over hspi3.
+ */
+struct MicrasChips {
+    /**
+     * @brief The inertial measurement unit, fed with the samples of the IMU device.
+     */
+    models::Lsm6dsvModel imu;
+
+    /**
+     * @brief The magnetic encoders, whose position reaches the firmware through the timers.
+     */
+    ///@{
+    models::As5047uModel left_encoder;
+    models::As5047uModel right_encoder;
+    ///@}
+};
+
+/**
  * @brief Micras on the firmware's main branch, through the host micras_hal.
  *
  * @note The firmware runs as it does on the robot: its own main, its own proxies
  *       and its own configuration, over the host backend in hal_host/ and the
- *       fake Cube layer in cube/. Only the IMU and rotary sensor proxies are
- *       replaced, by proxy/. The host timer hands every step over to the world.
+ *       fake Cube layer in cube/. Its SPI chips are the models of
+ *       hal_host/models/. The host timer hands every step over to the world.
  */
 class MicrasTarget : public Target {
 public:
@@ -122,8 +142,12 @@ public:
     Wiring wire(FirmwareThread& firmware, const WorldInfo& world) override;
 
     /**
-     * @brief Stop handing time over, name the ports the firmware used that nothing is bound to, and
-     *        save the flash when --flash asked for it.
+     * @brief Stop handing time over, name the ports the firmware used that nothing is bound to, save
+     *        the flash when --flash asked for it, and forget every port.
+     *
+     * @note The firmware's objects live until the process exits, and the SPI of the IMU ends its
+     *       last transfer when it is destroyed. Forgetting the ports detaches the chips, so that
+     *       nothing reaches them once the target that owns them is gone.
      */
     void unwire() override;
 
@@ -152,6 +176,7 @@ private:
     RunContext                     run_context;
     std::filesystem::path          flash_file;
     MicrasBoard                    board;
+    MicrasChips                    chips;
     std::unique_ptr<PoolVariables> variables;
 };
 }  // namespace micras::sim

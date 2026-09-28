@@ -199,7 +199,7 @@ Wiring MicrasTarget::wire(FirmwareThread& firmware, const WorldInfo& world) {
     clock.configure(SystemCoreClock / 1000000);
     clock.set_handover(this->run_context.clock.us_per_tick(), [&firmware] { firmware.yield_tick(); });
 
-    this->board = bind_devices(this->run_context, world);
+    this->board = bind_devices(this->run_context, world, this->chips);
     this->variables = std::make_unique<PoolVariables>();
 
     return {
@@ -227,6 +227,8 @@ void MicrasTarget::unwire() {
         std::ofstream(this->flash_file, std::ios::binary)
             .write(std::bit_cast<const char*>(bytes.data()), static_cast<std::streamsize>(bytes.size()));
     }
+
+    hal::host::Board::reset();
 }
 
 std::vector<MetadataField> MicrasTarget::metadata() const {

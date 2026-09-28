@@ -26,15 +26,17 @@ constexpr std::array<const char*, 4> dip_names{"fan", "racing_line", "boost", "r
  * @brief Build the board's devices and connect them to the firmware's ports.
  *
  * @note Every port is found through the firmware's own configuration in
- *       target.hpp, so a moved pin or channel moves the binding with it. Ports
- *       that only exist on the robot to talk to a chip the simulator replaces,
- *       the SPI chip selects, are marked bound without a device.
+ *       target.hpp, so a moved pin or channel moves the binding with it. The
+ *       chips are attached to their bus by the handle and the chip select the
+ *       firmware's configuration names, and the IMU device's samples go to the
+ *       IMU chip, which encodes them with the full scale the firmware wrote.
  *
  * @param context Context whose devices are added to.
  * @param world The robot and the arena.
+ * @param chips The SPI chips, which must outlive the run.
  * @return Views of the devices the panel and the scenarios drive.
  */
-MicrasBoard bind_devices(RunContext& context, const WorldInfo& world);
+MicrasBoard bind_devices(RunContext& context, const WorldInfo& world, MicrasChips& chips);
 }  // namespace micras::sim
 
 #endif  // MICRAS_SIM_MICRAS_BINDINGS_HPP
