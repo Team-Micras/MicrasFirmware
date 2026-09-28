@@ -97,12 +97,19 @@ public:
      * @note Every proxy the robot drives with has to have started. A start that followed a reset by
      * the watchdog also fails, so that an error that keeps resetting the microcontroller stops in
      * the error state where it can be seen, instead of looping through boots, and so does a core
-     * clocked above what its option bytes allow. A failure is kept in the pool as the
-     * initialization fault, which no command can clear.
+     * clocked above what its option bytes allow.
      *
      * @return True if every device was initialized, false otherwise.
      */
-    bool check_initialization();
+    bool check_initialization() const;
+
+    /**
+     * @brief Keep in the pool that the start failed, as the initialization fault.
+     *
+     * @note No command clears it: leaving the error state it led to is refused, since a robot that
+     * failed its start cannot be trusted to move until it is reset.
+     */
+    void record_initialization_fault();
 
     /**
      * @brief Stop the robot, turning its sensors and actuators off and dropping whatever procedure

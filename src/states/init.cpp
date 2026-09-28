@@ -12,6 +12,7 @@
 namespace micras {
 uint8_t InitState::execute() {
     if (not this->micras.check_initialization()) {
+        this->micras.record_initialization_fault();
         return std::to_underlying(State::ERROR);
     }
 

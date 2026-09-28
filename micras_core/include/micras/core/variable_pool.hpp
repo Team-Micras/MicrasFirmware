@@ -345,6 +345,9 @@ public:
      * anything with error detection properties. Nothing is being corrected here, and the schema it
      * stands for arrives over a link that checks its own frames.
      *
+     * @note Every string is hashed with its length before it, so that the end of one can never be
+     * read as the start of the next, such as a type tag running into the prefix after it.
+     *
      * @return Hash over the name, type, access flags and type tag of every variable, in order.
      */
     uint32_t schema_hash() const;

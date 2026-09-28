@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstddef>
 #include <cstdint>
 #include <optional>
 #include <string_view>
@@ -228,19 +229,17 @@ void Micras::update() {
     this->worst_loop_time_us = std::max(this->worst_loop_time_us, this->tick.elapsed_time_us());
 }
 
-bool Micras::check_initialization() {
-    const bool initialized = not hal::Mcu::was_reset_by_watchdog() and hal::Mcu::is_cpu_frequency_supported() and
-                             this->battery.was_initialized() and this->fan.was_initialized() and
-                             this->locomotion.was_initialized() and this->torque_sensors.was_initialized() and
-                             this->argb.was_initialized() and this->buzzer.was_initialized() and
-                             this->imu.was_initialized() and this->rotary_sensor_left.was_initialized() and
-                             this->rotary_sensor_right.was_initialized() and this->wall_sensors.was_initialized();
+bool Micras::check_initialization() const {
+    return not hal::Mcu::was_reset_by_watchdog() and hal::Mcu::is_cpu_frequency_supported() and
+           this->battery.was_initialized() and this->fan.was_initialized() and this->locomotion.was_initialized() and
+           this->torque_sensors.was_initialized() and this->argb.was_initialized() and
+           this->buzzer.was_initialized() and this->imu.was_initialized() and
+           this->rotary_sensor_left.was_initialized() and this->rotary_sensor_right.was_initialized() and
+           this->wall_sensors.was_initialized();
+}
 
-    if (not initialized) {
-        this->fault = Fault::INITIALIZATION;
-    }
-
-    return initialized;
+void Micras::record_initialization_fault() {
+    this->fault = Fault::INITIALIZATION;
 }
 
 void Micras::stop() {
@@ -647,6 +646,7 @@ comm::CommandReply Micras::leave_error() {
 
 void Micras::report_state(uint32_t timestamp_us) {
     static constexpr std::string_view prefix{"state "};
+    static constexpr std::size_t      longest_name{std::ranges::max(state_names, {}, &std::string_view::size).size()};
 
     const uint8_t current = this->fsm.get_current_state_id();
 
@@ -656,9 +656,9 @@ void Micras::report_state(uint32_t timestamp_us) {
 
     this->state_id = current;
 
-    const std::string_view name = state_names.at(current);
-    std::array<char, 32>   text{};
-    char* const            end = std::ranges::copy(name, std::ranges::copy(prefix, text.data()).out).out;
+    const std::string_view                         name = state_names.at(current);
+    std::array<char, prefix.size() + longest_name> text{};
+    char* const end = std::ranges::copy(name, std::ranges::copy(prefix, text.data()).out).out;
 
     this->link.log(
         current == std::to_underlying(State::ERROR) ? comm::Severity::ERROR : comm::Severity::INFO, timestamp_us,

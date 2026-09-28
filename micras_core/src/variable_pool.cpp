@@ -18,6 +18,9 @@ static uint32_t mix(uint32_t hash, uint8_t byte) {
 }
 
 static uint32_t mix(uint32_t hash, std::string_view text) {
+    hash = mix(hash, static_cast<uint8_t>(text.size()));
+    hash = mix(hash, static_cast<uint8_t>(text.size() >> 8U));
+
     for (const char character : text) {
         hash = mix(hash, static_cast<uint8_t>(character));
     }

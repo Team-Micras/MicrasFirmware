@@ -95,6 +95,12 @@ int main() {
     CHECK(tagged.at(3).type_tag == "other-blob");
     CHECK(tagged.schema_hash() != h0);
 
+    TVariablePool<2> split_one;
+    TVariablePool<2> split_two;
+    split_one.add("ab", "c", speed, {});
+    split_two.add("a", "bc", speed, {});
+    CHECK(split_one.schema_hash() != split_two.schema_hash());
+
     TVariablePool<1> tiny;
     tiny.add("", "a", speed, {});
     CHECK(tiny.add("", "b", speed, {}) == VariablePool::invalid_id);
