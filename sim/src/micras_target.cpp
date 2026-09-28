@@ -13,7 +13,6 @@
 #include <iterator>
 #include <memory>
 #include <string>
-#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -34,7 +33,7 @@
 #include "micras/sim/recording/run_metadata.hpp"
 #include "micras/sim/scenario/scenario.hpp"
 #include "micras/sim/view/panel_spec.hpp"
-#include "micras/states/base.hpp"
+#include "micras/states/names.hpp"
 #include "micras_firmware_sha.hpp"
 #include "target.hpp"
 
@@ -48,32 +47,6 @@ extern int micras_firmware_main();
 namespace micras::sim {
 namespace {
 /**
- * @brief Names of the states of the firmware's state machine, indexed as micras::State.
- *
- * @note The firmware has no names for its states, so they are written here, and the build checks
- *       that there is one for each.
- */
-constexpr auto state_name_table = std::to_array<std::string_view>({
-    "INIT",
-    "IDLE",
-    "WAIT_FOR_RUN",
-    "RUN",
-    "PLAN",
-    "SAVE",
-    "WAIT_FOR_CALIBRATE",
-    "CALIBRATE",
-    "WAIT_FOR_IDENTIFY",
-    "IDENTIFY",
-    "WAIT_FOR_GYROSCOPE",
-    "CALIBRATE_GYROSCOPE",
-    "ERROR",
-});
-
-static_assert(
-    state_name_table.size() == std::to_underlying(State::NUMBER_OF_STATES), "every firmware state needs a name"
-);
-
-/**
  * @brief Link commands a scenario sends by name, with their codes in Micras::Command.
  */
 constexpr std::array<std::pair<const char*, Micras::Command>, 5> commands{{
@@ -86,7 +59,7 @@ constexpr std::array<std::pair<const char*, Micras::Command>, 5> commands{{
 }  // namespace
 
 static const std::vector<std::string>& state_names() {
-    static const std::vector<std::string> names{state_name_table.begin(), state_name_table.end()};
+    static const std::vector<std::string> names{micras::state_names.begin(), micras::state_names.end()};
     return names;
 }
 
