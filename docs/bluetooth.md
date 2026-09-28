@@ -2,8 +2,8 @@
 
 The robot exposes its variables over an HM-19 BLE module wired to `UART4` (`PA11` = RX,
 `PA12` = TX) through the USB-C receptacle. The protocol that runs over it is micras-lib's
-[micras_comm](../external/micras-lib/micras_comm/README.md), and the companion application is
-[micras-monitor](https://github.com/Team-Micras/micras-monitor).
+[micras_comm](https://github.com/Team-Micras/micras-lib/blob/refactor/restructure/micras_comm/README.md),
+and the companion application is [micras-monitor](https://github.com/Team-Micras/micras-monitor).
 
 ## Wiring
 
