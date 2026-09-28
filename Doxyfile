@@ -15,13 +15,16 @@ SHOW_HEADERFILE        = NO
 INPUT                  = config/ \
                          include/ \
                          src/ \
-                         micras_core/ \
-                         micras_hal/ \
-                         micras_proxy/ \
-                         micras_nav/ \
-                         micras_comm/
+                         sim/ \
+                         docs/bluetooth.md \
+                         external/micras-lib/micras_core/ \
+                         external/micras-lib/micras_hal/ \
+                         external/micras-lib/micras_proxy/ \
+                         external/micras-lib/micras_nav/ \
+                         external/micras-lib/micras_comm/
 RECURSIVE              = YES
 FILE_PATTERNS          = *.c *.cpp *.h *.hpp *.tpp *.md
+EXCLUDE_PATTERNS       = */sim/*.cpp
 EXTENSION_MAPPING      = tpp=C++
 VERBATIM_HEADERS       = NO
 GENERATE_HTML          = YES

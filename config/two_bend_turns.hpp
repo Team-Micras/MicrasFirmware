@@ -3,7 +3,7 @@
  *
  * @brief Designs of the turns of two bends, for each margin.
  *
- * @note Written by the turn designer of the simulator (`just micras turn-designs`), which searches
+ * @note Written by the turn designer of the simulation (the `sim_turn_designs` target), which searches
  * for the fastest two bends that clear the walls. Do not edit by hand: the build checks every design
  * against the robot and the maze, and a change to either that makes one no longer fit stops it, which
  * is when the designer has to run again. A turn nothing fits is written with no curvature, which also

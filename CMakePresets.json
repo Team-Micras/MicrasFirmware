@@ -1,0 +1,74 @@
+{
+    "version": 6,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 28,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "stm32",
+            "displayName": "Robot image, Release",
+            "generator": "Unix Makefiles",
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "host",
+            "displayName": "Simulation, RelWithDebInfo, for runs, the contest and baselines",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/host",
+            "cacheVariables": {
+                "MICRAS_LIB_HAL_BACKEND": "host",
+                "MICRAS_LIB_CUBE_TARGET": "micras_host_board",
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+                "CMAKE_C_COMPILER": "gcc-15",
+                "CMAKE_CXX_COMPILER": "g++-15"
+            }
+        },
+        {
+            "name": "host-ci",
+            "displayName": "The CI's simulation: host, headless, with warnings as errors",
+            "inherits": "host",
+            "cacheVariables": {
+                "MICRAS_SIM_VIEWER": "OFF",
+                "MICRAS_SIM_VIDEO": "OFF",
+                "MICRAS_WERROR": "ON",
+                "MICRAS_LIB_WERROR": "ON",
+                "MICRAS_SIM_WERROR": "ON"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "stm32",
+            "configurePreset": "stm32"
+        },
+        {
+            "name": "host",
+            "configurePreset": "host"
+        },
+        {
+            "name": "host-ci",
+            "configurePreset": "host-ci"
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "host",
+            "configurePreset": "host",
+            "output": {
+                "outputOnFailure": true
+            }
+        },
+        {
+            "name": "host-ci",
+            "configurePreset": "host-ci",
+            "output": {
+                "outputOnFailure": true
+            }
+        }
+    ]
+}

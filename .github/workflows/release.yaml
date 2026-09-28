@@ -1,27 +1,33 @@
 name: Add binaries to release
 
+# The release binaries are built on every push and pull request, and attached to a release when one
+# is published
 on:
   release:
     types: [published]
+  push:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.release.tag_name }}
-  cancel-in-progress: false
+  group: ${{ github.workflow }}-${{ github.event.release.tag_name || github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'release' }}
 
 jobs:
   build:
+    name: 🔨 Build the release binaries
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    permissions:
-      contents: write
-      id-token: write
-      attestations: write
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
     steps:
       - name: 🔀 Checkout
         uses: actions/checkout@v7
+        with:
+          submodules: true
 
       - name: 🐋 Build Docker image
         run: docker build --file .docker/Dockerfile --target build --tag micras:build .
@@ -31,12 +37,39 @@ jobs:
           docker run --name release micras:build make -C build --no-print-directory -j
           docker cp release:/project/build/ output/
 
+      - name: 📦 Keep the binaries
+        if: github.event_name == 'release'
+        uses: actions/upload-artifact@v7
+        with:
+          name: binaries
+          path: |
+            output/*.hex
+            output/*.elf
+          if-no-files-found: error
+
+  upload:
+    name: ⬆️ Attach the binaries to the release
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: build
+    if: github.event_name == 'release'
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    steps:
+      - name: 📦 Fetch the binaries
+        uses: actions/download-artifact@v8
+        with:
+          name: binaries
+          path: output/
+
       - name: 🔏 Attest build provenance
         uses: actions/attest-build-provenance@v4
         with:
           subject-path: 'output/*.hex,output/*.elf'
 
       - name: ⬆️ Upload binaries
-        run: gh release upload "${{ github.event.release.tag_name }}" output/*.hex output/*.elf --clobber
+        run: gh release upload "${{ github.event.release.tag_name }}" output/*.hex output/*.elf --clobber --repo "${{ github.repository }}"
         env:
           GH_TOKEN: ${{ github.token }}

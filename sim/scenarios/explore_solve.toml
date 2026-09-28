@@ -1,0 +1,41 @@
+# The whole contest. A short press explores the maze, and the firmware comes back to
+# the start on its own and saves the map. Once it is idle again, a long press (more
+# than the firmware's 500 ms) plans and runs the fastest route it found to the goal.
+# The run ends when it is idle after the solve, or at once if it gives up in ERROR.
+robot = "micras"
+arena = "maze1"
+seconds = 600
+seed = 1
+
+# Where the firmware expects to be placed (constants.hpp start_offset): its origin
+# about 40 mm in front of the face of the back wall, the board clear of it.
+[start]
+x = 0.09
+y = 0.0463
+yaw_deg = 90.0
+
+# The fan switch, as for a contest run: the firmware only runs the fan for the solve,
+# whose route and speeds it plans with the fan's downforce.
+[[events]]
+at = 0.1
+set = "dip_fan"
+value = true
+
+[[events]]
+at = 0.5
+press = "button"
+for = 0.25
+
+[[events]]
+at = 5.0
+when = "state"
+equals = "IDLE"
+press = "button"
+for = 1.0
+
+[stop]
+when = "state"
+equals = "IDLE"
+after = 5.0
+count = 2
+abort = "ERROR"

@@ -17,6 +17,44 @@ ARG TOOLCHAIN_PACKAGES="\
     libstdc++-arm-none-eabi-newlib \
     make"
 
+# >>> host stage >>>
+###############################################################################
+# Host tools: shared byte for byte by micras-lib, micras-simulation and       #
+# MicrasFirmware, whose CI compares the lines between the two markers         #
+###############################################################################
+FROM ubuntu:26.04 AS host
+
+# The compilers and the clang tooling are pinned to a major version, so that a distribution update
+# can move neither the generated code nor the formatting rules and the enabled check set
+ARG HOST_GCC_VERSION=15
+ARG HOST_CLANG_VERSION=22
+
+# The apt caches are kept in BuildKit cache mounts instead of the image layers, so the hook that
+# deletes the downloaded packages after every install has to go
+RUN rm -f /etc/apt/apt.conf.d/docker-clean
+
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        ca-certificates \
+        cmake \
+        doxygen \
+        git \
+        graphviz \
+        ninja-build \
+        python3 \
+        python3-matplotlib \
+        python3-numpy \
+        "gcc-${HOST_GCC_VERSION}" \
+        "g++-${HOST_GCC_VERSION}" \
+        "clang-${HOST_CLANG_VERSION}" \
+        "clang-format-${HOST_CLANG_VERSION}" \
+        "clang-tidy-${HOST_CLANG_VERSION}"
+
+WORKDIR /project
+# <<< host stage <<<
+
 ##########################################
 # Cube files generation with STM32CubeMX #
 ##########################################
@@ -44,34 +82,26 @@ COPY --from=generator /project/cube /
 ###################################
 # Build image for Micras Firmware #
 ###################################
-FROM ubuntu:26.04 AS build
+FROM host AS build
 
-ARG TOOLCHAIN_PACKAGES
-ARG CLANG_VERSION
-
-# The apt caches are kept in BuildKit cache mounts instead of the image layers, so the hook
-# that deletes the downloaded packages after every install has to go
-RUN rm -f /etc/apt/apt.conf.d/docker-clean
-
-# The ARM libraries come prebuilt for every ARM core, only the Cortex-M4F and Cortex-M7 double precision ones are kept
+# The ARM libraries come prebuilt for every ARM core, only the Cortex-M4F and Cortex-M7 double
+# precision ones are kept
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get update && \
-    apt-get install -y --no-install-recommends ${TOOLCHAIN_PACKAGES} \
-        "clang-format-${CLANG_VERSION}" "clang-tidy-${CLANG_VERSION}" && \
-    for tool in clang-format clang-tidy run-clang-tidy; do \
-        ln -s "/usr/bin/${tool}-${CLANG_VERSION}" "/usr/local/bin/${tool}"; \
-    done && \
+    apt-get install -y --no-install-recommends \
+        gcc-arm-none-eabi \
+        libnewlib-arm-none-eabi \
+        libstdc++-arm-none-eabi-newlib \
+        make && \
     find /usr/lib/arm-none-eabi/lib/thumb /usr/lib/gcc/arm-none-eabi/*/thumb -mindepth 1 -maxdepth 1 \
         -not -name "v7e-m+fp" -not -name "v7e-m+dp" -exec rm -rf {} + && \
     rm -rf /usr/lib/arm-none-eabi/lib/arm /usr/lib/gcc/arm-none-eabi/*/arm
 
-WORKDIR /project
-
 COPY . .
 COPY --from=generated / cube/
 
-RUN cmake -B build -DBUILD_TYPE=Release -DMICRAS_WERROR=ON
+RUN cmake -B build -DBUILD_TYPE=Release -DMICRAS_WERROR=ON -DMICRAS_LIB_WERROR=ON
 
 ###############################################
 # Development image with toolchain and CubeMX #

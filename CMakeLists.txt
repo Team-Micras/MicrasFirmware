@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.25...4.4)
+cmake_minimum_required(VERSION 3.28...4.4)
 
 ###############################################################################
 ## CMake Configuration
@@ -40,6 +40,26 @@ endif()
 # describe the same board.
 set(MICRAS_TARGET_DIRECTORY "config/targets/${BOARD_VERSION}")
 
+# micras-lib has a switch of its own, MICRAS_LIB_WERROR
+option(MICRAS_WERROR "Treat the warnings of the firmware's own targets as errors" OFF)
+
+###############################################################################
+## Host dispatch
+###############################################################################
+
+# The host backend builds the simulation of sim/ with the host compilers, before the board
+# validation, the .ioc parsing and the ARM toolchain. It never includes the toolchain file, so the
+# exceptions and RTTI the simulator's firmware thread unwinds with stay on.
+set(MICRAS_LIB_HAL_BACKEND "stm32" CACHE STRING "stm32 builds the robot image, host the simulation")
+set_property(CACHE MICRAS_LIB_HAL_BACKEND PROPERTY STRINGS stm32 host)
+
+if(MICRAS_LIB_HAL_BACKEND STREQUAL "host")
+    project(micras_host C CXX)
+    enable_testing()
+    add_subdirectory(sim)
+    return()
+endif()
+
 set(LAUNCH_JSON_PATH "${CMAKE_CURRENT_SOURCE_DIR}/.vscode/launch.json")
 set(DEBUG_FILE_NAME ${CMAKE_PROJECT_NAME})
 
@@ -57,7 +77,6 @@ else()
 endif()
 
 include(cmake/utilities.cmake)
-include(cmake/warnings.cmake)
 include(cmake/targets.cmake)
 include(cmake/docs.cmake)
 
@@ -65,12 +84,16 @@ include(cmake/docs.cmake)
 ## Input files
 ###############################################################################
 
-file(GLOB_RECURSE FORMAT_SOURCES CONFIGURE_DEPENDS "src/*.c*" "config/*.c*" "tests/*.c*" "micras_*/src/*.c*")
+# The firmware's own sources: the libraries are formatted and linted in micras-lib. The simulation's
+# sources are formatted here and linted by the host build, which compiles them.
+file(GLOB_RECURSE LINT_SOURCES CONFIGURE_DEPENDS "src/*.cpp" "config/*.cpp" "tests/*.cpp")
+file(GLOB_RECURSE SIM_SOURCES CONFIGURE_DEPENDS "sim/*.cpp")
+set(FORMAT_SOURCES ${LINT_SOURCES} ${SIM_SOURCES})
 file(GLOB_RECURSE FORMAT_HEADERS CONFIGURE_DEPENDS
-    "include/*.h*" "config/*.h*" "tests/*.h*" "micras_*/include/*.h*" "micras_*/include/*.tpp"
+    "include/*.hpp" "config/*.hpp" "tests/*.hpp" "sim/*.hpp" "sim/*.h"
 )
 
-file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS "src/*.c*")
+include(cmake/app_sources.cmake)
 file(GLOB_RECURSE PROJECT_TESTS CONFIGURE_DEPENDS "tests/src/*/*.c*")
 
 generate_format_target(FORMAT_SOURCES FORMAT_HEADERS)
@@ -92,15 +115,13 @@ endif()
 
 include(cmake/cube.cmake)
 
-add_subdirectory(micras_core)
-add_subdirectory(micras_hal)
-add_subdirectory(micras_proxy)
-add_subdirectory(micras_nav)
-add_subdirectory(micras_comm)
+# After the bootstrap return, where a project() would cache the host compilers, and after the board
+# target it links. micras-lib applies its warnings to its own targets.
+add_subdirectory(external/micras-lib EXCLUDE_FROM_ALL)
 
-micras_apply_warnings(micras_core micras_hal micras_proxy micras_nav micras_comm)
+include(external/micras-lib/cmake/micras_warnings.cmake)
 
-generate_lint_target(FORMAT_SOURCES)
+generate_lint_target(LINT_SOURCES)
 
 ###############################################################################
 ## Configuration computed when the firmware is compiled
@@ -109,33 +130,29 @@ generate_lint_target(FORMAT_SOURCES)
 # The turns are designed in one source, compiled once for the executable and every test, since
 # designing them takes the compiler most of a gigabyte and several seconds
 add_library(micras_config OBJECT
-    config/dynamics_config.cpp
+    ${MICRAS_APP_CONFIG_SOURCES}
 )
 
 target_include_directories(micras_config PRIVATE
-    include
-    config
-    ${MICRAS_TARGET_DIRECTORY}
+    ${MICRAS_APP_INCLUDE_DIRECTORIES}
 )
 
 target_link_libraries(micras_config PRIVATE
     micras::nav
 )
 
-micras_apply_warnings(micras_config)
+micras_apply_warnings(micras_config WERROR ${MICRAS_WERROR})
 
 ###############################################################################
 ## Main executable target
 ###############################################################################
 
 add_executable(${PROJECT_NAME}
-    ${PROJECT_SOURCES}
+    ${MICRAS_APP_SOURCES}
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
-    include
-    config
-    ${MICRAS_TARGET_DIRECTORY}
+    ${MICRAS_APP_INCLUDE_DIRECTORIES}
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
@@ -146,7 +163,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     ${MICRAS_CUBE_OBJECT_LIBRARIES}
 )
 
-micras_apply_warnings(${PROJECT_NAME})
+micras_apply_warnings(${PROJECT_NAME} WERROR ${MICRAS_WERROR})
 
 generate_map_file(${PROJECT_NAME})
 generate_hex_file(${PROJECT_NAME})

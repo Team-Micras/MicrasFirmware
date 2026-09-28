@@ -1,0 +1,24 @@
+# A short press starts an exploration, as on the robot: the firmware waits 3 s
+# with its hand clear, explores, and comes back to the start. The run ends when it
+# is idle again, or has given up in ERROR.
+robot = "micras"
+arena = "maze1"
+seconds = 180
+seed = 1
+
+# Where the firmware expects to be placed (constants.hpp start_offset): its origin
+# about 40 mm in front of the face of the back wall, the board clear of it.
+[start]
+x = 0.09
+y = 0.0463
+yaw_deg = 90.0
+
+[[events]]
+at = 0.5
+press = "button"
+for = 0.25
+
+[stop]
+when = "state"
+equals = ["IDLE", "ERROR"]
+after = 5.0

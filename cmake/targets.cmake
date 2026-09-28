@@ -2,6 +2,8 @@
 ## Auxiliary Targets
 ###############################################################################
 
+include(${CMAKE_CURRENT_LIST_DIR}/style.cmake)
+
 add_custom_target(helpme
     COMMAND cat ${CMAKE_CURRENT_BINARY_DIR}/helpme
 )
@@ -115,63 +117,6 @@ function(generate_test_all_target)
     )
 endfunction()
 
-function(generate_format_target)
-    foreach(FILE ${ARGV})
-        list(APPEND FILES_LIST ${${FILE}})
-    endforeach()
-
-    add_custom_target(format
-        COMMAND clang-format -style=file -i ${FILES_LIST} --verbose
-    )
-
-    add_custom_target(format_check
-        COMMAND clang-format -style=file --dry-run --Werror ${FILES_LIST}
-    )
-endfunction()
-
-function(generate_lint_target)
-    foreach(FILE ${ARGV})
-        list(APPEND FILES_LIST ${${FILE}})
-    endforeach()
-
-    execute_process(
-        COMMAND ${CMAKE_CXX_COMPILER} -print-search-dirs
-        OUTPUT_VARIABLE _SEARCH_DIRS
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-
-    string(REGEX MATCH "install: ([^\n]+)/" _ ${_SEARCH_DIRS})
-    set(COMPILER_INSTALL_DIR "${CMAKE_MATCH_1}")
-    get_filename_component(COMPILER_VERSION "${COMPILER_INSTALL_DIR}" NAME)
-
-    execute_process(
-        COMMAND ${CMAKE_CXX_COMPILER} -dumpmachine
-        OUTPUT_VARIABLE TARGET_TRIPLE
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-
-    get_filename_component(_PARENT3 "${COMPILER_INSTALL_DIR}/../../../" REALPATH)
-    set(SYSROOT "${_PARENT3}/${TARGET_TRIPLE}")
-
-    set(CXX_INCLUDE_DIR      "${SYSROOT}/include/c++/${COMPILER_VERSION}")
-    set(CXX_TRIPLE_INCLUDE_DIR "${CXX_INCLUDE_DIR}/${TARGET_TRIPLE}")
-
-    set(SCRIPT_SAVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/run_clang_tidy.sh")
-    configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/run_clang_tidy.sh.in
-        ${SCRIPT_SAVE_PATH}
-        @ONLY
-    )
-
-    add_custom_target(lint
-        COMMAND ${SCRIPT_SAVE_PATH} ${FILES_LIST}
-    )
-
-    add_custom_target(lint_fix
-        COMMAND ${SCRIPT_SAVE_PATH} --fix ${FILES_LIST}
-    )
-endfunction()
-
 # Flash via st-link or jlink
 function(generate_flash_target TARGET)
     if("${TARGET}" STREQUAL "${PROJECT_NAME}")
@@ -242,7 +187,7 @@ function(generate_test_targets TEST_FILES)
             ${MICRAS_CUBE_OBJECT_LIBRARIES}
         )
 
-        micras_apply_warnings(${TEST_NAME})
+        micras_apply_warnings(${TEST_NAME} WERROR ${MICRAS_WERROR})
 
         generate_map_file(${TEST_NAME})
         generate_hex_file(${TEST_NAME})

@@ -1,11 +1,9 @@
 name: Build lint and check formatting
 
 on:
+  push:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
-    branches: [main]
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -28,12 +26,18 @@ jobs:
       - name: 🔀 Checkout
         uses: actions/checkout@v7
 
+      # The submodules enter the key through the commits the firmware points at, so they need no
+      # checkout here
+      - name: 🔗 Read the submodule commits
+        id: submodules
+        run: echo "hash=$(git ls-tree HEAD external/ | sha256sum | cut -d ' ' -f 1)" >> "$GITHUB_OUTPUT"
+
       - name: 🗃️ Look up verified sources
         id: cache
         uses: actions/cache/restore@v6
         with:
           path: .docker/Dockerfile
-          key: verified-${{ hashFiles('.github/workflows/**', '.docker/**', 'cmake/**', 'CMakeLists.txt', '.clang-*', 'cube/*.ioc', 'config/**', 'include/**', 'src/**', 'tests/**', 'micras_*/**') }}
+          key: verified-${{ steps.submodules.outputs.hash }}-${{ hashFiles('.github/workflows/**', '.docker/**', 'cmake/**', 'CMakeLists.txt', 'CMakePresets.json', '.clang-*', '.gitmodules', 'Doxyfile', 'cube/*.ioc', 'config/**', 'docs/**', 'include/**', 'sim/**', 'src/**', 'tests/**') }}
           lookup-only: true
 
   build:
@@ -45,13 +49,8 @@ jobs:
     steps:
       - name: 🔀 Checkout
         uses: actions/checkout@v7
-
-      # The host tests need no cube files nor the ARM toolchain, only the compiler of the runner
-      - name: 🧪 Run host tests
-        run: |
-          cmake -S tests/host -B build/host
-          cmake --build build/host --parallel
-          ctest --test-dir build/host --output-on-failure
+        with:
+          submodules: true
 
       - name: 🗃️ Restore generated cube files
         id: cube
@@ -103,3 +102,98 @@ jobs:
         with:
           path: .docker/Dockerfile
           key: ${{ needs.check.outputs.key }}
+
+  standards:
+    name: 📏 Compare the shared standards with micras-lib and micras-simulation
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
+    steps:
+      - name: 🔀 Checkout
+        uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      # micras-lib holds the canonical copies, which the firmware and the simulator carry byte for byte
+      - name: 📏 Compare the style and lint files
+        run: |
+          for file in .clang-format .clang-tidy tests/.clang-tidy cmake/templates/run_clang_tidy.sh.in; do
+              cmp "$file" "external/micras-lib/$file"
+              cmp "$file" "external/micras-simulation/$file"
+          done
+
+      - name: ⚠️ Compare the warnings module
+        run: cmp external/micras-lib/cmake/micras_warnings.cmake external/micras-simulation/cmake/micras_warnings.cmake
+
+      - name: 🐋 Compare the host stage of the Dockerfiles
+        run: |
+          host_stage() {
+              sed -n '/^# >>> host stage >>>$/,/^# <<< host stage <<<$/p' "$1"
+          }
+
+          for dockerfile in .docker/Dockerfile external/micras-lib/.docker/Dockerfile \
+              external/micras-simulation/.docker/Dockerfile; do
+              test -n "$(host_stage "$dockerfile")"
+          done
+
+          diff <(host_stage .docker/Dockerfile) <(host_stage external/micras-lib/.docker/Dockerfile)
+          diff <(host_stage .docker/Dockerfile) <(host_stage external/micras-simulation/.docker/Dockerfile)
+
+  simulation:
+    name: 🐭 Simulate the robot
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
+    steps:
+      - name: 🔀 Checkout
+        uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      # The host stage has every tool the headless simulation needs
+      - name: 🐋 Build the host image
+        run: docker build --file .docker/Dockerfile --target host --tag micras:host .docker
+
+      - name: 🗃️ Restore the fetched dependencies
+        uses: actions/cache@v6
+        with:
+          path: |
+            build/host/_deps
+            build/host/CMakeFiles/fc-stamp
+          key: deps-host-${{ hashFiles('external/micras-simulation/cmake/third_party.cmake', 'external/micras-simulation/cmake/mujoco.cmake', 'external/micras-lib/micras_proxy/CMakeLists.txt', 'sim/tests/CMakeLists.txt') }}
+
+      # One long lived container runs every step below, as the user that owns the checkout
+      - name: 📦 Start the simulation container
+        run: >
+          docker run --detach --name simulation --user "$(id -u):$(id -g)" --env HOME=/tmp
+          --volume "$PWD:/project" --workdir /project micras:host sleep infinity
+
+      - name: ⚙️ Configure
+        run: docker exec simulation cmake --preset host-ci
+
+      - name: 🔨 Build
+        run: docker exec simulation cmake --build --preset host-ci
+
+      - name: 🧪 Run the tests
+        run: docker exec simulation ctest --preset host-ci
+
+      - name: 🚨 Lint the simulation
+        run: docker exec simulation cmake --build --preset host-ci --target lint
+
+      - name: ✅ Check the runs against the baseline
+        run: docker exec simulation cmake --build --preset host-ci --target sim_check
+
+      # Two mazes of the contest on every branch and pull request, the ten with every switch on main
+      - name: 🏁 Run the contest in two mazes
+        if: github.event_name != 'push' || github.ref != 'refs/heads/main'
+        run: |
+          docker exec simulation cmake --preset host-ci "-DMICRAS_SIM_CONTEST_MAZES=maze1;japan2017ef"
+          docker exec simulation cmake --build --preset host-ci --target sim_contest
+
+      - name: 🏁 Run the contest in every maze, with and without every switch
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: docker exec simulation cmake --build --preset host-ci --target sim_contest sim_contest_all
+
+      - name: 🧹 Stop the simulation container
+        if: always()
+        run: docker rm --force simulation
