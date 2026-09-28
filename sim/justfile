@@ -87,9 +87,11 @@ contest scenario="explore_solve": build
     {{python}} {{tools}}/check_run.py --expect-state IDLE --expect unbound_ports=0 --expect watchdog_expiries=0 \
         --expect emergency_stops=0 runs/contest/{{scenario}}/*
 
-# Compare the checked runs against the recorded baseline summaries.
+# Compare the checked runs against the recorded baseline summaries; MICRAS_EXACT=1 also fails on a byte that moved.
 compare-baseline:
-    for run in {{check_runs}}; do {{python}} {{tools}}/baseline.py compare runs/$run {{baseline}}/$run; done
+    exact=""; \
+    if [ "${MICRAS_EXACT:-0}" = 1 ]; then exact="--exact"; fi; \
+    for run in {{check_runs}}; do {{python}} {{tools}}/baseline.py compare runs/$run {{baseline}}/$run $exact; done
 
 # Refuses to overwrite a version, so an older one is never lost: bump it instead.
 # Record a new baseline version from the checked runs.
