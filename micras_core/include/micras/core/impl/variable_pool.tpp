@@ -9,6 +9,8 @@
 #include <string_view>
 #include <type_traits>
 
+#include "micras/core/serializable.hpp"
+
 namespace micras::core {
 template <Registrable T>
 VariableId VariablePool::add(std::string_view prefix, std::string_view name, T& value, Access access) {
@@ -25,6 +27,7 @@ VariableId VariablePool::add(std::string_view prefix, std::string_view name, T& 
         .size = sizeof(T),
         .type = TypeCodeOf<std::remove_cv_t<T>>::value,
         .access = access,
+        .type_tag = {},
     };
 
     return this->count++;
@@ -48,6 +51,30 @@ VariableId VariablePool::add(std::string_view prefix, std::string_view name, con
         .size = sizeof(T),
         .type = TypeCodeOf<std::remove_cv_t<T>>::value,
         .access = access,
+        .type_tag = {},
+    };
+
+    return this->count++;
+}
+
+template <Serializable T>
+VariableId VariablePool::add(std::string_view prefix, std::string_view name, T& object, Access access) {
+    access.stream = false;
+
+    Variable* variable = this->next();
+
+    if (variable == nullptr) {
+        return invalid_id;
+    }
+
+    *variable = {
+        .prefix = prefix,
+        .name = name,
+        .address = static_cast<void*>(static_cast<ISerializable*>(&object)),
+        .size = 0,
+        .type = TypeCode::BLOB,
+        .access = access,
+        .type_tag = T::type_tag,
     };
 
     return this->count++;

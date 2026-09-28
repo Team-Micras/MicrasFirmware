@@ -6,6 +6,7 @@
 #define MICRAS_CORE_VARIABLE_POOL_HPP
 
 #include <array>
+#include <concepts>
 #include <cstdint>
 #include <optional>
 #include <span>
@@ -118,6 +119,20 @@ template <typename T>
 concept Registrable = std::is_trivially_copyable_v<T> and requires { TypeCodeOf<std::remove_cv_t<T>>::value; };
 
 /**
+ * @brief Types that can be registered through their own encoding, as a blob.
+ *
+ * @note The type tag names the encoding, so that an application can choose how to decode a blob
+ * without knowing the robot it came from. It is written by hand, such as "maze-grid", so that it
+ * never depends on how a compiler spells the name of the type.
+ *
+ * @tparam T Type to check.
+ */
+template <typename T>
+concept Serializable = std::derived_from<T, ISerializable> and requires {
+    { T::type_tag } -> std::convertible_to<std::string_view>;
+};
+
+/**
  * @brief What each consumer of the pool is allowed to do with a variable.
  */
 struct Access {
@@ -181,6 +196,11 @@ struct Variable {
 
     TypeCode type{};
     Access   access{};
+
+    /**
+     * @brief Name of the encoding of a BLOB, empty for every other type.
+     */
+    std::string_view type_tag;
 };
 
 /**
@@ -259,13 +279,15 @@ public:
      * @note Serializing costs a heap allocation, so a blob is meant for composite state that is
      * saved and loaded, never for something sampled at loop rate.
      *
+     * @tparam T Type of the object, which names its encoding in its type tag.
      * @param prefix Prefix of the name, usually identifying the owner.
      * @param name Name of the variable inside its owner.
      * @param object Reference to the object, which must outlive the pool.
      * @param access What the consumers of the pool may do with the variable.
      * @return Identifier of the variable, or invalid_id if the pool is full.
      */
-    VariableId add(std::string_view prefix, std::string_view name, ISerializable& object, Access access);
+    template <Serializable T>
+    VariableId add(std::string_view prefix, std::string_view name, T& object, Access access);
 
     /**
      * @brief Find a variable by its full name.
@@ -323,7 +345,7 @@ public:
      * anything with error detection properties. Nothing is being corrected here, and the schema it
      * stands for arrives over a link that checks its own frames.
      *
-     * @return Hash over the name, type and access flags of every variable, in order.
+     * @return Hash over the name, type, access flags and type tag of every variable, in order.
      */
     uint32_t schema_hash() const;
 

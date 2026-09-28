@@ -4,6 +4,7 @@
 
 #include <cstdio>
 #include <cstring>
+#include <string_view>
 
 #include "micras/core/variable_pool.hpp"
 #include "test_host.hpp"
@@ -13,9 +14,15 @@ using namespace micras::core;
 struct Blob : ISerializable {
     std::vector<uint8_t> data{1, 2, 3};
 
+    static constexpr std::string_view type_tag{"test-blob"};
+
     std::vector<uint8_t> serialize() const override { return data; }
 
     void deserialize(const uint8_t* p, uint16_t n) override { data.assign(p, p + n); }
+};
+
+struct OtherBlob : Blob {
+    static constexpr std::string_view type_tag{"other-blob"};
 };
 
 enum class Profile : uint8_t {
@@ -41,6 +48,9 @@ int main() {
     CHECK(pool.at(id_prof).type == TypeCode::U8);
     CHECK(pool.at(id_blob).type == TypeCode::BLOB);
     CHECK(pool.at(id_blob).access.stream == false);
+    CHECK(pool.at(id_blob).type_tag == "test-blob");
+    CHECK(pool.at(id_speed).type_tag.empty() && pool.at(id_k).type_tag.empty() && pool.at(id_prof).type_tag.empty());
+    CHECK(static_cast<const ISerializable*>(pool.at(id_blob).address) == &blob);
 
     CHECK(pool.find("speed/linear").value() == 0);
     CHECK(pool.find("model/kv").value() == 1);
@@ -75,6 +85,15 @@ int main() {
     CHECK(other.schema_hash() == h0);
     other.add("", "extra", speed, {});
     CHECK(other.schema_hash() != h0);
+
+    OtherBlob        retagged;
+    TVariablePool<8> tagged;
+    tagged.add("speed/", "linear", speed, {.stream = true, .write = true});
+    tagged.add("model/", "kv", k, {.stream = true, .write = true, .idle = true, .persist = true});
+    tagged.add("", "run_profile", profile, {.write = true, .idle = true, .persist = true});
+    tagged.add("", "maze", retagged, {.persist = true});
+    CHECK(tagged.at(3).type_tag == "other-blob");
+    CHECK(tagged.schema_hash() != h0);
 
     TVariablePool<1> tiny;
     tiny.add("", "a", speed, {});

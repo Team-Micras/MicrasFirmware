@@ -6,6 +6,7 @@
 #include <bit>
 #include <cstdint>
 #include <string>
+#include <string_view>
 #include <vector>
 #include "micras/core/serializable.hpp"
 #include "micras/core/variable_pool.hpp"
@@ -22,6 +23,8 @@ static constexpr uint32_t time_interval{500};
 namespace {
 class TestSerializable : public core::ISerializable {
 public:
+    static constexpr std::string_view type_tag{"test-serializable"};
+
     explicit TestSerializable(bool empty = false) {
         if (empty) {
             return;

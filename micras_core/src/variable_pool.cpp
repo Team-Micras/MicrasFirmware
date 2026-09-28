@@ -36,27 +36,6 @@ Variable* VariablePool::next() {
     return &this->storage[this->count];
 }
 
-VariableId VariablePool::add(std::string_view prefix, std::string_view name, ISerializable& object, Access access) {
-    Variable* variable = this->next();
-
-    if (variable == nullptr) {
-        return invalid_id;
-    }
-
-    access.stream = false;
-
-    *variable = {
-        .prefix = prefix,
-        .name = name,
-        .address = static_cast<void*>(&object),
-        .size = 0,
-        .type = TypeCode::BLOB,
-        .access = access,
-    };
-
-    return this->count++;
-}
-
 std::optional<VariableId> VariablePool::find(std::string_view full_name) const {
     for (VariableId id = 0; id < this->count; id++) {
         const Variable& variable = this->at(id);
@@ -131,6 +110,7 @@ uint32_t VariablePool::schema_hash() const {
         hash = mix(hash, variable.name);
         hash = mix(hash, std::to_underlying(variable.type));
         hash = mix(hash, variable.access.to_byte());
+        hash = mix(hash, variable.type_tag);
     }
 
     return hash;

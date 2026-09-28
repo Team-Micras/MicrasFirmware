@@ -3,6 +3,7 @@
  */
 
 #include <cstdio>
+#include <string_view>
 
 #include "micras/hal/flash.hpp"
 #include "micras/proxy/storage.hpp"
@@ -12,6 +13,8 @@ using namespace micras;
 
 struct Blob : core::ISerializable {
     std::vector<uint8_t> data;
+
+    static constexpr std::string_view type_tag{"test-blob"};
 
     std::vector<uint8_t> serialize() const override { return data; }
 

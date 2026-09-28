@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <optional>
 #include <span>
+#include <string_view>
 #include <vector>
 
 #include "micras/core/serializable.hpp"
@@ -37,6 +38,11 @@ public:
      * @brief Cost of a cell that cannot reach any target.
      */
     static constexpr uint16_t unreachable{0xFFFF};
+
+    /**
+     * @brief Name of the encoding of the serialized walls, sent with the schema of the link.
+     */
+    static constexpr std::string_view type_tag{"maze-grid"};
 
     /**
      * @brief Configuration struct for the maze.
