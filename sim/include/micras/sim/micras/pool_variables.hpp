@@ -27,6 +27,13 @@ namespace micras::sim {
 class PoolVariables : public ColumnSource, public VariableSource {
 public:
     /**
+     * @brief Check whether the firmware has constructed its robot, whose pool holds the variables.
+     *
+     * @return True once it has.
+     */
+    bool ready() const override;
+
+    /**
      * @brief Get the column names.
      *
      * @note Throws when the firmware has not constructed its robot yet.

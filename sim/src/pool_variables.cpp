@@ -75,12 +75,16 @@ const Micras& robot() {
     const Micras* micras = Micras::get_instance();
 
     if (micras == nullptr) {
-        throw std::runtime_error("the firmware did not construct its robot during the first tick");
+        throw std::runtime_error("the firmware has not constructed its robot yet");
     }
 
     return *micras;
 }
 }  // namespace
+
+bool PoolVariables::ready() const {
+    return Micras::get_instance() != nullptr;
+}
 
 std::vector<std::string> PoolVariables::names() {
     std::vector<std::string> columns{"state"};
