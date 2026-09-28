@@ -4,11 +4,12 @@
 
 include(FetchContent)
 
-# The Doxygen default theme is referenced by the Doxyfile through $(DOXYGEN_AWESOME_DIR)
+# The Doxygen default theme is referenced by the Doxyfile through $(DOXYGEN_AWESOME_DIR), pinned by the
+# commit of v2.5.0
 FetchContent_Declare(
     doxygen-awesome-css
     GIT_REPOSITORY https://github.com/jothepro/doxygen-awesome-css.git
-    GIT_TAG v2.5.0
+    GIT_TAG 46483f1e5a70ffb9ecd3b82d0a1cd1b24edf13da
 )
 
 FetchContent_MakeAvailable(doxygen-awesome-css)
