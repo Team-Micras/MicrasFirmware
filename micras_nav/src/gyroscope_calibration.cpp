@@ -39,23 +39,28 @@ Reference GyroscopeCalibration::update(const Measurements& measurements, float b
 
     this->phase_time += elapsed_time;
 
+    if (this->phase == Phase::BRAKING) {
+        const SpeedProfile::Sample sample = this->spin.sample(this->phase_time);
+
+        if (this->phase_time >= this->spin.duration()) {
+            this->phase = Phase::FINISHED;
+        }
+
+        return this->turned(sample);
+    }
+
     if (this->phase == Phase::TURNING) {
         const SpeedProfile::Sample sample = this->spin.sample(this->phase_time);
 
         this->raw_rotation += measurements.angular_rate * elapsed_time;
         this->turning_time += elapsed_time;
 
-        reference.pose.orientation += sample.distance;
-        reference.twist.angular = sample.speed;
-        reference.acceleration.angular = sample.acceleration;
-        reference.distance = sample.distance;
-
         if (this->phase_time >= this->spin.duration()) {
             this->phase = Phase::AFTER;
             this->phase_time = 0.0F;
         }
 
-        return reference;
+        return this->turned(sample);
     }
 
     if (this->phase_time >= this->config.settle_time / 2.0F) {
@@ -99,6 +104,23 @@ Reference GyroscopeCalibration::update(const Measurements& measurements, float b
     return reference;
 }
 
+void GyroscopeCalibration::brake(const MotionLimits& limits) {
+    this->valid = false;
+
+    if (this->phase != Phase::TURNING) {
+        this->phase = Phase::FINISHED;
+        return;
+    }
+
+    const SpeedProfile::Sample sample = this->spin.sample(this->phase_time);
+
+    this->pose.orientation += sample.distance;
+    this->spin =
+        SpeedProfile{SpeedProfile::get_braking_distance(sample.speed, 0.0F, limits), sample.speed, 0.0F, limits};
+    this->phase = Phase::BRAKING;
+    this->phase_time = 0.0F;
+}
+
 bool GyroscopeCalibration::is_finished() const {
     return this->phase == Phase::FINISHED;
 }
@@ -109,6 +131,16 @@ bool GyroscopeCalibration::is_valid() const {
 
 float GyroscopeCalibration::get_scale() const {
     return this->scale;
+}
+
+Reference GyroscopeCalibration::turned(const SpeedProfile::Sample& sample) const {
+    Reference reference{.pose = this->pose, .twist = {}, .acceleration = {}, .distance = sample.distance};
+
+    reference.pose.orientation += sample.distance;
+    reference.twist.angular = sample.speed;
+    reference.acceleration.angular = sample.acceleration;
+
+    return reference;
 }
 
 float GyroscopeCalibration::get_wall_angle(const Measurements& measurements) const {

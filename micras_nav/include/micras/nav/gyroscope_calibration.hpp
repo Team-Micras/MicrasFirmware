@@ -71,9 +71,19 @@ public:
     Reference update(const Measurements& measurements, float bias, float elapsed_time);
 
     /**
+     * @brief Stop the procedure, ramping the rotation in progress down as hard as the limits allow.
+     *
+     * @note The result is not valid after it, and the scale measured before is kept.
+     *
+     * @param limits The limits of the rotation in place, as the procedure was started with.
+     */
+    void brake(const MotionLimits& limits);
+
+    /**
      * @brief Check if the procedure has ended.
      *
-     * @return True once the wall was measured for the second time.
+     * @return True once the wall was measured for the second time, or the robot is at rest after a
+     * brake.
      */
     bool is_finished() const;
 
@@ -100,7 +110,16 @@ private:
         TURNING = 1,
         AFTER = 2,
         FINISHED = 3,
+        BRAKING = 4,
     };
+
+    /**
+     * @brief Get the reference of the rotation at a point of it.
+     *
+     * @param sample The state of the rotation.
+     * @return What the robot should be doing, turned from the pose that is held.
+     */
+    Reference turned(const SpeedProfile::Sample& sample) const;
 
     /**
      * @brief Get the orientation of the robot relative to the wall ahead of it.
