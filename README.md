@@ -47,8 +47,10 @@ NTF Classic Micromouse project with an STM32 microcontroller
 - **cube/** - STM32CubeMX configuration and build files.
 - **docs/** - Hand-written notes, such as the [Bluetooth link](docs/bluetooth.md); the generated
   documentation is written here too, and is not tracked by Git.
-- **external/** - The team's libraries, as git submodules, see [Packages](#️-packages).
+- **external/** - The team's libraries and simulator, as git submodules, see [Packages](#️-packages).
 - **include/** - Header files for class definitions.
+- **sim/** - The robot in the simulator: its board, bindings, description, scenarios, baselines and
+  tools, see [its README](sim/README.md).
 - **src/** - Source file for class implementations and executables.
 - **tests/** - Executable test files.
 
@@ -79,6 +81,10 @@ The root `CMakeLists.txt` adds micras-lib after the STM32CubeMX project, whose `
 is the board the HAL is built against, and links the application to `micras::nav`, `micras::comm`
 and `micras::proxy`. What a project must provide to use the libraries, and how they are tested, is
 in [micras-lib's README](https://github.com/Team-Micras/micras-lib#readme).
+
+The simulator, [micras-simulation](https://github.com/Team-Micras/micras-simulation), is the second
+submodule, in `external/micras-simulation`. Only the simulation's build uses it, see
+[Testing](#-testing).
 
 ## 🐭 Operating the robot
 
@@ -126,6 +132,9 @@ without it, fetch the one the robot needs with:
 ```bash
 git submodule update --init external/micras-lib
 ```
+
+The simulation also needs the simulator, the other submodule: `git submodule update --init` fetches
+both.
 
 The [STM32CubeMX](https://www.st.com/en/development-tools/stm32cubemx.html) program is also required. After the installation is completed, it is necessary to set the `CUBE_CMD` environment variable to the path of the STM32CubeMX executable or add it to the `PATH`.
 
@@ -198,6 +207,23 @@ make test_all -j
 These are programs for the robot, each exercising one device or one part of the navigation on
 the bench. The libraries' unit tests, which build with the host compiler and run in the terminal,
 live in [micras-lib](https://github.com/Team-Micras/micras-lib#readme) and run in its CI.
+
+The whole firmware also runs in the simulator, on the computer: its own `main`, proxies and
+configuration over micras-lib's host HAL, against a physical model of the robot in a contest maze. It
+needs both submodules, GCC 15 (`gcc-15`/`g++-15`), Ninja and Python 3 with numpy and matplotlib, and
+is built from the project root with the `host` preset:
+
+```bash
+cmake --preset host
+cmake --build --preset host
+cmake --build --preset host --target sim_check      # tests, the checked runs, their baseline and health
+cmake --build --preset host --target sim_contest    # the whole contest in every maze
+```
+
+`sim_check` is the gate for a change: it compares two runs with the baseline in `sim/baselines/`, and
+configuring with `-DMICRAS_SIM_EXACT=ON` makes it require them byte identical, the check for a change
+that must not change the behavior. The recipes, the scenarios and what the simulation relies on in the
+firmware are in [sim/README.md](sim/README.md).
 
 ## 🐛 Debugging
 
@@ -284,8 +310,10 @@ make lint_fix
 ```
 
 The formatting and the linting cover the firmware's own sources; micras-lib checks its own. The
-`.clang-format`, `.clang-tidy`, `tests/.clang-tidy` and `cmake/templates/run_clang_tidy.sh.in` files
-are micras-lib's, byte for byte, and the CI compares them with the submodule's.
+simulation's sources in `sim/` are formatted with the rest, and linted by the simulation's build,
+which compiles them: `cmake --build --preset host --target lint`. The `.clang-format`, `.clang-tidy`,
+`tests/.clang-tidy` and `cmake/templates/run_clang_tidy.sh.in` files are micras-lib's, byte for byte,
+and the CI compares them with both submodules'.
 
 ## 🐋 Docker
 

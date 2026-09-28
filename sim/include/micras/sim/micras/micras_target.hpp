@@ -32,13 +32,38 @@ namespace micras::sim {
  * @note The run's devices own them; these are views.
  */
 struct MicrasBoard {
-    DigitalInput*                button{nullptr};
+    /**
+     * @brief The button that starts every run.
+     */
+    DigitalInput* button{nullptr};
+
+    /**
+     * @brief The four DIP switches: fan, racing line, boost and risky.
+     */
     std::array<DigitalInput*, 4> dip_switches{};
-    DcMotor*                     left_motor{nullptr};
-    DcMotor*                     right_motor{nullptr};
-    Battery*                     battery{nullptr};
-    Fan*                         fan{nullptr};
-    WallSensors*                 wall_sensors{nullptr};
+
+    /**
+     * @brief The motors of the two wheels.
+     */
+    ///@{
+    DcMotor* left_motor{nullptr};
+    DcMotor* right_motor{nullptr};
+    ///@}
+
+    /**
+     * @brief The battery pack.
+     */
+    Battery* battery{nullptr};
+
+    /**
+     * @brief The suction fan.
+     */
+    Fan* fan{nullptr};
+
+    /**
+     * @brief The four wall sensors, with their emitters.
+     */
+    WallSensors* wall_sensors{nullptr};
 };
 
 /**
@@ -60,12 +85,12 @@ struct MicrasChips {
 };
 
 /**
- * @brief Micras on the firmware's main branch, through the host micras_hal.
+ * @brief Micras, the firmware of this repository, through the host micras_hal.
  *
  * @note The firmware runs as it does on the robot: its own main, its own proxies
- *       and its own configuration, over the host backend in hal_host/ and the
- *       fake Cube layer in cube/. Its SPI chips are the models of
- *       hal_host/models/. The host timer hands every step over to the world.
+ *       and its own configuration, over micras-lib's host backend and the fake
+ *       Cube layer in sim/cube/. Its SPI chips are micras-lib's chip models. The
+ *       host timer hands every step over to the world.
  */
 class MicrasTarget : public Target {
 public:
@@ -77,7 +102,7 @@ public:
     std::string name() const override;
 
     /**
-     * @brief Get the commit of the firmware submodule this binary was built from.
+     * @brief Get the commit of the firmware this binary was built from.
      *
      * @return The commit, suffixed -dirty when the checkout had changes.
      */
@@ -107,14 +132,14 @@ public:
     /**
      * @brief Get the folder of this target.
      *
-     * @return Path of targets/micras.
+     * @return Path of sim/.
      */
     std::filesystem::path directory() const override;
 
     /**
      * @brief Get the robot's physical description.
      *
-     * @return Path of targets/micras/robot.toml.
+     * @return Path of sim/robot.toml.
      */
     std::filesystem::path robot_file() const override;
 
@@ -180,10 +205,29 @@ private:
      */
     ScenarioHooks make_hooks() const;
 
-    RunContext                     run_context;
-    std::filesystem::path          flash_file;
-    MicrasBoard                    board;
-    MicrasChips                    chips;
+    /**
+     * @brief The world, the clock, the serial bus, the noise and the devices of the run.
+     */
+    RunContext run_context;
+
+    /**
+     * @brief File the flash is loaded from and saved to, empty without --flash.
+     */
+    std::filesystem::path flash_file;
+
+    /**
+     * @brief The devices the bindings built.
+     */
+    MicrasBoard board;
+
+    /**
+     * @brief The SPI chips attached to the firmware's bus.
+     */
+    MicrasChips chips;
+
+    /**
+     * @brief The firmware's variables, once the run is wired.
+     */
     std::unique_ptr<PoolVariables> variables;
 };
 }  // namespace micras::sim

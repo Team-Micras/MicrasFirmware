@@ -15,6 +15,7 @@ SHOW_HEADERFILE        = NO
 INPUT                  = config/ \
                          include/ \
                          src/ \
+                         sim/ \
                          docs/bluetooth.md \
                          external/micras-lib/micras_core/ \
                          external/micras-lib/micras_hal/ \

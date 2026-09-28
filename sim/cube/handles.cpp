@@ -4,7 +4,7 @@
  * @brief The Micras v1 handles and init functions, with the values CubeMX generates.
  *
  * @note Each MX_*_Init below sets the values its namesake sets in
- *       MicrasFirmware/cube/Src: MX_TIMn_Init the prescaler, counter mode and
+ *       the firmware's cube/Src: MX_TIMn_Init the prescaler, counter mode and
  *       period of tim.c, MX_ADCn_Init the NbrOfConversion of adc.c, MX_CRC_Init
  *       the whole Init block of crc.c, MX_SPI3_Init the SPI mode and baud rate
  *       prescaler of spi.c and MX_UART4_Init the baud rate of usart.c. Only what the host backend reads
