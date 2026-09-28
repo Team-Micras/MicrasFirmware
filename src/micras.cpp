@@ -670,7 +670,7 @@ comm::CommandReply Micras::halt() {
 
     this->interface.discard_presses();
 
-    if (state == State::BRAKE) {
+    if (state == State::BRAKE and not this->fsm.has_entered_current_state()) {
         return reply(comm::CommandResult::OK);
     }
 

@@ -463,9 +463,11 @@ private:
     /**
      * @brief Stop whatever the robot is doing and make it idle.
      *
-     * @note A robot driving its motors brakes to a standstill first, in the brake state. The robot
-     * stays in the error state, and in the initialization it has not finished, if it is there.
-     * During a save the stop waits for the save to end.
+     * @note A robot driving its motors brakes to a standstill first, in the brake state. A second
+     * stop once the brake is under way does not wait for it: it turns the motors off at once and
+     * leaves the robot to coast, while one that arrives before the brake has started only confirms
+     * it. The robot stays in the error state, and in the initialization it has not finished, if it
+     * is there. During a save the stop waits for the save to end.
      *
      * @return Whether the robot stopped, or will once the maze is saved.
      */
