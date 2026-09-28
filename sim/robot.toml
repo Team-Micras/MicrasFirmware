@@ -1,4 +1,4 @@
-# Micras, v2 main board, as built.
+# Micras v1, as built.
 #
 # The physical truth the simulator builds its model and devices from; the
 # firmware's config/targets/v1/robot.hpp is the robot's belief about itself, and
