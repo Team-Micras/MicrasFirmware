@@ -113,15 +113,15 @@ static std::vector<uint8_t> command_frame(Micras::Command command) {
 }
 
 /**
- * @brief Decode the colours of addressable LEDs from the compare values of their last transfer.
+ * @brief Decode the colors of addressable LEDs from the compare values of their last transfer.
  *
  * @param port The DMA-fed timer channel.
  * @param count Number of LEDs.
- * @return Their colours, green-red-blue on the wire, as the panel shows them.
+ * @return Their colors, green-red-blue on the wire, as the panel shows them.
  */
-static std::vector<Colour> decode_argb(const hal::host::PwmDmaPort& port, std::size_t count) {
+static std::vector<Color> decode_argb(const hal::host::PwmDmaPort& port, std::size_t count) {
     constexpr std::size_t bits_per_led{24};
-    std::vector<Colour>   colours(count);
+    std::vector<Color>    colors(count);
 
     for (std::size_t led = 0; led < count; led++) {
         uint32_t data = 0;
@@ -132,14 +132,14 @@ static std::vector<Colour> decode_argb(const hal::host::PwmDmaPort& port, std::s
             data = (data << 1U) | static_cast<uint32_t>(high);
         }
 
-        colours.at(led) = {
+        colors.at(led) = {
             .red = static_cast<uint8_t>(data >> 8U),
             .green = static_cast<uint8_t>(data >> 16U),
             .blue = static_cast<uint8_t>(data)
         };
     }
 
-    return colours;
+    return colors;
 }
 
 std::string MicrasTarget::name() const {
@@ -285,16 +285,16 @@ PanelSpec MicrasTarget::make_panel() const {
     }
 
     const hal::host::GpioPort& led = hal::host::Board::gpio(led_config.gpio.port, led_config.gpio.pin);
-    panel.lamps.push_back({.name = "led", .colour = [&led] {
-                               return led.output ? Colour{.red = 255, .green = 40, .blue = 40} :
-                                                   Colour{.red = 40, .green = 40, .blue = 40};
+    panel.lamps.push_back({.name = "led", .color = [&led] {
+                               return led.output ? Color{.red = 255, .green = 40, .blue = 40} :
+                                                   Color{.red = 40, .green = 40, .blue = 40};
                            }});
 
     const hal::host::PwmDmaPort& argb =
         hal::host::Board::pwm_dma(argb_config.pwm.handle, argb_config.pwm.timer_channel);
 
     for (std::size_t index = 0; index < 2; index++) {
-        panel.lamps.push_back({.name = std::format("argb {}", index), .colour = [&argb, index] {
+        panel.lamps.push_back({.name = std::format("argb {}", index), .color = [&argb, index] {
                                    return decode_argb(argb, 2).at(index);
                                }});
     }

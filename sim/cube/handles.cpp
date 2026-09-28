@@ -8,7 +8,7 @@
  *       period of tim.c, MX_ADCn_Init the NbrOfConversion of adc.c, MX_CRC_Init
  *       the whole Init block of crc.c, MX_SPI3_Init the SPI mode and baud rate
  *       prescaler of spi.c and MX_UART4_Init the baud rate of usart.c. Only what the host backend reads
- *       is set, plus the handle states the drivers check before initialising.
+ *       is set, plus the handle states the drivers check before initializing.
  */
 
 #include <cstdint>

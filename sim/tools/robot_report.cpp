@@ -97,11 +97,11 @@ static int run() {
     row("yaw inertia, chassis and wheels", yaw_inertia(robot), model.chassis.yaw_inertia, "g cm^2", 1e7);
     row("wheel radius", robot.wheels.radius, model.chassis.wheel_radius, "mm", 1e3);
     row("track width", robot.wheels.track, model.chassis.track_width, "mm", 1e3);
-    row("half width, board or tyres", half_width, model.chassis.half_width, "mm", 1e3);
+    row("half width, board or tires", half_width, model.chassis.half_width, "mm", 1e3);
     row("front length, board", front, model.chassis.front_length, "mm", 1e3);
     row("rear length, board", rear, model.chassis.rear_length, "mm", 1e3);
 
-    row("tyre friction coefficient", robot.wheels.friction, model.traction.friction_coefficient, "");
+    row("tire friction coefficient", robot.wheels.friction, model.traction.friction_coefficient, "");
     row("fan downforce", robot.fan.max_downforce, model.traction.fan_downforce, "N");
     row("fan offset ahead of the axle", robot.fan.position.at(0), model.traction.fan_offset, "mm", 1e3);
 

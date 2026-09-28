@@ -3,7 +3,7 @@
  *
  * @brief Derives each wall sensor's gain from the firmware's last calibration.
  *
- * @note Places the robot where the firmware's calibration is taken, centred in a
+ * @note Places the robot where the firmware's calibration is taken, centered in a
  *       cell: in a corridor for the sensors that look at the side walls, facing
  *       a wall for the ones that look forward, as the firmware's two calibration
  *       steps do. It fires every emitter and compares the simulated lit minus
@@ -91,9 +91,9 @@ struct Sample {
  *
  * @param robot The robot.
  * @param drawing The maze.
- * @param across How far right of the cell centre the robot is, in metres.
- * @param along How far ahead of the cell centre the robot is, in metres.
- * @return Each sensor's lit minus dark reading, as the firmware normalises it, and its axis range.
+ * @param across How far right of the cell center the robot is, in meters.
+ * @param along How far ahead of the cell center the robot is, in meters.
+ * @return Each sensor's lit minus dark reading, as the firmware normalizes it, and its axis range.
  */
 static Sample sample(const RobotDescription& robot, std::string_view drawing, double across = 0.0, double along = 0.0) {
     const MazeConfig config{};
@@ -164,7 +164,7 @@ static Sample sample(const RobotDescription& robot, std::string_view drawing, do
 /**
  * @brief How the firmware expects a reading to vary with the distance, up to its calibrated constant.
  *
- * @param distance Distance to the wall in metres.
+ * @param distance Distance to the wall in meters.
  * @return The shape of the reading.
  */
 static double firmware_shape(double distance) {
@@ -181,8 +181,8 @@ static double firmware_shape(double distance) {
  *       of the reading, which is what the firmware's table covers.
  *
  * @param sensor Index of the sensor.
- * @param reading Normalised reading.
- * @return Distance in metres.
+ * @param reading Normalized reading.
+ * @return Distance in meters.
  */
 static double firmware_distance(std::size_t sensor, double reading) {
     const auto&  config = micras::wall_sensors_config;

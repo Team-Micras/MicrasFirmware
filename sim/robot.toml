@@ -5,8 +5,8 @@
 # the `sim_robot_report` target shows where the two differ.
 #
 # Frames follow robot.hpp: x forward, y left, z up, origin on the floor under the
-# midpoint of the wheel axle. Lengths in metres, masses in kilograms, angles in
-# degrees where the key ends in _deg. From the CAD, in millimetres: the KiCad board
+# midpoint of the wheel axle. Lengths in meters, masses in kilograms, angles in
+# degrees where the key ends in _deg. From the CAD, in millimeters: the KiCad board
 # gives x = 113.5036 - y_KiCad, y = 148.5011 - x_KiCad, with the KiCad rotation as
 # the yaw; the SolidWorks assembly gives x = 1033.6 - Z_sw, y = -(X_sw + 4.9091),
 # z = Y_sw + 11.3503.
@@ -19,10 +19,10 @@ name = "micras"
 
 [integration]
 # One firmware loop; halving it changed neither the contacts nor the trace.
-timestep = { value = 0.000125, source = "measured: tyre contact, penetration and the explore trace unchanged at 62.5 and 31.25 us" }
+timestep = { value = 0.000125, source = "measured: tire contact, penetration and the explore trace unchanged at 62.5 and 31.25 us" }
 
 [chassis]
-mass = { value = 0.062, source = "estimate: 70 g for the whole robot (modelled parts, three 6 g cells, 5 g of components), less the two wheels; weigh it" }
+mass = { value = 0.062, source = "estimate: 70 g for the whole robot (modeled parts, three 6 g cells, 5 g of components), less the two wheels; weigh it" }
 center_of_mass = { value = [-0.0008, 0.0, 0.017], source = "estimate: CAD volumes with assumed densities" }
 inertia = { value = [1.16e-5, 2.37e-5, 2.45e-5], source = "estimate: 2.9e-5 yaw for the whole robot from CAD volumes, less the wheels; roll and pitch scaled" }
 outline = { value = [[0.0535, 0.0150], [0.03456, 0.02447], [0.0323, 0.0250], [-0.0365, 0.0250], [-0.0365, -0.0250], [0.0323, -0.0250], [0.03456, -0.02447], [0.0535, -0.0150]], source = "CAD: KiCad board edge, nose chamfers at 26.6 deg, fillets as corners" }
@@ -77,14 +77,14 @@ center = { value = [0.050, 0.0, 0.0013], source = "simulation: under the nose, 0
 radius = { value = 0.001, source = "simulation" }
 
 [wheels]
-radius = { value = 0.011, source = "CAD: 1.0 mm tyre band on a 20 mm hub seat" }
+radius = { value = 0.011, source = "CAD: 1.0 mm tire band on a 20 mm hub seat" }
 width = { value = 0.00425, source = "CAD: WheelTireWidth" }
-track = { value = 0.04575, source = "CAD: tyre centre to tyre centre" }
-mass = { value = 0.004, source = "estimate: printed hub with its gear, and the tyre" }
+track = { value = 0.04575, source = "CAD: tire center to tire center" }
+mass = { value = 0.004, source = "estimate: printed hub with its gear, and the tire" }
 spin_inertia = { value = 1.9e-7, source = "estimate: CAD volumes" }
 friction = { value = 1.0, source = "estimate: Kyosho MZW40-20 slick on a maze floor; measure by tilting" }
 torsional_friction = { value = 0.0005, source = "estimate: half the contact patch width" }
-contact_time_constant = { value = 0.008, source = "estimate: 1 mm silicone band, E ~ 0.5 MPa over a 4.25 x 3 mm patch, ~5000 N/m; 5 ms or more also keeps the tyres on the floor when they slide" }
+contact_time_constant = { value = 0.008, source = "estimate: 1 mm silicone band, E ~ 0.5 MPa over a 4.25 x 3 mm patch, ~5000 N/m; 5 ms or more also keeps the tires on the floor when they slide" }
 contact_damping_ratio = { value = 1.0, source = "estimate" }
 
 [drive]

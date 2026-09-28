@@ -7,7 +7,7 @@
  *       backend needs. Every value names the
  *       generated line it mirrors, in MicrasFirmware/cube/Inc and cube/Src. A
  *       CubeMX change that renames a handle or a pin is a compile error here; a
- *       changed prescaler or period shows as a wrong frequency at initialisation.
+ *       changed prescaler or period shows as a wrong frequency at initialization.
  */
 
 #ifndef MICRAS_SIM_CUBE_MAIN_H
