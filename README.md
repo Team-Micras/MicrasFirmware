@@ -374,7 +374,8 @@ make docs_pdf
 
 The configuration is in the file [Doxyfile](./Doxyfile), and the HTML theme is
 [doxygen-awesome-css](https://github.com/jothepro/doxygen-awesome-css), fetched by CMake. The
-documentation covers the firmware, the notes in `docs/` and the libraries in `external/micras-lib`.
+documentation covers the firmware, the notes in `docs/`, the simulation through the headers and the
+README of `sim/`, and the libraries in `external/micras-lib`.
 
 ## 🛠️ Windows Development Environment
 

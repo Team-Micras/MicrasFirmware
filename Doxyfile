@@ -24,6 +24,7 @@ INPUT                  = config/ \
                          external/micras-lib/micras_comm/
 RECURSIVE              = YES
 FILE_PATTERNS          = *.c *.cpp *.h *.hpp *.tpp *.md
+EXCLUDE_PATTERNS       = */sim/*.cpp
 EXTENSION_MAPPING      = tpp=C++
 VERBATIM_HEADERS       = NO
 GENERATE_HTML          = YES
