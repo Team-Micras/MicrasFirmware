@@ -2,6 +2,24 @@
 ## Auxiliary Targets
 ###############################################################################
 
+# The clang tools are found by their versioned names, so that a distribution update or another
+# version first on the PATH can move neither the formatting rules nor the enabled check set
+set(MICRAS_CLANG_VERSION 22)
+
+foreach(TOOL clang-format clang-tidy run-clang-tidy clang-apply-replacements)
+    string(TOUPPER ${TOOL} TOOL_VARIABLE)
+    string(REPLACE "-" "_" TOOL_VARIABLE ${TOOL_VARIABLE})
+
+    find_program(MICRAS_${TOOL_VARIABLE} ${TOOL}-${MICRAS_CLANG_VERSION})
+
+    if(NOT MICRAS_${TOOL_VARIABLE})
+        message(FATAL_ERROR
+            "${TOOL}-${MICRAS_CLANG_VERSION} was not found. The format and lint targets need clang "
+            "${MICRAS_CLANG_VERSION} (apt install clang-format-${MICRAS_CLANG_VERSION} "
+            "clang-tidy-${MICRAS_CLANG_VERSION}), found by that name.")
+    endif()
+endforeach()
+
 add_custom_target(helpme
     COMMAND cat ${CMAKE_CURRENT_BINARY_DIR}/helpme
 )
@@ -121,11 +139,11 @@ function(generate_format_target)
     endforeach()
 
     add_custom_target(format
-        COMMAND clang-format -style=file -i ${FILES_LIST} --verbose
+        COMMAND ${MICRAS_CLANG_FORMAT} -style=file -i ${FILES_LIST} --verbose
     )
 
     add_custom_target(format_check
-        COMMAND clang-format -style=file --dry-run --Werror ${FILES_LIST}
+        COMMAND ${MICRAS_CLANG_FORMAT} -style=file --dry-run --Werror ${FILES_LIST}
     )
 endfunction()
 
@@ -155,6 +173,15 @@ function(generate_lint_target)
 
     set(CXX_INCLUDE_DIR      "${SYSROOT}/include/c++/${COMPILER_VERSION}")
     set(CXX_TRIPLE_INCLUDE_DIR "${CXX_INCLUDE_DIR}/${TARGET_TRIPLE}")
+
+    # clang does not know where the ARM toolchain keeps its sysroot and C++ library
+    set(TIDY_EXTRA_ARGS
+        --sysroot=${SYSROOT}/
+        -I${CXX_INCLUDE_DIR}/
+        -I${CXX_TRIPLE_INCLUDE_DIR}/
+    )
+
+    list(JOIN TIDY_EXTRA_ARGS "\n" MICRAS_TIDY_EXTRA_ARGS)
 
     set(SCRIPT_SAVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/run_clang_tidy.sh")
     configure_file(
