@@ -12,6 +12,7 @@
 
 #include "constants.hpp"
 #include "micras/comm/link.hpp"
+#include "micras/command.hpp"
 #include "micras/core/fsm.hpp"
 #include "micras/core/types.hpp"
 #include "micras/core/variable_pool.hpp"
@@ -62,18 +63,12 @@ public:
     };
 
     /**
-     * @brief Commands the link can ask the robot to run.
-     *
-     * @note These are edges, not levels: each one happens once, when it arrives. Everything that
-     * is a level, like the run profile, is a writable variable instead.
+     * @brief Commands the link can ask the robot to run, and why they are refused.
      */
-    enum class Command : uint8_t {
-        EXPLORE = 0,
-        SOLVE = 1,
-        CALIBRATE = 2,
-        SAVE = 3,
-        RESET = 4,
-    };
+    ///@{
+    using Command = micras::Command;
+    using Reason = micras::Reason;
+    ///@}
 
     /**
      * @brief What made the robot stop, as the fault variable of the pool shows it.
@@ -83,6 +78,7 @@ public:
         CRASH = 1,
         SATURATION = 2,
         IMU = 3,
+        INITIALIZATION = 4,
     };
 
     /**
@@ -101,14 +97,20 @@ public:
      * @note Every proxy the robot drives with has to have started. A start that followed a reset by
      * the watchdog also fails, so that an error that keeps resetting the microcontroller stops in
      * the error state where it can be seen, instead of looping through boots, and so does a core
-     * clocked above what its option bytes allow.
+     * clocked above what its option bytes allow. A failure is kept in the pool as the
+     * initialization fault, which no command can clear.
      *
      * @return True if every device was initialized, false otherwise.
      */
-    bool check_initialization() const;
+    bool check_initialization();
 
     /**
-     * @brief Stop the robot, turning its sensors and actuators off.
+     * @brief Stop the robot, turning its sensors and actuators off and dropping whatever procedure
+     * was under way.
+     *
+     * @note A calibration of the wall sensors in progress is abandoned, since it would otherwise go
+     * on averaging readings with the emitters off, and the next one starts over with the side
+     * sensors.
      */
     void stop();
 
@@ -126,6 +128,13 @@ public:
      * @param event The event to send.
      */
     void send_event(Interface::Event event);
+
+    /**
+     * @brief Check if a stop arrived while the maze was being saved, and forget it.
+     *
+     * @return True if the robot has to stop once the save ends.
+     */
+    bool acknowledge_deferred_stop();
 
     /**
      * @brief Get the current objective of the robot.
@@ -274,11 +283,11 @@ public:
     bool calibrate_gyroscope();
 
     /**
-     * @brief Run a command that arrived over the link.
+     * @brief Run a command that arrived over the link, if the current state accepts it.
      *
-     * @param code Command to run.
-     * @param argument Argument of the command.
-     * @return Whether the command ran.
+     * @param code Command to run, one of Command.
+     * @param argument Argument of the command, which no command uses.
+     * @return Whether the command ran, and why not otherwise, one of Reason.
      */
     comm::CommandReply handle_command(uint8_t code, uint32_t argument) override;
 
@@ -410,6 +419,31 @@ private:
      * @brief Forget the counts of the faults and the last fault, before the robot starts to move.
      */
     void clear_faults();
+
+    /**
+     * @brief Run a command the current state accepts.
+     *
+     * @param command The command.
+     * @return Whether it ran, and why not otherwise.
+     */
+    comm::CommandReply carry_out(Command command);
+
+    /**
+     * @brief Stop whatever the robot is doing and make it idle.
+     *
+     * @note The robot stays in the error state, and in the initialization it has not finished, if
+     * it is there. During a save the stop waits for the save to end.
+     *
+     * @return Whether the robot stopped at once or will once the maze is saved.
+     */
+    comm::CommandReply halt();
+
+    /**
+     * @brief Make the robot idle again after an error, unless the error came from the start.
+     *
+     * @return Whether the robot left the error state, and why not otherwise.
+     */
+    comm::CommandReply leave_error();
 
     /**
      * @brief Publish the state of the state machine, and report it over the link when it changed.
@@ -556,6 +590,11 @@ private:
      * @brief Id of the state the next iteration runs, as the pool publishes it.
      */
     uint8_t state_id{std::to_underlying(State::INIT)};
+
+    /**
+     * @brief Whether a stop arrived while the maze was to be saved.
+     */
+    bool stop_deferred{};
 
     /**
      * @brief Current objective of the robot.

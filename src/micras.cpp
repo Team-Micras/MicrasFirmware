@@ -6,12 +6,14 @@
 #include <array>
 #include <cmath>
 #include <cstdint>
+#include <optional>
 #include <string_view>
 #include <utility>
 
 #include "constants.hpp"
 #include "micras/comm/link.hpp"
 #include "micras/comm/protocol.hpp"
+#include "micras/command.hpp"
 #include "micras/core/types.hpp"
 #include "micras/core/variable_pool.hpp"
 #include "micras/hal/adc_dma.hpp"
@@ -39,6 +41,17 @@ static std::array<uint8_t, bluetooth_rx_buffer_size> bluetooth_rx_buffer;
 static std::array<uint8_t, bluetooth_tx_buffer_size> bluetooth_tx_buffer;
 
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
+
+/**
+ * @brief Make the reply to a command.
+ *
+ * @param result Whether the command ran.
+ * @param reason Why it was refused or deferred.
+ * @return The reply.
+ */
+static comm::CommandReply reply(comm::CommandResult result, Micras::Reason reason = Micras::Reason::NONE) {
+    return {.result = result, .reason = std::to_underlying(reason)};
+}
 
 Micras::Micras() :
     bluetooth{bluetooth_config, bluetooth_rx_buffer, bluetooth_tx_buffer},
@@ -159,7 +172,7 @@ void Micras::register_variables() {
     this->variables.add("gyroscope/", "scale_valid", this->telemetry.gyroscope_scale_valid, {});
     this->variables.add("gyroscope/", "scale", this->telemetry.gyroscope_scale, {});
 
-    this->variables.add("", "objective", this->objective, {.stream = true, .write = true, .idle = true});
+    this->variables.add("", "objective", this->objective, {.stream = true});
     this->variables.add("", "run_profile", this->run_profile, {.stream = true, .write = true});
     this->variables.add("", "maze", this->mission.get_maze(), {.persist = true});
 
@@ -209,20 +222,29 @@ void Micras::update() {
     this->worst_loop_time_us = std::max(this->worst_loop_time_us, this->tick.elapsed_time_us());
 }
 
-bool Micras::check_initialization() const {
-    return not hal::Mcu::was_reset_by_watchdog() and hal::Mcu::is_cpu_frequency_supported() and
-           this->battery.was_initialized() and this->fan.was_initialized() and this->locomotion.was_initialized() and
-           this->torque_sensors.was_initialized() and this->argb.was_initialized() and
-           this->buzzer.was_initialized() and this->imu.was_initialized() and
-           this->rotary_sensor_left.was_initialized() and this->rotary_sensor_right.was_initialized() and
-           this->wall_sensors.was_initialized();
+bool Micras::check_initialization() {
+    const bool initialized = not hal::Mcu::was_reset_by_watchdog() and hal::Mcu::is_cpu_frequency_supported() and
+                             this->battery.was_initialized() and this->fan.was_initialized() and
+                             this->locomotion.was_initialized() and this->torque_sensors.was_initialized() and
+                             this->argb.was_initialized() and this->buzzer.was_initialized() and
+                             this->imu.was_initialized() and this->rotary_sensor_left.was_initialized() and
+                             this->rotary_sensor_right.was_initialized() and this->wall_sensors.was_initialized();
+
+    if (not initialized) {
+        this->fault = Fault::INITIALIZATION;
+    }
+
+    return initialized;
 }
 
 void Micras::stop() {
     this->wall_sensors.turn_off();
+    this->wall_sensors.cancel_calibration();
+    this->calibration_type = CalibrationType::SIDE_WALLS;
     this->locomotion.stop();
     this->locomotion.disable();
     this->fan.stop();
+    this->plan_extension.reset();
 }
 
 bool Micras::acknowledge_event(Interface::Event event) {
@@ -231,6 +253,10 @@ bool Micras::acknowledge_event(Interface::Event event) {
 
 void Micras::send_event(Interface::Event event) {
     this->interface.send_event(event);
+}
+
+bool Micras::acknowledge_deferred_stop() {
+    return std::exchange(this->stop_deferred, false);
 }
 
 core::Objective Micras::get_objective() const {
@@ -529,38 +555,83 @@ uint8_t Micras::get_state() const {
     return this->fsm.get_current_state_id();
 }
 
-comm::CommandReply Micras::handle_command(uint8_t code, uint32_t argument) {
-    switch (static_cast<Command>(code)) {
-        case Command::EXPLORE:
-            this->send_event(Interface::Event::EXPLORE);
-            return {.result = comm::CommandResult::OK};
+comm::CommandReply Micras::handle_command(uint8_t code, [[maybe_unused]] uint32_t argument) {
+    const std::optional<Command> command = to_command(code);
 
-        case Command::SOLVE:
-            this->send_event(Interface::Event::SOLVE);
-            return {.result = comm::CommandResult::OK};
-
-        case Command::CALIBRATE:
-            this->send_event(Interface::Event::CALIBRATE);
-            return {.result = comm::CommandResult::OK};
-
-        case Command::SAVE:
-            if (not this->is_idle()) {
-                return {.result = comm::CommandResult::REFUSED};
-            }
-
-            return {.result = this->save_maze() ? comm::CommandResult::OK : comm::CommandResult::REFUSED};
-
-        case Command::RESET:
-            if (not this->is_idle()) {
-                return {.result = comm::CommandResult::REFUSED};
-            }
-
-            this->localizer.reset(this->mission.get_start_pose(), this->measurements);
-            return {.result = comm::CommandResult::OK};
+    if (not command.has_value()) {
+        return reply(comm::CommandResult::UNKNOWN);
     }
 
-    static_cast<void>(argument);
-    return {.result = comm::CommandResult::UNKNOWN};
+    const std::optional<Reason> refused = refusal(static_cast<State>(this->fsm.get_current_state_id()), *command);
+
+    if (refused.has_value()) {
+        return reply(comm::CommandResult::REFUSED, *refused);
+    }
+
+    return this->carry_out(*command);
+}
+
+comm::CommandReply Micras::carry_out(Command command) {
+    switch (command) {
+        case Command::EXPLORE:
+            this->fsm.transition_to(this->idle_state.explore());
+            return reply(comm::CommandResult::OK);
+
+        case Command::SOLVE:
+            this->fsm.transition_to(this->idle_state.solve());
+            return reply(comm::CommandResult::OK);
+
+        case Command::CALIBRATE:
+            this->fsm.transition_to(this->idle_state.calibrate());
+            return reply(comm::CommandResult::OK);
+
+        case Command::SAVE:
+            return this->save_maze() ? reply(comm::CommandResult::OK) :
+                                       reply(comm::CommandResult::REFUSED, Reason::SAVE_FAILED);
+
+        case Command::RESET:
+            this->localizer.reset(this->mission.get_start_pose(), this->measurements);
+            return reply(comm::CommandResult::OK);
+
+        case Command::STOP:
+            return this->halt();
+
+        case Command::LEAVE_ERROR:
+            return this->leave_error();
+    }
+
+    return reply(comm::CommandResult::UNKNOWN);
+}
+
+comm::CommandReply Micras::halt() {
+    const auto state = static_cast<State>(this->fsm.get_current_state_id());
+
+    if (state == State::SAVE) {
+        this->stop_deferred = true;
+        return reply(comm::CommandResult::DEFERRED, Reason::BUSY_SAVING);
+    }
+
+    this->stop();
+    this->interface.discard_presses();
+
+    if (state != State::INIT and state != State::ERROR) {
+        this->fsm.transition_to(std::to_underlying(State::IDLE));
+    }
+
+    return reply(comm::CommandResult::OK);
+}
+
+comm::CommandReply Micras::leave_error() {
+    if (this->fault == Fault::INITIALIZATION) {
+        return reply(comm::CommandResult::REFUSED, Reason::FAULT_FROM_INIT);
+    }
+
+    this->interface.acknowledge_event(Interface::Event::ERROR);
+    this->led.turn_off();
+    this->interface.discard_presses();
+    this->fsm.transition_to(std::to_underlying(State::IDLE));
+
+    return reply(comm::CommandResult::OK);
 }
 
 void Micras::report_state(uint32_t timestamp_us) {

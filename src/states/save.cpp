@@ -15,6 +15,10 @@ uint8_t SaveState::execute() {
     this->micras.stop();
     this->micras.save_maze();
 
+    if (this->micras.acknowledge_deferred_stop()) {
+        return std::to_underlying(State::IDLE);
+    }
+
     if (this->micras.get_objective() == core::Objective::EXPLORE) {
         this->micras.set_objective(core::Objective::RETURN);
 

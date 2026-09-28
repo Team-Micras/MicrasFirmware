@@ -18,28 +18,42 @@ void IdleState::on_entry() {
 
 uint8_t IdleState::execute() {
     if (this->micras.acknowledge_event(Interface::Event::EXPLORE)) {
-        this->micras.set_objective(core::Objective::EXPLORE);
-
-        return std::to_underlying(State::WAIT_FOR_RUN);
+        return this->explore();
     }
 
     if (this->micras.acknowledge_event(Interface::Event::SOLVE)) {
-        this->micras.set_objective(core::Objective::SOLVE);
-
-        return std::to_underlying(State::PLAN);
+        return this->solve();
     }
 
     if (this->micras.acknowledge_event(Interface::Event::CALIBRATE)) {
-        switch (this->micras.get_maintenance()) {
-            case Micras::Maintenance::WALL_SENSORS:
-                return std::to_underlying(State::WAIT_FOR_CALIBRATE);
+        return this->calibrate();
+    }
 
-            case Micras::Maintenance::DRIVE:
-                return std::to_underlying(State::WAIT_FOR_IDENTIFY);
+    return this->get_id();
+}
 
-            case Micras::Maintenance::GYROSCOPE:
-                return std::to_underlying(State::WAIT_FOR_GYROSCOPE);
-        }
+uint8_t IdleState::explore() {
+    this->micras.set_objective(core::Objective::EXPLORE);
+
+    return std::to_underlying(State::WAIT_FOR_RUN);
+}
+
+uint8_t IdleState::solve() {
+    this->micras.set_objective(core::Objective::SOLVE);
+
+    return std::to_underlying(State::PLAN);
+}
+
+uint8_t IdleState::calibrate() {
+    switch (this->micras.get_maintenance()) {
+        case Micras::Maintenance::WALL_SENSORS:
+            return std::to_underlying(State::WAIT_FOR_CALIBRATE);
+
+        case Micras::Maintenance::DRIVE:
+            return std::to_underlying(State::WAIT_FOR_IDENTIFY);
+
+        case Micras::Maintenance::GYROSCOPE:
+            return std::to_underlying(State::WAIT_FOR_GYROSCOPE);
     }
 
     return this->get_id();

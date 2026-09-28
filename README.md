@@ -119,6 +119,12 @@ The results of the maintenance procedures are not stored. They are variables of 
 (`identification/*`, `gyroscope/*`, `wall_reference/*` and `wall_spread/*`), to be read over the link
 and typed into `config/targets/<board>/robot.hpp` and `target.hpp`.
 
+The same actions can be started over the link, from micras-monitor, as commands. A press of the
+button made while the robot is busy is kept until it is idle again; a command is not: the robot acts
+on it at once or refuses it with the reason. A stop is accepted in every state and leaves the robot
+idle, waiting for a save of the maze to end first, and leaving the error state is refused when the
+error was found at start, such as after a reset by the watchdog.
+
 ## 🔨 Building
 
 To build the project, it is first necessary to install some dependencies:

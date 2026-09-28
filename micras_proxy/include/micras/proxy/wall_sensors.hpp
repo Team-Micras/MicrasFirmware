@@ -167,6 +167,15 @@ public:
     bool is_calibrating() const;
 
     /**
+     * @brief Abandon every calibration in progress, keeping the reference readings they would
+     * have replaced.
+     *
+     * @note Turning the emitters off does not stop a calibration, which would go on averaging the
+     * dark readings into a reference.
+     */
+    void cancel_calibration();
+
+    /**
      * @brief Get the reference reading of a sensor, which is the result of its last calibration.
      *
      * @param sensor_index Index of the sensor.

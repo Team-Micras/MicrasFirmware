@@ -51,6 +51,12 @@ bool Interface::acknowledge_event(Event event) {
     return false;
 }
 
+void Interface::discard_presses() {
+    this->acknowledge_event(Event::EXPLORE);
+    this->acknowledge_event(Event::SOLVE);
+    this->acknowledge_event(Event::CALIBRATE);
+}
+
 bool Interface::peek_event(Event event) const {
     return this->events.at(std::to_underlying(event));
 }

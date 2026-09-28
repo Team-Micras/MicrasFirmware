@@ -211,6 +211,13 @@ bool TWallSensors<num_of_sensors>::is_calibrating() const {
 }
 
 template <uint8_t num_of_sensors>
+void TWallSensors<num_of_sensors>::cancel_calibration() {
+    for (Calibration& calibration : this->calibrations) {
+        calibration.samples_left = 0;
+    }
+}
+
+template <uint8_t num_of_sensors>
 float TWallSensors<num_of_sensors>::get_reference_reading(uint8_t sensor_index) const {
     return this->reference_readings.at(sensor_index);
 }

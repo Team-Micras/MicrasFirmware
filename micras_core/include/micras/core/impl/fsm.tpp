@@ -18,6 +18,11 @@ void TFsm<num_of_states>::add_state(FsmState& state) {
 }
 
 template <uint8_t num_of_states>
+void TFsm<num_of_states>::transition_to(uint8_t state_id) {
+    this->current_state_id = state_id;
+}
+
+template <uint8_t num_of_states>
 uint8_t TFsm<num_of_states>::get_current_state_id() const {
     return this->current_state_id;
 }

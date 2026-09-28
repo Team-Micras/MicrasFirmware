@@ -74,6 +74,14 @@ public:
     bool acknowledge_event(Event event);
 
     /**
+     * @brief Forget every press of the button that was not acted on yet.
+     *
+     * @note The presses are kept until the robot is idle to act on them, which is what a stop must
+     * not be followed by.
+     */
+    void discard_presses();
+
+    /**
      * @brief Get the value of an event without reseting it.
      *
      * @param event The event to get.

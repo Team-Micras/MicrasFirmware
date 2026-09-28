@@ -96,7 +96,7 @@ what both the microcontroller and `DataView` in the browser already are.
   with a result; the `idle` flag on a variable refuses the dangerous ones while the robot is moving.
   `COMMAND` happens once, when it arrives, or not at all: `COMMAND_ACK` answers at once with a
   result, `OK`, `UNKNOWN`, `REFUSED` or `DEFERRED`, and a reason whose values belong to the robot,
-  like the command codes do.
+  like the command codes do. Micras lists both in `include/micras/command.hpp`.
 - **The link cannot carry the control loop.** It is between twenty and a hundred times too slow for
   8 kHz, so a group is defined with a period in loop iterations and only every period-th iteration
   is sent. The rate the application asks for is a rate it can actually receive.

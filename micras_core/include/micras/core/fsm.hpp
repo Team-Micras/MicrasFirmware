@@ -102,6 +102,17 @@ public:
     void update();
 
     /**
+     * @brief Make the machine go to a state instead of the one the current state chose.
+     *
+     * @note For a decision taken outside the states, such as a stop that arrived over the link.
+     * The next update enters the state, running its entry function unless it is the state that ran
+     * last.
+     *
+     * @param state_id The id of the state to go to.
+     */
+    void transition_to(uint8_t state_id);
+
+    /**
      * @brief Get the id of the state currently running.
      *
      * @return The id of the current state.

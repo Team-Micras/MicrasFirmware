@@ -46,7 +46,15 @@ target_include_directories(micras_host_proxy PUBLIC
 
 target_link_libraries(micras_host_proxy PUBLIC micras_host_core)
 
-foreach(TEST_NAME variable_pool cobs frame storage link credit_window)
+# The table of the commands each state accepts, which is plain data over the ids of the states
+add_library(micras_host_command STATIC
+    ${MICRAS_ROOT}/src/command.cpp
+)
+
+target_include_directories(micras_host_command PUBLIC ${MICRAS_ROOT}/include)
+target_link_libraries(micras_host_command PUBLIC micras_host_core)
+
+foreach(TEST_NAME variable_pool cobs frame storage link credit_window command)
     add_executable(test_${TEST_NAME} test_${TEST_NAME}.cpp)
     target_include_directories(test_${TEST_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
     target_compile_options(test_${TEST_NAME} PRIVATE -Wall -Wextra -fsanitize=address,undefined)
@@ -63,3 +71,4 @@ add_test(NAME frame_vectors COMMAND test_frame ${CMAKE_CURRENT_SOURCE_DIR}/vecto
 target_link_libraries(test_storage PRIVATE micras_host_proxy)
 target_link_libraries(test_link PRIVATE micras_host_comm)
 target_link_libraries(test_credit_window PRIVATE micras_host_comm)
+target_link_libraries(test_command PRIVATE micras_host_command)

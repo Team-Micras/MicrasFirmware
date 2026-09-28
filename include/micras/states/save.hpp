@@ -20,6 +20,9 @@ public:
     /**
      * @brief Execute this state.
      *
+     * @note A stop that arrived while the maze was to be saved is carried out once it is saved,
+     * since cutting the write short would lose the map.
+     *
      * @return The id of the next state.
      */
     uint8_t execute() override;
