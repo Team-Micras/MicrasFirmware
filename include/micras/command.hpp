@@ -33,6 +33,8 @@ enum class Command : uint8_t {
     RESET = 4,        ///< Put the estimate of the pose back at the start.
     STOP = 5,         ///< Stop the motors and end whatever the robot is doing.
     LEAVE_ERROR = 6,  ///< Go from the error state back to idle.
+
+    NUMBER_OF_COMMANDS = 7,  ///< Number of commands, which is not a command itself.
 };
 
 /**
@@ -61,11 +63,16 @@ std::optional<Command> to_command(uint8_t code);
  * @note Only the table: a command a state accepts can still be refused for what the robot holds,
  * such as leaving an error that the start found.
  *
+ * @note A state that was chosen but not entered yet accepts only a stop. Its entry function has not
+ * run, so a command that left it for another state would skip it: the stop of the idle state, or
+ * the LED and the log of the error state.
+ *
  * @param state The state the robot is in.
+ * @param entered Whether the state has been entered, rather than only chosen.
  * @param command The command.
  * @return Why the state refuses the command, or no value if it accepts it.
  */
-std::optional<Reason> refusal(State state, Command command);
+std::optional<Reason> refusal(State state, bool entered, Command command);
 }  // namespace micras
 
 #endif  // MICRAS_COMMAND_HPP

@@ -564,7 +564,8 @@ comm::CommandReply Micras::handle_command(uint8_t code, [[maybe_unused]] uint32_
         return reply(comm::CommandResult::UNKNOWN);
     }
 
-    const std::optional<Reason> refused = refusal(static_cast<State>(this->fsm.get_current_state_id()), *command);
+    const std::optional<Reason> refused =
+        refusal(static_cast<State>(this->fsm.get_current_state_id()), this->fsm.has_entered_current_state(), *command);
 
     if (refused.has_value()) {
         return reply(comm::CommandResult::REFUSED, *refused);
@@ -600,6 +601,9 @@ comm::CommandReply Micras::carry_out(Command command) {
 
         case Command::LEAVE_ERROR:
             return this->leave_error();
+
+        case Command::NUMBER_OF_COMMANDS:
+            break;
     }
 
     return reply(comm::CommandResult::UNKNOWN);

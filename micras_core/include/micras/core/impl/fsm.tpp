@@ -28,6 +28,11 @@ uint8_t TFsm<num_of_states>::get_current_state_id() const {
 }
 
 template <uint8_t num_of_states>
+bool TFsm<num_of_states>::has_entered_current_state() const {
+    return this->current_state_id == this->previous_state_id;
+}
+
+template <uint8_t num_of_states>
 void TFsm<num_of_states>::update() {
     if (this->current_state_id >= num_of_states or this->states.at(this->current_state_id) == nullptr) {
         std::abort();

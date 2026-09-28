@@ -6,6 +6,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <initializer_list>
+#include <limits>
 #include <optional>
 #include <utility>
 
@@ -89,25 +90,32 @@ static consteval bool is_indexed_by_state() {
 
 static_assert(is_indexed_by_state(), "the command table lists the states in the order of their ids");
 
+static_assert(
+    std::to_underlying(Command::NUMBER_OF_COMMANDS) <= std::numeric_limits<CommandSet>::digits,
+    "every command needs a bit of a command set"
+);
+
 std::optional<Command> to_command(uint8_t code) {
-    if (code > std::to_underlying(Command::LEAVE_ERROR)) {
+    if (code >= std::to_underlying(Command::NUMBER_OF_COMMANDS)) {
         return std::nullopt;
     }
 
     return static_cast<Command>(code);
 }
 
-std::optional<Reason> refusal(State state, Command command) {
-    if ((command_table.at(std::to_underlying(state)).accepted & command_set({command})) != 0) {
-        return std::nullopt;
-    }
+std::optional<Reason> refusal(State state, bool entered, Command command) {
+    const CommandSet accepted = entered ? command_table.at(std::to_underlying(state)).accepted : busy_commands;
 
-    if (state == State::SAVE) {
-        return Reason::BUSY_SAVING;
+    if ((accepted & command_set({command})) != 0) {
+        return std::nullopt;
     }
 
     if (command == Command::LEAVE_ERROR) {
         return Reason::NOT_IN_ERROR;
+    }
+
+    if (state == State::SAVE) {
+        return Reason::BUSY_SAVING;
     }
 
     return Reason::NOT_IDLE;

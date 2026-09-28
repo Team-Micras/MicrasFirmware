@@ -119,6 +119,17 @@ public:
      */
     uint8_t get_current_state_id() const;
 
+    /**
+     * @brief Check if the current state has been entered, rather than only chosen.
+     *
+     * @note A state chosen by the one before it, or by transition_to, is entered by the next update,
+     * which runs its entry function first. Until then the machine is between the two, and whatever
+     * the entry function sets up, such as stopping the motors, has not happened yet.
+     *
+     * @return True if the current state has run at least once since the machine went to it.
+     */
+    bool has_entered_current_state() const;
+
 private:
     /**
      * @brief States of the machine, indexed by their id.
