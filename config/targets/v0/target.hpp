@@ -18,8 +18,8 @@
  *   device, the ADC takes a reference voltage, the filters take a sampling frequency, the rotary
  *   sensor takes no resolution, the DIP switch takes a polarity, and the fan takes no direction
  *   pin;
- * - hal::Mcu::init to stop calling SCB_EnableICache unconditionally, which does not exist on a
- *   Cortex-M4;
+ * - the FMAC enabled in the v0 STM32CubeMX project, which the stm32 backend requires of every
+ *   board; micras-lib's STM32G4 family covers the rest of the part;
  * - an hal::Mcu::Config naming the generated initialization functions of this board, since the
  *   package takes them rather than calling them by name;
  * - the v0 STM32CubeMX project set not to generate a HardFault_Handler, since the application
