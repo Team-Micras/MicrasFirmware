@@ -116,13 +116,12 @@ void bind_encoder(
     attach(sensor.spi, chip);
 
     add(context, std::make_unique<QuadratureEncoder>(
-                     context.world,
-                     QuadratureEncoder::Config{
-                         .name = "encoder_" + side,
-                         .joint = side == "left" ? names.left_wheel : names.right_wheel,
-                         .counts_per_revolution = world.robot->encoders.counts_per_revolution,
-                         .write = [&port](int32_t count) { port.count = count; },
-                     }
+                     context.world, QuadratureEncoder::Config{
+                                        .name = "encoder_" + side,
+                                        .joint = side == "left" ? names.left_wheel : names.right_wheel,
+                                        .counts_per_revolution = world.robot->encoders.counts_per_revolution,
+                                        .write = [&port](int32_t count) { port.count = count; },
+                                    }
                  ));
 }
 

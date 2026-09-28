@@ -158,27 +158,26 @@ std::filesystem::path MicrasTarget::robot_file() const {
 GroundTruthConfig MicrasTarget::ground_truth() const {
     return {
         .body = "micras",
-        .columns =
-            {
-                {.name = "wheel_angle_left", .probe = Probe::JOINT_POSITION, .object = "left_wheel"},
-                {.name = "wheel_angle_right", .probe = Probe::JOINT_POSITION, .object = "right_wheel"},
-                {.name = "wheel_speed_left", .probe = Probe::JOINT_VELOCITY, .object = "left_wheel"},
-                {.name = "wheel_speed_right", .probe = Probe::JOINT_VELOCITY, .object = "right_wheel"},
-                {.name = "motor_torque_left", .probe = Probe::ACTUATOR_FORCE, .object = "motor_left"},
-                {.name = "motor_torque_right", .probe = Probe::ACTUATOR_FORCE, .object = "motor_right"},
-                {.name = "left_ncon", .probe = Probe::CONTACT_COUNT, .object = "left_wheel"},
-                {.name = "left_fn", .probe = Probe::CONTACT_NORMAL_FORCE, .object = "left_wheel"},
-                {.name = "left_slip", .probe = Probe::CONTACT_SLIP, .object = "left_wheel"},
-                {.name = "left_penetration", .probe = Probe::CONTACT_PENETRATION, .object = "left_wheel"},
-                {.name = "right_ncon", .probe = Probe::CONTACT_COUNT, .object = "right_wheel"},
-                {.name = "right_fn", .probe = Probe::CONTACT_NORMAL_FORCE, .object = "right_wheel"},
-                {.name = "right_slip", .probe = Probe::CONTACT_SLIP, .object = "right_wheel"},
-                {.name = "right_penetration", .probe = Probe::CONTACT_PENETRATION, .object = "right_wheel"},
-                {.name = "board_ncon", .probe = Probe::CONTACT_COUNT, .object = "board"},
-                {.name = "rear_skid_fn", .probe = Probe::CONTACT_NORMAL_FORCE, .object = "rear_skid"},
-                {.name = "front_skid_fn", .probe = Probe::CONTACT_NORMAL_FORCE, .object = "front_skid"},
-                {.name = "solver_niter", .probe = Probe::SOLVER_ITERATIONS, .object = ""},
-            },
+        .columns = {
+            {.name = "wheel_angle_left", .probe = Probe::JOINT_POSITION, .object = "left_wheel"},
+            {.name = "wheel_angle_right", .probe = Probe::JOINT_POSITION, .object = "right_wheel"},
+            {.name = "wheel_speed_left", .probe = Probe::JOINT_VELOCITY, .object = "left_wheel"},
+            {.name = "wheel_speed_right", .probe = Probe::JOINT_VELOCITY, .object = "right_wheel"},
+            {.name = "motor_torque_left", .probe = Probe::ACTUATOR_FORCE, .object = "motor_left"},
+            {.name = "motor_torque_right", .probe = Probe::ACTUATOR_FORCE, .object = "motor_right"},
+            {.name = "left_ncon", .probe = Probe::CONTACT_COUNT, .object = "left_wheel"},
+            {.name = "left_fn", .probe = Probe::CONTACT_NORMAL_FORCE, .object = "left_wheel"},
+            {.name = "left_slip", .probe = Probe::CONTACT_SLIP, .object = "left_wheel"},
+            {.name = "left_penetration", .probe = Probe::CONTACT_PENETRATION, .object = "left_wheel"},
+            {.name = "right_ncon", .probe = Probe::CONTACT_COUNT, .object = "right_wheel"},
+            {.name = "right_fn", .probe = Probe::CONTACT_NORMAL_FORCE, .object = "right_wheel"},
+            {.name = "right_slip", .probe = Probe::CONTACT_SLIP, .object = "right_wheel"},
+            {.name = "right_penetration", .probe = Probe::CONTACT_PENETRATION, .object = "right_wheel"},
+            {.name = "board_ncon", .probe = Probe::CONTACT_COUNT, .object = "board"},
+            {.name = "rear_skid_fn", .probe = Probe::CONTACT_NORMAL_FORCE, .object = "rear_skid"},
+            {.name = "front_skid_fn", .probe = Probe::CONTACT_NORMAL_FORCE, .object = "front_skid"},
+            {.name = "solver_niter", .probe = Probe::SOLVER_ITERATIONS, .object = ""},
+        },
     };
 }
 
@@ -248,13 +247,13 @@ std::vector<MetadataField> MicrasTarget::metadata() const {
 PanelSpec MicrasTarget::make_panel() const {
     const MicrasBoard& devices = this->board;
     PanelSpec          panel{
-                 .state = StateLabel{.variable = "state", .names = state_names},
-                 .buttons = {{.name = "button", .press = [&devices](bool pressed) { devices.button->set(pressed); }}},
-                 .switches = {},
-                 .lamps = {},
-                 .readouts = {},
-                 .plots = {"reference/linear_speed", "pose/linear_speed", "reference/angular_speed", "pose/angular_speed"},
-                 .take_over = {},
+        .state = StateLabel{.variable = "state", .names = state_names},
+        .buttons = {{.name = "button", .press = [&devices](bool pressed) { devices.button->set(pressed); }}},
+        .switches = {},
+        .lamps = {},
+        .readouts = {},
+        .plots = {"reference/linear_speed", "pose/linear_speed", "reference/angular_speed", "pose/angular_speed"},
+        .take_over = {},
     };
 
     for (std::size_t index = 0; index < devices.dip_switches.size(); index++) {
@@ -284,11 +283,11 @@ PanelSpec MicrasTarget::make_panel() const {
     panel.readouts.push_back({.name = "buzzer", .text = [&buzzer] {
                                   return buzzer.duty_cycle > 0.0F ? std::format("{:.0f} Hz", buzzer.frequency) : "off";
                               }});
-    panel.readouts.push_back({.name = "motors", .text = [&devices] {
-                                  return std::format(
-                                      "{:6.2f} {:6.2f} A", devices.left_motor->current(), devices.right_motor->current()
-                                  );
-                              }});
+    panel.readouts.push_back(
+        {.name = "motors", .text = [&devices] {
+             return std::format("{:6.2f} {:6.2f} A", devices.left_motor->current(), devices.right_motor->current());
+         }}
+    );
     panel.readouts.push_back({.name = "battery", .text = [&devices] {
                                   return std::format("{:.2f} V", devices.battery->voltage());
                               }});

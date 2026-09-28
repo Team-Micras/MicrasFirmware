@@ -1,0 +1,5 @@
+---
+# The firmware's own headers are linted by the firmware, and the host HAL's by micras-lib.
+InheritParentConfig: true
+ExcludeHeaderFilterRegex: '(_deps|external|MicrasFirmware|hal_host)/'
+...

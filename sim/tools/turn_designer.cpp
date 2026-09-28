@@ -184,9 +184,9 @@ std::vector<Candidate> list_candidates(TurnId turn) {
     const micras::nav::TurnPrimitive& primitive = micras::nav::get_primitive(turn);
     const double                      half_cell = micras::robot_model.maze.cell_size / 2.0;
     const Frame                       frame{
-                              .entry = primitive.diagonal_entry ? std::numbers::pi / 4.0 : 0.0,
-                              .exit_x = primitive.exit.x * half_cell,
-                              .exit_y = primitive.exit.y * half_cell,
+        .entry = primitive.diagonal_entry ? std::numbers::pi / 4.0 : 0.0,
+        .exit_x = primitive.exit.x * half_cell,
+        .exit_y = primitive.exit.y * half_cell,
     };
 
     std::vector<double> totals{primitive.rotation * 45.0};
