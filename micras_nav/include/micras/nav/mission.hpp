@@ -191,6 +191,14 @@ public:
     Status update(const Measurements& measurements, Localizer& localizer, float elapsed_time, float time_scale);
 
     /**
+     * @brief Stop the run as soon as the robot can, braking along the path it is following.
+     *
+     * @note Only the motion changes: the map keeps what was seen on the way, and the run finishes
+     * once the robot has stood still for the stop time.
+     */
+    void brake();
+
+    /**
      * @brief Get what the robot should be doing at this instant.
      *
      * @return The reference in the maze frame.

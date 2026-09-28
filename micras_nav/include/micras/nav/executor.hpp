@@ -114,6 +114,26 @@ public:
     void divert(std::span<const Segment> segments);
 
     /**
+     * @brief Bring the robot to rest as soon as the limits allow, along the path it is following,
+     * and stand still there.
+     *
+     * @details Every segment from the one in progress on is braked as hard as its limits allow, from
+     * the speed the one before it ended at, until the robot is at rest, and whatever was queued
+     * after that point is dropped for a stop of the rest time. A straight or a rotation in place is
+     * braked along its axis; a turn or the racing line along its own curve, with what its bending
+     * leaves of the grip. The robot stays on the path it was given, which is clear of the walls, for
+     * as long as there is path: when the segments queued end before it is at rest, it goes on
+     * braking along a straight from where they end. A robot standing still stands where it is.
+     *
+     * @note Driving slower than planned never needs more grip than the plan did, so the braking
+     * reaches every point of the path at or below its planned speed, and a stop that was planned is
+     * reached at rest or sooner.
+     *
+     * @param rest_time Time to stand still once at rest, in seconds.
+     */
+    void brake(float rest_time);
+
+    /**
      * @brief Get the segment in progress.
      *
      * @return The segment, or a null pointer if every segment has ended.
@@ -134,11 +154,69 @@ private:
     void start_next();
 
     /**
-     * @brief Evaluate the segment in progress at the current clock.
+     * @brief Queue one segment after the others, timing it, without starting anything.
      *
+     * @param segment The segment, with its speeds already planned.
+     */
+    void append(const Segment& segment);
+
+    /**
+     * @brief Evaluate the segment in progress at an instant.
+     *
+     * @param time Time since the start of the segment.
      * @return The reference in the maze frame.
      */
-    Reference evaluate() const;
+    Reference evaluate(float time) const;
+
+    /**
+     * @brief Start the segment in progress braked, from the speed the braking has reached.
+     */
+    void start_braked();
+
+    /**
+     * @brief Brake along the straight in progress, whose length is what is left of it.
+     */
+    void brake_straight();
+
+    /**
+     * @brief Brake along the turn or the racing line in progress, from a point of it.
+     *
+     * @param start_distance The distance along the curve the braking starts at.
+     */
+    void brake_curve(float start_distance);
+
+    /**
+     * @brief Brake the rotation in place in progress, whose angle is what is left of it.
+     */
+    void brake_spin();
+
+    /**
+     * @brief Replace the segment in progress and everything after it by a stop of the rest time.
+     *
+     * @param pose The pose to stand at.
+     */
+    void come_to_rest(const Pose& pose);
+
+    /**
+     * @brief Drop everything after the segment in progress, which ends at rest, for a stop there.
+     */
+    void rest_after_current();
+
+    /**
+     * @brief Queue the straight that goes on braking from where the segment in progress ends, if
+     * it is the last one queued.
+     *
+     * @param direction The sign of the length of the straight, negative to drive it backwards.
+     */
+    void continue_braking(float direction);
+
+    /**
+     * @brief Make the stop the robot stands still with once at rest.
+     *
+     * @param pose The pose to stand at.
+     * @return The segment.
+     */
+    Segment make_rest(const Pose& pose) const;
 
     /**
      * @brief Check if the robot has settled at the reference.
@@ -220,6 +298,32 @@ private:
      * @brief Last reference produced, which is held when there is nothing to execute.
      */
     Reference reference{};
+
+    /**
+     * @brief Speed under which a braking is taken to be at rest, in m/s.
+     */
+    static constexpr float rest_speed{1.0e-3F};
+
+    /**
+     * @brief Distance by which a braking may run past the end of a straight and still end in it,
+     * in meters, which absorbs the rounding of the braking distance.
+     */
+    static constexpr float rest_tolerance{1.0e-4F};
+
+    /**
+     * @brief Whether every segment from the one in progress on is braked.
+     */
+    bool braking{};
+
+    /**
+     * @brief Time to stand still once a braking is at rest.
+     */
+    float rest_time{};
+
+    /**
+     * @brief Speed the braking has reached, which the next braked segment starts at.
+     */
+    float braking_speed{};
 };
 }  // namespace micras::nav
 

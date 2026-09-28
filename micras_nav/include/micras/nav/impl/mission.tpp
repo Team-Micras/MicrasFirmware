@@ -310,6 +310,15 @@ TMission<width, height>::Status TMission<width, height>::update(
 }
 
 template <uint8_t width, uint8_t height>
+void TMission<width, height>::brake() {
+    this->executor.brake(this->config.stop_time);
+    this->status = Status::RUNNING;
+    this->finishing = true;
+    this->watching_front = false;
+    this->at_center = false;
+}
+
+template <uint8_t width, uint8_t height>
 const Reference& TMission<width, height>::get_reference() const {
     return this->reference;
 }
