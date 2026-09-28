@@ -30,6 +30,7 @@ FetchContent_Declare(lsm6dsv
     URL      "https://github.com/STMicroelectronics/lsm6dsv-pid/archive/6ede05a3fde7eae80bc1b47affc08257191c1aba.tar.gz"
     URL_HASH "SHA256=bed616e902886809054b34ed25d5af0624542f00ef9bb2e171fe9c525844d064"
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+    SYSTEM
 )
 FetchContent_MakeAvailable(lsm6dsv)
 
@@ -104,12 +105,10 @@ target_include_directories(micras_sim_micras PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}
 target_include_directories(micras_sim_micras PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/generated")
 target_link_libraries(micras_sim_micras PUBLIC micras_firmware micras::hal_host_models micras::sim_app)
 target_compile_definitions(micras_sim_micras PRIVATE MICRAS_TARGET_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
-target_compile_options(micras_sim_micras PRIVATE -Wall -Wextra)
 add_dependencies(micras_sim_micras micras_firmware_sha)
 
 add_executable(micras_sim src/main.cpp)
 target_link_libraries(micras_sim PRIVATE micras_sim_micras)
-target_compile_options(micras_sim PRIVATE -Wall -Wextra)
 
 ###############################################################################
 ## Tests
@@ -133,3 +132,7 @@ target_link_libraries(micras_turn_designer PRIVATE micras_firmware)
 add_executable(micras_robot_report tools/robot_report.cpp)
 target_link_libraries(micras_robot_report PRIVATE micras_sim_micras)
 target_compile_definitions(micras_robot_report PRIVATE MICRAS_TARGET_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
+
+micras_apply_warnings(micras_firmware micras_sim_micras micras_sim micras_wall_calibration micras_turn_designer
+    micras_robot_report WERROR ${MICRAS_SIM_WERROR}
+)

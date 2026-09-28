@@ -132,7 +132,10 @@ double relative_speed(const TurnBend& bend) {
     const double lateral = micras::robot_model.traction_acceleration(true);
     const double angular = micras::robot_model.traction_angular_acceleration(true);
 
-    return std::min(std::sqrt(1.0 / bend.curvature), std::sqrt(angular / lateral / bend.sharpness));
+    return std::min(
+        std::sqrt(1.0 / static_cast<double>(bend.curvature)),
+        std::sqrt(angular / lateral / static_cast<double>(bend.sharpness))
+    );
 }
 
 /**
@@ -148,8 +151,8 @@ void add_closures(const Frame& frame, TwoBendDesign design, std::vector<Candidat
     const auto     first_end = first.sample<double>(1.0e3);
     const auto     second_end = second.sample<double>(1.0e3);
 
-    const double middle = frame.entry + first.angle;
-    const double last = middle + second.angle;
+    const double middle = frame.entry + static_cast<double>(first.angle);
+    const double last = middle + static_cast<double>(second.angle);
     const double determinant = std::sin(static_cast<double>(second.angle));
     const double speed = std::min(relative_speed(first), relative_speed(second));
     const double curve = first.length() + second.length();
@@ -182,7 +185,7 @@ void add_closures(const Frame& frame, TwoBendDesign design, std::vector<Candidat
  */
 std::vector<Candidate> list_candidates(TurnId turn) {
     const micras::nav::TurnPrimitive& primitive = micras::nav::get_primitive(turn);
-    const double                      half_cell = micras::robot_model.maze.cell_size / 2.0;
+    const double                      half_cell = static_cast<double>(micras::robot_model.maze.cell_size) / 2.0;
     const Frame                       frame{
         .entry = primitive.diagonal_entry ? std::numbers::pi / 4.0 : 0.0,
         .exit_x = primitive.exit.x * half_cell,
@@ -250,7 +253,7 @@ Result design(TurnId turn, float margin) {
                 std::sqrt(micras::robot_model.traction_acceleration(true) / shape.curvature),
                 std::sqrt(micras::robot_model.traction_angular_acceleration(true) / shape.sharpness)
             );
-            result.time = shape.total_length() / result.speed;
+            result.time = static_cast<double>(shape.total_length()) / result.speed;
             break;
         }
     }
@@ -324,9 +327,10 @@ void report(float margin, const std::vector<Result>& results) {
 
         std::cerr << std::format(
             "  {:7} {:4.0f}/{:4.0f} deg  R {:3.0f}/{:3.0f} mm  pre {:3.0f} mm  {:.2f} m/s  {:.3f} s  ({} tried)\n",
-            names.at(i), found.first_angle * 180.0 / std::numbers::pi, found.second_angle * 180.0 / std::numbers::pi,
-            1000.0 / found.first_curvature, 1000.0 / found.second_curvature, 1000.0 * found.pre, result.speed,
-            result.time, result.tried
+            names.at(i), static_cast<double>(found.first_angle) * 180.0 / std::numbers::pi,
+            static_cast<double>(found.second_angle) * 180.0 / std::numbers::pi,
+            1000.0 / static_cast<double>(found.first_curvature), 1000.0 / static_cast<double>(found.second_curvature),
+            1000.0 * static_cast<double>(found.pre), result.speed, result.time, result.tried
         );
     }
 }

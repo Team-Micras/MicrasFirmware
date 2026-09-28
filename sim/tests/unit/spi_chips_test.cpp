@@ -93,12 +93,28 @@ TEST_CASE_FIXTURE(SpiChips, "SpiChips.ReadsASampleOneUpdateAfterTheUpdateThatAsk
     imu.update();
 
     REQUIRE(imu.is_new());
-    CHECK_LE(std::abs(imu.get_angular_velocity(proxy::Imu::Axis::X) - 0.1), chip.gyroscope_sensitivity());
-    CHECK_LE(std::abs(imu.get_angular_velocity(proxy::Imu::Axis::Y) - (-0.2)), chip.gyroscope_sensitivity());
-    CHECK_LE(std::abs(imu.get_angular_velocity(proxy::Imu::Axis::Z) - 3.0), chip.gyroscope_sensitivity());
-    CHECK_LE(std::abs(imu.get_linear_acceleration(proxy::Imu::Axis::X) - 1.0), chip.accelerometer_sensitivity());
-    CHECK_LE(std::abs(imu.get_linear_acceleration(proxy::Imu::Axis::Y) - (-2.0)), chip.accelerometer_sensitivity());
-    CHECK_LE(std::abs(imu.get_linear_acceleration(proxy::Imu::Axis::Z) - 9.80665), chip.accelerometer_sensitivity());
+    CHECK_LE(
+        std::abs(static_cast<double>(imu.get_angular_velocity(proxy::Imu::Axis::X)) - 0.1), chip.gyroscope_sensitivity()
+    );
+    CHECK_LE(
+        std::abs(static_cast<double>(imu.get_angular_velocity(proxy::Imu::Axis::Y)) - (-0.2)),
+        chip.gyroscope_sensitivity()
+    );
+    CHECK_LE(
+        std::abs(static_cast<double>(imu.get_angular_velocity(proxy::Imu::Axis::Z)) - 3.0), chip.gyroscope_sensitivity()
+    );
+    CHECK_LE(
+        std::abs(static_cast<double>(imu.get_linear_acceleration(proxy::Imu::Axis::X)) - 1.0),
+        chip.accelerometer_sensitivity()
+    );
+    CHECK_LE(
+        std::abs(static_cast<double>(imu.get_linear_acceleration(proxy::Imu::Axis::Y)) - (-2.0)),
+        chip.accelerometer_sensitivity()
+    );
+    CHECK_LE(
+        std::abs(static_cast<double>(imu.get_linear_acceleration(proxy::Imu::Axis::Z)) - 9.80665),
+        chip.accelerometer_sensitivity()
+    );
 
     wait_us(125);
     imu.update();
@@ -121,10 +137,21 @@ TEST_CASE_FIXTURE(SpiChips, "SpiChips.ReadsTheSameMotionAtAnotherFullScale") {
 
     REQUIRE(imu.is_new());
     CHECK_EQ(chip.peek(LSM6DSV_CTRL6) & 0x0F, LSM6DSV_250dps);
-    CHECK_LE(std::abs(imu.get_angular_velocity(proxy::Imu::Axis::X) - 0.5), chip.gyroscope_sensitivity());
-    CHECK_LE(std::abs(imu.get_angular_velocity(proxy::Imu::Axis::Z) - (-1.5)), chip.gyroscope_sensitivity());
-    CHECK_LE(std::abs(imu.get_linear_acceleration(proxy::Imu::Axis::Y) - 3.0), chip.accelerometer_sensitivity());
-    CHECK_LE(std::abs(imu.get_linear_acceleration(proxy::Imu::Axis::Z) - 9.80665), chip.accelerometer_sensitivity());
+    CHECK_LE(
+        std::abs(static_cast<double>(imu.get_angular_velocity(proxy::Imu::Axis::X)) - 0.5), chip.gyroscope_sensitivity()
+    );
+    CHECK_LE(
+        std::abs(static_cast<double>(imu.get_angular_velocity(proxy::Imu::Axis::Z)) - (-1.5)),
+        chip.gyroscope_sensitivity()
+    );
+    CHECK_LE(
+        std::abs(static_cast<double>(imu.get_linear_acceleration(proxy::Imu::Axis::Y)) - 3.0),
+        chip.accelerometer_sensitivity()
+    );
+    CHECK_LE(
+        std::abs(static_cast<double>(imu.get_linear_acceleration(proxy::Imu::Axis::Z)) - 9.80665),
+        chip.accelerometer_sensitivity()
+    );
 }
 
 TEST_CASE_FIXTURE(SpiChips, "SpiChips.FailsTheImuWithoutItsChip") {

@@ -10,6 +10,6 @@ add_executable(micras_target_tests
 )
 
 target_link_libraries(micras_target_tests PRIVATE micras_sim_micras doctest::doctest_with_main)
-target_compile_options(micras_target_tests PRIVATE -Wall -Wextra)
+micras_apply_warnings(micras_target_tests WERROR ${MICRAS_SIM_WERROR})
 
 doctest_discover_tests(micras_target_tests)

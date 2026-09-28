@@ -163,7 +163,8 @@ Sample sample(const RobotDescription& robot, std::string_view drawing, double ac
  */
 double firmware_shape(double distance) {
     const auto&  config = micras::wall_sensors_config;
-    const double angle = std::atan(config.receiver_offset / distance) / config.receiver_half_angle;
+    const double angle = std::atan(static_cast<double>(config.receiver_offset) / distance) /
+                         static_cast<double>(config.receiver_half_angle);
     return std::exp2(-angle * angle) / (distance * distance);
 }
 
@@ -180,10 +181,11 @@ double firmware_shape(double distance) {
 double firmware_distance(std::size_t sensor, double reading) {
     const auto&  config = micras::wall_sensors_config;
     const double reference = config.reference_distances.at(sensor);
-    const double target = reading / config.reference_readings.at(sensor) * firmware_shape(reference);
-    double       low = 0.001;
+    const double target =
+        reading / static_cast<double>(config.reference_readings.at(sensor)) * firmware_shape(reference);
+    double low = 0.001;
 
-    while (low < config.max_distance and firmware_shape(low + 0.001) > firmware_shape(low)) {
+    while (low < static_cast<double>(config.max_distance) and firmware_shape(low + 0.001) > firmware_shape(low)) {
         low += 0.001;
     }
 

@@ -170,8 +170,10 @@ MicrasBoard bind_devices(RunContext& context, const WorldInfo& world, MicrasChip
                              [&chip = chips.imu, gyro = imu.gyro_resolution,
                               accel = imu.accel_resolution](std::span<const float> sample) {
                                  chip.push_sample(
-                                     {sample[0] * gyro, sample[1] * gyro, sample[2] * gyro},
-                                     {sample[3] * accel, sample[4] * accel, sample[5] * accel}
+                                     {static_cast<double>(sample[0]) * gyro, static_cast<double>(sample[1]) * gyro,
+                                      static_cast<double>(sample[2]) * gyro},
+                                     {static_cast<double>(sample[3]) * accel, static_cast<double>(sample[4]) * accel,
+                                      static_cast<double>(sample[5]) * accel}
                                  );
                              },
                      },
@@ -186,7 +188,7 @@ MicrasBoard bind_devices(RunContext& context, const WorldInfo& world, MicrasChip
         emitters.at(sensor) = &pwm_port(wall_sensors_config.led_pwms.at(sensor));
     }
 
-    const double scan_period = 1.0 / (2.0 * wall_sensors_frequency);
+    const double scan_period = 1.0 / (2.0 * static_cast<double>(wall_sensors_frequency));
 
     board.wall_sensors = add(
         context,
