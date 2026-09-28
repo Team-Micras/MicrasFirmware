@@ -4,6 +4,7 @@
  * @brief Runs the Micras firmware, its own main, in the simulator.
  */
 
+#include <cstddef>
 #include <span>
 
 #include "micras/sim/app/application.hpp"

@@ -19,6 +19,7 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <exception>
 #include <format>
 #include <future>
 #include <iostream>
@@ -101,6 +102,7 @@ struct Result {
     double        time{};
     std::size_t   tried{};
 };
+}  // namespace
 
 /**
  * @brief Convert degrees to radians.
@@ -108,7 +110,7 @@ struct Result {
  * @param degrees The angle in degrees.
  * @return The angle in radians.
  */
-double to_radians(double degrees) {
+static double to_radians(double degrees) {
     return degrees * std::numbers::pi / 180.0;
 }
 
@@ -118,7 +120,7 @@ double to_radians(double degrees) {
  * @param index The index of the radius.
  * @return The curvature in 1/m.
  */
-double curvature_of(int index) {
+static double curvature_of(int index) {
     return 1.0 / (min_radius * std::pow(max_radius / min_radius, index / (number_of_radii - 1.0)));
 }
 
@@ -128,9 +130,9 @@ double curvature_of(int index) {
  * @param bend The bend.
  * @return The speed with a lateral acceleration of 1 m/s^2 and the matching angular one.
  */
-double relative_speed(const TurnBend& bend) {
-    const double lateral = micras::robot_model.traction_acceleration(true);
-    const double angular = micras::robot_model.traction_angular_acceleration(true);
+static double relative_speed(const TurnBend& bend) {
+    const auto lateral = static_cast<double>(micras::robot_model.traction_acceleration(true));
+    const auto angular = static_cast<double>(micras::robot_model.traction_angular_acceleration(true));
 
     return std::min(
         std::sqrt(1.0 / static_cast<double>(bend.curvature)),
@@ -145,17 +147,21 @@ double relative_speed(const TurnBend& bend) {
  * @param design The bends, whose straight before them is filled in.
  * @param candidates The list to add to.
  */
-void add_closures(const Frame& frame, TwoBendDesign design, std::vector<Candidate>& candidates) {
-    const TurnBend first = TurnTable::make_bend(micras::robot_model, design.first_angle, design.first_curvature);
-    const TurnBend second = TurnTable::make_bend(micras::robot_model, design.second_angle, design.second_curvature);
-    const auto     first_end = first.sample<double>(1.0e3);
-    const auto     second_end = second.sample<double>(1.0e3);
+static void add_closures(const Frame& frame, TwoBendDesign design, std::vector<Candidate>& candidates) {
+    const TurnBend first = TurnTable::make_bend(
+        micras::robot_model, static_cast<double>(design.first_angle), static_cast<double>(design.first_curvature)
+    );
+    const TurnBend second = TurnTable::make_bend(
+        micras::robot_model, static_cast<double>(design.second_angle), static_cast<double>(design.second_curvature)
+    );
+    const auto first_end = first.sample<double>(1.0e3);
+    const auto second_end = second.sample<double>(1.0e3);
 
     const double middle = frame.entry + static_cast<double>(first.angle);
     const double last = middle + static_cast<double>(second.angle);
     const double determinant = std::sin(static_cast<double>(second.angle));
     const double speed = std::min(relative_speed(first), relative_speed(second));
-    const double curve = first.length() + second.length();
+    const auto   curve = static_cast<double>(first.length() + second.length());
 
     const double bends_x = std::cos(frame.entry) * first_end.x - std::sin(frame.entry) * first_end.y +
                            std::cos(middle) * second_end.x - std::sin(middle) * second_end.y;
@@ -183,9 +189,9 @@ void add_closures(const Frame& frame, TwoBendDesign design, std::vector<Candidat
  * @param turn The turn.
  * @return The designs, with the time each takes.
  */
-std::vector<Candidate> list_candidates(TurnId turn) {
+static std::vector<Candidate> list_candidates(TurnId turn) {
     const micras::nav::TurnPrimitive& primitive = micras::nav::get_primitive(turn);
-    const double                      half_cell = static_cast<double>(micras::robot_model.maze.cell_size) / 2.0;
+    const auto                        half_cell = static_cast<double>(micras::robot_model.maze.cell_size) / 2.0;
     const Frame                       frame{
         .entry = primitive.diagonal_entry ? std::numbers::pi / 4.0 : 0.0,
         .exit_x = primitive.exit.x * half_cell,
@@ -239,7 +245,7 @@ std::vector<Candidate> list_candidates(TurnId turn) {
  * @param margin The clearance asked of the turn.
  * @return The design, with no curvature if nothing on the grid fits.
  */
-Result design(TurnId turn, float margin) {
+static Result design(TurnId turn, float margin) {
     Result result{};
 
     for (const Candidate& candidate : list_candidates(turn)) {
@@ -249,10 +255,10 @@ Result design(TurnId turn, float margin) {
 
         if (shape.valid) {
             result.design = candidate.design;
-            result.speed = std::min(
+            result.speed = static_cast<double>(std::min(
                 std::sqrt(micras::robot_model.traction_acceleration(true) / shape.curvature),
                 std::sqrt(micras::robot_model.traction_angular_acceleration(true) / shape.sharpness)
-            );
+            ));
             result.time = static_cast<double>(shape.total_length()) / result.speed;
             break;
         }
@@ -267,7 +273,7 @@ Result design(TurnId turn, float margin) {
  * @param value The number.
  * @return The literal, with enough digits to read back the same float.
  */
-std::string literal(float value) {
+static std::string literal(float value) {
     std::string text = std::format("{:.9g}", value);
 
     if (text.find_first_of(".e") == std::string::npos) {
@@ -285,7 +291,7 @@ std::string literal(float value) {
  * @param results What was found for each turn.
  * @return The declaration.
  */
-std::string to_array(const char* name, float margin, const std::vector<Result>& results) {
+static std::string to_array(const char* name, float margin, const std::vector<Result>& results) {
     std::string text = std::format(
         "/**\n * @brief Designs of the turns of two bends, from nav::first_two_bend_turn on, with a margin of {:.0f} "
         "mm.\n"
@@ -313,7 +319,7 @@ std::string to_array(const char* name, float margin, const std::vector<Result>& 
  * @param margin The margin.
  * @param results What was found for each turn.
  */
-void report(float margin, const std::vector<Result>& results) {
+static void report(float margin, const std::vector<Result>& results) {
     std::cerr << std::format("margin {:.0f} mm, speed with the fan at full traction\n", 1000.0F * margin);
 
     for (std::size_t i = 0; i < results.size(); i++) {
@@ -334,9 +340,13 @@ void report(float margin, const std::vector<Result>& results) {
         );
     }
 }
-}  // namespace
 
-int main() {
+/**
+ * @brief Design every turn of two bends and print the firmware's header.
+ *
+ * @return The exit status.
+ */
+static int run() {
     const std::array<float, 2> margins{micras::turn_margin, micras::risky_turn_margin};
 
     std::vector<std::future<Result>> futures;
@@ -375,4 +385,13 @@ int main() {
               << "}  // namespace micras\n\n#endif  // MICRAS_TWO_BEND_TURNS_HPP\n";
 
     return 0;
+}
+
+int main() {
+    try {
+        return run();
+    } catch (const std::exception& error) {
+        std::cerr << error.what() << '\n';
+        return 1;
+    }
 }

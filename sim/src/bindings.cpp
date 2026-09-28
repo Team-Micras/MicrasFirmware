@@ -2,20 +2,47 @@
  * @file
  */
 
+#include <array>
 #include <cmath>
+#include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <optional>
+#include <span>
+#include <string>
 #include <utility>
 
 #include "constants.hpp"
+#include "micras/hal/gpio.hpp"
 #include "micras/hal/host/board.hpp"
+#include "micras/hal/host/ports.hpp"
+#include "micras/hal/host/spi_device.hpp"
+#include "micras/hal/pwm.hpp"
+#include "micras/hal/spi.hpp"
+#include "micras/models/as5047u_model.hpp"
+#include "micras/proxy/button.hpp"
+#include "micras/proxy/motor.hpp"
+#include "micras/proxy/rotary_sensor.hpp"
+#include "micras/sim/app/wiring.hpp"
+#include "micras/sim/core/run_context.hpp"
+#include "micras/sim/core/span_at.hpp"
+#include "micras/sim/devices/dc_motor.hpp"
+#include "micras/sim/devices/digital_input.hpp"
+#include "micras/sim/devices/imu.hpp"
+#include "micras/sim/devices/power.hpp"
+#include "micras/sim/devices/quadrature_encoder.hpp"
+#include "micras/sim/devices/serial_link.hpp"
+#include "micras/sim/devices/wall_sensors.hpp"
 #include "micras/sim/micras/bindings.hpp"
+#include "micras/sim/micras/micras_target.hpp"
+#include "micras/sim/robot/robot_description.hpp"
 #include "micras/sim/robot/robot_model.hpp"
 #include "target.hpp"
 
 namespace micras::sim {
 namespace {
 using hal::host::Board;
+}  // namespace
 
 /**
  * @brief Add a device to the run and keep a view of it.
@@ -25,7 +52,7 @@ using hal::host::Board;
  * @return The view.
  */
 template <typename T>
-T* add(RunContext& context, std::unique_ptr<T> device) {
+static T* add(RunContext& context, std::unique_ptr<T> device) {
     T* view = device.get();
     context.devices.push_back(std::move(device));
     return view;
@@ -37,7 +64,7 @@ T* add(RunContext& context, std::unique_ptr<T> device) {
  * @param config The firmware's configuration of the channel.
  * @return The port.
  */
-hal::host::PwmPort& pwm_port(const hal::Pwm::Config& config) {
+static hal::host::PwmPort& pwm_port(const hal::Pwm::Config& config) {
     hal::host::PwmPort& port = Board::pwm(config.handle, config.timer_channel);
     port.bound = true;
     return port;
@@ -49,7 +76,7 @@ hal::host::PwmPort& pwm_port(const hal::Pwm::Config& config) {
  * @param config The firmware's configuration of the pin.
  * @return The port.
  */
-hal::host::GpioPort& gpio_port(const hal::Gpio::Config& config) {
+static hal::host::GpioPort& gpio_port(const hal::Gpio::Config& config) {
     hal::host::GpioPort& port = Board::gpio(config.port, config.pin);
     port.bound = true;
     return port;
@@ -64,7 +91,7 @@ hal::host::GpioPort& gpio_port(const hal::Gpio::Config& config) {
  * @param side "left" or "right".
  * @return The motor.
  */
-DcMotor* bind_motor(
+static DcMotor* bind_motor(
     RunContext& context, const WorldInfo& world, const proxy::Motor::Config& motor, const std::string& side
 ) {
     const RobotModelNames names = RobotModelNames::of(*world.robot);
@@ -93,7 +120,7 @@ DcMotor* bind_motor(
  * @param spi The firmware's configuration of the chip's SPI.
  * @param chip The chip.
  */
-void attach(const hal::Spi::Config& spi, hal::host::SpiDevice& chip) {
+static void attach(const hal::Spi::Config& spi, hal::host::SpiDevice& chip) {
     Board::spi_device(spi.handle, spi.cs_gpio.port, spi.cs_gpio.pin, chip);
 }
 
@@ -106,7 +133,7 @@ void attach(const hal::Spi::Config& spi, hal::host::SpiDevice& chip) {
  * @param chip The rotary sensor's chip.
  * @param side "left" or "right".
  */
-void bind_encoder(
+static void bind_encoder(
     RunContext& context, const WorldInfo& world, const proxy::RotarySensor::Config& sensor, models::As5047uModel& chip,
     const std::string& side
 ) {
@@ -134,7 +161,8 @@ void bind_encoder(
  * @param active_low Whether pressed, or on, reads low.
  * @return The input.
  */
-DigitalInput* bind_input(RunContext& context, const std::string& name, const hal::Gpio::Config& gpio, bool active_low) {
+static DigitalInput*
+    bind_input(RunContext& context, const std::string& name, const hal::Gpio::Config& gpio, bool active_low) {
     hal::host::GpioPort& port = gpio_port(gpio);
 
     return add(
@@ -145,7 +173,6 @@ DigitalInput* bind_input(RunContext& context, const std::string& name, const hal
                  })
     );
 }
-}  // namespace
 
 MicrasBoard bind_devices(RunContext& context, const WorldInfo& world, MicrasChips& chips) {
     const RobotModelNames names = RobotModelNames::of(*world.robot);
@@ -159,26 +186,27 @@ MicrasBoard bind_devices(RunContext& context, const WorldInfo& world, MicrasChip
     attach(imu_config.spi, chips.imu);
     const ImuDescription& imu = world.robot->imu;
 
-    add(context, std::make_unique<Imu>(
-                     context.world,
-                     Imu::Config{
-                         .name = "lsm6dsv",
-                         .gyro = names.gyro,
-                         .accelerometer = names.accelerometer,
-                         .description = imu,
-                         .write =
-                             [&chip = chips.imu, gyro = imu.gyro_resolution,
-                              accel = imu.accel_resolution](std::span<const float> sample) {
-                                 chip.push_sample(
-                                     {static_cast<double>(sample[0]) * gyro, static_cast<double>(sample[1]) * gyro,
-                                      static_cast<double>(sample[2]) * gyro},
-                                     {static_cast<double>(sample[3]) * accel, static_cast<double>(sample[4]) * accel,
-                                      static_cast<double>(sample[5]) * accel}
-                                 );
-                             },
-                     },
-                     context.noise
-                 ));
+    add(context,
+        std::make_unique<Imu>(
+            context.world,
+            Imu::Config{
+                .name = "lsm6dsv",
+                .gyro = names.gyro,
+                .accelerometer = names.accelerometer,
+                .description = imu,
+                .write =
+                    [&chip = chips.imu, gyro = imu.gyro_resolution,
+                     accel = imu.accel_resolution](std::span<const float> sample) {
+                        chip.push_sample(
+                            {static_cast<double>(at(sample, 0)) * gyro, static_cast<double>(at(sample, 1)) * gyro,
+                             static_cast<double>(at(sample, 2)) * gyro},
+                            {static_cast<double>(at(sample, 3)) * accel, static_cast<double>(at(sample, 4)) * accel,
+                             static_cast<double>(at(sample, 5)) * accel}
+                        );
+                    },
+            },
+            context.noise
+        ));
 
     hal::host::AdcPort& wall_adc = Board::adc(wall_sensors_config.adc.handle);
     wall_adc.bound = true;
@@ -214,8 +242,8 @@ MicrasBoard bind_devices(RunContext& context, const WorldInfo& world, MicrasChip
                          Battery::Config{
                              .name = "pack",
                              .description = world.robot->battery,
-                             .divider = battery_config.voltage_divider,
-                             .adc_reference = battery_config.adc.reference_voltage,
+                             .divider = static_cast<double>(battery_config.voltage_divider),
+                             .adc_reference = static_cast<double>(battery_config.adc.reference_voltage),
                              .adc_max_counts = static_cast<double>(battery_config.adc.max_reading),
                              .adc_noise_counts = 1.0,
                              .write = [&battery_adc](uint32_t counts) { battery_adc.write(0, counts); },
@@ -225,7 +253,7 @@ MicrasBoard bind_devices(RunContext& context, const WorldInfo& world, MicrasChip
 
     hal::host::PwmPort&  fan_pwm = pwm_port(fan_config.pwm);
     hal::host::GpioPort& fan_enable = gpio_port(fan_config.enable_gpio);
-    Battery*             battery = board.battery;
+    const Battery*       battery = board.battery;
     board.fan =
         add(context, std::make_unique<Fan>(
                          context.world, Fan::Config{
@@ -240,15 +268,17 @@ MicrasBoard bind_devices(RunContext& context, const WorldInfo& world, MicrasChip
 
     hal::host::AdcPort& torque_adc = Board::adc(torque_sensors_config.adc.handle);
     torque_adc.bound = true;
-    DcMotor* left = board.left_motor;
-    DcMotor* right = board.right_motor;
+    const DcMotor* left = board.left_motor;
+    const DcMotor* right = board.right_motor;
     add(context,
         std::make_unique<CurrentSense>(
             CurrentSense::Config{
                 .currents = {[left] { return left->current(); }, [right] { return right->current(); }},
-                .zero_voltage = torque_sensors_config.zero_reading * torque_sensors_config.adc.reference_voltage,
-                .volts_per_amp = torque_sensors_config.shunt_resistor,
-                .adc_reference = torque_sensors_config.adc.reference_voltage,
+                .zero_voltage = static_cast<double>(
+                    torque_sensors_config.zero_reading * torque_sensors_config.adc.reference_voltage
+                ),
+                .volts_per_amp = static_cast<double>(torque_sensors_config.shunt_resistor),
+                .adc_reference = static_cast<double>(torque_sensors_config.adc.reference_voltage),
                 .adc_max_counts = static_cast<double>(torque_sensors_config.adc.max_reading),
                 .adc_noise_counts = 4.0,
                 .write = [&torque_adc](std::size_t index, uint32_t counts) { torque_adc.write(index, counts); },

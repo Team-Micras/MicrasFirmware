@@ -4,22 +4,29 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <cstdint>
 #include <cstring>
 #include <limits>
+#include <optional>
+#include <span>
 #include <stdexcept>
+#include <string>
+#include <vector>
 
+#include "micras/core/variable_pool.hpp"
 #include "micras/micras.hpp"
+#include "micras/sim/core/span_at.hpp"
 #include "micras/sim/micras/pool_variables.hpp"
+#include "micras/sim/recording/csv_writer.hpp"
 
 namespace micras::sim {
-namespace {
 /**
  * @brief Read a registered variable as a number.
  *
  * @param variable The variable.
  * @return Its value.
  */
-double read(const core::Variable& variable) {
+static double read(const core::Variable& variable) {
     const auto load = [&variable]<typename T>(T) {
         T value{};
         std::memcpy(&value, variable.address, sizeof(value));
@@ -62,7 +69,7 @@ double read(const core::Variable& variable) {
  * @param variable The variable.
  * @return Its prefix and name.
  */
-std::string full_name(const core::Variable& variable) {
+static std::string full_name(const core::Variable& variable) {
     return std::string{variable.prefix} + std::string{variable.name};
 }
 
@@ -71,7 +78,7 @@ std::string full_name(const core::Variable& variable) {
  *
  * @return The robot.
  */
-const Micras& robot() {
+static const Micras& robot() {
     const Micras* micras = Micras::get_instance();
 
     if (micras == nullptr) {
@@ -80,7 +87,6 @@ const Micras& robot() {
 
     return *micras;
 }
-}  // namespace
 
 bool PoolVariables::ready() const {
     return Micras::get_instance() != nullptr;
@@ -93,7 +99,7 @@ std::vector<std::string> PoolVariables::names() {
     const std::span<const core::Variable> variables = robot().get_variables().all();
 
     for (std::size_t index = 0; index < variables.size(); index++) {
-        const core::Variable& variable = variables[index];
+        const core::Variable& variable = at(variables, index);
 
         if (variable.type == core::TypeCode::BLOB) {
             continue;

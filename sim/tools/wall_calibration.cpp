@@ -23,20 +23,23 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <exception>
 #include <filesystem>
 #include <format>
 #include <iostream>
 #include <numbers>
 #include <span>
-#include <string>
 #include <string_view>
 #include <vector>
 
+#include <mujoco/mjtype.h>
+#include <mujoco/mjvisualize.h>
 #include <mujoco/mujoco.h>
 
 #include "micras/sim/arenas/maze.hpp"
 #include "micras/sim/core/clock.hpp"
 #include "micras/sim/core/mujoco_world.hpp"
+#include "micras/sim/core/span_at.hpp"
 #include "micras/sim/devices/wall_sensors.hpp"
 #include "micras/sim/robot/robot_description.hpp"
 #include "micras/sim/robot/robot_model.hpp"
@@ -81,6 +84,7 @@ struct Sample {
     std::vector<double> readings;
     std::vector<double> ranges;
 };
+}  // namespace
 
 /**
  * @brief Read every sensor with its own emitter lit, robot in the middle cell facing up.
@@ -91,7 +95,7 @@ struct Sample {
  * @param along How far ahead of the cell centre the robot is, in metres.
  * @return Each sensor's lit minus dark reading, as the firmware normalises it, and its axis range.
  */
-Sample sample(const RobotDescription& robot, std::string_view drawing, double across = 0.0, double along = 0.0) {
+static Sample sample(const RobotDescription& robot, std::string_view drawing, double across = 0.0, double along = 0.0) {
     const MazeConfig config{};
     const Maze       maze = Maze::parse(drawing);
 
@@ -142,7 +146,9 @@ Sample sample(const RobotDescription& robot, std::string_view drawing, double ac
 
         const auto site = static_cast<std::size_t>(world.require_id(mjOBJ_SITE, description.name + "_emitter"));
         const std::span<const mjtNum> frame = site_frames.subspan(9 * site, 9);
-        const std::array<mjtNum, 3>   axis{frame[0], frame[3], frame[6]};
+        const std::array<mjtNum, 3>   axis{
+            micras::sim::at(frame, 0), micras::sim::at(frame, 3), micras::sim::at(frame, 6)
+        };
         std::array<mjtByte, mjNGROUP> groups{1, 1, 1, 1, 1, 1};
         groups.at(MujocoWorld::unseen_group) = 0;
         int geom = -1;
@@ -161,7 +167,7 @@ Sample sample(const RobotDescription& robot, std::string_view drawing, double ac
  * @param distance Distance to the wall in metres.
  * @return The shape of the reading.
  */
-double firmware_shape(double distance) {
+static double firmware_shape(double distance) {
     const auto&  config = micras::wall_sensors_config;
     const double angle = std::atan(static_cast<double>(config.receiver_offset) / distance) /
                          static_cast<double>(config.receiver_half_angle);
@@ -178,9 +184,9 @@ double firmware_shape(double distance) {
  * @param reading Normalised reading.
  * @return Distance in metres.
  */
-double firmware_distance(std::size_t sensor, double reading) {
+static double firmware_distance(std::size_t sensor, double reading) {
     const auto&  config = micras::wall_sensors_config;
-    const double reference = config.reference_distances.at(sensor);
+    const auto   reference = static_cast<double>(config.reference_distances.at(sensor));
     const double target =
         reading / static_cast<double>(config.reference_readings.at(sensor)) * firmware_shape(reference);
     double low = 0.001;
@@ -189,7 +195,7 @@ double firmware_distance(std::size_t sensor, double reading) {
         low += 0.001;
     }
 
-    double high = config.max_distance;
+    auto high = static_cast<double>(config.max_distance);
 
     if (firmware_shape(low) <= target) {
         return low;
@@ -212,7 +218,7 @@ double firmware_distance(std::size_t sensor, double reading) {
  *
  * @param robot The robot.
  */
-void sweep(const RobotDescription& robot) {
+static void sweep(const RobotDescription& robot) {
     std::cout << "front sensors, robot moved toward the wall ahead\n";
     std::cout << "  along_mm  sensor        range_mm  firmware_mm  error_mm\n";
 
@@ -257,13 +263,19 @@ void sweep(const RobotDescription& robot) {
         }
     }
 }
-}  // namespace
 
-int main(int argc, char** argv) {
+/**
+ * @brief Print each wall sensor's gain, or with --sweep the firmware's distances against the true ones.
+ *
+ * @param argc Number of arguments.
+ * @param argv The arguments.
+ * @return The exit status.
+ */
+static int run(int argc, char** argv) {
     const std::span<char*> arguments(argv, static_cast<std::size_t>(argc));
     const RobotDescription robot = RobotDescription::load(std::filesystem::path{MICRAS_TARGET_DIR} / "robot.toml");
 
-    if (arguments.size() > 1 and std::string_view{arguments[1]} == "--sweep") {
+    if (arguments.size() > 1 and std::string_view{micras::sim::at(arguments, 1)} == "--sweep") {
         sweep(robot);
         return 0;
     }
@@ -277,7 +289,7 @@ int main(int argc, char** argv) {
         const WallSensorDescription& description = robot.wall_sensors.sensors.at(sensor);
         const bool                   side = std::abs(std::sin(description.yaw)) > 0.1;
         const double                 simulated = side ? corridor.at(sensor) : facing.at(sensor);
-        const double                 reference = micras::wall_sensors_config.reference_readings.at(sensor);
+        const auto reference = static_cast<double>(micras::wall_sensors_config.reference_readings.at(sensor));
 
         std::cout << std::format(
             "{:12}  {:9}  {:9.4f}  {:9.4f}  {:.4f}\n", description.name, side ? "corridor" : "facing", simulated,
@@ -286,4 +298,13 @@ int main(int argc, char** argv) {
     }
 
     return 0;
+}
+
+int main(int argc, char** argv) {
+    try {
+        return run(argc, argv);
+    } catch (const std::exception& error) {
+        std::cerr << error.what() << '\n';
+        return 1;
+    }
 }

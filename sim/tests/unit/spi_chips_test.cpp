@@ -5,19 +5,23 @@
 #include <array>
 #include <cmath>
 #include <cstdint>
-#include <numbers>
 #include <vector>
 
 #include <doctest/doctest.h>
 
+#include "crc.h"
+#include "gpio.h"
 #include "micras/hal/crc.hpp"
 #include "micras/hal/host/board.hpp"
 #include "micras/hal/host/clock.hpp"
+#include "micras/hal/host/spi_device.hpp"
+#include "micras/hal/spi.hpp"
 #include "micras/hal/timer.hpp"
 #include "micras/models/as5047u_model.hpp"
 #include "micras/models/lsm6dsv_model.hpp"
 #include "micras/proxy/imu.hpp"
 #include "micras/proxy/rotary_sensor.hpp"
+#include "spi.h"
 #include "target.hpp"
 
 namespace micras::sim {

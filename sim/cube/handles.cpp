@@ -11,6 +11,8 @@
  *       is set, plus the handle states the drivers check before initialising.
  */
 
+#include <cstdint>
+
 #include <adc.h>
 #include <crc.h>
 #include <dma.h>
@@ -54,6 +56,7 @@ SPI_TypeDef spi3_registers{};
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 ///@}
+}  // namespace
 
 /**
  * @brief Configure a timer base, as HAL_TIM_Base_Init would.
@@ -65,7 +68,7 @@ SPI_TypeDef spi3_registers{};
  * @param counter_mode Counter mode.
  * @param period Autoreload value.
  */
-void init_timer(
+static void init_timer(
     TIM_HandleTypeDef& handle, TIM_TypeDef& registers, const char* name, uint32_t prescaler, uint32_t counter_mode,
     uint32_t period
 ) {
@@ -86,12 +89,11 @@ void init_timer(
  * @param name Name of the handle, for messages.
  * @param conversions Number of conversions in a sequence.
  */
-void init_adc(ADC_HandleTypeDef& handle, const char* name, uint32_t conversions) {
+static void init_adc(ADC_HandleTypeDef& handle, const char* name, uint32_t conversions) {
     handle.Init.NbrOfConversion = conversions;
     handle.State = HAL_ADC_STATE_READY;
     micras::hal::host::Board::name_handle(&handle, name);
 }
-}  // namespace
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables): the handles are globals in the generated code too.
 uint32_t SystemCoreClock{550000000};

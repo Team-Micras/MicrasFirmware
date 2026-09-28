@@ -2,7 +2,6 @@
  * @file
  */
 
-#include <array>
 #include <cmath>
 #include <cstdint>
 #include <string_view>
@@ -10,10 +9,12 @@
 
 #include <doctest/doctest.h>
 
+#include "constants.hpp"
 #include "micras/hal/crc.hpp"
 #include "micras/hal/gpio.hpp"
 #include "micras/hal/host/board.hpp"
 #include "micras/hal/host/clock.hpp"
+#include "micras/hal/host/ports.hpp"
 #include "micras/hal/pwm.hpp"
 #include "micras/hal/timer.hpp"
 #include "target.hpp"

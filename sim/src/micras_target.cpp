@@ -2,24 +2,39 @@
  * @file
  */
 
-#include <algorithm>
 #include <array>
 #include <bit>
+#include <cstddef>
+#include <cstdint>
+#include <filesystem>
 #include <format>
 #include <fstream>
 #include <iostream>
 #include <iterator>
-#include <stdexcept>
+#include <memory>
+#include <string>
 #include <string_view>
 #include <utility>
+#include <vector>
 
 #include "constants.hpp"
 #include "micras/comm/frame.hpp"
+#include "micras/comm/protocol.hpp"
 #include "micras/hal/host/board.hpp"
 #include "micras/hal/host/clock.hpp"
+#include "micras/hal/host/ports.hpp"
 #include "micras/micras.hpp"
+#include "micras/sim/app/wiring.hpp"
+#include "micras/sim/core/firmware_thread.hpp"
+#include "micras/sim/core/run_context.hpp"
 #include "micras/sim/micras/bindings.hpp"
 #include "micras/sim/micras/micras_target.hpp"
+#include "micras/sim/micras/pool_variables.hpp"
+#include "micras/sim/recording/ground_truth.hpp"
+#include "micras/sim/recording/run_metadata.hpp"
+#include "micras/sim/scenario/scenario.hpp"
+#include "micras/sim/view/panel_spec.hpp"
+#include "micras/states/base.hpp"
 #include "micras_firmware_sha.hpp"
 #include "target.hpp"
 
@@ -59,11 +74,6 @@ static_assert(
 );
 
 /**
- * @brief The names of the states, as the panel, the overlay and the scenarios take them.
- */
-const std::vector<std::string> state_names{state_name_table.begin(), state_name_table.end()};
-
-/**
  * @brief Link commands a scenario sends by name, with their codes in Micras::Command.
  */
 constexpr std::array<std::pair<const char*, Micras::Command>, 5> commands{{
@@ -73,6 +83,17 @@ constexpr std::array<std::pair<const char*, Micras::Command>, 5> commands{{
     {"save", Micras::Command::SAVE},
     {"reset", Micras::Command::RESET},
 }};
+}  // namespace
+
+/**
+ * @brief Get the names of the states, as the panel, the overlay and the scenarios take them.
+ *
+ * @return The names, in the order of State.
+ */
+static const std::vector<std::string>& state_names() {
+    static const std::vector<std::string> names{state_name_table.begin(), state_name_table.end()};
+    return names;
+}
 
 /**
  * @brief Encode a link command, as micras-monitor sends it.
@@ -80,7 +101,7 @@ constexpr std::array<std::pair<const char*, Micras::Command>, 5> commands{{
  * @param command The command.
  * @return The frame's bytes.
  */
-std::vector<uint8_t> command_frame(Micras::Command command) {
+static std::vector<uint8_t> command_frame(Micras::Command command) {
     std::array<uint8_t, 5> payload{};
     comm::Writer           writer{payload};
     writer.u8(std::to_underlying(command));
@@ -88,7 +109,7 @@ std::vector<uint8_t> command_frame(Micras::Command command) {
 
     std::array<uint8_t, comm::max_frame_size> frame{};
     const std::size_t size = comm::encode_frame(comm::MessageType::COMMAND, writer.done(), frame);
-    return {frame.begin(), frame.begin() + static_cast<std::ptrdiff_t>(size)};
+    return {frame.begin(), std::next(frame.begin(), static_cast<std::ptrdiff_t>(size))};
 }
 
 /**
@@ -98,7 +119,7 @@ std::vector<uint8_t> command_frame(Micras::Command command) {
  * @param count Number of LEDs.
  * @return Their colours, green-red-blue on the wire, as the panel shows them.
  */
-std::vector<Colour> decode_argb(const hal::host::PwmDmaPort& port, std::size_t count) {
+static std::vector<Colour> decode_argb(const hal::host::PwmDmaPort& port, std::size_t count) {
     constexpr std::size_t bits_per_led{24};
     std::vector<Colour>   colours(count);
 
@@ -107,7 +128,7 @@ std::vector<Colour> decode_argb(const hal::host::PwmDmaPort& port, std::size_t c
 
         for (std::size_t bit = 0; bit < bits_per_led; bit++) {
             const std::size_t index = led * bits_per_led + bit;
-            const bool        high = index < port.compares.size() and 2 * port.compares[index] > port.period;
+            const bool        high = index < port.compares.size() and 2 * port.compares.at(index) > port.period;
             data = (data << 1U) | static_cast<uint32_t>(high);
         }
 
@@ -120,8 +141,6 @@ std::vector<Colour> decode_argb(const hal::host::PwmDmaPort& port, std::size_t c
 
     return colours;
 }
-
-}  // namespace
 
 std::string MicrasTarget::name() const {
     return "micras";
@@ -210,7 +229,7 @@ Wiring MicrasTarget::wire(FirmwareThread& firmware, const WorldInfo& world) {
         .variables = this->variables.get(),
         .panel = this->make_panel(),
         .overlay =
-            {.state = StateLabel{.variable = "state", .names = state_names},
+            {.state = StateLabel{.variable = "state", .names = state_names()},
              .lines =
                  {{.label = "v reference", .variable = "reference/linear_speed", .unit = "m/s"},
                   {.label = "v estimate", .variable = "pose/linear_speed", .unit = "m/s"}}},
@@ -247,7 +266,7 @@ std::vector<MetadataField> MicrasTarget::metadata() const {
 PanelSpec MicrasTarget::make_panel() const {
     const MicrasBoard& devices = this->board;
     PanelSpec          panel{
-        .state = StateLabel{.variable = "state", .names = state_names},
+        .state = StateLabel{.variable = "state", .names = state_names()},
         .buttons = {{.name = "button", .press = [&devices](bool pressed) { devices.button->set(pressed); }}},
         .switches = {},
         .lamps = {},
@@ -267,7 +286,8 @@ PanelSpec MicrasTarget::make_panel() const {
 
     const hal::host::GpioPort& led = hal::host::Board::gpio(led_config.gpio.port, led_config.gpio.pin);
     panel.lamps.push_back({.name = "led", .colour = [&led] {
-                               return led.output ? Colour{255, 40, 40} : Colour{40, 40, 40};
+                               return led.output ? Colour{.red = 255, .green = 40, .blue = 40} :
+                                                   Colour{.red = 40, .green = 40, .blue = 40};
                            }});
 
     const hal::host::PwmDmaPort& argb =
@@ -307,7 +327,7 @@ ScenarioHooks MicrasTarget::make_hooks() const {
         hooks.messages.emplace(name, command_frame(command));
     }
 
-    hooks.state_names.emplace("state", state_names);
+    hooks.state_names.emplace("state", state_names());
     return hooks;
 }
 }  // namespace micras::sim

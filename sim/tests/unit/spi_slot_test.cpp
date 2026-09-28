@@ -3,17 +3,23 @@
  */
 
 #include <array>
+#include <cstddef>
 #include <cstdint>
+#include <span>
 #include <string>
 #include <vector>
 
 #include <doctest/doctest.h>
 
+#include "gpio.h"
 #include "micras/hal/host/board.hpp"
 #include "micras/hal/host/clock.hpp"
+#include "micras/hal/host/ports.hpp"
 #include "micras/hal/host/spi_device.hpp"
 #include "micras/hal/spi.hpp"
 #include "micras/hal/timer.hpp"
+#include "micras/sim/core/span_at.hpp"
+#include "spi.h"
 #include "target.hpp"
 
 namespace micras::sim {
@@ -34,8 +40,8 @@ public:
         this->events.push_back("exchange " + std::to_string(transmitted.size()));
 
         for (std::size_t index = 0; index < transmitted.size(); index++) {
-            this->bytes.push_back(transmitted[index]);
-            received[index] = static_cast<uint8_t>(transmitted[index] + this->offset);
+            this->bytes.push_back(at(transmitted, index));
+            at(received, index) = static_cast<uint8_t>(at(transmitted, index) + this->offset);
         }
     }
 
