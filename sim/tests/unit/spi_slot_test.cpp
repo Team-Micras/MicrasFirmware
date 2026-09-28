@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-#include <gtest/gtest.h>
+#include <doctest/doctest.h>
 
 #include "micras/hal/host/board.hpp"
 #include "micras/hal/host/clock.hpp"
@@ -50,9 +50,9 @@ private:
     uint8_t offset;
 };
 
-class SpiSlot : public testing::Test {
+class SpiSlot {
 protected:
-    void SetUp() override {
+    SpiSlot() {
         Board::reset();
         hal::host::Clock::instance().reset();
         hal::host::Clock::instance().configure(SystemCoreClock / 1000000);
@@ -82,7 +82,7 @@ protected:
     }
 };
 
-TEST_F(SpiSlot, RoutesEachTransferToTheDeviceItsChipSelectSelects) {
+TEST_CASE_FIXTURE(SpiSlot, "SpiSlot.RoutesEachTransferToTheDeviceItsChipSelectSelects") {
     RecordingDevice imu_chip{SpiDevice::Mode::MODE_3, 0x10};
     RecordingDevice encoder_chip{SpiDevice::Mode::MODE_1, 0x20};
     attach(imu_config.spi, imu_chip);
@@ -94,20 +94,20 @@ TEST_F(SpiSlot, RoutesEachTransferToTheDeviceItsChipSelectSelects) {
     const std::array<uint8_t, 2> frame{0x40, 0x01};
     std::array<uint8_t, 2>       answer{};
 
-    ASSERT_TRUE(imu.select_device());
-    EXPECT_TRUE(imu.transmit(command));
+    REQUIRE(imu.select_device());
+    CHECK(imu.transmit(command));
     imu.unselect_device();
-    ASSERT_TRUE(encoder.select_device());
-    EXPECT_TRUE(encoder.transmit_receive(frame, answer));
+    REQUIRE(encoder.select_device());
+    CHECK(encoder.transmit_receive(frame, answer));
     encoder.unselect_device();
 
-    EXPECT_EQ(imu_chip.bytes, std::vector<uint8_t>{0x8F});
-    EXPECT_EQ(encoder_chip.bytes, (std::vector<uint8_t>{0x40, 0x01}));
-    EXPECT_EQ(answer, (std::array<uint8_t, 2>{0x60, 0x21}));
-    EXPECT_TRUE(Board::unbound().empty());
+    CHECK_EQ(imu_chip.bytes, std::vector<uint8_t>{0x8F});
+    CHECK_EQ(encoder_chip.bytes, (std::vector<uint8_t>{0x40, 0x01}));
+    CHECK_EQ(answer, (std::array<uint8_t, 2>{0x60, 0x21}));
+    CHECK(Board::unbound().empty());
 }
 
-TEST_F(SpiSlot, MakesOneTransactionOfTheCallsBetweenSelectAndUnselect) {
+TEST_CASE_FIXTURE(SpiSlot, "SpiSlot.MakesOneTransactionOfTheCallsBetweenSelectAndUnselect") {
     RecordingDevice chip{SpiDevice::Mode::MODE_3, 1};
     attach(imu_config.spi, chip);
     hal::Spi spi{imu_config.spi};
@@ -115,55 +115,55 @@ TEST_F(SpiSlot, MakesOneTransactionOfTheCallsBetweenSelectAndUnselect) {
     const std::array<uint8_t, 1> command{0x8F};
     std::array<uint8_t, 2>       data{};
 
-    ASSERT_TRUE(spi.select_device());
-    EXPECT_TRUE(spi.transmit(command));
-    EXPECT_TRUE(spi.receive(data));
+    REQUIRE(spi.select_device());
+    CHECK(spi.transmit(command));
+    CHECK(spi.receive(data));
     spi.unselect_device();
 
-    EXPECT_EQ(chip.events, (std::vector<std::string>{"select", "exchange 1", "exchange 2", "deselect"}));
-    EXPECT_EQ(data, (std::array<uint8_t, 2>{1, 1}));
+    CHECK_EQ(chip.events, (std::vector<std::string>{"select", "exchange 1", "exchange 2", "deselect"}));
+    CHECK_EQ(data, (std::array<uint8_t, 2>{1, 1}));
 }
 
-TEST_F(SpiSlot, ReachesNoDeviceWhoseChipSelectIsHigh) {
+TEST_CASE_FIXTURE(SpiSlot, "SpiSlot.ReachesNoDeviceWhoseChipSelectIsHigh") {
     RecordingDevice chip{SpiDevice::Mode::MODE_3, 1};
     attach(imu_config.spi, chip);
     hal::Spi spi{imu_config.spi};
 
     std::array<uint8_t, 2> data{};
-    EXPECT_TRUE(spi.receive(data));
+    CHECK(spi.receive(data));
 
-    EXPECT_TRUE(chip.events.empty());
-    EXPECT_EQ(data, (std::array<uint8_t, 2>{0xFF, 0xFF}));
+    CHECK(chip.events.empty());
+    CHECK_EQ(data, (std::array<uint8_t, 2>{0xFF, 0xFF}));
 }
 
-TEST_F(SpiSlot, AnswersAllOnesWhereNoDeviceIsAttached) {
+TEST_CASE_FIXTURE(SpiSlot, "SpiSlot.AnswersAllOnesWhereNoDeviceIsAttached") {
     hal::Spi spi{imu_config.spi};
 
     std::array<uint8_t, 2> data{};
-    ASSERT_TRUE(spi.select_device());
-    EXPECT_TRUE(spi.receive(data));
+    REQUIRE(spi.select_device());
+    CHECK(spi.receive(data));
     spi.unselect_device();
 
-    EXPECT_EQ(data, (std::array<uint8_t, 2>{0xFF, 0xFF}));
-    EXPECT_EQ(Board::unbound(), (std::vector<std::string>{"IMU_SPI_CSn", "hspi3 IMU_SPI_CSn"}));
+    CHECK_EQ(data, (std::array<uint8_t, 2>{0xFF, 0xFF}));
+    CHECK_EQ(Board::unbound(), (std::vector<std::string>{"IMU_SPI_CSn", "hspi3 IMU_SPI_CSn"}));
 }
 
-TEST_F(SpiSlot, AnswersAllOnesInAModeTheDeviceDoesNotAnswerIn) {
+TEST_CASE_FIXTURE(SpiSlot, "SpiSlot.AnswersAllOnesInAModeTheDeviceDoesNotAnswerIn") {
     RecordingDevice chip{SpiDevice::Mode::MODE_0, 1};
     attach(imu_config.spi, chip);
     hal::Spi spi{imu_config.spi};
 
     const std::array<uint8_t, 2> transmitted{0x8F, 0x00};
     std::array<uint8_t, 2>       received{};
-    ASSERT_TRUE(spi.select_device());
-    EXPECT_TRUE(spi.transmit_receive(transmitted, received));
+    REQUIRE(spi.select_device());
+    CHECK(spi.transmit_receive(transmitted, received));
     spi.unselect_device();
 
-    EXPECT_EQ(chip.events, (std::vector<std::string>{"select", "deselect"}));
-    EXPECT_EQ(received, (std::array<uint8_t, 2>{0xFF, 0xFF}));
+    CHECK_EQ(chip.events, (std::vector<std::string>{"select", "deselect"}));
+    CHECK_EQ(received, (std::array<uint8_t, 2>{0xFF, 0xFF}));
 }
 
-TEST_F(SpiSlot, KeepsTheDeviceSelectedWhileATransferRuns) {
+TEST_CASE_FIXTURE(SpiSlot, "SpiSlot.KeepsTheDeviceSelectedWhileATransferRuns") {
     RecordingDevice chip{SpiDevice::Mode::MODE_3, 1};
     attach(imu_config.spi, chip);
     hal::Spi spi{imu_config.spi};
@@ -172,14 +172,14 @@ TEST_F(SpiSlot, KeepsTheDeviceSelectedWhileATransferRuns) {
     std::array<uint8_t, 17>    received{};
     const hal::host::GpioPort& cs = Board::gpio(imu_config.spi.cs_gpio.port, imu_config.spi.cs_gpio.pin);
 
-    ASSERT_TRUE(spi.start_transfer(transmitted, received));
+    REQUIRE(spi.start_transfer(transmitted, received));
 
-    EXPECT_EQ(spi.get_transfer(), hal::Spi::Transfer::RUNNING);
-    EXPECT_FALSE(cs.output);
-    EXPECT_EQ(chip.events, (std::vector<std::string>{"select", "exchange 17"}));
+    CHECK_EQ(spi.get_transfer(), hal::Spi::Transfer::RUNNING);
+    CHECK_FALSE(cs.output);
+    CHECK_EQ(chip.events, (std::vector<std::string>{"select", "exchange 17"}));
 }
 
-TEST_F(SpiSlot, CompletesATransferWhenItsLastBitIsOut) {
+TEST_CASE_FIXTURE(SpiSlot, "SpiSlot.CompletesATransferWhenItsLastBitIsOut") {
     RecordingDevice chip{SpiDevice::Mode::MODE_3, 1};
     attach(imu_config.spi, chip);
     hal::Spi spi{imu_config.spi};
@@ -188,18 +188,18 @@ TEST_F(SpiSlot, CompletesATransferWhenItsLastBitIsOut) {
     std::array<uint8_t, 17>    received{};
     const hal::host::GpioPort& cs = Board::gpio(imu_config.spi.cs_gpio.port, imu_config.spi.cs_gpio.pin);
 
-    ASSERT_TRUE(spi.start_transfer(transmitted, received));
+    REQUIRE(spi.start_transfer(transmitted, received));
     const uint32_t elapsed = wait_for_transfer(spi);
 
-    EXPECT_EQ(spi.get_transfer(), hal::Spi::Transfer::COMPLETE);
-    EXPECT_TRUE(cs.output);
-    EXPECT_EQ(chip.events, (std::vector<std::string>{"select", "exchange 17", "deselect"}));
-    EXPECT_EQ(received.back(), 1);
-    EXPECT_GE(elapsed, 35U);
-    EXPECT_LE(elapsed, 36U);
+    CHECK_EQ(spi.get_transfer(), hal::Spi::Transfer::COMPLETE);
+    CHECK(cs.output);
+    CHECK_EQ(chip.events, (std::vector<std::string>{"select", "exchange 17", "deselect"}));
+    CHECK_EQ(received.back(), 1);
+    CHECK_GE(elapsed, 35U);
+    CHECK_LE(elapsed, 36U);
 }
 
-TEST_F(SpiSlot, WaitsForTheBusBeforeSelectingAnotherDevice) {
+TEST_CASE_FIXTURE(SpiSlot, "SpiSlot.WaitsForTheBusBeforeSelectingAnotherDevice") {
     RecordingDevice imu_chip{SpiDevice::Mode::MODE_3, 1};
     RecordingDevice encoder_chip{SpiDevice::Mode::MODE_1, 1};
     attach(imu_config.spi, imu_chip);
@@ -211,14 +211,14 @@ TEST_F(SpiSlot, WaitsForTheBusBeforeSelectingAnotherDevice) {
     std::array<uint8_t, 17> received{};
     const uint64_t          start = hal::host::Clock::instance().now();
 
-    ASSERT_TRUE(imu.start_transfer(transmitted, received));
-    ASSERT_TRUE(encoder.select_device());
+    REQUIRE(imu.start_transfer(transmitted, received));
+    REQUIRE(encoder.select_device());
     const uint64_t waited = hal::host::Clock::instance().now() - start;
     encoder.unselect_device();
 
-    EXPECT_EQ(imu.get_transfer(), hal::Spi::Transfer::COMPLETE);
-    EXPECT_EQ(imu_chip.events.back(), "deselect");
-    EXPECT_GE(waited, 35U * (SystemCoreClock / 1000000));
+    CHECK_EQ(imu.get_transfer(), hal::Spi::Transfer::COMPLETE);
+    CHECK_EQ(imu_chip.events.back(), "deselect");
+    CHECK_GE(waited, 35U * (SystemCoreClock / 1000000));
 }
 }  // namespace
 }  // namespace micras::sim

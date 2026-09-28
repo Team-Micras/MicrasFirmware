@@ -3,11 +3,12 @@
  */
 
 #include <array>
+#include <cmath>
 #include <cstdint>
 #include <string_view>
 #include <vector>
 
-#include <gtest/gtest.h>
+#include <doctest/doctest.h>
 
 #include "micras/hal/crc.hpp"
 #include "micras/hal/gpio.hpp"
@@ -19,9 +20,9 @@
 
 namespace micras::sim {
 namespace {
-class HostHal : public testing::Test {
+class HostHal {
 protected:
-    void SetUp() override {
+    HostHal() {
         hal::host::Board::reset();
         hal::host::Clock::instance().reset();
         hal::host::Clock::instance().configure(SystemCoreClock / 1000000);
@@ -29,7 +30,7 @@ protected:
     }
 };
 
-TEST_F(HostHal, ComputesTheCrcTheUnitIsConfiguredFor) {
+TEST_CASE_FIXTURE(HostHal, "HostHal.ComputesTheCrcTheUnitIsConfiguredFor") {
     CRC_HandleTypeDef handle{};
     handle.Init = {
         .DefaultPolynomialUse = DEFAULT_POLYNOMIAL_DISABLE,
@@ -45,10 +46,10 @@ TEST_F(HostHal, ComputesTheCrcTheUnitIsConfiguredFor) {
     constexpr std::string_view check{"123456789"};
     const std::vector<uint8_t> bytes(check.begin(), check.end());
 
-    EXPECT_EQ(crc.calculate(bytes) ^ 0xFFU, 0x4BU);
+    CHECK_EQ(crc.calculate(bytes) ^ 0xFFU, 0x4BU);
 }
 
-TEST_F(HostHal, ChargesAQuantumPerReadAndHandsOverAtEveryStep) {
+TEST_CASE_FIXTURE(HostHal, "HostHal.ChargesAQuantumPerReadAndHandsOverAtEveryStep") {
     int steps = 0;
     hal::host::Clock::instance().set_handover(125, [&steps] { steps++; });
 
@@ -56,38 +57,38 @@ TEST_F(HostHal, ChargesAQuantumPerReadAndHandsOverAtEveryStep) {
 
     while (hal::Timer::to_microseconds(hal::Timer::get_counter() - start) < 1000) { }
 
-    EXPECT_EQ(steps, 8);
-    EXPECT_EQ(hal::Timer::get_counter_ms(), 1U);
+    CHECK_EQ(steps, 8);
+    CHECK_EQ(hal::Timer::get_counter_ms(), 1U);
 }
 
-TEST_F(HostHal, ReadsWhatTheOutsideDrivesAndOtherwiseWhatTheFirmwareWrote) {
+TEST_CASE_FIXTURE(HostHal, "HostHal.ReadsWhatTheOutsideDrivesAndOtherwiseWhatTheFirmwareWrote") {
     hal::Gpio led{led_config.gpio};
     led.write(true);
 
     hal::host::GpioPort& port = hal::host::Board::gpio(led_config.gpio.port, led_config.gpio.pin);
-    EXPECT_TRUE(port.output);
-    EXPECT_TRUE(led.read());
+    CHECK(port.output);
+    CHECK(led.read());
 
     port.input = false;
-    EXPECT_FALSE(led.read());
-    EXPECT_TRUE(port.touched);
+    CHECK_FALSE(led.read());
+    CHECK(port.touched);
 }
 
-TEST_F(HostHal, RunsTheWallEmittersAtTheirConfiguredFrequency) {
+TEST_CASE_FIXTURE(HostHal, "HostHal.RunsTheWallEmittersAtTheirConfiguredFrequency") {
     const hal::Pwm emitter{std::get<0>(wall_sensors_config.led_pwms)};
 
-    EXPECT_TRUE(emitter.was_initialized());
-    EXPECT_NEAR(emitter.get_frequency(), wall_sensors_frequency, 1.0F);
+    CHECK(emitter.was_initialized());
+    CHECK_LE(std::abs(emitter.get_frequency() - wall_sensors_frequency), 1.0F);
 }
 
-TEST_F(HostHal, ReportsPortsTheFirmwareTouchedThatNothingIsBoundTo) {
+TEST_CASE_FIXTURE(HostHal, "HostHal.ReportsPortsTheFirmwareTouchedThatNothingIsBoundTo") {
     hal::Gpio led{led_config.gpio};
     led.write(true);
 
-    EXPECT_EQ(hal::host::Board::unbound().size(), 1U);
+    CHECK_EQ(hal::host::Board::unbound().size(), 1U);
 
     hal::host::Board::gpio(led_config.gpio.port, led_config.gpio.pin).bound = true;
-    EXPECT_TRUE(hal::host::Board::unbound().empty());
+    CHECK(hal::host::Board::unbound().empty());
 }
 }  // namespace
 }  // namespace micras::sim
