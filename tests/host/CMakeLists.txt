@@ -25,6 +25,7 @@ add_library(micras_host_core STATIC
 target_include_directories(micras_host_core PUBLIC ${MICRAS_ROOT}/micras_core/include)
 
 add_library(micras_host_comm STATIC
+    ${MICRAS_ROOT}/micras_comm/src/credit_window.cpp
     ${MICRAS_ROOT}/micras_comm/src/frame.cpp
     ${MICRAS_ROOT}/micras_comm/src/link.cpp
 )
@@ -45,7 +46,7 @@ target_include_directories(micras_host_proxy PUBLIC
 
 target_link_libraries(micras_host_proxy PUBLIC micras_host_core)
 
-foreach(TEST_NAME variable_pool cobs frame storage link)
+foreach(TEST_NAME variable_pool cobs frame storage link credit_window)
     add_executable(test_${TEST_NAME} test_${TEST_NAME}.cpp)
     target_include_directories(test_${TEST_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
     target_compile_options(test_${TEST_NAME} PRIVATE -Wall -Wextra -fsanitize=address,undefined)
@@ -56,5 +57,9 @@ endforeach()
 target_link_libraries(test_variable_pool PRIVATE micras_host_core)
 target_link_libraries(test_cobs PRIVATE micras_host_core)
 target_link_libraries(test_frame PRIVATE micras_host_comm)
+
+# The frame vectors are also kept as JSON for micras-monitor, and this fails when the copy is stale
+add_test(NAME frame_vectors COMMAND test_frame ${CMAKE_CURRENT_SOURCE_DIR}/vectors/v2.json)
 target_link_libraries(test_storage PRIVATE micras_host_proxy)
 target_link_libraries(test_link PRIVATE micras_host_comm)
+target_link_libraries(test_credit_window PRIVATE micras_host_comm)

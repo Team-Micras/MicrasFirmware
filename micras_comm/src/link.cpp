@@ -18,15 +18,52 @@
 #include "micras/core/variable_pool.hpp"
 
 namespace micras::comm {
-Link::Link(core::IByteStream& stream, core::VariablePool& pool, ICommandHandler& commands, const Config& config) :
-    stream{stream}, pool{pool}, commands{commands}, config{config} {
-    this->schema_index = pool.all().size();
+/**
+ * @brief Get the number of bytes a variable takes in a page of the schema.
+ *
+ * @param variable The variable.
+ * @return Size of its entry.
+ */
+static std::size_t schema_entry_size(const core::Variable& variable) {
+    const std::size_t name_entry_size = 3 + variable.prefix.size() + variable.name.size();
+
+    if (variable.type != core::TypeCode::BLOB) {
+        return name_entry_size;
+    }
+
+    return name_entry_size + 1 + variable.type_tag.size();
 }
+
+/**
+ * @brief Append the entry of a variable to a page of the schema.
+ *
+ * @note Only a BLOB carries a type tag, since the type code already says everything about any
+ * other variable.
+ *
+ * @param writer Page being built.
+ * @param variable The variable.
+ */
+static void write_schema_entry(Writer& writer, const core::Variable& variable) {
+    writer.u8(std::to_underlying(variable.type));
+    writer.u8(variable.access.to_byte());
+    writer.u8(variable.prefix.size() + variable.name.size());
+    writer.text(variable.prefix);
+    writer.text(variable.name);
+
+    if (variable.type == core::TypeCode::BLOB) {
+        writer.u8(variable.type_tag.size());
+        writer.text(variable.type_tag);
+    }
+}
+
+Link::Link(core::IByteStream& stream, core::VariablePool& pool, ICommandHandler& commands, const Config& config) :
+    stream{stream}, pool{pool}, commands{commands}, config{config} { }
 
 void Link::register_variables(core::VariablePool& pool, std::string_view prefix) {
     pool.add(prefix, "dropped_samples", this->dropped_samples, {.stream = true});
     pool.add(prefix, "dropped_logs", this->dropped_logs, {.stream = true});
     pool.add(prefix, "credit", this->credit, {.stream = true});
+    pool.add(prefix, "discarded_frames", this->discarded_frames, {.stream = true});
 }
 
 void Link::poll(bool robot_is_idle) {
@@ -36,7 +73,10 @@ void Link::poll(bool robot_is_idle) {
     }
 
     while (this->consumed < this->staged) {
-        if (this->reader.push(this->staging.at(this->consumed++))) {
+        const bool complete = this->reader.push(this->staging.at(this->consumed++));
+        this->discarded_frames = this->reader.discarded();
+
+        if (complete) {
             this->execute(robot_is_idle);
             return;
         }
@@ -94,15 +134,23 @@ void Link::on_hello() {
         group = {};
     }
 
-    this->schema_index = this->pool.all().size();
-    this->credit = initial_credit;
+    this->schema_index = no_schema_page;
+    this->window.reset();
+    this->refresh_credit();
+
+    if (not this->boot_id.has_value()) {
+        this->boot_id = this->last_timestamp_us;
+    }
 
     Writer writer{this->payload};
     writer.u8(protocol_version);
     writer.u32(this->pool.schema_hash());
     writer.u16(this->pool.all().size());
     writer.u32(this->config.loop_time_us);
-    writer.u16(initial_credit);
+    writer.u16(credit_window);
+    writer.u32(*this->boot_id);
+    writer.u8(this->config.robot_name.size());
+    writer.text(this->config.robot_name);
 
     this->send(MessageType::HELLO_ACK, writer.done());
 }
@@ -193,10 +241,11 @@ void Link::on_group_enable(Reader& reader) {
 }
 
 void Link::on_credit(Reader& reader) {
-    const uint16_t bytes = reader.u16();
+    const uint32_t consumed_total = reader.u32();
 
     if (reader.valid()) {
-        this->credit = std::min<int32_t>(this->credit + bytes, initial_credit);
+        this->window.acknowledge(consumed_total);
+        this->refresh_credit();
     }
 }
 
@@ -255,11 +304,12 @@ void Link::on_command(Reader& reader) {
         return;
     }
 
-    const CommandResult result = this->commands.handle_command(code, argument);
+    const CommandReply reply = this->commands.handle_command(code, argument);
 
     Writer writer{this->payload};
     writer.u8(code);
-    writer.u8(std::to_underlying(result));
+    writer.u8(std::to_underlying(reply.result));
+    writer.u8(reply.reason);
 
     this->send(MessageType::COMMAND_ACK, writer.done());
 }
@@ -272,12 +322,15 @@ void Link::send_error(ErrorCode code, uint16_t context) {
     this->send(MessageType::ERROR, writer.done());
 }
 
-void Link::log(Severity severity, std::string_view text) {
+void Link::log(Severity severity, uint32_t timestamp_us, std::string_view text) {
+    constexpr std::size_t header_size{5};
+
     Writer writer{this->payload};
     writer.u8(std::to_underlying(severity));
-    writer.text(text.substr(0, std::min<std::size_t>(text.size(), max_payload_size - 1)));
+    writer.u32(timestamp_us);
+    writer.text(text.substr(0, std::min(text.size(), max_payload_size - header_size)));
 
-    if (not this->send(MessageType::LOG, writer.done())) {
+    if (not this->send_metered(MessageType::LOG, writer.done())) {
         this->dropped_logs++;
     }
 }
@@ -291,7 +344,7 @@ bool Link::send(MessageType type, std::span<const uint8_t> payload) {
 bool Link::send_metered(MessageType type, std::span<const uint8_t> payload) {
     const std::size_t size = encode_frame(type, payload, this->frame);
 
-    if (size == 0 or std::cmp_less(this->credit, size)) {
+    if (size == 0 or not this->window.allows(size)) {
         return false;
     }
 
@@ -299,8 +352,13 @@ bool Link::send_metered(MessageType type, std::span<const uint8_t> payload) {
         return false;
     }
 
-    this->credit -= static_cast<int32_t>(size);
+    this->window.charge(size);
+    this->refresh_credit();
     return true;
+}
+
+void Link::refresh_credit() {
+    this->credit = this->window.available();
 }
 
 void Link::send_schema_page() {
@@ -324,17 +382,12 @@ void Link::send_schema_page() {
     while (index < variables.size() and count < UINT8_MAX) {
         // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access) bounded by the loop
         const core::Variable& variable = variables[index];
-        const std::size_t     name_size = variable.prefix.size() + variable.name.size();
 
-        if (name_size + 3 > writer.left()) {
+        if (schema_entry_size(variable) > writer.left()) {
             break;
         }
 
-        writer.u8(std::to_underlying(variable.type));
-        writer.u8(variable.access.to_byte());
-        writer.u8(name_size);
-        writer.text(variable.prefix);
-        writer.text(variable.name);
+        write_schema_entry(writer, variable);
 
         index++;
         count++;
@@ -353,6 +406,8 @@ void Link::send_schema_page() {
 }
 
 void Link::pump(uint32_t timestamp_us) {
+    this->last_timestamp_us = timestamp_us;
+
     for (uint8_t index = 0; index < max_groups; index++) {
         Group& group = this->groups.at(index);
 

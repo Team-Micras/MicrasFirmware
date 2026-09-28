@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <limits>
 #include <numbers>
+#include <string_view>
 
 #include "micras/core/butterworth_filter.hpp"
 #include "micras/core/types.hpp"
@@ -33,6 +34,11 @@ constexpr uint8_t  maze_width{16};
 constexpr uint8_t  maze_height{16};
 constexpr uint32_t loop_time_us{125};
 constexpr uint8_t  max_variables{96};
+
+/**
+ * @brief Name the robot introduces itself with over the link.
+ */
+constexpr std::string_view robot_name{"micras"};
 
 /**
  * @brief Size of the buffer the radio receives into.

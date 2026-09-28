@@ -280,7 +280,7 @@ public:
      * @param argument Argument of the command.
      * @return Whether the command ran.
      */
-    comm::CommandResult handle_command(uint8_t code, uint32_t argument) override;
+    comm::CommandReply handle_command(uint8_t code, uint32_t argument) override;
 
     /**
      * @brief Check if the robot is stopped.

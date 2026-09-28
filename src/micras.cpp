@@ -41,7 +41,7 @@ static std::array<uint8_t, bluetooth_tx_buffer_size> bluetooth_tx_buffer;
 
 Micras::Micras() :
     bluetooth{bluetooth_config, bluetooth_rx_buffer, bluetooth_tx_buffer},
-    link{bluetooth, variables, *this, {.loop_time_us = loop_time_us}} {
+    link{bluetooth, variables, *this, {.loop_time_us = loop_time_us, .robot_name = robot_name}} {
     this->fsm.add_state(this->init_state);
     this->fsm.add_state(this->idle_state);
     this->fsm.add_state(this->wait_for_run_state);
@@ -525,37 +525,37 @@ uint8_t Micras::get_state() const {
     return this->fsm.get_current_state_id();
 }
 
-comm::CommandResult Micras::handle_command(uint8_t code, uint32_t argument) {
+comm::CommandReply Micras::handle_command(uint8_t code, uint32_t argument) {
     switch (static_cast<Command>(code)) {
         case Command::EXPLORE:
             this->send_event(Interface::Event::EXPLORE);
-            return comm::CommandResult::OK;
+            return {.result = comm::CommandResult::OK};
 
         case Command::SOLVE:
             this->send_event(Interface::Event::SOLVE);
-            return comm::CommandResult::OK;
+            return {.result = comm::CommandResult::OK};
 
         case Command::CALIBRATE:
             this->send_event(Interface::Event::CALIBRATE);
-            return comm::CommandResult::OK;
+            return {.result = comm::CommandResult::OK};
 
         case Command::SAVE:
             if (not this->is_idle()) {
-                return comm::CommandResult::REFUSED;
+                return {.result = comm::CommandResult::REFUSED};
             }
 
-            return this->save_maze() ? comm::CommandResult::OK : comm::CommandResult::REFUSED;
+            return {.result = this->save_maze() ? comm::CommandResult::OK : comm::CommandResult::REFUSED};
 
         case Command::RESET:
             if (not this->is_idle()) {
-                return comm::CommandResult::REFUSED;
+                return {.result = comm::CommandResult::REFUSED};
             }
 
             this->localizer.reset(this->mission.get_start_pose(), this->measurements);
-            return comm::CommandResult::OK;
+            return {.result = comm::CommandResult::OK};
     }
 
     static_cast<void>(argument);
-    return comm::CommandResult::UNKNOWN;
+    return {.result = comm::CommandResult::UNKNOWN};
 }
 }  // namespace micras

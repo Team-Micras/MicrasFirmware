@@ -69,20 +69,34 @@ what both the microcontroller and `DataView` in the browser already are.
 
 ### The parts worth knowing before reading the code
 
+- **`HELLO_ACK` says which robot this is and which boot.** It carries the robot's name, which the
+  application chooses its view of the robot by, and a `boot_id`, which stays the same for every
+  HELLO of one boot and changes with the next one. It is the robot's clock when the first HELLO of
+  the boot arrived: the board enables no source of randomness, and that moment is what differs.
 - **The schema is fetched once per firmware build, not once per connection.** `HELLO_ACK` carries a
-  `schema_hash` over every name, type and access flag in order. Identifiers are registration order,
-  so adding one variable shifts every later one; comparing the hash against the one a cached schema
-  was fetched with is what stops the application from plotting the wrong signal.
+  `schema_hash` over every name, type, access flag and type tag in order. Identifiers are
+  registration order, so adding one variable shifts every later one; comparing the hash against the
+  one a cached schema was fetched with is what stops the application from plotting the wrong signal.
+- **A blob says what it is.** The schema entry of a `BLOB` ends with a type tag, such as
+  `maze-grid`, that names its encoding, so that an application can decode it without knowing the
+  robot. Every other type is described by its type code alone.
 - **Samples come in groups, not one variable at a time.** A `SAMPLE` carries several variables
   captured in the same control loop iteration under one timestamp. A response plotted against a
   setpoint captured two iterations later is not a plot of a control loop.
-- **The application has to return credit.** The robot may have at most `initial_credit` bytes
-  outstanding. `CREDIT` says how many more bytes the application has taken. When the window is
-  closed, samples are dropped and the sequence number shows the gap; replies to requests are not
-  charged to the window, because they are already bounded by the rate of the requests themselves.
+- **The application has to return credit.** The robot may have at most `credit_window` bytes
+  outstanding of what it sends on its own: `SAMPLE`, `SCHEMA_PAGE` and `LOG`. `CREDIT` carries the
+  total of those bytes the application has consumed since HELLO, each frame counted whole with its
+  delimiter, wrapping at 32 bits. Being a total, a lost `CREDIT` is made good by the next one; one
+  that arrives late, behind the last, is ignored, and one ahead of what was sent counts as all of
+  it, so an application may count a frame it could not decode. When the window is closed, samples
+  and logs are dropped and counted, and the sequence number shows the gap; replies to requests are
+  not charged to the window, because they are already bounded by the rate of the requests
+  themselves.
 - **Writes are levels and commands are edges.** `WRITE` sets a gain or a flag and is acknowledged
   with a result; the `idle` flag on a variable refuses the dangerous ones while the robot is moving.
-  `COMMAND` happens once, when it arrives.
+  `COMMAND` happens once, when it arrives, or not at all: `COMMAND_ACK` answers at once with a
+  result, `OK`, `UNKNOWN`, `REFUSED` or `DEFERRED`, and a reason whose values belong to the robot,
+  like the command codes do.
 - **The link cannot carry the control loop.** It is between twenty and a hundred times too slow for
   8 kHz, so a group is defined with a period in loop iterations and only every period-th iteration
   is sent. The rate the application asks for is a rate it can actually receive.

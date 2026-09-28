@@ -8,9 +8,11 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <optional>
 #include <span>
 #include <string_view>
 
+#include "micras/comm/credit_window.hpp"
 #include "micras/comm/frame.hpp"
 #include "micras/comm/protocol.hpp"
 #include "micras/core/byte_stream.hpp"
@@ -23,7 +25,27 @@ namespace micras::comm {
 enum class CommandResult : uint8_t {
     OK = 0,
     UNKNOWN = 1,
-    REFUSED = 2
+    REFUSED = 2,
+    DEFERRED = 3
+};
+
+/**
+ * @brief Answer to a command, sent back as soon as the command arrives.
+ *
+ * @note The reasons belong to the robot, like the command codes do, so the link carries them as
+ * plain bytes and zero is the only value it gives a meaning to: no reason.
+ */
+// NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init) no default result, so that a missing one is a warning
+struct CommandReply {
+    /**
+     * @brief Whether the command ran, was refused, or was accepted to run later.
+     */
+    CommandResult result;
+
+    /**
+     * @brief Why the command was refused or deferred, or zero.
+     */
+    uint8_t reason{};
 };
 
 /**
@@ -44,9 +66,9 @@ public:
      *
      * @param code Command to run.
      * @param argument Argument of the command.
-     * @return Whether the command ran.
+     * @return Whether the command ran, and why not otherwise.
      */
-    virtual CommandResult handle_command(uint8_t code, uint32_t argument) = 0;
+    virtual CommandReply handle_command(uint8_t code, uint32_t argument) = 0;
 
 protected:
     /**
@@ -74,6 +96,12 @@ public:
          * @brief Period of the control loop in microseconds, which is the unit of a group period.
          */
         uint32_t loop_time_us;
+
+        /**
+         * @brief Name the robot introduces itself with, which the application chooses its view of
+         * the robot by. Expected to be a string literal.
+         */
+        std::string_view robot_name;
     };
 
     /**
@@ -109,13 +137,16 @@ public:
     /**
      * @brief Send a message to the application.
      *
-     * @note Dropped when the transport is full rather than queued, and the number of dropped
-     * messages is itself registered in the pool, so a gap is visible instead of silent.
+     * @note Charged to the credit window like a sample, since the robot sends it on its own
+     * initiative. Dropped when the window or the transport is full rather than queued, and the
+     * number of dropped messages is itself registered in the pool, so a gap is visible instead of
+     * silent.
      *
      * @param severity Severity of the message.
-     * @param text Message to send.
+     * @param timestamp_us Time the message is about, on the clock the samples are stamped with.
+     * @param text Message to send, cut to what fits in one frame.
      */
-    void log(Severity severity, std::string_view text);
+    void log(Severity severity, uint32_t timestamp_us, std::string_view text);
 
     /**
      * @brief Register the counters of the link itself.
@@ -197,6 +228,11 @@ private:
     void send_schema_page();
 
     /**
+     * @brief Copy the room left in the window into the counter the pool exposes.
+     */
+    void refresh_credit();
+
+    /**
      * @brief Send an error for a message that could not be acted on.
      *
      * @param code Reason the message was refused.
@@ -216,6 +252,8 @@ private:
 
     /**
      * @brief Send a frame the robot produced on its own, which the credit window has to allow.
+     *
+     * @note The frame is sent only if the bytes in flight, counting it, still fit in the window.
      *
      * @param type Type of the message.
      * @param payload Payload of the message.
@@ -253,14 +291,44 @@ private:
     std::array<Group, max_groups> groups{};
 
     /**
-     * @brief Bytes the application still allows to be sent on the robot's own initiative.
+     * @brief Bytes sent on the robot's own initiative against what the application consumed.
      */
-    int32_t credit{initial_credit};
+    CreditWindow window;
+
+    /**
+     * @brief Bytes the window still allows, as the pool exposes it.
+     */
+    int32_t credit{credit_window};
+
+    /**
+     * @brief Time of the last pump, in microseconds.
+     */
+    uint32_t last_timestamp_us{};
+
+    /**
+     * @brief Identifier of this boot, taken from the clock when the first HELLO arrives.
+     *
+     * @note The board enables no source of randomness, and everything the robot does at startup
+     * runs from the same clock, so a value computed then could come out the same on every boot. The
+     * moment an application first connects differs, to the microsecond. Every later HELLO of the
+     * same boot gets the same identifier, which is how the application tells a reconnection from a
+     * reboot.
+     */
+    std::optional<uint32_t> boot_id;
+
+    /**
+     * @brief Value of the schema index when no page is due.
+     *
+     * @note Past any pool, rather than past the pool as it is when the link is constructed, since
+     * the owner of the link usually registers the variables after constructing it, and a page
+     * nobody asked for would then be sent at boot.
+     */
+    static constexpr uint16_t no_schema_page{UINT16_MAX};
 
     /**
      * @brief Index of the next schema entry to send, past the last one when no page is due.
      */
-    uint16_t schema_index{};
+    uint16_t schema_index{no_schema_page};
 
     /**
      * @brief Counters worth watching from the application.
@@ -268,6 +336,7 @@ private:
     ///@{
     uint32_t dropped_samples{};
     uint32_t dropped_logs{};
+    uint32_t discarded_frames{};
     ///@}
 };
 }  // namespace micras::comm
