@@ -385,8 +385,11 @@ int main() {
         const uint32_t logs_before = read_variable<uint32_t>(pool, "link/dropped_logs");
 
         settle(now, 400);  // far more than the window allows
-        link.log(Severity::INFO, now, "dropped, since the window is closed");
-        msgs = of_type(app.drain(io, false), MessageType::SAMPLE);
+        link.log(Severity::INFO, now, "held, since the window is closed");
+        link.log(Severity::INFO, now, "dropped, since another one is held");
+        msgs = app.drain(io, false);
+        CHECK(of_type(msgs, MessageType::LOG).empty());
+        msgs = of_type(msgs, MessageType::SAMPLE);
         CHECK(!msgs.empty() && msgs.size() < 40);  // the window, not the loop, set the rate
         CHECK(read_variable<int32_t>(pool, "link/credit") < 20);
         CHECK(read_variable<uint32_t>(pool, "link/dropped_samples") - samples_before + msgs.size() == 400);
@@ -402,7 +405,14 @@ int main() {
         link.poll(true);
         CHECK(read_variable<int32_t>(pool, "link/credit") == credit_window);
         settle(now, 8);
-        msgs = of_type(app.drain(io), MessageType::SAMPLE);
+        msgs = app.drain(io);
+        CHECK(msgs.front().type == MessageType::LOG);  // the held message goes first, ahead of the samples
+        CHECK(
+            std::string(msgs.front().payload.begin() + 5, msgs.front().payload.end()) ==
+            "held, since the window is closed"
+        );
+        CHECK(read_variable<uint32_t>(pool, "link/dropped_logs") == logs_before + 1);
+        msgs = of_type(msgs, MessageType::SAMPLE);
         CHECK(!msgs.empty());
         CHECK(u16(msgs.front().payload, 1) > last_sent + 1);
 

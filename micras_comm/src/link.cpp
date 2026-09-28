@@ -332,13 +332,30 @@ void Link::send_error(ErrorCode code, uint16_t context) {
 void Link::log(Severity severity, uint32_t timestamp_us, std::string_view text) {
     constexpr std::size_t header_size{5};
 
+    this->send_held_log();
+
+    if (this->held_log_size > 0) {
+        this->dropped_logs++;
+        return;
+    }
+
     Writer writer{this->payload};
     writer.u8(std::to_underlying(severity));
     writer.u32(timestamp_us);
     writer.text(text.substr(0, std::min(text.size(), max_payload_size - header_size)));
 
-    if (not this->send_metered(MessageType::LOG, writer.done())) {
-        this->dropped_logs++;
+    const std::span<const uint8_t> message = writer.done();
+
+    if (not this->send_metered(MessageType::LOG, message)) {
+        std::ranges::copy(message, this->held_log.begin());
+        this->held_log_size = message.size();
+    }
+}
+
+void Link::send_held_log() {
+    if (this->held_log_size > 0 and
+        this->send_metered(MessageType::LOG, std::span{this->held_log}.first(this->held_log_size))) {
+        this->held_log_size = 0;
     }
 }
 
@@ -414,6 +431,7 @@ void Link::send_schema_page() {
 
 void Link::pump(uint32_t timestamp_us) {
     this->last_timestamp_us = timestamp_us;
+    this->send_held_log();
 
     for (uint8_t index = 0; index < max_groups; index++) {
         Group& group = this->groups.at(index);

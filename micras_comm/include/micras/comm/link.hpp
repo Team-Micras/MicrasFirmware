@@ -138,9 +138,10 @@ public:
      * @brief Send a message to the application.
      *
      * @note Charged to the credit window like a sample, since the robot sends it on its own
-     * initiative. Dropped when the window or the transport is full rather than queued, and the
-     * number of dropped messages is itself registered in the pool, so a gap is visible instead of
-     * silent.
+     * initiative. A message the window has no room for is held and sent first thing when there is,
+     * ahead of the samples, which would otherwise take every byte of credit as it comes back. Only
+     * one is held: a message that finds another one waiting is dropped, and the number of dropped
+     * messages is itself registered in the pool, so a gap is visible instead of silent.
      *
      * @param severity Severity of the message.
      * @param timestamp_us Time the message is about, on the clock the samples are stamped with.
@@ -229,6 +230,11 @@ private:
     void send_schema_page();
 
     /**
+     * @brief Send the log message that is being held, if the window has room for it now.
+     */
+    void send_held_log();
+
+    /**
      * @brief Copy the room left in the window into the counter the pool exposes.
      */
     void refresh_credit();
@@ -300,6 +306,15 @@ private:
      * @brief Bytes the window still allows, as the pool exposes it.
      */
     int32_t credit{credit_window};
+
+    /**
+     * @brief Payload of the log message waiting for room in the window, and its size, zero when
+     * none is.
+     */
+    ///@{
+    std::array<uint8_t, max_payload_size> held_log{};
+    std::size_t                           held_log_size{};
+    ///@}
 
     /**
      * @brief Time of the last pump, in microseconds.

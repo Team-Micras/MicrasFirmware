@@ -88,9 +88,10 @@ what both the microcontroller and `DataView` in the browser already are.
   total of those bytes the application has consumed since HELLO, wrapping at 32 bits. Being a
   total, a lost `CREDIT` is made good by the next one; one that arrives late, behind the last, is
   ignored, and so is one ahead of what was sent, so that an application that counts wrong stalls
-  where it can be seen instead of overrunning the radio. When the window is closed, samples and logs
-  are dropped and counted, and the sequence number shows the gap; replies to requests are not
-  charged to the window, because they are already bounded by the rate of the requests themselves.
+  where it can be seen instead of overrunning the radio. When the window is closed, samples are
+  dropped and counted, and the sequence number shows the gap; one log waits for room and goes out
+  ahead of the samples, and any other is dropped and counted. Replies to requests are not charged
+  to the window, because they are already bounded by the rate of the requests themselves.
 - **How the application counts.** It counts the metered frames that arrive intact, each one whole:
   every encoded byte and the delimiter. A frame that arrives corrupted or not at all cannot be
   counted, and the bytes it took stay in flight, narrowing the window. `PING` resynchronizes: `PONG`
