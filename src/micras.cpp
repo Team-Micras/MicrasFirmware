@@ -11,6 +11,7 @@
 
 #include "constants.hpp"
 #include "micras/comm/link.hpp"
+#include "micras/comm/protocol.hpp"
 #include "micras/core/types.hpp"
 #include "micras/core/variable_pool.hpp"
 #include "micras/hal/adc_dma.hpp"
@@ -66,6 +67,8 @@ Micras::Micras() :
 
 void Micras::register_variables() {
     static constexpr std::array<std::string_view, 4> sensor_names{"0", "1", "2", "3"};
+
+    this->variables.add("", "state", this->state_id, {.stream = true});
 
     for (uint8_t i = 0; i < nav::number_of_wall_sensors; i++) {
         this->variables.add("wall/", sensor_names.at(i), this->wall_sensors.get_reading(i).distance, {.stream = true});
@@ -200,6 +203,7 @@ void Micras::update() {
     const uint32_t timestamp_us = this->telemetry_stopwatch.elapsed_time_us();
 
     this->link.poll(this->is_idle());
+    this->report_state(timestamp_us);
     this->link.pump(timestamp_us);
 
     this->worst_loop_time_us = std::max(this->worst_loop_time_us, this->tick.elapsed_time_us());
@@ -557,5 +561,26 @@ comm::CommandReply Micras::handle_command(uint8_t code, uint32_t argument) {
 
     static_cast<void>(argument);
     return {.result = comm::CommandResult::UNKNOWN};
+}
+
+void Micras::report_state(uint32_t timestamp_us) {
+    static constexpr std::string_view prefix{"state "};
+
+    const uint8_t current = this->fsm.get_current_state_id();
+
+    if (current == this->state_id) {
+        return;
+    }
+
+    this->state_id = current;
+
+    const std::string_view name = state_names.at(current);
+    std::array<char, 32>   text{};
+    char* const            end = std::ranges::copy(name, std::ranges::copy(prefix, text.data()).out).out;
+
+    this->link.log(
+        current == std::to_underlying(State::ERROR) ? comm::Severity::ERROR : comm::Severity::INFO, timestamp_us,
+        {text.data(), end}
+    );
 }
 }  // namespace micras

@@ -5,7 +5,11 @@
 #ifndef BASE_STATE_HPP
 #define BASE_STATE_HPP
 
+#include <algorithm>
+#include <array>
 #include <cstdint>
+#include <string_view>
+#include <utility>
 
 #include "micras/core/fsm.hpp"
 
@@ -31,6 +35,27 @@ enum class State : uint8_t {
     ERROR = 12,                // Error state.
     NUMBER_OF_STATES = 13
 };
+
+/**
+ * @brief Names of the states, indexed by their id, as the transitions are reported over the link.
+ */
+constexpr std::array<std::string_view, std::to_underlying(State::NUMBER_OF_STATES)> state_names{
+    "INIT",
+    "IDLE",
+    "WAIT_FOR_RUN",
+    "RUN",
+    "PLAN",
+    "SAVE",
+    "WAIT_FOR_CALIBRATE",
+    "CALIBRATE",
+    "WAIT_FOR_IDENTIFY",
+    "IDENTIFY",
+    "WAIT_FOR_GYROSCOPE",
+    "CALIBRATE_GYROSCOPE",
+    "ERROR",
+};
+
+static_assert(std::ranges::none_of(state_names, &std::string_view::empty), "every state needs a name");
 
 /**
  * @brief Base of the states of the robot, which all act on the Micras object.

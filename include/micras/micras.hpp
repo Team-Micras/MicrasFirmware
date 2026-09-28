@@ -412,6 +412,16 @@ private:
     void clear_faults();
 
     /**
+     * @brief Publish the state of the state machine, and report it over the link when it changed.
+     *
+     * @note Called after the link acted on its message, which may have changed the state, so the
+     * published state is always the one the next iteration runs.
+     *
+     * @param timestamp_us Time of the iteration, on the clock the samples are stamped with.
+     */
+    void report_state(uint32_t timestamp_us);
+
+    /**
      * @brief Watchdog, started before anything that could hang.
      */
     proxy::Watchdog watchdog{watchdog_config};
@@ -541,6 +551,11 @@ private:
      * @brief Measurements of the current iteration.
      */
     nav::Measurements measurements{};
+
+    /**
+     * @brief Id of the state the next iteration runs, as the pool publishes it.
+     */
+    uint8_t state_id{std::to_underlying(State::INIT)};
 
     /**
      * @brief Current objective of the robot.
