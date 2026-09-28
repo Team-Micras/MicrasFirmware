@@ -1,11 +1,13 @@
 ###############################################################################
-## Micras target unit tests: the host micras_hal and the fake Cube layer
+## Micras target unit tests: the host micras_hal, the fake Cube layer and the SPI
+## device slot
 ###############################################################################
 
 include(GoogleTest)
 
 add_executable(micras_target_tests
     unit/hal_host_test.cpp
+    unit/spi_slot_test.cpp
 )
 
 target_link_libraries(micras_target_tests PRIVATE micras_sim_micras GTest::gtest_main)

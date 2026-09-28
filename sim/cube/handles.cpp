@@ -6,8 +6,8 @@
  * @note Each MX_*_Init below sets the values its namesake sets in
  *       MicrasFirmware/cube/Src: MX_TIMn_Init the prescaler, counter mode and
  *       period of tim.c, MX_ADCn_Init the NbrOfConversion of adc.c, MX_CRC_Init
- *       the whole Init block of crc.c, MX_SPI3_Init the SPI mode of spi.c and
- *       MX_UART4_Init the baud rate of usart.c. Only what the host backend reads
+ *       the whole Init block of crc.c, MX_SPI3_Init the SPI mode and baud rate
+ *       prescaler of spi.c and MX_UART4_Init the baud rate of usart.c. Only what the host backend reads
  *       is set, plus the handle states the drivers check before initialising.
  */
 
@@ -31,7 +31,13 @@ namespace {
 constexpr uint32_t timer_clock{275000000};
 
 /**
- * @brief The timers' registers.
+ * @brief Frequency SPI3's kernel clock runs at: PLL3 from the 64 MHz HSI, M 32,
+ *        N 125 and P 2 (spi.c, HAL_SPI_MspInit).
+ */
+constexpr uint32_t spi3_kernel_clock{125000000};
+
+/**
+ * @brief The registers of the timers and of SPI3.
  */
 ///@{
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables): register blocks the firmware writes through handles.
@@ -43,6 +49,7 @@ TIM_TypeDef tim5_registers{};
 TIM_TypeDef tim8_registers{};
 TIM_TypeDef tim12_registers{};
 TIM_TypeDef tim15_registers{};
+SPI_TypeDef spi3_registers{};
 
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
@@ -160,8 +167,11 @@ void MX_ADC3_Init() {
 }
 
 void MX_SPI3_Init() {
+    spi3_registers.kernel_clock = spi3_kernel_clock;
+    hspi3.Instance = &spi3_registers;
     hspi3.Init.CLKPolarity = SPI_POLARITY_HIGH;
     hspi3.Init.CLKPhase = SPI_PHASE_2EDGE;
+    hspi3.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;
     hspi3.State = HAL_SPI_STATE_READY;
     micras::hal::host::Board::name_handle(&hspi3, "hspi3");
 }
