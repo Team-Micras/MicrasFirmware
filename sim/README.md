@@ -183,8 +183,8 @@ in the same commit:
 - `Micras::get_instance()`, `get_variables()` and `get_state()`, for the variable columns, the state
   events and the stop conditions; `Micras::Command`, for the link commands; `micras::State` and
   `NUMBER_OF_STATES`, named by `micras::state_names` in `include/micras/states/names.hpp` (a
-  `static_assert` pins each name, because the runs and the baselines record them); `loop_time_us` and
-  `wall_sensors_frequency` of `constants.hpp`.
+  `static_assert` pins each name, because the runs and the baselines record them, and a state with no
+  name fails the build); `loop_time_us` and `wall_sensors_frequency` of `constants.hpp`.
 - The variable-pool names the scenarios, the baselines and the analysis plugin use (`state`,
   `reference/linear_speed`, `pose/linear_speed`, ...): renaming one is a baseline change.
 - The objects of `target.hpp` the bindings bind: `locomotion_config`, `rotary_sensor_left_config`,

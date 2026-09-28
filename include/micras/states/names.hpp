@@ -5,6 +5,7 @@
 #ifndef STATE_NAMES_HPP
 #define STATE_NAMES_HPP
 
+#include <algorithm>
 #include <array>
 #include <string_view>
 #include <utility>
@@ -33,6 +34,11 @@ inline constexpr std::array<std::string_view, std::to_underlying(State::NUMBER_O
     "CALIBRATE_GYROSCOPE",
     "ERROR",
 };
+
+static_assert(
+    std::ranges::none_of(state_names, [](std::string_view name) { return name.empty(); }),
+    "every state needs a name in micras::state_names"
+);
 
 /**
  * @brief Get the name of a state.
