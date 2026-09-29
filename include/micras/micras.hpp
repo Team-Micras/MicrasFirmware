@@ -617,6 +617,9 @@ private:
 
     /**
      * @brief Free running clock the samples are stamped with.
+     *
+     * @note It is read in every iteration and right after a save, the longest stall of the loop, so
+     * a wrap of the cycle counter is only lost to a stall longer than one, about 7.81 s.
      */
     proxy::MicrosecondClock telemetry_clock;
 

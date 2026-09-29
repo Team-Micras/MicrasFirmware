@@ -389,6 +389,7 @@ bool Micras::save_maze() {
 
     this->led.turn_on();
     const bool saved = this->maze_storage.save(this->variables);
+    this->telemetry_clock.now_us();
     this->led.turn_off();
     this->tick.restart();
 

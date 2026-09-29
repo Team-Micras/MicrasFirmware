@@ -186,7 +186,10 @@ constexpr uint32_t watchdog_timeout_ms{10};
  * @note Erasing a flash sector stalls the core for around 2 s, and up to 4 s in the worst case,
  * since the flash cannot be read while it is being erased. It also covers the construction of the
  * robot, where the proxies wait for their chips, and the planning of a fast run, whose search is
- * bounded per iteration but whose choice among the candidate routes is done in one.
+ * bounded per iteration but whose choice among the candidate routes is done in one. The timeout
+ * outlasts one wrap of the cycle counter, about 7.81 s at 550 MHz, which the microsecond clock of
+ * the link has to be read within: a stall between the two would set that clock back by a wrap. No
+ * stall comes near it, and the core clock is only known at run time, so this is not asserted.
  */
 constexpr uint32_t stopped_watchdog_timeout_ms{8000};
 
