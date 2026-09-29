@@ -65,8 +65,8 @@ add_library(micras_host_nav STATIC
 target_include_directories(micras_host_nav PUBLIC ${MICRAS_ROOT}/micras_nav/include)
 target_link_libraries(micras_host_nav PUBLIC micras_host_core)
 
-# The braking of a run and of the calibration of the gyroscope, over the dynamics of the robot and the
-# shape of its turns, which the firmware designs when it is compiled
+# The braking of a run, of the calibration of the gyroscope and of the wheels after a second stop, over
+# the dynamics of the robot and the shape of its turns, which the firmware designs when it is compiled
 add_library(micras_host_motion STATIC
     ${MICRAS_ROOT}/config/dynamics_config.cpp
     ${MICRAS_ROOT}/micras_nav/src/curve_speed.cpp
@@ -75,6 +75,7 @@ add_library(micras_host_motion STATIC
     ${MICRAS_ROOT}/micras_nav/src/line.cpp
     ${MICRAS_ROOT}/micras_nav/src/motion_limits.cpp
     ${MICRAS_ROOT}/micras_nav/src/speed_profile.cpp
+    ${MICRAS_ROOT}/micras_nav/src/speed_ramp.cpp
     ${MICRAS_ROOT}/micras_nav/src/state.cpp
     ${MICRAS_ROOT}/micras_nav/src/velocity_planner.cpp
 )

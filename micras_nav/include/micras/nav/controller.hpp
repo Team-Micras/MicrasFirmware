@@ -123,6 +123,20 @@ public:
     Command update(const Reference& unscaled, const State& estimate, float elapsed_time);
 
     /**
+     * @brief Compute the command that makes the robot follow speeds alone, with no path and no pose.
+     *
+     * @note Only the loop on the speeds: the feed forward of the speeds and their accelerations, and
+     * the derivative terms on the speeds the estimate measures, from the wheels and the gyroscope.
+     * The speeds are played as they are, at no time scale.
+     *
+     * @param twist The speeds the robot should be at.
+     * @param acceleration The accelerations of those speeds.
+     * @param estimate What the robot is doing, as far as it is known, of which only the speeds count.
+     * @return The command for the locomotion.
+     */
+    Command follow_speed(const Twist& twist, const Twist& acceleration, const State& estimate);
+
+    /**
      * @brief Get how much slower the reference has to be played for the motors to follow it.
      *
      * @note The feed forward alone may ask for more voltage than there is. Slowing the clock of
@@ -202,6 +216,24 @@ private:
      * @return The terms of the feed forward of each wheel.
      */
     std::array<std::array<float, 4>, 2> get_wheel_terms(const Reference& reference) const;
+
+    /**
+     * @brief Get the feed forward of both axes, from the model of the drive train.
+     *
+     * @param twist The speeds.
+     * @param acceleration The accelerations.
+     * @return The voltages of the forward and the rotation axes.
+     */
+    Command get_feed_forward(const Twist& twist, const Twist& acceleration) const;
+
+    /**
+     * @brief Turn the voltages of both axes into the command, and note whether it saturates.
+     *
+     * @param feed_forward The feed forward of each axis, in volts.
+     * @param feedback The feedback of each axis, in volts.
+     * @return The command for the locomotion, in percent of the motor supply.
+     */
+    Command to_command(const Command& feed_forward, const Command& feedback);
 
     /**
      * @brief Get the voltage the feed forward may use, with the reserve for the feedback left out.

@@ -66,20 +66,9 @@ Controller::Command Controller::update(const Reference& unscaled, const State& e
     reference.acceleration.angular =
         scale * scale * unscaled.acceleration.angular + scale_rate * unscaled.twist.angular;
 
-    const float half_track = model.chassis.track_width / 2.0F;
-    const float left_speed = reference.twist.linear - reference.twist.angular * half_track;
-    const float right_speed = reference.twist.linear + reference.twist.angular * half_track;
-
-    const float left_friction = std::clamp(left_speed / this->config.friction_speed, -1.0F, 1.0F);
-    const float right_friction = std::clamp(right_speed / this->config.friction_speed, -1.0F, 1.0F);
-
-    const float forward_feed_forward = model.speed_constant() * reference.twist.linear +
-                                       model.acceleration_constant() * reference.acceleration.linear +
-                                       model.drive.static_friction_voltage * (right_friction + left_friction) / 2.0F;
-
-    const float rotation_feed_forward = model.angular_speed_constant() * reference.twist.angular +
-                                        model.angular_acceleration_constant() * reference.acceleration.angular +
-                                        model.drive.static_friction_voltage * (right_friction - left_friction) / 2.0F;
+    const Command feed_forward = this->get_feed_forward(reference.twist, reference.acceleration);
+    const float   forward_feed_forward = feed_forward.forward;
+    const float   rotation_feed_forward = feed_forward.rotation;
 
     const Pose seen = reference.pose.relative(estimate.pose);
 
@@ -113,11 +102,54 @@ Controller::Command Controller::update(const Reference& unscaled, const State& e
         .rotation_feedback = rotation_feedback,
     };
 
-    const float to_percent = 100.0F / model.drive.supply_voltage;
+    return this->to_command(feed_forward, {.forward = forward_feedback, .rotation = rotation_feedback});
+}
+
+Controller::Command Controller::follow_speed(const Twist& twist, const Twist& acceleration, const State& estimate) {
+    const Command feed_forward = this->get_feed_forward(twist, acceleration);
+    const Command feedback{
+        .forward = this->linear_gains.derivative * (twist.linear - estimate.velocity.linear),
+        .rotation = this->angular_gains.derivative * (twist.angular - estimate.velocity.angular),
+    };
+
+    this->status = {
+        .along_error = 0.0F,
+        .across_error = 0.0F,
+        .orientation_error = 0.0F,
+        .forward_feed_forward = feed_forward.forward,
+        .rotation_feed_forward = feed_forward.rotation,
+        .forward_feedback = feedback.forward,
+        .rotation_feedback = feedback.rotation,
+    };
+
+    return this->to_command(feed_forward, feedback);
+}
+
+Controller::Command Controller::get_feed_forward(const Twist& twist, const Twist& acceleration) const {
+    const RobotModel& model = this->config.model;
+
+    const float half_track = model.chassis.track_width / 2.0F;
+    const float left_speed = twist.linear - twist.angular * half_track;
+    const float right_speed = twist.linear + twist.angular * half_track;
+
+    const float left_friction = std::clamp(left_speed / this->config.friction_speed, -1.0F, 1.0F);
+    const float right_friction = std::clamp(right_speed / this->config.friction_speed, -1.0F, 1.0F);
+
+    return {
+        .forward = model.speed_constant() * twist.linear + model.acceleration_constant() * acceleration.linear +
+                   model.drive.static_friction_voltage * (right_friction + left_friction) / 2.0F,
+        .rotation = model.angular_speed_constant() * twist.angular +
+                    model.angular_acceleration_constant() * acceleration.angular +
+                    model.drive.static_friction_voltage * (right_friction - left_friction) / 2.0F,
+    };
+}
+
+Controller::Command Controller::to_command(const Command& feed_forward, const Command& feedback) {
+    const float to_percent = 100.0F / this->config.model.drive.supply_voltage;
 
     const Command command{
-        .forward = to_percent * (forward_feed_forward + forward_feedback),
-        .rotation = to_percent * (rotation_feed_forward + rotation_feedback),
+        .forward = to_percent * (feed_forward.forward + feedback.forward),
+        .rotation = to_percent * (feed_forward.rotation + feedback.rotation),
     };
 
     this->saturated = std::abs(command.forward) + std::abs(command.rotation) > 100.0F;

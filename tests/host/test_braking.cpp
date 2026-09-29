@@ -19,6 +19,7 @@
 #include "micras/nav/motion_limits.hpp"
 #include "micras/nav/segment.hpp"
 #include "micras/nav/speed_profile.hpp"
+#include "micras/nav/speed_ramp.hpp"
 #include "micras/nav/state.hpp"
 #include "micras/nav/turn_table.hpp"
 #include "test_host.hpp"
@@ -322,6 +323,47 @@ void test_gyroscope_brake() {
         CHECK(held.twist.angular == 0.0F and held.acceleration.angular == 0.0F);
     }
 }
+
+void test_speed_ramp() {
+    const Dynamics     dynamics{dynamics_config};
+    const MotionLimits linear = dynamics.get_linear_limits(stop_profile);
+    const MotionLimits angular = dynamics.get_angular_limits(stop_profile);
+    SpeedRamp          ramp;
+
+    CHECK(ramp.is_finished());
+
+    const Twist start{.linear = 3.0F, .angular = -2.0F};
+    ramp.start(start, linear, angular);
+
+    CHECK(not ramp.is_finished());
+
+    Twist last = start;
+    float distance = 0.0F;
+    float time = 0.0F;
+    bool  within_limits = true;
+
+    for (int i = 0; i < max_iterations and not ramp.is_finished(); i++) {
+        const SpeedRamp::Sample sample = ramp.update(step);
+        within_limits = within_limits and sample.twist.linear >= 0.0F and sample.twist.linear <= last.linear and
+                        sample.twist.angular <= 0.0F and sample.twist.angular >= last.angular and
+                        -sample.acceleration.linear <= linear.deceleration_at(last.linear) + 1.0e-3F and
+                        sample.acceleration.angular <= angular.deceleration_at(-last.angular) + 1.0e-3F and
+                        is_near(sample.twist.linear, last.linear + sample.acceleration.linear * step, 1.0e-4F);
+        distance += sample.twist.linear * step;
+        time += step;
+        last = sample.twist;
+    }
+
+    CHECK(ramp.is_finished());
+    CHECK(within_limits);
+    CHECK(last.linear == 0.0F and last.angular == 0.0F);
+    CHECK(is_near(distance, SpeedProfile::get_braking_distance(start.linear, 0.0F, linear), 0.005F));
+    CHECK(time < start.linear / linear.deceleration + 0.01F);
+
+    const SpeedRamp::Sample rest = ramp.update(step);
+    CHECK(rest.twist.linear == 0.0F and rest.twist.angular == 0.0F);
+    CHECK(rest.acceleration.linear == 0.0F and rest.acceleration.angular == 0.0F);
+}
 }  // namespace
 
 int main() {
@@ -331,6 +373,7 @@ int main() {
     test_braked_turn_rests_on_it();
     test_braked_turn_goes_on_straight();
     test_gyroscope_brake();
+    test_speed_ramp();
 
     std::puts("braking ok");
 }
