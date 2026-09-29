@@ -24,13 +24,15 @@ CurveSpeed CurveSpeed::braking(
 
     const float available = std::max(end_distance - start_distance, 0.0F);
     float       spacing = turn_spacing;
+    bool        ended = false;
 
-    for (uint8_t doublings = 0; doublings < max_spacing_doublings; doublings++) {
-        if (motion.plan_braking(bending, available, start_speed, spacing, limits)) {
-            break;
-        }
-
+    for (uint8_t doublings = 0; doublings < max_spacing_doublings and not ended; doublings++) {
+        ended = motion.plan_braking(bending, available, start_speed, std::ceil(available / spacing), limits);
         spacing *= 2.0F;
+    }
+
+    if (not ended) {
+        motion.plan_braking(bending, available, start_speed, max_intervals, limits);
     }
 
     const std::size_t samples = motion.intervals + std::size_t{1};
@@ -42,26 +44,35 @@ CurveSpeed CurveSpeed::braking(
 
 template <typename F>
 bool CurveSpeed::plan_braking(
-    F& bending, float available, float start_speed, float spacing, const CurveLimits& limits
+    F& bending, float available, float start_speed, float intervals_to_end, const CurveLimits& limits
 ) {
-    this->spacing = spacing;
+    const float wanted = std::max(intervals_to_end, 1.0F);
+    const float last = std::min(wanted, static_cast<float>(max_intervals));
+
+    this->spacing = available / wanted;
     this->speeds.front() = start_speed;
 
     uint8_t steps = 0;
 
-    while (steps < max_intervals and this->speeds.at(steps) > 0.0F and
-           static_cast<float>(steps + 1) * spacing <= available) {
-        const float speed = this->speeds.at(steps);
-        const float deceleration =
-            limits.get_deceleration(speed, bending(this->start_distance + static_cast<float>(steps) * spacing));
+    while (static_cast<float>(steps) < last and this->speeds.at(steps) > 0.0F) {
+        const float   speed = this->speeds.at(steps);
+        const float   distance = this->start_distance + static_cast<float>(steps) * this->spacing;
+        const Bending start = bending(distance);
+        const Bending end = bending(distance + this->spacing);
+        const float   deceleration = limits.get_deceleration(
+            speed, {
+                       .curvature = std::max(std::abs(start.curvature), std::abs(end.curvature)),
+                       .sharpness = std::max(std::abs(start.sharpness), std::abs(end.sharpness)),
+                   }
+        );
 
-        this->speeds.at(steps + 1) = std::sqrt(std::max(speed * speed - 2.0F * spacing * deceleration, 0.0F));
+        this->speeds.at(steps + 1) = std::sqrt(std::max(speed * speed - 2.0F * this->spacing * deceleration, 0.0F));
         steps++;
     }
 
     this->intervals = steps;
 
-    return this->speeds.at(steps) <= 0.0F or static_cast<float>(steps + 1) * spacing > available;
+    return this->speeds.at(steps) <= 0.0F or static_cast<float>(steps) >= wanted;
 }
 
 template <typename F>
