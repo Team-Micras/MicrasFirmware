@@ -122,13 +122,13 @@ std::optional<Reason> refusal(State state, bool entered, Command command) {
     return Reason::NOT_IDLE;
 }
 
-StopAction stop_action(State state, bool entered) {
+StopAction stop_action(State state, bool entered, bool wheel_braked) {
     if (state == State::SAVE) {
         return StopAction::DEFER;
     }
 
     if (state == State::BRAKE) {
-        return entered ? StopAction::WHEEL_BRAKE : StopAction::CONFIRM;
+        return entered and not wheel_braked ? StopAction::WHEEL_BRAKE : StopAction::CONFIRM;
     }
 
     if (entered and (state == State::RUN or state == State::IDENTIFY or state == State::CALIBRATE_GYROSCOPE)) {

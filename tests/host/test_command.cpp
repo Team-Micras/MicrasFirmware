@@ -93,28 +93,33 @@ int main() {
 
     // --- a stop brakes a robot that moves, and a second one during the brake brakes the wheels ---
     for (const State state : {State::RUN, State::IDENTIFY, State::CALIBRATE_GYROSCOPE}) {
-        CHECK(stop_action(state, true) == StopAction::BRAKE);
-        CHECK(stop_action(state, false) == StopAction::IDLE);
+        CHECK(stop_action(state, true, false) == StopAction::BRAKE);
+        CHECK(stop_action(state, false, false) == StopAction::IDLE);
     }
 
-    CHECK(stop_action(State::BRAKE, true) == StopAction::WHEEL_BRAKE);
-    CHECK(stop_action(State::BRAKE, false) == StopAction::CONFIRM);
+    CHECK(stop_action(State::BRAKE, true, false) == StopAction::WHEEL_BRAKE);
+    CHECK(stop_action(State::BRAKE, false, false) == StopAction::CONFIRM);
+
+    // --- a stop once the wheels brake only confirms, so it cannot restart the ramp ---
+    CHECK(stop_action(State::BRAKE, true, true) == StopAction::CONFIRM);
+    CHECK(stop_action(State::BRAKE, false, true) == StopAction::CONFIRM);
+    CHECK(stop_action(State::RUN, true, true) == StopAction::BRAKE);
 
     // --- a save makes the stop wait, and the start and the error state keep the robot there ---
-    CHECK(stop_action(State::SAVE, true) == StopAction::DEFER);
-    CHECK(stop_action(State::SAVE, false) == StopAction::DEFER);
+    CHECK(stop_action(State::SAVE, true, false) == StopAction::DEFER);
+    CHECK(stop_action(State::SAVE, false, false) == StopAction::DEFER);
 
     for (const bool is_entered : {true, false}) {
-        CHECK(stop_action(State::INIT, is_entered) == StopAction::STAY);
-        CHECK(stop_action(State::ERROR, is_entered) == StopAction::STAY);
+        CHECK(stop_action(State::INIT, is_entered, false) == StopAction::STAY);
+        CHECK(stop_action(State::ERROR, is_entered, false) == StopAction::STAY);
     }
 
     // --- every other state is left for idle ---
     for (const State state :
          {State::IDLE, State::WAIT_FOR_RUN, State::PLAN, State::WAIT_FOR_CALIBRATE, State::CALIBRATE,
           State::WAIT_FOR_IDENTIFY, State::WAIT_FOR_GYROSCOPE}) {
-        CHECK(stop_action(state, true) == StopAction::IDLE);
-        CHECK(stop_action(state, false) == StopAction::IDLE);
+        CHECK(stop_action(state, true, false) == StopAction::IDLE);
+        CHECK(stop_action(state, false, false) == StopAction::IDLE);
     }
 
     std::puts("command ok");

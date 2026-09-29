@@ -54,7 +54,7 @@ enum class Reason : uint8_t {
  */
 enum class StopAction : uint8_t {
     DEFER = 0,        ///< Wait for the save to end, and stop then.
-    CONFIRM = 1,      ///< Nothing more to do: the brake was chosen and starts on its own.
+    CONFIRM = 1,      ///< Nothing more to do: the brake was chosen and starts on its own, or is the wheel brake.
     BRAKE = 2,        ///< Brake to a standstill the way the state moves, then be idle.
     WHEEL_BRAKE = 3,  ///< Drop the brake under way and bring the wheels to rest, with no path and no pose.
     IDLE = 4,         ///< Turn everything off and be idle.
@@ -92,15 +92,16 @@ std::optional<Reason> refusal(State state, bool entered, Command command);
  * @note A run and the procedures that move the robot brake to a standstill once they have been
  * entered, the way each moves. A second stop once that brake is under way asks for a stop that
  * trusts neither the path nor the pose, so it brakes the wheels instead, while one that arrives
- * before the brake has started only confirms it. During a save the stop waits for the save to end.
- * The initialization and the error state keep the robot where it is, and every other state makes
+ * before the brake has started, or once the wheels are already braking, only confirms it. During a save the stop waits
+ * for the save to end. The initialization and the error state keep the robot where it is, and every other state makes
  * it idle.
  *
  * @param state The state the robot is in.
  * @param entered Whether the state has been entered, rather than only chosen.
+ * @param wheel_braked Whether the brake under way is already the one of the wheels.
  * @return How to stop.
  */
-StopAction stop_action(State state, bool entered);
+StopAction stop_action(State state, bool entered, bool wheel_braked);
 }  // namespace micras
 
 #endif  // MICRAS_COMMAND_HPP

@@ -508,9 +508,10 @@ private:
      * allow, through the loop on the speeds alone, then holds a null command with the drivers on,
      * so the bridge shorts the motors, until the robot has settled. The faults are still watched,
      * the timeout of the first brake still bounds it, and the robot is then idle with the drivers
-     * off and the presses of the button forgotten. A stop that arrives before the brake has started
-     * only confirms it. The robot stays in the error state, and in the initialization it has not
-     * finished, if it is there. During a save the stop waits for the save to end.
+     * off and the presses of the button forgotten. A stop that arrives before the brake has started,
+     * or once the wheels are already braking, only confirms it: it neither restarts the ramp nor
+     * clears the time the robot has been at rest. The robot stays in the error state, and in the initialization it has
+     * not finished, if it is there. During a save the stop waits for the save to end.
      *
      * @return Whether the robot stopped, or will once the maze is saved.
      */

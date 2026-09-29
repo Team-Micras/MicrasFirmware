@@ -690,7 +690,8 @@ comm::CommandReply Micras::carry_out(Command command) {
 
 comm::CommandReply Micras::halt() {
     const auto       state = static_cast<State>(this->fsm.get_current_state_id());
-    const StopAction action = stop_action(state, this->fsm.has_entered_current_state());
+    const StopAction action =
+        stop_action(state, this->fsm.has_entered_current_state(), this->braked_state == State::BRAKE);
 
     if (action == StopAction::DEFER) {
         this->stop_deferred = true;
