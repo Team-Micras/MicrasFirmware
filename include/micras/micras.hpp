@@ -23,6 +23,7 @@
 #include "micras/nav/localizer.hpp"
 #include "micras/nav/measurements.hpp"
 #include "micras/nav/motion_limits.hpp"
+#include "micras/nav/speed_ramp.hpp"
 #include "micras/nav/wall_model.hpp"
 #include "micras/proxy/microsecond_clock.hpp"
 #include "micras/states/brake.hpp"
@@ -259,21 +260,38 @@ public:
      * @note A run brakes along its path, the calibration of the gyroscope ramps its rotation down
      * and holds the angle the ramp ends at until the robot is at rest, and the identification of the
      * drive train holds a null command with the drivers on, so the bridge shorts the motors and they
-     * brake with their own back EMF. A second stop during the brake shorts the motors the same way,
-     * whatever the brake was.
+     * brake with their own back EMF. A second stop during the brake replaces whatever brake it was
+     * with the brake of the wheels, which start_wheel_brake() starts.
      */
     void start_brake();
 
     /**
      * @brief Advance the brake by one iteration.
      *
-     * @note A brake that shorts the motors ends once the robot has been at rest for the settle time
-     * of the executor, since the shorted motors only bring the speed down gradually and the estimate
-     * passes the speeds of rest a little before the body does.
+     * @note Every brake but that of a run ends once the robot has been at rest for the settle time
+     * of the executor, since the speed only settles gradually and the estimate passes the speeds
+     * of rest a little before the body does.
      *
      * @return True once the robot stands still.
      */
     bool brake();
+
+    /**
+     * @brief Replace the brake under way by a brake of the wheels alone, after a second stop.
+     *
+     * @note The speeds the wheels and the gyroscope measure are ramped down to zero as hard as the
+     * stop profile lets the tires brake, with the downforce of the fan if it is at speed, through
+     * the loop on the speeds alone, with no path and no pose. Once the ramp is at rest the motors
+     * are shorted until the robot has settled.
+     */
+    void start_wheel_brake();
+
+    /**
+     * @brief Count the time the robot has been at rest, over this iteration.
+     *
+     * @return True once it has been at rest for the settle time of the executor.
+     */
+    bool has_settled();
 
     /**
      * @brief Start the calibration of the pair of wall sensors that is next in line.
@@ -449,6 +467,13 @@ private:
     void follow(const nav::Reference& reference);
 
     /**
+     * @brief Apply a command of the controller, and count the iterations it saturates the motors.
+     *
+     * @param command The command.
+     */
+    void drive(const nav::Controller::Command& command);
+
+    /**
      * @brief Copy what is worth watching and has no stable address to the telemetry.
      */
     void publish();
@@ -471,13 +496,13 @@ private:
      *
      * @note A robot driving its motors brakes to a standstill first, in the brake state. A second
      * stop once the brake is under way trusts neither the path nor the pose: it drops the brake and
-     * holds a null command with the drivers on, so the bridge shorts the motors, which brake with
-     * their own back EMF until the speeds measured by the wheels and the gyroscope say the robot is
-     * at rest. The faults are still watched, the timeout of the first brake still bounds it, and the
-     * robot is then idle with the drivers off and the presses of the button forgotten. A stop that
-     * arrives before the brake has started only confirms it. The robot stays in the error state, and
-     * in the initialization it has not finished, if it is there. During a save the stop waits for
-     * the save to end.
+     * ramps the speeds the wheels and the gyroscope measure down to zero as hard as the tires
+     * allow, through the loop on the speeds alone, then holds a null command with the drivers on,
+     * so the bridge shorts the motors, until the robot has settled. The faults are still watched,
+     * the timeout of the first brake still bounds it, and the robot is then idle with the drivers
+     * off and the presses of the button forgotten. A stop that arrives before the brake has started
+     * only confirms it. The robot stays in the error state, and in the initialization it has not
+     * finished, if it is there. During a save the stop waits for the save to end.
      *
      * @return Whether the robot stopped, or will once the maze is saved.
      */
@@ -582,6 +607,7 @@ private:
     nav::Mission              mission{dynamics, wall_model, mission_config};
     nav::DriveIdentification  drive_identification{drive_identification_config};
     nav::GyroscopeCalibration gyroscope_calibration{gyroscope_calibration_config};
+    nav::SpeedRamp            speed_ramp;
     ///@}
 
     /**
@@ -655,14 +681,19 @@ private:
     /**
      * @brief State the robot was in when a stop made it brake, which says how to brake.
      *
-     * @note It is the brake state itself once a second stop has shorted the motors.
+     * @note It is the brake state itself once a second stop has made it brake the wheels.
      */
     State braked_state{State::RUN};
 
     /**
-     * @brief Time the robot has been at rest while the brake shorts the motors, in seconds.
+     * @brief Time the robot has been at rest while it brakes, in seconds.
      */
     float settled_time{};
+
+    /**
+     * @brief Speed of the fan, as a share of the speed it runs at.
+     */
+    float fan_share{};
 
     /**
      * @brief Current objective of the robot.

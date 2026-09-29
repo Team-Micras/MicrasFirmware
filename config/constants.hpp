@@ -313,6 +313,22 @@ constexpr nav::RunProfile search_profile{
 };
 
 /**
+ * @brief Profile of the brake of the wheels that a second stop asks for.
+ *
+ * @note The share of the traction a run brakes with. More slides the tires, so the wheels read
+ * slower than the body and the ramp ends with the robot still moving: from 1 m/s, the whole of the
+ * traction took 0.39 s to rest against 0.21 s. The fan is set by whether it is at speed when the
+ * stop arrives.
+ */
+constexpr nav::RunProfile stop_profile{
+    .racing_line = false,
+    .fan = false,
+    .risky = false,
+    .utilization = normal_utilization,
+    .max_speed = std::numeric_limits<float>::infinity(),
+};
+
+/**
  * @brief Profiles the map has to be complete for before the search ends.
  *
  * @note Every combination of the boost and risky switches, with the fan running. The racing line

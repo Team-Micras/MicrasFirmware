@@ -128,7 +128,7 @@ StopAction stop_action(State state, bool entered) {
     }
 
     if (state == State::BRAKE) {
-        return entered ? StopAction::SHORT_BRAKE : StopAction::CONFIRM;
+        return entered ? StopAction::WHEEL_BRAKE : StopAction::CONFIRM;
     }
 
     if (entered and (state == State::RUN or state == State::IDENTIFY or state == State::CALIBRATE_GYROSCOPE)) {

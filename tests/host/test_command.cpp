@@ -91,13 +91,13 @@ int main() {
 
     CHECK(refusal(State::ERROR, false, Command::LEAVE_ERROR) == Reason::NOT_IN_ERROR);
 
-    // --- a stop brakes a robot that moves, and a second one during the brake shorts the motors ---
+    // --- a stop brakes a robot that moves, and a second one during the brake brakes the wheels ---
     for (const State state : {State::RUN, State::IDENTIFY, State::CALIBRATE_GYROSCOPE}) {
         CHECK(stop_action(state, true) == StopAction::BRAKE);
         CHECK(stop_action(state, false) == StopAction::IDLE);
     }
 
-    CHECK(stop_action(State::BRAKE, true) == StopAction::SHORT_BRAKE);
+    CHECK(stop_action(State::BRAKE, true) == StopAction::WHEEL_BRAKE);
     CHECK(stop_action(State::BRAKE, false) == StopAction::CONFIRM);
 
     // --- a save makes the stop wait, and the start and the error state keep the robot there ---

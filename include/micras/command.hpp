@@ -56,7 +56,7 @@ enum class StopAction : uint8_t {
     DEFER = 0,        ///< Wait for the save to end, and stop then.
     CONFIRM = 1,      ///< Nothing more to do: the brake was chosen and starts on its own.
     BRAKE = 2,        ///< Brake to a standstill the way the state moves, then be idle.
-    SHORT_BRAKE = 3,  ///< Drop the brake under way and short the motors until the robot is at rest.
+    WHEEL_BRAKE = 3,  ///< Drop the brake under way and bring the wheels to rest, with no path and no pose.
     IDLE = 4,         ///< Turn everything off and be idle.
     STAY = 5,         ///< Turn everything off and stay in the state.
 };
@@ -91,7 +91,7 @@ std::optional<Reason> refusal(State state, bool entered, Command command);
  *
  * @note A run and the procedures that move the robot brake to a standstill once they have been
  * entered, the way each moves. A second stop once that brake is under way asks for a stop that
- * trusts neither the path nor the pose, so it shorts the motors instead, while one that arrives
+ * trusts neither the path nor the pose, so it brakes the wheels instead, while one that arrives
  * before the brake has started only confirms it. During a save the stop waits for the save to end.
  * The initialization and the error state keep the robot where it is, and every other state makes
  * it idle.

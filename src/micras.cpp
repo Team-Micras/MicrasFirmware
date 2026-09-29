@@ -205,9 +205,9 @@ void Micras::update() {
     }
 
     this->battery.update();
-    const float fan_share = this->fan.update() / fan_speed;
+    this->fan_share = this->fan.update() / fan_speed;
 
-    this->localizer.set_downforce(fan_share * fan_share);
+    this->localizer.set_downforce(this->fan_share * this->fan_share);
     this->imu.update();
     this->torque_sensors.update();
     this->wall_sensors.update();
@@ -418,11 +418,39 @@ bool Micras::brake() {
             ));
             return this->gyroscope_calibration.is_finished() and this->is_at_rest();
 
+        case State::BRAKE:
+            if (not this->speed_ramp.is_finished()) {
+                const nav::SpeedRamp::Sample sample = this->speed_ramp.update(this->elapsed_time);
+                this->drive(
+                    this->controller.follow_speed(sample.twist, sample.acceleration, this->localizer.get_state())
+                );
+                return false;
+            }
+
+            this->locomotion.set_command(0.0F, 0.0F);
+            return this->has_settled();
+
         default:
             this->locomotion.set_command(0.0F, 0.0F);
-            this->settled_time = this->is_at_rest() ? this->settled_time + this->elapsed_time : 0.0F;
-            return this->settled_time >= mission_config.executor.settle_time;
+            return this->has_settled();
     }
+}
+
+void Micras::start_wheel_brake() {
+    nav::RunProfile profile = stop_profile;
+    profile.fan = this->fan_share >= 1.0F;
+
+    this->braked_state = State::BRAKE;
+    this->settled_time = 0.0F;
+    this->speed_ramp.start(
+        this->localizer.get_state().velocity, this->dynamics.get_linear_limits(profile),
+        this->dynamics.get_angular_limits(profile)
+    );
+}
+
+bool Micras::has_settled() {
+    this->settled_time = this->is_at_rest() ? this->settled_time + this->elapsed_time : 0.0F;
+    return this->settled_time >= mission_config.executor.settle_time;
 }
 
 void Micras::start_calibration() {
@@ -540,8 +568,10 @@ bool Micras::is_selected(Interface::Profile option) const {
 }
 
 void Micras::follow(const nav::Reference& reference) {
-    const nav::Controller::Command command =
-        this->controller.update(reference, this->localizer.get_state(), this->elapsed_time);
+    this->drive(this->controller.update(reference, this->localizer.get_state(), this->elapsed_time));
+}
+
+void Micras::drive(const nav::Controller::Command& command) {
     const proxy::Locomotion::Command applied = this->locomotion.set_command(command.forward, command.rotation);
 
     if (applied.linear != command.forward or applied.angular != command.rotation) {
@@ -671,9 +701,8 @@ comm::CommandReply Micras::halt() {
             this->fsm.transition_to(std::to_underlying(State::BRAKE));
             break;
 
-        case StopAction::SHORT_BRAKE:
-            this->braked_state = State::BRAKE;
-            this->settled_time = 0.0F;
+        case StopAction::WHEEL_BRAKE:
+            this->start_wheel_brake();
             break;
 
         case StopAction::IDLE:
