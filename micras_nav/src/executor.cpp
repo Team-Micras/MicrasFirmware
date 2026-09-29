@@ -7,6 +7,7 @@
 #include <cmath>
 #include <cstddef>
 #include <limits>
+#include <numeric>
 #include <span>
 
 #include "micras/nav/curve_speed.hpp"
@@ -134,13 +135,16 @@ void Executor::divert(std::span<const Segment> segments) {
 void Executor::brake(float rest_time) {
     this->braking = true;
     this->rest_time = rest_time;
-    this->queued_time = 0.0F;
 
     if (this->is_finished()) {
         const std::array rest{this->make_rest(this->reference.pose)};
         this->push(rest);
         return;
     }
+
+    this->queued_time = std::accumulate(
+        this->durations.begin() + static_cast<std::ptrdiff_t>(this->index) + 1, this->durations.end(), 0.0F
+    );
 
     Segment&    segment = this->segments.at(this->index);
     const float travelled = this->reference.distance;
