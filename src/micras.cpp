@@ -423,7 +423,7 @@ bool Micras::brake() {
             this->follow(this->gyroscope_calibration.update(
                 this->measurements, this->localizer.get_gyroscope_bias(), this->elapsed_time
             ));
-            return this->gyroscope_calibration.is_finished();
+            return this->gyroscope_calibration.is_finished() and this->is_at_rest();
 
         default:
             this->locomotion.set_command(0.0F, 0.0F);

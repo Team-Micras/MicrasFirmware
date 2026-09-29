@@ -256,9 +256,10 @@ public:
     /**
      * @brief Start bringing the robot to a standstill, from the state the stop arrived in.
      *
-     * @note A run brakes along its path, the calibration of the gyroscope ramps its rotation down,
-     * and the identification of the drive train holds a null command with the drivers on, which
-     * brakes the motors with their own back EMF.
+     * @note A run brakes along its path, the calibration of the gyroscope ramps its rotation down
+     * and holds the angle the ramp ends at until the robot is at rest, and the identification of the
+     * drive train holds a null command with the drivers on, which brakes the motors with their own
+     * back EMF.
      */
     void start_brake();
 

@@ -73,7 +73,9 @@ public:
     /**
      * @brief Stop the procedure, ramping the rotation in progress down as hard as the limits allow.
      *
-     * @note The result is not valid after it, and the scale measured before is kept.
+     * @note The result is not valid after it, and the scale measured before is kept. Once the ramp
+     * ends, the procedure holds the orientation it ended at, so the robot can be kept there until it
+     * is at rest.
      *
      * @param limits The limits of the rotation in place, as the procedure was started with.
      */
@@ -82,8 +84,8 @@ public:
     /**
      * @brief Check if the procedure has ended.
      *
-     * @return True once the wall was measured for the second time, or the robot is at rest after a
-     * brake.
+     * @return True once the wall was measured for the second time, or once the rotation has been
+     * ramped down after a brake.
      */
     bool is_finished() const;
 

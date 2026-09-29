@@ -40,13 +40,14 @@ Reference GyroscopeCalibration::update(const Measurements& measurements, float b
     this->phase_time += elapsed_time;
 
     if (this->phase == Phase::BRAKING) {
-        const SpeedProfile::Sample sample = this->spin.sample(this->phase_time);
+        const Reference braked = this->turned(this->spin.sample(this->phase_time));
 
         if (this->phase_time >= this->spin.duration()) {
+            this->pose.orientation += this->spin.distance();
             this->phase = Phase::FINISHED;
         }
 
-        return this->turned(sample);
+        return braked;
     }
 
     if (this->phase == Phase::TURNING) {
