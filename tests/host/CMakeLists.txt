@@ -69,6 +69,7 @@ target_link_libraries(micras_host_nav PUBLIC micras_host_core)
 # the dynamics of the robot and the shape of its turns, which the firmware designs when it is compiled
 add_library(micras_host_motion STATIC
     ${MICRAS_ROOT}/config/dynamics_config.cpp
+    ${MICRAS_ROOT}/micras_nav/src/controller.cpp
     ${MICRAS_ROOT}/micras_nav/src/curve_speed.cpp
     ${MICRAS_ROOT}/micras_nav/src/executor.cpp
     ${MICRAS_ROOT}/micras_nav/src/gyroscope_calibration.cpp

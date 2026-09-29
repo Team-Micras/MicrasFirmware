@@ -10,6 +10,7 @@
 #include <span>
 
 #include "constants.hpp"
+#include "micras/nav/controller.hpp"
 #include "micras/nav/curve_speed.hpp"
 #include "micras/nav/executor.hpp"
 #include "micras/nav/gyroscope_calibration.hpp"
@@ -364,6 +365,157 @@ void test_speed_ramp() {
     CHECK(rest.twist.linear == 0.0F and rest.twist.angular == 0.0F);
     CHECK(rest.acceleration.linear == 0.0F and rest.acceleration.angular == 0.0F);
 }
+
+void test_speed_ramp_negative_start() {
+    const Dynamics     dynamics{dynamics_config};
+    const MotionLimits linear = dynamics.get_linear_limits(stop_profile);
+    const MotionLimits angular = dynamics.get_angular_limits(stop_profile);
+    SpeedRamp          ramp;
+    const Twist        start{.linear = -2.0F, .angular = 1.5F};
+
+    ramp.start(start, linear, angular);
+
+    CHECK(not ramp.is_finished());
+
+    Twist last = start;
+    float distance = 0.0F;
+    bool  within_limits = true;
+
+    for (int i = 0; i < max_iterations and not ramp.is_finished(); i++) {
+        const SpeedRamp::Sample sample = ramp.update(step);
+        within_limits = within_limits and sample.twist.linear <= 0.0F and sample.twist.linear >= last.linear and
+                        sample.twist.angular >= 0.0F and sample.twist.angular <= last.angular and
+                        sample.acceleration.linear >= 0.0F and sample.acceleration.angular <= 0.0F and
+                        sample.acceleration.linear <= linear.deceleration_at(-last.linear) + 1.0e-3F;
+        distance += sample.twist.linear * step;
+        last = sample.twist;
+    }
+
+    CHECK(ramp.is_finished());
+    CHECK(within_limits);
+    CHECK(last.linear == 0.0F and last.angular == 0.0F);
+    CHECK(is_near(distance, -SpeedProfile::get_braking_distance(-start.linear, 0.0F, linear), 0.005F));
+}
+
+void test_speed_ramp_zero_start() {
+    const Dynamics     dynamics{dynamics_config};
+    const MotionLimits linear = dynamics.get_linear_limits(stop_profile);
+    const MotionLimits angular = dynamics.get_angular_limits(stop_profile);
+    SpeedRamp          ramp;
+
+    ramp.start({}, linear, angular);
+
+    CHECK(ramp.is_finished());
+
+    const SpeedRamp::Sample sample = ramp.update(step);
+
+    CHECK(sample.twist.linear == 0.0F and sample.twist.angular == 0.0F);
+    CHECK(sample.acceleration.linear == 0.0F and sample.acceleration.angular == 0.0F);
+    CHECK(ramp.is_finished());
+}
+
+void test_speed_ramp_coarse_ticks() {
+    const Dynamics     dynamics{dynamics_config};
+    const MotionLimits linear = dynamics.get_linear_limits(stop_profile);
+    const MotionLimits angular = dynamics.get_angular_limits(stop_profile);
+    const Twist        start{.linear = 3.0F, .angular = -2.0F};
+
+    for (const float ticks : {2.0F, 5.0F, 20.0F}) {
+        const float coarse = ticks * step;
+        SpeedRamp   ramp;
+
+        ramp.start(start, linear, angular);
+
+        Twist last = start;
+        int   updates = 0;
+        bool  within_limits = true;
+
+        for (; updates < max_iterations and not ramp.is_finished(); updates++) {
+            const SpeedRamp::Sample sample = ramp.update(coarse);
+            within_limits = within_limits and sample.twist.linear >= 0.0F and sample.twist.linear <= last.linear and
+                            sample.twist.angular <= 0.0F and sample.twist.angular >= last.angular and
+                            is_near(sample.twist.linear, last.linear + sample.acceleration.linear * coarse, 1.0e-4F) and
+                            is_near(sample.twist.angular, last.angular + sample.acceleration.angular * coarse, 1.0e-4F);
+            last = sample.twist;
+        }
+
+        CHECK(ramp.is_finished());
+        CHECK(within_limits);
+        CHECK(last.linear == 0.0F and last.angular == 0.0F);
+        CHECK(static_cast<float>(updates) * coarse < start.linear / linear.deceleration + coarse + 0.01F);
+    }
+}
+
+Controller::Command
+    follow_with(Controller& controller, const Twist& twist, const Twist& acceleration, const State& estimate) {
+    controller.reset();
+    return controller.follow_speed(twist, acceleration, estimate);
+}
+
+void test_follow_speed() {
+    Controller controller{controller_config};
+
+    const Twist twist{.linear = 1.2F, .angular = -0.8F};
+    const Twist acceleration{.linear = -3.0F, .angular = 2.0F};
+
+    State on_twist{};
+    on_twist.velocity = twist;
+
+    const Controller::Command feed_forward = follow_with(controller, twist, acceleration, on_twist);
+    const Controller::Status& status = controller.get_status();
+
+    CHECK(status.forward_feedback == 0.0F and status.rotation_feedback == 0.0F);
+    CHECK(status.along_error == 0.0F and status.across_error == 0.0F and status.orientation_error == 0.0F);
+
+    const float to_percent = 100.0F / controller_config.model.drive.supply_voltage;
+
+    CHECK(is_near(feed_forward.forward, to_percent * status.forward_feed_forward, 1.0e-4F));
+    CHECK(is_near(feed_forward.rotation, to_percent * status.rotation_feed_forward, 1.0e-4F));
+
+    State faster{};
+    faster.velocity = {.linear = twist.linear + 0.5F, .angular = twist.angular - 0.5F};
+
+    const Controller::Command braked = follow_with(controller, twist, acceleration, faster);
+
+    CHECK(status.forward_feedback < 0.0F and status.rotation_feedback > 0.0F);
+    CHECK(braked.forward < feed_forward.forward and braked.rotation > feed_forward.rotation);
+
+    State slower{};
+    slower.velocity = {.linear = twist.linear - 0.5F, .angular = twist.angular + 0.5F};
+
+    const Controller::Command pushed = follow_with(controller, twist, acceleration, slower);
+
+    CHECK(status.forward_feedback > 0.0F and status.rotation_feedback < 0.0F);
+    CHECK(pushed.forward > feed_forward.forward and pushed.rotation < feed_forward.rotation);
+}
+
+void test_follow_speed_matches_update() {
+    Controller controller{controller_config};
+
+    for (const float linear : {0.6F, 1.0F, -0.8F}) {
+        State estimate{};
+        estimate.pose = {.position = {.x = 0.3F, .y = -0.1F}, .orientation = 0.0F};
+        estimate.velocity = {.linear = linear - 0.2F, .angular = 0.3F};
+
+        Reference reference{};
+        reference.pose = estimate.pose;
+        reference.twist = {.linear = linear, .angular = 0.0F};
+        reference.acceleration = {.linear = 0.5F, .angular = 0.0F};
+
+        controller.reset();
+        const Controller::Command full = controller.update(reference, estimate, step);
+        const Controller::Status  full_status = controller.get_status();
+
+        CHECK(controller.get_time_scale() == 1.0F);
+
+        const Controller::Command speeds = follow_with(controller, reference.twist, reference.acceleration, estimate);
+
+        CHECK(is_near(speeds.forward, full.forward, 1.0e-3F));
+        CHECK(is_near(speeds.rotation, full.rotation, 1.0e-3F));
+        CHECK(is_near(controller.get_status().forward_feedback, full_status.forward_feedback, 1.0e-4F));
+        CHECK(is_near(controller.get_status().rotation_feedback, full_status.rotation_feedback, 1.0e-4F));
+    }
+}
 }  // namespace
 
 int main() {
@@ -374,6 +526,11 @@ int main() {
     test_braked_turn_goes_on_straight();
     test_gyroscope_brake();
     test_speed_ramp();
+    test_speed_ramp_negative_start();
+    test_speed_ramp_zero_start();
+    test_speed_ramp_coarse_ticks();
+    test_follow_speed();
+    test_follow_speed_matches_update();
 
     std::puts("braking ok");
 }
