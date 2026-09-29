@@ -267,6 +267,10 @@ public:
     /**
      * @brief Advance the brake by one iteration.
      *
+     * @note A brake that shorts the motors ends once the robot has been at rest for the settle time
+     * of the executor, since the shorted motors only bring the speed down gradually and the estimate
+     * passes the speeds of rest a little before the body does.
+     *
      * @return True once the robot stands still.
      */
     bool brake();
@@ -654,6 +658,11 @@ private:
      * @note It is the brake state itself once a second stop has shorted the motors.
      */
     State braked_state{State::RUN};
+
+    /**
+     * @brief Time the robot has been at rest while the brake shorts the motors, in seconds.
+     */
+    float settled_time{};
 
     /**
      * @brief Current objective of the robot.

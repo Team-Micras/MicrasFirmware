@@ -391,6 +391,8 @@ bool Micras::save_maze() {
 }
 
 void Micras::start_brake() {
+    this->settled_time = 0.0F;
+
     switch (this->braked_state) {
         case State::RUN:
             this->mission.brake();
@@ -418,7 +420,8 @@ bool Micras::brake() {
 
         default:
             this->locomotion.set_command(0.0F, 0.0F);
-            return this->is_at_rest();
+            this->settled_time = this->is_at_rest() ? this->settled_time + this->elapsed_time : 0.0F;
+            return this->settled_time >= mission_config.executor.settle_time;
     }
 }
 
@@ -670,6 +673,7 @@ comm::CommandReply Micras::halt() {
 
         case StopAction::SHORT_BRAKE:
             this->braked_state = State::BRAKE;
+            this->settled_time = 0.0F;
             break;
 
         case StopAction::IDLE:
