@@ -44,16 +44,6 @@ static std::array<uint8_t, bluetooth_tx_buffer_size> bluetooth_tx_buffer;
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 /**
- * @brief Check if a state drives the motors, so that a stop has to brake it to a standstill.
- *
- * @param state The state.
- * @return True for a run and the procedures that move the robot.
- */
-static bool drives_the_motors(State state) {
-    return state == State::RUN or state == State::IDENTIFY or state == State::CALIBRATE_GYROSCOPE;
-}
-
-/**
  * @brief Make the reply to a command.
  *
  * @param result Whether the command ran.
@@ -662,29 +652,38 @@ comm::CommandReply Micras::carry_out(Command command) {
 }
 
 comm::CommandReply Micras::halt() {
-    const auto state = static_cast<State>(this->fsm.get_current_state_id());
+    const auto       state = static_cast<State>(this->fsm.get_current_state_id());
+    const StopAction action = stop_action(state, this->fsm.has_entered_current_state());
 
-    if (state == State::SAVE) {
+    if (action == StopAction::DEFER) {
         this->stop_deferred = true;
         return reply(comm::CommandResult::DEFERRED, Reason::BUSY_SAVING);
     }
 
     this->interface.discard_presses();
 
-    if (state == State::BRAKE and not this->fsm.has_entered_current_state()) {
-        return reply(comm::CommandResult::OK);
-    }
+    switch (action) {
+        case StopAction::BRAKE:
+            this->braked_state = state;
+            this->fsm.transition_to(std::to_underlying(State::BRAKE));
+            break;
 
-    if (this->fsm.has_entered_current_state() and drives_the_motors(state)) {
-        this->braked_state = state;
-        this->fsm.transition_to(std::to_underlying(State::BRAKE));
-        return reply(comm::CommandResult::OK);
-    }
+        case StopAction::SHORT_BRAKE:
+            this->braked_state = State::BRAKE;
+            break;
 
-    this->stop();
+        case StopAction::IDLE:
+            this->stop();
+            this->fsm.transition_to(std::to_underlying(State::IDLE));
+            break;
 
-    if (state != State::INIT and state != State::ERROR) {
-        this->fsm.transition_to(std::to_underlying(State::IDLE));
+        case StopAction::STAY:
+            this->stop();
+            break;
+
+        case StopAction::DEFER:
+        case StopAction::CONFIRM:
+            break;
     }
 
     return reply(comm::CommandResult::OK);

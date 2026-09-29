@@ -258,8 +258,9 @@ public:
      *
      * @note A run brakes along its path, the calibration of the gyroscope ramps its rotation down
      * and holds the angle the ramp ends at until the robot is at rest, and the identification of the
-     * drive train holds a null command with the drivers on, which brakes the motors with their own
-     * back EMF.
+     * drive train holds a null command with the drivers on, so the bridge shorts the motors and they
+     * brake with their own back EMF. A second stop during the brake shorts the motors the same way,
+     * whatever the brake was.
      */
     void start_brake();
 
@@ -465,10 +466,14 @@ private:
      * @brief Stop whatever the robot is doing and make it idle.
      *
      * @note A robot driving its motors brakes to a standstill first, in the brake state. A second
-     * stop once the brake is under way does not wait for it: it turns the motors off at once and
-     * leaves the robot to coast, while one that arrives before the brake has started only confirms
-     * it. The robot stays in the error state, and in the initialization it has not finished, if it
-     * is there. During a save the stop waits for the save to end.
+     * stop once the brake is under way trusts neither the path nor the pose: it drops the brake and
+     * holds a null command with the drivers on, so the bridge shorts the motors, which brake with
+     * their own back EMF until the speeds measured by the wheels and the gyroscope say the robot is
+     * at rest. The faults are still watched, the timeout of the first brake still bounds it, and the
+     * robot is then idle with the drivers off and the presses of the button forgotten. A stop that
+     * arrives before the brake has started only confirms it. The robot stays in the error state, and
+     * in the initialization it has not finished, if it is there. During a save the stop waits for
+     * the save to end.
      *
      * @return Whether the robot stopped, or will once the maze is saved.
      */
@@ -645,6 +650,8 @@ private:
 
     /**
      * @brief State the robot was in when a stop made it brake, which says how to brake.
+     *
+     * @note It is the brake state itself once a second stop has shorted the motors.
      */
     State braked_state{State::RUN};
 

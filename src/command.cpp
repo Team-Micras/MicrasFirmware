@@ -121,4 +121,24 @@ std::optional<Reason> refusal(State state, bool entered, Command command) {
 
     return Reason::NOT_IDLE;
 }
+
+StopAction stop_action(State state, bool entered) {
+    if (state == State::SAVE) {
+        return StopAction::DEFER;
+    }
+
+    if (state == State::BRAKE) {
+        return entered ? StopAction::SHORT_BRAKE : StopAction::CONFIRM;
+    }
+
+    if (entered and (state == State::RUN or state == State::IDENTIFY or state == State::CALIBRATE_GYROSCOPE)) {
+        return StopAction::BRAKE;
+    }
+
+    if (state == State::INIT or state == State::ERROR) {
+        return StopAction::STAY;
+    }
+
+    return StopAction::IDLE;
+}
 }  // namespace micras
