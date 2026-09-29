@@ -243,6 +243,10 @@ void Micras::record_initialization_fault() {
     this->fault = Fault::INITIALIZATION;
 }
 
+void Micras::place_at_start() {
+    this->localizer.reset(this->mission.get_start_pose(), this->measurements);
+}
+
 void Micras::stop() {
     this->wall_sensors.turn_off();
     this->wall_sensors.cancel_calibration();
@@ -317,7 +321,7 @@ void Micras::start_run() {
     this->locomotion.enable();
 
     if (this->objective != core::Objective::RETURN) {
-        this->localizer.reset(this->mission.get_start_pose(), this->measurements);
+        this->place_at_start();
     }
 
     this->mission.start(this->objective);
@@ -668,7 +672,7 @@ comm::CommandReply Micras::carry_out(Command command) {
                                        reply(comm::CommandResult::REFUSED, Reason::SAVE_FAILED);
 
         case Command::RESET:
-            this->localizer.reset(this->mission.get_start_pose(), this->measurements);
+            this->place_at_start();
             return reply(comm::CommandResult::OK);
 
         case Command::STOP:

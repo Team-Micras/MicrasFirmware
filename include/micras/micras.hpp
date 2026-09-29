@@ -115,6 +115,14 @@ public:
     void record_initialization_fault();
 
     /**
+     * @brief Put the estimate of the pose back at the start of the maze.
+     *
+     * @note The initialization does it once it has finished, so the pose is where the robot is
+     * placed before the first run, and not at the corner of the maze.
+     */
+    void place_at_start();
+
+    /**
      * @brief Stop the robot, turning its sensors and actuators off and dropping whatever procedure
      * was under way.
      *

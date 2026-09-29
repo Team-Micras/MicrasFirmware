@@ -16,6 +16,7 @@ uint8_t InitState::execute() {
         return std::to_underlying(State::ERROR);
     }
 
+    this->micras.place_at_start();
     return std::to_underlying(State::IDLE);
 }
 }  // namespace micras

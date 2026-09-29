@@ -11,7 +11,8 @@
 
 namespace micras {
 /**
- * @brief State that checks if every device was initialized.
+ * @brief State that checks if every device was initialized, and then puts the estimate of the pose at
+ * the start.
  */
 class InitState : public BaseState {
 public:
