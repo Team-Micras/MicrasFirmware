@@ -416,7 +416,7 @@ bool Micras::brake() {
             this->follow(this->gyroscope_calibration.update(
                 this->measurements, this->localizer.get_gyroscope_bias(), this->elapsed_time
             ));
-            return this->gyroscope_calibration.is_finished() and this->is_at_rest();
+            return this->gyroscope_calibration.is_finished() and this->has_settled();
 
         case State::BRAKE:
             if (not this->speed_ramp.is_finished()) {
