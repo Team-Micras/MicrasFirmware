@@ -1,7 +1,7 @@
 #!/bin/bash
 # compare_baseline.sh <tools dir> <plugin> <runs dir> <baseline dir> <exact> <run>...
 #
-# Compares each checked run with its summary in the baseline version; with <exact> ON a byte that moved
+# Compares each checked run with its summary in the baseline; with <exact> ON a byte that moved
 # fails too, the check for a change that must not move one, such as a refactoring.
 
 set -euo pipefail

@@ -220,7 +220,7 @@ cmake --build --preset host --target sim_check      # tests, the checked runs, t
 cmake --build --preset host --target sim_contest    # the whole contest in every maze
 ```
 
-`sim_check` is the gate for a change: it compares two runs with the baseline in `sim/baselines/`, and
+`sim_check` is the gate for a change: it compares two runs with the baseline in `sim/baseline/`, and
 configuring with `-DMICRAS_SIM_EXACT=ON` makes it require them byte identical, the check for a change
 that must not change the behavior. The recipes, the scenarios and what the simulation relies on in the
 firmware are in [sim/README.md](sim/README.md).

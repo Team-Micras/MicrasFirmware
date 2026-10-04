@@ -180,7 +180,6 @@ generate_lint_target(SIM_LINT_SOURCES)
 
 # Each calls a script of scripts/ with every path as an argument; runs land in runs/ of this build
 # directory. MICRAS_SIM_EXACT is the simulator's option.
-set(MICRAS_SIM_BASELINE "v3" CACHE STRING "Baseline version sim_compare_baseline and sim_record_baseline use")
 set(MICRAS_SIM_CONTEST_MAZES
     "maze1;maze2;apec2016;apec2017;apec2018;apec2019;japan2013ef;japan2017ef;uk2016f;alljapan-033-2012-exp-fin"
     CACHE STRING "The mazes sim_contest and sim_contest_all run in"
@@ -190,7 +189,7 @@ set(MICRAS_SIM_SCRIPTS "${CMAKE_CURRENT_SOURCE_DIR}/scripts")
 set(MICRAS_SIM_SCENARIOS "${CMAKE_CURRENT_SOURCE_DIR}/scenarios")
 set(MICRAS_SIM_RUNS "${CMAKE_CURRENT_BINARY_DIR}/runs")
 set(MICRAS_SIM_PLUGIN "${CMAKE_CURRENT_SOURCE_DIR}/tools/analysis.py")
-set(MICRAS_SIM_BASELINE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/baselines/${MICRAS_SIM_BASELINE}")
+set(MICRAS_SIM_BASELINE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/baseline")
 set(MICRAS_SIM_CHECKED_RUNS idle explore)
 set(MICRAS_SIM_EXPLORE_SECONDS 30)
 
@@ -239,7 +238,7 @@ endforeach()
 
 add_custom_target(sim_compare_baseline
     COMMAND ${MICRAS_SIM_COMPARE_BASELINE}
-    COMMENT "Comparing runs/idle and runs/explore with baselines/${MICRAS_SIM_BASELINE}"
+    COMMENT "Comparing runs/idle and runs/explore with baseline/"
     VERBATIM USES_TERMINAL
 )
 
@@ -249,7 +248,7 @@ add_custom_target(sim_record_baseline
     COMMAND ${MICRAS_SIM_RUN_EXPLORE}
     COMMAND "${MICRAS_SIM_SCRIPTS}/record_baseline.sh" "${MICRAS_SIM_TOOLS_DIR}" "${MICRAS_SIM_PLUGIN}"
             "${MICRAS_SIM_RUNS}" "${MICRAS_SIM_BASELINE_DIR}" ${MICRAS_SIM_CHECKED_RUNS}
-    COMMENT "Recording baselines/${MICRAS_SIM_BASELINE}"
+    COMMENT "Recording baseline/"
     VERBATIM USES_TERMINAL
 )
 

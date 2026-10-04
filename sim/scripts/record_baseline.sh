@@ -1,8 +1,7 @@
 #!/bin/bash
 # record_baseline.sh <tools dir> <plugin> <runs dir> <baseline dir> <run>...
 #
-# Records a new baseline version from the checked runs. baseline.py refuses to overwrite a version, so
-# an older one is never lost: a change of behavior is a new version.
+# Records the baseline from the checked runs, over the previous one, which git keeps.
 
 set -euo pipefail
 

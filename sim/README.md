@@ -66,8 +66,8 @@ Each is a CMake target over a script of `scripts/` that takes its paths as argum
 | `sim_run_explore` | the first 30 s of an exploration, with its flash -> `runs/explore` |
 | `sim_contest` | the whole contest (`explore_solve`) in every maze at once, and its health |
 | `sim_contest_all` | the same with every switch of the fast run on (`explore_solve_all`) |
-| `sim_compare_baseline` | `runs/idle` and `runs/explore` against the baseline `MICRAS_SIM_BASELINE` names |
-| `sim_record_baseline` | the tests, both runs, and a new baseline version; it refuses to overwrite one |
+| `sim_compare_baseline` | `runs/idle` and `runs/explore` against `baseline/` |
+| `sim_record_baseline` | the tests, both runs, and the baseline, over the previous one |
 | `sim_check_flash` | an exploration, then a run booted from the flash it saved |
 | `sim_check` | the Micras gate: the tests, the flash, both checked runs, the baseline and the runs' health |
 | `sim_turn_designs` | the turns of two bends, designed into `config/two_bend_turns.hpp` |
@@ -79,28 +79,27 @@ Each is a CMake target over a script of `scripts/` that takes its paths as argum
 | Cache variable | Default | Effect |
 |---|---|---|
 | `MICRAS_SIM_CONTEST_MAZES` | all ten mazes | the mazes `sim_contest` and `sim_contest_all` run in |
-| `MICRAS_SIM_BASELINE` | `v3` | the baseline version compared and recorded |
 | `MICRAS_SIM_EXACT` | `OFF` | the baseline comparison also requires each `data.csv` to be byte identical to the recorded one |
 
 The mazes are maze1, maze2, apec2016 to apec2019, japan2013ef, japan2017ef, uk2016f and
 alljapan-033-2012-exp-fin, from the simulator.
 
-## The gate and the baselines
+## The gate and the baseline
 
 `sim_check` builds the simulator and the tests, runs the tests of `tests/` through CTest, checks that
 the flash outlives a run, runs the two checked scenarios (idle, and the first 30 s of an exploration),
-compares them with `baselines/<version>/` and checks their health: no warnings, no collision, no
+compares them with `baseline/` and checks their health: no warnings, no collision, no
 non-finite sample, no unbound port, no watchdog expiry, no emergency stop, no dropped byte.
 
-A baseline version holds one `summary.json` per checked run: the hash of its `data.csv`, the state
+The baseline holds one `summary.json` per checked run: the hash of its `data.csv`, the state
 timeline, and a handful of numbers with their tolerances. On the machine that recorded it the hash
 matches; on another the compiler, libm and the MuJoCo build move the last bits, and the summary is what
 is compared, within its tolerances. Two rules:
 
 - **A refactoring must not move a byte.** On one machine it leaves the hash where it was; configure with
   `-DMICRAS_SIM_EXACT=ON` to make the gate check it. If it moves, the refactoring is wrong.
-- **Never re-record to make a difference go away.** A change of behavior is a new version (bump
-  `MICRAS_SIM_BASELINE`), recorded with `sim_record_baseline`, with the reason in the commit.
+- **Never re-record to make a difference go away.** A change of behavior is recorded over the baseline
+  with `sim_record_baseline`, with the reason in the commit; git keeps the earlier ones.
 
 The variable-pool names the scenarios, the baselines and the analysis plugin read (`state`,
 `reference/linear_speed`, `pose/linear_speed`, ...) are the CSV's columns: renaming one is a baseline
@@ -340,5 +339,5 @@ sim/
 ├── tests/               doctest, on the Micras board
 ├── robot.toml           the physical description
 ├── scenarios/           idle, explore, explore_link, explore_solve(_all), solve(_all)
-└── baselines/           recorded summaries
+└── baseline/            recorded summaries
 ```
