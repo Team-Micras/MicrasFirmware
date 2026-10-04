@@ -446,7 +446,8 @@ private:
      * objects that use them borrow them by reference.
      */
     ///@{
-    proxy::Battery       battery{battery_config};
+    // The VBAT pin of the v1 board does not reach the battery, so it is not measured
+    // proxy::Battery       battery{battery_config};
     proxy::Fan           fan{fan_config};
     proxy::Locomotion    locomotion{locomotion_config};
     proxy::Storage       maze_storage{maze_storage_config};

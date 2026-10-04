@@ -81,7 +81,7 @@ void Micras::register_variables() {
     this->variables.add("imu/", "accel_x", this->telemetry.linear_acceleration.at(0), {.stream = true});
     this->variables.add("imu/", "accel_y", this->telemetry.linear_acceleration.at(1), {.stream = true});
     this->variables.add("imu/", "accel_z", this->telemetry.linear_acceleration.at(2), {.stream = true});
-    this->variables.add("", "battery_voltage", this->telemetry.battery_voltage, {.stream = true});
+    // this->variables.add("", "battery_voltage", this->telemetry.battery_voltage, {.stream = true});
     this->variables.add("", "adc_restarts", this->telemetry.adc_restarts, {});
     this->variables.add("", "failed_saves", this->telemetry.failed_saves, {});
     this->variables.add("", "fault", this->fault, {});
@@ -180,7 +180,7 @@ void Micras::update() {
         this->run_profile = this->interface.get_profile();
     }
 
-    this->battery.update();
+    // this->battery.update();
     const float fan_share = this->fan.update() / fan_speed;
 
     this->localizer.set_downforce(fan_share * fan_share);
@@ -207,9 +207,9 @@ void Micras::update() {
 
 bool Micras::check_initialization() const {
     return not hal::Mcu::was_reset_by_watchdog() and hal::Mcu::is_cpu_frequency_supported() and
-           this->battery.was_initialized() and this->fan.was_initialized() and this->locomotion.was_initialized() and
-           this->torque_sensors.was_initialized() and this->argb.was_initialized() and
-           this->buzzer.was_initialized() and this->imu.was_initialized() and
+           /* this->battery.was_initialized() and */ this->fan.was_initialized() and
+           this->locomotion.was_initialized() and this->torque_sensors.was_initialized() and
+           this->argb.was_initialized() and this->buzzer.was_initialized() and this->imu.was_initialized() and
            this->rotary_sensor_left.was_initialized() and this->rotary_sensor_right.was_initialized() and
            this->wall_sensors.was_initialized();
 }
@@ -495,7 +495,7 @@ void Micras::publish() {
         this->imu.get_linear_acceleration(proxy::Imu::Axis::Z),
     };
 
-    this->telemetry.battery_voltage = this->battery.get_voltage();
+    // this->telemetry.battery_voltage = this->battery.get_voltage();
     this->telemetry.adc_restarts = hal::AdcDma::get_restarts();
 
     this->telemetry.gyroscope_bias = this->localizer.get_gyroscope_bias();
