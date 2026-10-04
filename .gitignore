@@ -4,6 +4,7 @@ build/
 sim/tools/__pycache__/
 cube/*
 !**/*.ioc
+config/bluetooth_pin.hpp
 
 .cache/
 

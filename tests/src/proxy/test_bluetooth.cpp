@@ -23,6 +23,12 @@
 #include "test_core.hpp"
 #include "usart.h"
 
+#if __has_include("bluetooth_pin.hpp")
+    #include "bluetooth_pin.hpp"
+
+static_assert(micras::bluetooth_pin.size() == 6, "The module takes a PIN of six digits");
+#endif
+
 using namespace micras;  // NOLINT(google-build-using-namespace)
 
 static constexpr std::array<uint32_t, 9> baud_rates{9600, 115200, 230400, 57600, 38400, 19200, 4800, 2400, 1200};
@@ -238,6 +244,11 @@ static std::string configure(proxy::BluetoothSerial& serial, bool factory_reset)
     for (const Setting& entry : settings) {
         result += setting(serial, "set " + std::string{entry.key}, entry.command);
     }
+
+#if __has_include("bluetooth_pin.hpp")
+    result += setting(serial, "set pass", "AT+PASS" + std::string{bluetooth_pin});
+    result += setting(serial, "set type", "AT+TYPE3");
+#endif
 
     result += restart(serial);
     set_baud_rate(serial, configured_baud_rate);

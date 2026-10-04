@@ -36,7 +36,21 @@ a `CONFIGURE` line from a connected application.
 | `AT+COMI0` | `OK+Set:0` | Ask for a 7.5 ms minimum connection interval. |
 | `AT+COMA0` | `OK+Set:0` | Ask for a 7.5 ms maximum connection interval. |
 | `AT+BAUD7` | `OK+Set:7` | 115 200, matching `MX_UART4_Init`. The index is the HM-19 table, where `4` is 19 200. |
+| `AT+PASS<pin>` | `OK+Set:<pin>` | The six digit PIN, from `config/bluetooth_pin.hpp`. |
+| `AT+TYPE3` | `OK+Set:3` | Ask for the PIN and bond, so each computer enters it once. |
 | `AT+RESET` | `OK+RESET` | Apply. |
+
+`config/bluetooth_pin.hpp` is not under version control, so the PIN stays out of the repository.
+Without it, `test_bluetooth` leaves the PIN and the bond mode alone. The file declares a single
+`micras::bluetooth_pin`:
+
+```cpp
+constexpr std::string_view bluetooth_pin{"123456"};
+```
+
+The module keeps its side of every bond. A computer that forgets the pairing cannot pair again until
+the module is restored with an extra long press of the button, which also applies the configuration
+again.
 
 `AT+COMI` and `AT+COMA` are a request: the central decides the interval it actually uses, and a
 browser gives the page no way to read or influence it. The throughput is therefore only knowable by
