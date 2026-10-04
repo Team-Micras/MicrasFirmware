@@ -11,10 +11,13 @@
 using namespace micras;  // NOLINT(google-build-using-namespace)
 
 // NOLINTBEGIN(*-avoid-c-arrays, cppcoreguidelines-avoid-non-const-global-variables)
-static volatile float test_distance[4];
-static volatile float test_slow_distance[4];
-static volatile float test_intensity[4];
-static volatile bool  test_valid[4];
+static volatile float    test_distance[4];
+static volatile float    test_slow_distance[4];
+static volatile float    test_intensity[4];
+static volatile bool     test_valid[4];
+static volatile float    test_dark[4];
+static volatile bool     test_initialized{};
+static volatile uint32_t test_updates{};
 
 // NOLINTEND(*-avoid-c-arrays, cppcoreguidelines-avoid-non-const-global-variables)
 
@@ -24,15 +27,21 @@ int main(int argc, char* argv[]) {
     proxy::Argb        argb{argb_config};
 
     wall_sensors.turn_on();
+    test_initialized = wall_sensors.was_initialized();
 
     TestCore::loop([&wall_sensors, &argb]() {
         wall_sensors.update();
+
+        if (wall_sensors.get_reading(0).is_new) {
+            test_updates = test_updates + 1;
+        }
 
         for (uint8_t i = 0; i < 4; i++) {
             test_distance[i] = wall_sensors.get_reading(i).distance;
             test_slow_distance[i] = wall_sensors.get_reading(i).slow_distance;
             test_intensity[i] = wall_sensors.get_intensity(i);
             test_valid[i] = wall_sensors.get_reading(i).valid;
+            test_dark[i] = wall_sensors.get_reading(i).dark;
         }
 
         for (uint8_t i = 0; i < 2; i++) {
