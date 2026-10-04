@@ -11,49 +11,57 @@
 
 namespace micras {
 /**
- * @brief Physical description of the Micras v1 robot and of the classic maze.
+ * @brief Physical description of the Micras robot, on the v2 chassis (MicrasHardware, chassis-v2),
+ * and of the classic maze.
  *
  * @note These are the constants to measure on the robot: every speed, acceleration, turn shape,
  * feed forward gain and sensing window of the navigation is computed from them. The geometry comes
- * from the KiCad board and the SolidWorks assembly, the drive from the datasheets, and the values
- * marked as estimates were never measured.
+ * from the KiCad board and the v2 chassis (the parametric build123d model in MicrasHardware), the
+ * drive from measurements and estimates, and the values marked as estimates were never measured.
+ * sim/robot.toml holds the same quantities as the physical truth of the simulation, each with its
+ * source.
  *
- * - The mass and the yaw inertia are estimates from the volumes of the parts in the SolidWorks
- *   assembly, with the datasheet mass of the motors, about 6 g for each of the three 250 mAh 1S
- *   cells of the battery and about 5 g for the components of the board, which the assembly leaves
- *   out. A scale settles the mass, and the drive identification the inertia.
- * - The tires are Kyosho MZW40-20, a thin slick of 20 degree compound, 22 mm across on the 20 mm
- *   seat of the hubs. The wheel radius is that of the assembly. The track width is the distance
- *   between the centers of the tires, which sit in the outer part of the board cutouts. Driving a
- *   known distance and a known number of turns calibrates both. The tires flatten under load and
- *   the wheels roll on a smaller radius: the rolling compliance is that of the simulated band,
- *   56 um less per newton on a tire, 0.17 % of the radius with the fan off and 0.7 % with it on.
- *   Driving a known distance with the fan on and off measures it.
- * - The outline is the rectangle that encloses whatever can touch a wall: the board, 50 by 90 mm,
- *   with the tires flush with its sides and the housings of the inner wall sensors 1.4 mm ahead of
- *   its nose.
+ * - The mass, 87 g, and the yaw inertia are estimates from the volumes of the v2 parts with their
+ *   densities, the measured 7 g of each of the three motors, about 6 g for each of the three cells,
+ *   15 g for the populated board and 2.8 g of screws, inserts and nuts. A scale settles the mass,
+ *   and the drive identification the inertia.
+ * - The tires are 2 mm silicone bands stretched over 18.3 mm hubs into a channel between two
+ *   flanges: the wheel radius, 11.04 mm, is that of the model. The track width is the distance
+ *   between the centers of the tires. Driving a known distance and a known number of turns
+ *   calibrates both. The tires flatten under load and the wheels roll on a smaller radius: the
+ *   rolling compliance is that of the simulated tire, 77 um less per newton on a tire (29 um at
+ *   the 0.43 N of the fan off, 58 um at the 0.73 N of the fan on), still to measure on the v2
+ *   tires by driving a known distance with the fan on and off.
+ * - The outline is the rectangle that encloses whatever can touch a wall: the board, with the TPU
+ *   bumper 3.2 mm ahead of its nose (56.7 mm ahead of the axle) and the keyway covers of the outer
+ *   sensor caps 0.7 mm past its sides.
  * - The friction coefficient is an estimate, for a tilt test of the robot on the maze floor to
- *   measure. The fan downforce, about 3 N at full speed, is the owner's figure, for a scale under
- *   the robot with the fan running to check. The fan has no skirt, it draws through a 15 mm hole
- *   with a 1 mm gap under the whole board. It pulls over the hole, 17.5 mm ahead of the axle: the
+ *   measure. The fan downforce, about 1 N at full speed, is the prediction of the v2 fan study
+ *   (MicrasHardware README: the 26.4 mm impeller on the 18000 rpm motor, with the skirt; the earlier
+ *   figure was 3 N), for a scale under the robot with the fan running to check. The fan draws
+ *   through a 15 mm hole with a 1 mm gap under the whole board, which a thin film skirt taped under
+ *   its edge closes down to the floor. It pulls over the hole, 17.5 mm ahead of the axle: the
  *   flow through the gap, which leaves the pressure harmonic between the edges of the board and the
- *   hole, puts the center of the suction at 14 to 16 mm. So the robot rests on the front edge of
- *   its board with the fan on, and the edge carries about a third of the downforce. Scales under
- *   the wheels and under the nose settle both.
+ *   hole, puts the center of the suction at 14 to 16 mm. So the robot rests on its nose with the
+ *   fan on, on the TPU bumper's lower edge, which carries about a third of the downforce. Scales
+ *   under the wheels and under the nose settle both.
  * - The lateral compliance is the simulation's: the tires there slide sideways at 4.8 mm/s per m/s^2
  *   of lateral acceleration, and the real tires are not measured yet. Driving a circle at a known
  *   speed with the fan on, and comparing where the robot ends with where the odometry says, does.
- * - The motors are Maxon DCX 8 M with the 4.2 V winding, run from the 19.63 V boost converter
- *   through a spur stage of 4 and 21 mm pitch diameters. The resistance is that of the winding,
- *   12 ohm, plus 0.62 ohm of the bridge, both at 25 degrees. The static friction voltage is the no
- *   load current of the motor times that resistance, which leaves out the friction of the gears.
- *   The motors reach their permissible 17300 rpm at 3.8 m/s, above the speed limit of the
- *   dynamics. The drive identification procedure measures all of these.
- * - The position of each wall sensor is the midpoint of the lenses of its emitter and receiver,
- *   7.2 mm ahead of its footprint along its axis, and the angle is that of the footprint: the two
- *   outer ones are square to the board and the two inner ones turned by 45 degrees. The half angle
- *   is the 3 degrees of the emitter datasheet plus the mounting tolerance. What the housings really
- *   do to both wants a bench check against the edge of a wall.
+ * - The motors are 1020 coreless motors (9.61 x 20.3 mm measured), about 18000 rpm with no load at
+ *   12 V (owner), run from the 19.63 V boost converter through a 0.5 module spur stage of 7 and 36
+ *   teeth. Their torque constant and resistance are estimates from that speed and from a maker's
+ *   1020 windings of the same speed: 16.06 ohm is 15.4 of the winding and 0.66 of the bridge and
+ *   shunt. The static friction voltage is the estimated no load current of the bare motor, 13 mA,
+ *   times that resistance, and leaves out the gears. A free motor on the v1 gears and wheels drew
+ *   290 mA at 20 V (owner), about 4.5 W of friction at some 23000 rpm, which grows with speed. These
+ *   are 12 V motors on a 19.63 V supply: at 20 V a stalled one draws about 1.2 A, so the limits of
+ *   voltage and current matter. The drive identification procedure measures all of these.
+ * - The position of each wall sensor is the midpoint of the lenses of its emitter and receiver in
+ *   the v2 caps (MicrasHardware leds.py and front.py), and the angle is that of the footprint: the
+ *   two outer ones are square to the board and the two inner ones turned by 45 degrees. The half
+ *   angle is the 3 degrees of the emitter datasheet plus the mounting tolerance. What the caps
+ *   really do to both wants a bench check against the edge of a wall.
  * - The range noise of the wall sensors is an estimate, for a reading whose noise no other shares.
  * - The gyroscope noise is the density in the datasheet of the sensor, 2.8 mdps per square root of
  *   hertz, with a third more for what the robot adds to it.
@@ -68,35 +76,35 @@ constexpr nav::RobotModel robot_model{
         },
     .chassis =
         {
-            .mass = 0.07F,
-            .yaw_inertia = 2.9e-5F,
-            .wheel_radius = 0.011F,
-            .rolling_compliance = 56e-6F,
-            .track_width = 0.04575F,
-            .half_width = 0.0251F,
-            .front_length = 0.0549F,
+            .mass = 0.087F,
+            .yaw_inertia = 4.24e-5F,
+            .wheel_radius = 0.01104F,
+            .rolling_compliance = 77e-6F,
+            .track_width = 0.04554F,
+            .half_width = 0.0257F,
+            .front_length = 0.0567F,
             .rear_length = 0.0365F,
         },
     .traction =
         {
             .friction_coefficient = 1.0F,
-            .fan_downforce = 3.0F,
+            .fan_downforce = 1.0F,
             .fan_offset = 0.0175F,
             .lateral_compliance = 0.0048F,
         },
     .drive =
         {
-            .torque_constant = 0.00336F,
-            .resistance = 12.62F,
-            .gear_ratio = 5.25F,
+            .torque_constant = 0.00627F,
+            .resistance = 16.06F,
+            .gear_ratio = 36.0F / 7.0F,
             .supply_voltage = 19.63F,
-            .static_friction_voltage = 0.09F,
+            .static_friction_voltage = 0.21F,
         },
     .wall_sensors = {{
-        {.position = {.x = 0.0439F, .y = 0.0215F}, .angle = 0.0F, .half_angle = 0.09F},
-        {.position = {.x = 0.0526F, .y = 0.0153F}, .angle = std::numbers::pi_v<float> / 4.0F, .half_angle = 0.09F},
-        {.position = {.x = 0.0526F, .y = -0.0153F}, .angle = -std::numbers::pi_v<float> / 4.0F, .half_angle = 0.09F},
-        {.position = {.x = 0.0439F, .y = -0.0215F}, .angle = 0.0F, .half_angle = 0.09F},
+        {.position = {.x = 0.0429F, .y = 0.0215F}, .angle = 0.0F, .half_angle = 0.09F},
+        {.position = {.x = 0.0519F, .y = 0.01455F}, .angle = std::numbers::pi_v<float> / 4.0F, .half_angle = 0.09F},
+        {.position = {.x = 0.0519F, .y = -0.01455F}, .angle = -std::numbers::pi_v<float> / 4.0F, .half_angle = 0.09F},
+        {.position = {.x = 0.0429F, .y = -0.0215F}, .angle = 0.0F, .half_angle = 0.09F},
     }},
     .noise =
         {

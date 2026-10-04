@@ -203,7 +203,7 @@ void MX_TIM8_Init() {
 }
 
 void MX_TIM12_Init() {
-    init_timer(htim12, tim12_registers, "htim12", 0, TIM_COUNTERMODE_UP, 2749);
+    init_timer(htim12, tim12_registers, "htim12", 0, TIM_COUNTERMODE_UP, 687);
 }
 
 void MX_TIM15_Init() {

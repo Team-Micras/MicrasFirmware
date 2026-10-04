@@ -1,4 +1,4 @@
-# Micras v1, as built.
+# Micras with the v2 chassis, as designed.
 #
 # The physical truth the simulator builds its model and devices from; the
 # firmware's config/targets/v1/robot.hpp is the robot's belief about itself, and
@@ -6,100 +6,291 @@
 #
 # Frames follow robot.hpp: x forward, y left, z up, origin on the floor under the
 # midpoint of the wheel axle. Lengths in meters, masses in kilograms, angles in
-# degrees where the key ends in _deg. From the CAD, in millimeters: the KiCad board
-# gives x = 113.5036 - y_KiCad, y = 148.5011 - x_KiCad, with the KiCad rotation as
-# the yaw; the SolidWorks assembly gives x = 1033.6 - Z_sw, y = -(X_sw + 4.9091),
-# z = Y_sw + 11.3503.
+# degrees where the key ends in _deg.
 #
-# Sources: "datasheet" (named), "CAD" (the KiCad board or the SolidWorks
-# assembly), "firmware" (target.hpp, the CubeMX project), "owner", "estimate".
+# The board is the same as v1's (hw_debug: L6205D, TPS611781, LSM6DSV, the four
+# W1..W4 footprints). Everything mounted on it is the v2 chassis, the parametric
+# build123d CAD of MicrasHardware (branch chassis-v2, commit 96a12ad), which uses
+# this same frame in millimeters: micras/params.py (board, motor, gears, wheel,
+# battery), drive.py, fan.py, front.py (sensor caps, bumper), leds.py (SFH 4550
+# and TPS601A from their datasheets), frame.py (battery basket). Masses and
+# inertias: each printed part's CAD volume times its density (mass.py: resin
+# 1.15, PLA 1.24, TPU 1.21 g/cm^3), each bought part's mass from mass.py placed
+# and shaped by its CAD model, the bare board from its real outline (1.04 mm
+# FR-4 at 1.85 g/cm^3), and the populated board's 15 g estimate spread over the
+# component boxes of ref/board_boxes.json. Bounding boxes are the CAD's.
+#
+# Sources: "CAD v2" (the build123d chassis), "CAD" (the KiCad board),
+# "datasheet" (named), "measured", "firmware" (target.hpp, the CubeMX project),
+# "owner", "estimate" (with what to measure).
 
 schema = 1
 name = "micras"
 
 [integration]
 # One firmware loop; halving it changed neither the contacts nor the trace.
-timestep = { value = 0.000125, source = "measured: tire contact, penetration and the explore trace unchanged at 62.5 and 31.25 us" }
+timestep = { value = 0.000125, source = "measured: tire contact, penetration and the explore trace unchanged at 62.5 and 31.25 us (v1)" }
 
 [chassis]
-mass = { value = 0.062, source = "estimate: 70 g for the whole robot (modeled parts, three 6 g cells, 5 g of components), less the two wheels; weigh it" }
-center_of_mass = { value = [-0.0008, 0.0, 0.017], source = "estimate: CAD volumes with assumed densities" }
-inertia = { value = [1.16e-5, 2.37e-5, 2.45e-5], source = "estimate: 2.9e-5 yaw for the whole robot from CAD volumes, less the wheels; roll and pitch scaled" }
-outline = { value = [[0.0535, 0.0150], [0.03456, 0.02447], [0.0323, 0.0250], [-0.0365, 0.0250], [-0.0365, -0.0250], [0.0323, -0.0250], [0.03456, -0.02447], [0.0535, -0.0150]], source = "CAD: KiCad board edge, nose chamfers at 26.6 deg, fillets as corners" }
-board_bottom = { value = 0.001, source = "CAD: BoardToFloorHeight" }
-board_top = { value = 0.002, source = "CAD: 1.04 mm FR-4" }
+mass = { value = 0.0743, source = "CAD v2 and estimate: 87.1 g for the whole robot less the two 6.4 g wheel assemblies; includes the 15 g populated board (estimate: weigh it), three 6 g cells (estimate), three 7 g motors (measured), 2 g of wires and 2.8 g of screws, inserts and nuts (estimates); weigh the robot" }
+center_of_mass = { value = [0.00005, 0.0, 0.0181], source = "CAD v2: Battery.x = -9.52 puts the whole robot's center of mass 0.05 mm ahead of the axle, within what the estimated masses can tell; balance the robot on its wheels to find which way it rests" }
+inertia = { value = [2.05e-5, 3.81e-5, 3.53e-5], source = "CAD v2: about the center of mass, from the part volumes; Ixz = 5.2e-6 left out (principal axes 17 deg off in pitch); Ixx and Izz less 2.09e-6, since the simulation puts each wheel's 6.4 g at the tire center (y 22.8 mm) and its real center of mass is at y 18.8 mm (magnet, axle and gear inboard); measure yaw with a torsion pendulum" }
+outline = { value = [[0.0535, 0.0150], [0.03456, 0.02447], [0.0323, 0.0250], [-0.0365, 0.0250], [-0.0365, -0.0250], [0.0323, -0.0250], [0.03456, -0.02447], [0.0535, -0.0150]], source = "CAD: KiCad board edge, nose chamfers at 26.6 deg, fillets as corners (unchanged board)" }
+board_bottom = { value = 0.001, source = "CAD v2: Board.bottom_z" }
+board_top = { value = 0.0020412, source = "CAD v2: 1.0412 mm FR-4" }
 friction = { value = 0.3, source = "estimate: FR-4 on a painted floor" }
 
+# The drive: a base and a cap per side (split at the axle plane), each motor in
+# its block. The motors lie along y and cross the middle.
 [[chassis.boxes]]
-name = "bearing_block_left"
-min = { value = [-0.0185, 0.00575, 0.002], source = "CAD" }
-max = { value = [0.0055, 0.02225, 0.025], source = "CAD" }
+name = "bearing_block_base_left"
+min = { value = [-0.02175, 0.0076, 0.002041], source = "CAD v2: drive.block, base" }
+max = { value = [0.00785, 0.02195, 0.011041], source = "CAD v2" }
 
 [[chassis.boxes]]
-name = "bearing_block_right"
-min = { value = [-0.0185, -0.02225, 0.002], source = "CAD" }
-max = { value = [0.0055, -0.00575, 0.025], source = "CAD" }
+name = "bearing_block_cap_left"
+min = { value = [-0.02175, 0.0076, 0.011191], source = "CAD v2: drive.block, cap with the fan ear and the basket bosses" }
+max = { value = [0.0135, 0.018135, 0.0218], source = "CAD v2" }
 
 [[chassis.boxes]]
-name = "fan_holder"
-min = { value = [-0.0185, -0.0225, 0.025], source = "estimate: spans the bearing blocks and the impeller" }
-max = { value = [0.031, 0.0225, 0.027], source = "estimate" }
+name = "bearing_block_base_right"
+min = { value = [-0.0182, -0.02195, 0.002041], source = "CAD v2: drive.block, base" }
+max = { value = [0.00785, -0.00905, 0.011041], source = "CAD v2" }
 
+[[chassis.boxes]]
+name = "bearing_block_cap_right"
+min = { value = [-0.01515, -0.018135, 0.011191], source = "CAD v2: drive.block, cap with the raised motor's clamp ring" }
+max = { value = [0.0135, -0.0076, 0.0288], source = "CAD v2" }
+
+[[chassis.boxes]]
+name = "drive_motor_left"
+min = { value = [-0.015555, -0.008215, 0.006236], source = "CAD v2: 1020 motor, 9.61 x 20.3 mm measured, axis 180 deg about the axle (behind it, level)" }
+max = { value = [-0.005945, 0.020085, 0.015846], source = "CAD v2" }
+
+[[chassis.boxes]]
+name = "drive_motor_right"
+min = { value = [-0.008832, -0.020085, 0.016203], source = "CAD v2: 1020 motor, axis 112 deg about the axle (raised)" }
+max = { value = [0.000778, 0.008215, 0.025813], source = "CAD v2" }
+
+# The fan mount: a collar around the fan motor, a leg to the MCU and two arms
+# back to the drive caps' ears.
+[[chassis.boxes]]
+name = "fan_mount_leg"
+min = { value = [0.0235, -0.00225, 0.003041], source = "CAD v2: fan.mount, front leg resting on the MCU" }
+max = { value = [0.03675, 0.00225, 0.0123], source = "CAD v2" }
+
+[[chassis.boxes]]
+name = "fan_mount_arms"
+min = { value = [0.0077, -0.0167, 0.011], source = "CAD v2: fan.mount, the arms' tabs on the caps' ears" }
+max = { value = [0.0135, 0.0167, 0.0168], source = "CAD v2" }
+
+# The battery: three cells on edge, one behind the other, in a PLA basket on the
+# drive caps, under a velcro strap.
 [[chassis.boxes]]
 name = "battery_cells"
-min = { value = [-0.0198, -0.023, 0.022], source = "CAD: the three 46 x 12 x 7 mm cell bodies; where the third one sits is open" }
-max = { value = [0.0114, 0.023, 0.034], source = "CAD" }
+min = { value = [-0.019495, -0.02358, 0.030], source = "CAD v2: three 47.16 x 11.32 x 6.45 mm cells (measured) on edge, Battery.x = -9.52, floor_z = 30" }
+max = { value = [0.000455, 0.02358, 0.04132], source = "CAD v2" }
+
+[[chassis.boxes]]
+name = "battery_basket"
+min = { value = [-0.024685, -0.02478, 0.0288], source = "CAD v2: frame.basket, floor and 4 mm walls with the strap lugs" }
+max = { value = [0.005645, 0.02478, 0.034], source = "CAD v2" }
+
+[[chassis.boxes]]
+name = "battery_strap"
+min = { value = [-0.022495, -0.005, 0.04132], source = "CAD v2: frame.straps, 10 mm velcro over the pack" }
+max = { value = [0.003455, 0.005, 0.04212], source = "CAD v2" }
+
+# The wall sensor caps. The two that look ahead are square to the board; the
+# diagonal ones are turned 45 deg, so three vertical cylinders along each one's
+# axis stand in for it (they reach as far along its axis; at its front corners
+# the real cap reaches about 1 mm farther, still behind the bumper).
+[[chassis.boxes]]
+name = "sensor_cap_left_front"
+min = { value = [0.0304, 0.017328, 0.002041], source = "CAD v2: front.sensor_cap W1" }
+max = { value = [0.044, 0.0251, 0.015391], source = "CAD v2" }
+
+[[chassis.boxes]]
+name = "sensor_cap_right_front"
+min = { value = [0.0304, -0.025672, 0.002041], source = "CAD v2: front.sensor_cap W4; the cover of the receiver's keyway stands 0.67 mm past the board's side" }
+max = { value = [0.044, -0.0179, 0.015391], source = "CAD v2" }
+
+# The TPU bumper: a 3.2 mm band around the nose, from x = 47.5 mm forward,
+# 0.4 to 3.15 mm above the floor, its lower outer edge rounded by 1.5 mm. Its
+# collision geoms start at 1.9 mm, above that rounding: the front skid below
+# stands in for the rounded edge on the floor.
+[[chassis.boxes]]
+name = "bumper_front"
+min = { value = [0.0526, -0.015, 0.0019], source = "CAD v2: front.bumper, the band across the board's front edge and its lip" }
+max = { value = [0.0567, 0.015, 0.00315], source = "CAD v2: 3.2 mm ahead of the board" }
 
 [[chassis.cylinders]]
 name = "fan_impeller"
-base = { value = [0.0175, 0.0, 0.0025], source = "CAD" }
-radius = { value = 0.0135, source = "CAD: 27 mm impeller" }
-height = { value = 0.007, source = "CAD" }
+base = { value = [0.0175, 0.0, 0.002341], source = "CAD v2: fan.impeller, front shroud 0.3 mm above the board (its neck dips into the board's 15 mm hole)" }
+radius = { value = 0.0132, source = "CAD v2: 26.4 mm closed radial impeller" }
+height = { value = 0.0059, source = "CAD v2: shroud to the top of the hub" }
 
 [[chassis.cylinders]]
 name = "fan_motor"
-base = { value = [0.0175, 0.0, 0.0095], source = "CAD" }
-radius = { value = 0.005, source = "CAD: 10 mm coreless motor" }
-height = { value = 0.022, source = "CAD" }
+base = { value = [0.0175, 0.0, 0.009841], source = "CAD v2: fan.heights, motor front face, shaft down" }
+radius = { value = 0.004805, source = "measured: 1020 motor, 9.61 mm" }
+height = { value = 0.0223, source = "measured: 20.3 mm can, and 2 mm of solder tabs (estimate)" }
 
-# The real robot has no third contact point: it rests on the rear edge of its board,
-# and on the front edge with the fan on or when it brakes. Two 1 mm skids stand in
-# for those edges. They are frictionless, since a sliding frictional contact would
-# lift the board off the floor in MuJoCo.
+[[chassis.cylinders]]
+name = "fan_mount_collar"
+base = { value = [0.0175, 0.0, 0.008641], source = "CAD v2: fan.mount, plate and clamp collar" }
+radius = { value = 0.00605, source = "CAD v2" }
+height = { value = 0.0082, source = "CAD v2" }
+
+[[chassis.cylinders]]
+name = "sensor_cap_left_front_tip"
+base = { value = [0.050243, 0.012859, 0.002041], source = "CAD v2: front.sensor_cap W2, 3.78 mm along its axis from the footprint" }
+radius = { value = 0.0035, source = "CAD v2: the cap is 7 mm wide and ends 7.28 mm ahead of its footprint" }
+height = { value = 0.01335, source = "CAD v2" }
+
+[[chassis.cylinders]]
+name = "sensor_cap_left_middle"
+base = { value = [0.047768, 0.010384, 0.002041], source = "CAD v2: front.sensor_cap W2" }
+radius = { value = 0.0035, source = "CAD v2" }
+height = { value = 0.01335, source = "CAD v2" }
+
+[[chassis.cylinders]]
+name = "sensor_cap_left_back"
+base = { value = [0.045286, 0.007902, 0.002041], source = "CAD v2: front.sensor_cap W2" }
+radius = { value = 0.0035, source = "CAD v2" }
+height = { value = 0.01335, source = "CAD v2" }
+
+[[chassis.cylinders]]
+name = "sensor_cap_right_tip"
+base = { value = [0.050243, -0.012859, 0.002041], source = "CAD v2: front.sensor_cap W3" }
+radius = { value = 0.0035, source = "CAD v2" }
+height = { value = 0.01335, source = "CAD v2" }
+
+[[chassis.cylinders]]
+name = "sensor_cap_right_middle"
+base = { value = [0.047768, -0.010384, 0.002041], source = "CAD v2: front.sensor_cap W3" }
+radius = { value = 0.0035, source = "CAD v2" }
+height = { value = 0.01335, source = "CAD v2" }
+
+[[chassis.cylinders]]
+name = "sensor_cap_right_back"
+base = { value = [0.045286, -0.007902, 0.002041], source = "CAD v2: front.sensor_cap W3" }
+radius = { value = 0.0035, source = "CAD v2" }
+height = { value = 0.01335, source = "CAD v2" }
+
+# The bumper's rounded corners are arcs of 3.2 mm about the board's front
+# corners, and its diagonal runs a chain of 1.6 mm cylinders along the middle of
+# the band, 1.5 mm apart (the band's outer face dips 0.2 mm between them).
+[[chassis.cylinders]]
+name = "bumper_left_corner"
+base = { value = [0.0535, 0.015, 0.0019], source = "CAD v2: front.bumper, 3.2 mm about the board's front left corner" }
+radius = { value = 0.0032, source = "CAD v2: BumperParams.band" }
+height = { value = 0.00125, source = "CAD v2: up to the band's top, 3.15 mm" }
+
+[[chassis.cylinders]]
+name = "bumper_right_corner"
+base = { value = [0.0535, -0.015, 0.0019], source = "CAD v2: front.bumper" }
+radius = { value = 0.0032, source = "CAD v2" }
+height = { value = 0.00125, source = "CAD v2" }
+
+[[chassis.cylinders]]
+name = "bumper_left_1"
+base = { value = [0.052874, 0.017102, 0.0019], source = "CAD v2: front.bumper, middle of the band along the left diagonal edge" }
+radius = { value = 0.0016, source = "CAD v2: half the band" }
+height = { value = 0.00125, source = "CAD v2" }
+
+[[chassis.cylinders]]
+name = "bumper_left_2"
+base = { value = [0.051532, 0.017773, 0.0019], source = "CAD v2: front.bumper" }
+radius = { value = 0.0016, source = "CAD v2" }
+height = { value = 0.00125, source = "CAD v2" }
+
+[[chassis.cylinders]]
+name = "bumper_left_3"
+base = { value = [0.05019, 0.018443, 0.0019], source = "CAD v2: front.bumper" }
+radius = { value = 0.0016, source = "CAD v2" }
+height = { value = 0.00125, source = "CAD v2" }
+
+[[chassis.cylinders]]
+name = "bumper_left_4"
+base = { value = [0.049117, 0.01898, 0.0019], source = "CAD v2: front.bumper, it ends at x = 47.5 mm" }
+radius = { value = 0.0016, source = "CAD v2" }
+height = { value = 0.00125, source = "CAD v2" }
+
+[[chassis.cylinders]]
+name = "bumper_right_1"
+base = { value = [0.052874, -0.017102, 0.0019], source = "CAD v2: front.bumper, middle of the band along the right diagonal edge" }
+radius = { value = 0.0016, source = "CAD v2" }
+height = { value = 0.00125, source = "CAD v2" }
+
+[[chassis.cylinders]]
+name = "bumper_right_2"
+base = { value = [0.051532, -0.017773, 0.0019], source = "CAD v2: front.bumper" }
+radius = { value = 0.0016, source = "CAD v2" }
+height = { value = 0.00125, source = "CAD v2" }
+
+[[chassis.cylinders]]
+name = "bumper_right_3"
+base = { value = [0.05019, -0.018443, 0.0019], source = "CAD v2: front.bumper" }
+radius = { value = 0.0016, source = "CAD v2" }
+height = { value = 0.00125, source = "CAD v2" }
+
+[[chassis.cylinders]]
+name = "bumper_right_4"
+base = { value = [0.049117, -0.01898, 0.0019], source = "CAD v2: front.bumper" }
+radius = { value = 0.0016, source = "CAD v2" }
+height = { value = 0.00125, source = "CAD v2" }
+
+# The robot has no third wheel: it rests on a rear contact when it accelerates,
+# and on its bumper with the fan on or when it brakes. Both are 0.1 mm above
+# the floor, so the body only tips about 0.3 deg between them: with the
+# center of mass over the axle it rocks from one to the other at every change
+# of acceleration, and a wider swing slams the rear contact down hard enough to
+# unload the tires. Both are PTFE glides. Two skids stand in for them. Their
+# contacts are frictionless, since a sliding frictional contact would lift the
+# robot off the floor in MuJoCo, and the simulator applies their friction as a
+# force instead; each touches the floor before any frictional geom near it does.
 [[chassis.skids]]
 name = "rear_skid"
-center = { value = [-0.034, 0.0, 0.001], source = "simulation: under the rear edge of the board, touching the floor when level" }
+center = { value = [-0.0355, 0.0, 0.0011], source = "owner: a PTFE glide under the rear edge of the board, its bottom 0.1 mm above the floor (the bare board edge is 1 mm above it)" }
 radius = { value = 0.001, source = "simulation" }
+friction = { value = 0.15, source = "estimate: a PTFE glide on a painted floor, 0.05 to 0.2 in tables; measure by tilting the robot on its glides" }
 
 [[chassis.skids]]
 name = "front_skid"
-center = { value = [0.050, 0.0, 0.0013], source = "simulation: under the nose, 0.3 mm clear of the floor when level" }
-radius = { value = 0.001, source = "simulation" }
+center = { value = [0.0552, 0.0, 0.0016], source = "owner: a PTFE glide on the bumper's rounded lower edge (BumperParams.nose_r 1.5 mm), its bottom 0.1 mm above the floor and 55.2 mm ahead of the axle" }
+radius = { value = 0.0015, source = "CAD v2: BumperParams.nose_r" }
+friction = { value = 0.15, source = "estimate: a PTFE glide on a painted floor, 0.05 to 0.2 in tables; measure by tilting the robot on its glides" }
 
 [wheels]
-radius = { value = 0.011, source = "CAD: 1.0 mm tire band on a 20 mm hub seat" }
-width = { value = 0.00425, source = "CAD: WheelTireWidth" }
-track = { value = 0.04575, source = "CAD: tire center to tire center" }
-mass = { value = 0.004, source = "estimate: printed hub with its gear, and the tire" }
-spin_inertia = { value = 1.9e-7, source = "estimate: CAD volumes" }
-friction = { value = 1.0, source = "estimate: Kyosho MZW40-20 slick on a maze floor; measure by tilting" }
-torsional_friction = { value = 0.0005, source = "estimate: half the contact patch width" }
-contact_time_constant = { value = 0.008, source = "estimate: 1 mm silicone band, E ~ 0.5 MPa over a 4.25 x 3 mm patch, ~5000 N/m; 5 ms or more also keeps the tires on the floor when they slide" }
+radius = { value = 0.0110412, source = "CAD v2: params.wheel_d = 2 * axle_z, the 2 mm tire stretched over the 18.31 mm hub to 1.89 mm; measure the rolling radius by driving a known distance" }
+width = { value = 0.003465, source = "CAD v2: params.tire_w, the tire cut to the hub's channel" }
+track = { value = 0.045535, source = "CAD v2: params.track, tire center to tire center (tires 0.5 mm inside the board's sides)" }
+mass = { value = 0.0064, source = "CAD v2 and estimate: brass 36T wheel gear 4.3 g (estimated from its volume: weigh it), hub 0.65 g, tire 0.5 g, magnet 0.42 g, axle 0.32 g, magnet cup, race spacer and the bearings' inner rings; 2.7 g with the printed stand-in gear" }
+spin_inertia = { value = 2.89e-7, source = "CAD v2: about the axle, the brass gear 61 % of it; 1.23e-7 with the printed stand-in gear" }
+friction = { value = 1.0, source = "estimate: 2 mm tire band on a maze floor; measure by tilting" }
+torsional_friction = { value = 0.0005, source = "estimate: half the contact patch width (v1)" }
+contact_time_constant = { value = 0.011, source = "estimate: the Kyosho MZW40-20 compound, Shore 20 (about 0.7 MPa, 1.4 times stiffer for the confined 1.89 mm layer), sinks 75 to 105 um under the 0.43 N a tire carries without the fan, 4000 to 6000 N/m; 11 ms sinks it 64 um (6600 N/m) and rolls it 29 um short of its radius, 58 um with the fan; measure the rolling radius by driving a known distance with the fan on and off" }
 contact_damping_ratio = { value = 1.0, source = "estimate" }
 
 [drive]
-winding_resistance = { value = 12.0, source = "datasheet: Maxon DCX 8 M, 4.2 V winding" }
-bridge_resistance = { value = 0.62, source = "datasheet: L6205D, one conducting path at 25 C" }
-torque_constant = { value = 0.00336, source = "datasheet: DCX 8 M 4.2 V" }
-speed_constant = { value = 0.003351, source = "datasheet: 2850 rpm/V" }
-no_load_current = { value = 0.00693, source = "datasheet: DCX 8 M 4.2 V" }
-rotor_inertia = { value = 3.79e-9, source = "datasheet: 0.0379 g cm^2" }
-gear_ratio = { value = 5.25, source = "CAD: 4 mm pinion to 21 mm wheel gear pitch circles" }
-gear_efficiency = { value = 0.9, source = "estimate: one printed spur stage" }
-supply_voltage = { value = 19.63, source = "CAD and datasheet: TPS611781 feedback divider" }
+# 1020 coreless motors (10 x 20 mm class, measured 9.61 x 20.30, 1 mm shaft),
+# the same for both wheels and the fan. The only figure known of them is 18k rpm
+# without load at 12 V; the rest is scaled from RIC Motor's 1020DT 12 V
+# windings (120160: 16000 rpm, 9 mA, stall 0.65 A and 47 g cm; 120190: 19200
+# rpm, 15 mA, stall 0.83 A and 50 g cm), interpolated to 18000 rpm.
+winding_resistance = { value = 15.4, source = "estimate: RIC 1020DT 12 V windings interpolated to 18k rpm (12 V over the stall current: 18.5 ohm at 16000 rpm, 14.5 at 19200); measure with an ohmmeter across a locked motor, or 12 V over the stall current" }
+bridge_resistance = { value = 0.66, source = "datasheet: L6205D, one conducting path at 25 C, 0.62 ohm, and the 40 mOhm shunt in series (R32/R33)" }
+torque_constant = { value = 0.00627, source = "estimate: (12 V - no-load current x resistance) / 18000 rpm, the owner's no-load figure; measure the no-load speed at a known voltage with a tachometer or the encoder" }
+speed_constant = { value = 0.00627, source = "estimate: the torque constant, 1523 rpm/V" }
+no_load_current = { value = 0.05, source = "estimate from a measurement: a free motor on the v1 gears (5.25) and wheels drew 290 mA at 20 V (owner), with 16.06 ohm about 15.3 V of back EMF: 4.5 W of friction, 1.8 mN m at some 2450 rad/s; the wheels' air drag is negligible (1e-6 N m) and their inertia takes no torque at a steady speed. A constant 1.8 mN m would brake the robot at 20 m/s2, so most of it grows with speed: taken as the bare motor's 13 mA (RIC 1020 estimate) plus a drag proportional to speed, the constant this model needs is the friction near 1 m/s (466 rad/s at the motor), about 50 mA. A coast-down test settles it: spin a wheel up, cut the drive, log the encoder; the deceleration times the 2.1e-8 kg m2 at the motor (rotor 1.4e-8 plus the wheel's spin inertia over the gear ratio squared) is the friction torque at each speed" }
+rotor_inertia = { value = 1.4e-8, source = "estimate: a 10 mm coreless rotor (about 1 g of winding at 4 mm radius), 0.13 g cm^2, and the brass 7T pinion, 0.01 g cm^2" }
+gear_ratio = { value = 5.142857, source = "CAD v2: 0.5M spur pair, 7T pinion and 36T wheel gear (params.Gears), 36/7" }
+gear_efficiency = { value = 0.9, source = "estimate: one brass spur stage of 0.5 module; about 0.85 with the printed stand-in pair" }
+supply_voltage = { value = 19.63, source = "CAD and datasheet: TPS611781 feedback divider 2 MOhm / 130 kOhm (measured 19.66 V, hw_debug G16)" }
 
 [encoders]
-counts_per_revolution = { value = 16384, source = "firmware: AS5047U ABIRES 4096 pulses, four edges, magnet on the axle" }
+counts_per_revolution = { value = 16384, source = "firmware: AS5047U ABIRES 4096 pulses, four edges, 6 x 2 mm magnet on the axle (CAD v2: 0.5 mm from the package)" }
 
 [imu]
 position = { value = [0.00066, 0.0, 0.0024], source = "CAD: IC2, 0.4 mm above the board top" }
@@ -117,10 +308,10 @@ output_rate = { value = 8000.0, source = "firmware: high accuracy ODR" }
 clock_error = { value = 0.005, source = "estimate: within the datasheet's +-1 % in high accuracy mode" }
 
 [fan]
-position = { value = [0.0175, 0.0, 0.0025], source = "CAD: impeller over the 15 mm hole" }
-max_downforce = { value = 3.0, source = "owner: about 3 N at full speed" }
+position = { value = [0.0175, 0.0, 0.0023], source = "CAD v2: fan.centre(), the impeller's inlet over the board's 15 mm hole" }
+max_downforce = { value = 1.0, source = "estimate: the v2 fan study (MicrasHardware README) predicts about 1 N with the skirt for the 18k rpm motor and the 26.4 mm impeller (the owner's earlier figure was 3 N); measure on a scale with the fan running" }
 nominal_voltage = { value = 12.3, source = "the charged pack the simulation runs from, so full speed gives max_downforce" }
-time_constant = { value = 0.15, source = "estimate: coreless motor with a 27 mm impeller" }
+time_constant = { value = 0.07, source = "estimate: impeller 9.5e-8 kg m^2 (CAD v2) and rotor 1.3e-8, 15.8 ohm, 6.27 mN m/A: 43 ms for the speed, about 70 ms for the downforce, which goes with its square" }
 
 [battery]
 cells = { value = 3, source = "owner" }
@@ -143,34 +334,40 @@ settle_fraction = { value = 0.976, source = "estimate: 75 us of settling against
 ambient_irradiance = { value = 0.01, source = "estimate: indoor lighting in the receiver's band, in W/m^2" }
 rays = { value = 16, source = "simulation: rays per emitter cone" }
 
+# The caps (front.py) set each LED's height and aim from the board: the emitter's
+# axis 9.75 mm and the receiver's 3.25 mm above the board top, both level
+# (FrontParams.emitter_tilt = 0; the owner will bench 0, 1 and 2 deg), the
+# emitter's lens tip 6.28 mm and the receiver's 6.055 mm ahead of the footprint
+# along its look direction (leds.SEATS: the receiver's legs bent at the
+# datasheet's 2 mm, which moved it 0.875 mm forward of the old model).
 [[wall_sensors.sensors]]
 name = "left_front"
-emitter = { value = [0.0434, 0.0215, 0.01175], source = "CAD: W1 lens tip" }
-receiver = { value = [0.0444, 0.0215, 0.00525], source = "CAD: W1 lens tip" }
+emitter = { value = [0.043, 0.0215, 0.011791], source = "CAD v2: W1, SFH 4550 lens tip" }
+receiver = { value = [0.042775, 0.0215, 0.005291], source = "CAD v2: W1, TPS601A lens tip" }
 yaw_deg = { value = 0.0, source = "CAD" }
 group = { value = 0, source = "firmware: TIM4 channel 1, not inverted" }
-gain = { value = 1.8815, source = "calibrated: target.hpp reference_readings over the simulated reading at the calibration pose (tools/wall_calibration)" }
+gain = { value = 1.9452, source = "calibrated: target.hpp reference_readings over the simulated reading at the calibration pose (tools/wall_calibration)" }
 
 [[wall_sensors.sensors]]
 name = "left"
-emitter = { value = [0.05229, 0.01491, 0.01175], source = "CAD: W2 lens tip" }
-receiver = { value = [0.053, 0.01562, 0.00525], source = "CAD: W2 lens tip" }
+emitter = { value = [0.05201, 0.014626, 0.011791], source = "CAD v2: W2, SFH 4550 lens tip" }
+receiver = { value = [0.051851, 0.014467, 0.005291], source = "CAD v2: W2, TPS601A lens tip" }
 yaw_deg = { value = 45.0, source = "CAD" }
 group = { value = 1, source = "firmware: TIM4 channel 2, inverted" }
-gain = { value = 3.7461, source = "calibrated: target.hpp reference_readings over the simulated reading at the calibration pose (tools/wall_calibration)" }
+gain = { value = 3.8539, source = "calibrated: target.hpp reference_readings over the simulated reading at the calibration pose (tools/wall_calibration)" }
 
 [[wall_sensors.sensors]]
 name = "right"
-emitter = { value = [0.05229, -0.01491, 0.01175], source = "CAD: W3 lens tip" }
-receiver = { value = [0.053, -0.01562, 0.00525], source = "CAD: W3 lens tip" }
+emitter = { value = [0.052011, -0.014627, 0.011791], source = "CAD v2: W3, SFH 4550 lens tip" }
+receiver = { value = [0.051852, -0.014468, 0.005291], source = "CAD v2: W3, TPS601A lens tip" }
 yaw_deg = { value = -45.0, source = "CAD" }
 group = { value = 0, source = "firmware: TIM4 channel 3, not inverted" }
-gain = { value = 4.1181, source = "calibrated: target.hpp reference_readings over the simulated reading at the calibration pose (tools/wall_calibration)" }
+gain = { value = 4.2363, source = "calibrated: target.hpp reference_readings over the simulated reading at the calibration pose (tools/wall_calibration)" }
 
 [[wall_sensors.sensors]]
 name = "right_front"
-emitter = { value = [0.0434, -0.0215, 0.01175], source = "CAD: W4 lens tip" }
-receiver = { value = [0.0444, -0.0215, 0.00525], source = "CAD: W4 lens tip" }
+emitter = { value = [0.043, -0.0215, 0.011791], source = "CAD v2: W4, SFH 4550 lens tip" }
+receiver = { value = [0.042775, -0.0215, 0.005291], source = "CAD v2: W4, TPS601A lens tip" }
 yaw_deg = { value = 0.0, source = "CAD" }
 group = { value = 1, source = "firmware: TIM4 channel 4, inverted" }
-gain = { value = 1.0478, source = "calibrated: target.hpp reference_readings over the simulated reading at the calibration pose (tools/wall_calibration)" }
+gain = { value = 1.0833, source = "calibrated: target.hpp reference_readings over the simulated reading at the calibration pose (tools/wall_calibration)" }

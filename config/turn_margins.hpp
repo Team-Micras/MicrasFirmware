@@ -14,8 +14,8 @@ namespace micras {
  * designs it is there to replace.
  */
 ///@{
-constexpr float turn_margin{0.015F};
-constexpr float risky_turn_margin{0.010F};
+constexpr float turn_margin{0.012F};
+constexpr float risky_turn_margin{0.008F};
 ///@}
 }  // namespace micras
 

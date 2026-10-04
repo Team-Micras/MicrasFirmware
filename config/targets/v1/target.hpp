@@ -352,10 +352,10 @@ const proxy::TorqueSensors::Config torque_sensors_config = {
     // The amplifiers are referenced to half their supply, which is the reference of the converter
     // too, so no current reads half the range whatever that supply is
     .zero_reading = 0.5F,
-    // Full scale current times the torque constant of the motor. The torque constant has not been
-    // measured on these motors, so this is an order of magnitude estimate for a coreless
-    // micromouse motor and wants a bench calibration before nav relies on the value.
-    .max_torque = 0.01F,
+    // Full scale current, 3.3 V over the 0.8 V/A of shunt and amplifier, times the torque constant
+    // of the motor, 6.27 mN m/A (robot.hpp: an estimate for the 1020 coreless motors from their
+    // no load speed, which wants a bench calibration before nav relies on the value)
+    .max_torque = 0.0259F,
     .filter = {
         .cutoff_frequency = torque_filter_cutoff,
         .sampling_frequency = loop_frequency,
@@ -388,7 +388,7 @@ const proxy::TorqueSensors::Config torque_sensors_config = {
  * than a wall at the reference distance of the dimmest sensor adds, and the sensor is taken as
  * blind.
  *
- * @note Each emitter lens sits 6.5 mm above its receiver lens (the SolidWorks assembly), and the
+ * @note Each emitter lens sits 6.5 mm above its receiver lens (the v2 sensor caps), and the
  * TPS601A receiver halves its sensitivity 10 degrees off its axis (datasheet). The receiver therefore
  * sees the lit spot 9 degrees off its axis from the center of a cell facing a wall but 4 degrees off
  * at 100 mm, and the inverse square law alone would read 22 mm short there. With them the range

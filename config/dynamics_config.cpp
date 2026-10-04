@@ -55,7 +55,7 @@ constexpr nav::Dynamics::Config dynamics_config{
     .model = robot_model,
     .turns = turn_table,
     .risky_turns = risky_turn_table,
-    .max_linear_speed = 3.0F,
+    .max_linear_speed = 4.0F,
     .max_angular_speed = 12.0F,
     .voltage_reserve = voltage_reserve,
 };

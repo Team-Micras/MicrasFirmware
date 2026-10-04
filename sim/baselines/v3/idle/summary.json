@@ -1,0 +1,42 @@
+{
+  "target": "micras",
+  "scenario": "idle.toml",
+  "args": "--scenario idle.toml --out idle",
+  "firmware_sha": "0490140eff112aa1a667776d14a35bcc285f8fbb-dirty",
+  "mujoco_version": "3.14.0",
+  "compiler": "GNU 15.2.0",
+  "data_sha256": "56939aa9b1adaa408d3ff80f29c000e1138861b64718f7ed8badf079cb1df19d",
+  "states": [
+    [
+      0.040125,
+      "INIT"
+    ],
+    [
+      0.04025,
+      "IDLE"
+    ]
+  ],
+  "values": {
+    "ticks": 32000,
+    "warnings_total": 0,
+    "collisions": 0,
+    "goal_time": null,
+    "stopped_at": null,
+    "unbound_ports": 0,
+    "running_time": 0.0,
+    "max_pose_error": null,
+    "rms_across_error": null
+  },
+  "tolerances": {
+    "state_time": 0.25,
+    "ticks": null,
+    "warnings_total": null,
+    "collisions": 2,
+    "goal_time": 1.0,
+    "stopped_at": 1.0,
+    "unbound_ports": null,
+    "running_time": 1.0,
+    "max_pose_error": 0.02,
+    "rms_across_error": 0.003
+  }
+}
