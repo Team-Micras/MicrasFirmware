@@ -169,6 +169,7 @@ void Micras::update() {
     const uint32_t ticks = this->tick.wait();
 
     this->missed_ticks += ticks - 1;
+    this->telemetry_time_us += ticks * loop_time_us;
     this->elapsed_time = static_cast<float>(ticks) * loop_time;
     this->watchdog.refresh();
 
@@ -197,10 +198,8 @@ void Micras::update() {
     this->fsm.update();
     this->publish();
 
-    const uint32_t timestamp_us = this->telemetry_stopwatch.elapsed_time_us();
-
     this->link.poll(this->is_idle());
-    this->link.pump(timestamp_us);
+    this->link.pump(this->telemetry_time_us);
 
     this->worst_loop_time_us = std::max(this->worst_loop_time_us, this->tick.elapsed_time_us());
 }

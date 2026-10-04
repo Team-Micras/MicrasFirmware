@@ -448,10 +448,9 @@ private:
     ///@{
     // The VBAT pin of the v1 board does not reach the battery, so it is not measured
     // proxy::Battery       battery{battery_config};
-    proxy::Fan           fan{fan_config};
-    proxy::Locomotion    locomotion{locomotion_config};
-    proxy::Storage       maze_storage{maze_storage_config};
-    proxy::TorqueSensors torque_sensors{torque_sensors_config};
+    proxy::Fan        fan{fan_config};
+    proxy::Locomotion locomotion{locomotion_config};
+    proxy::Storage    maze_storage{maze_storage_config};
     ///@}
 
     /**
@@ -468,12 +467,17 @@ private:
 
     /**
      * @brief Sensors sampled into the measurements of the navigation.
+     *
+     * @note The wall sensors come before the torque sensors: the converter of the wall sensors is
+     * the master of the pair it forms with the one of the torque sensors, and its setup is refused
+     * once the other one is converting.
      */
     ///@{
-    proxy::Imu          imu{imu_config};
-    proxy::RotarySensor rotary_sensor_left{rotary_sensor_left_config};
-    proxy::RotarySensor rotary_sensor_right{rotary_sensor_right_config};
-    proxy::WallSensors  wall_sensors{wall_sensors_config};
+    proxy::Imu           imu{imu_config};
+    proxy::RotarySensor  rotary_sensor_left{rotary_sensor_left_config};
+    proxy::RotarySensor  rotary_sensor_right{rotary_sensor_right_config};
+    proxy::WallSensors   wall_sensors{wall_sensors_config};
+    proxy::TorqueSensors torque_sensors{torque_sensors_config};
     ///@}
 
     /**
@@ -529,9 +533,12 @@ private:
     comm::Link link;
 
     /**
-     * @brief Free running clock the samples are stamped with.
+     * @brief Time the samples are stamped with, in microseconds.
+     *
+     * @note Counted in loop periods, so that it wraps around 2^32 microseconds as the link expects.
+     * The cycle counter wraps every 7.8 s at 550 MHz.
      */
-    proxy::Stopwatch telemetry_stopwatch;
+    uint32_t telemetry_time_us{};
 
     /**
      * @brief Finite state machine for the robot.
