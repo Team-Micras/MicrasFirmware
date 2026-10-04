@@ -13,12 +13,14 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+# A push to a branch of this repository is checked once by its push run, so a pull request only runs
+# here when it comes from a fork
 jobs:
   check:
     name: 🗃️ Check if already verified
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
+    if: github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name != github.repository && !github.event.pull_request.draft)
     outputs:
       verified: ${{ steps.cache.outputs.cache-hit }}
       key: ${{ steps.cache.outputs.cache-primary-key }}
@@ -107,7 +109,7 @@ jobs:
     name: 📏 Compare the shared standards with micras-lib and micras-simulation
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
+    if: github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name != github.repository && !github.event.pull_request.draft)
     steps:
       - name: 🔀 Checkout
         uses: actions/checkout@v7
@@ -143,7 +145,7 @@ jobs:
     name: 🐭 Simulate the robot
     runs-on: ubuntu-latest
     timeout-minutes: 150
-    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
+    if: github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name != github.repository && !github.event.pull_request.draft)
     steps:
       - name: 🔀 Checkout
         uses: actions/checkout@v7

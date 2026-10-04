@@ -14,12 +14,14 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
+# A push to a branch of this repository is checked once by its push run, so a pull request only runs
+# here when it comes from a fork
 jobs:
   build:
     name: 📝 Build the documentation
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
+    if: github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name != github.repository && !github.event.pull_request.draft)
     steps:
       - name: 🔀 Checkout
         uses: actions/checkout@v7
