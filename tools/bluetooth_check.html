@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bluetooth Check</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --panel: #ffffff; --text: #1d2330; --muted: #667085; --border: #d9dee7;
+    --accent: #2f6fdf; --ok: #1f8a4c; --bad: #c4352b; --warn: #b7791f; --mono-bg: #f0f2f5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12151b; --panel: #1a1f27; --text: #e4e8ef; --muted: #98a2b3; --border: #2c3441;
+      --accent: #6c9cff; --ok: #4cc27f; --bad: #ff6b5f; --warn: #e3b341; --mono-bg: #11151b;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.45 system-ui, sans-serif; }
+  main { max-width: 1100px; margin: 0 auto; padding: 16px; display: grid; gap: 14px; }
+  h1 { font-size: 20px; margin: 0; }
+  h2 { font-size: 15px; margin: 0 0 10px; }
+  .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; }
+  button { background: var(--accent); color: #fff; border: 0; border-radius: 6px; padding: 7px 12px; font: inherit; cursor: pointer; }
+  button.secondary { background: transparent; color: var(--text); border: 1px solid var(--border); }
+  button:disabled { opacity: .45; cursor: default; }
+  input[type=number], input[type=text] { background: var(--mono-bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; font: inherit; }
+  input[type=number] { width: 80px; }
+  label { color: var(--muted); }
+  .muted { color: var(--muted); }
+  .checks { display: grid; gap: 6px; }
+  .check { display: grid; grid-template-columns: 70px 1fr; gap: 10px; align-items: baseline; }
+  .badge { font-weight: 600; font-size: 12px; text-align: center; border-radius: 4px; padding: 2px 0; border: 1px solid var(--border); color: var(--muted); }
+  .badge.pass { color: var(--ok); border-color: var(--ok); }
+  .badge.fail { color: var(--bad); border-color: var(--bad); }
+  .badge.run { color: var(--warn); border-color: var(--warn); }
+  table { border-collapse: collapse; width: 100%; font: 13px ui-monospace, monospace; }
+  td { border-bottom: 1px solid var(--border); padding: 3px 6px; vertical-align: top; word-break: break-all; }
+  td:first-child { color: var(--muted); width: 70px; }
+  #log { background: var(--mono-bg); border: 1px solid var(--border); border-radius: 6px; height: 320px; overflow: auto; padding: 8px; font: 12px/1.4 ui-monospace, monospace; white-space: pre-wrap; word-break: break-all; }
+  .tx { color: var(--accent); } .rx { color: var(--text); } .sys { color: var(--muted); } .err { color: var(--bad); }
+  .stats { font: 13px ui-monospace, monospace; white-space: pre-wrap; margin-top: 8px; }
+</style>
+</head>
+<body>
+<main>
+  <div class="row" style="justify-content: space-between">
+    <h1>Micras Bluetooth check</h1>
+    <span class="muted" id="status">Disconnected</span>
+  </div>
+
+  <div class="panel">
+    <div class="row">
+      <button id="connect">Connect</button>
+      <button id="disconnect" class="secondary" disabled>Disconnect</button>
+      <label><input type="checkbox" id="all"> list every device</label>
+      <span class="muted" id="device"></span>
+    </div>
+    <p class="muted" style="margin: 8px 0 0">
+      Flash <code>test_bluetooth</code>, wait for its beeps (two rising = module answered, one low = silent), then connect.
+      An unconfigured HM-19 advertises as <code>HMSoft</code>. Text that starts with <code>AT</code> is taken by the module as a command, so nothing here sends it.
+    </p>
+  </div>
+
+  <div class="grid">
+    <div class="panel">
+      <h2>Checks</h2>
+      <div class="checks">
+        <div class="check"><span class="badge" id="c-gatt">—</span><span>PC ↔ module: service FFE0 / characteristic FFE1 with notifications</span></div>
+        <div class="check"><span class="badge" id="c-hb">—</span><span>Robot → PC: heartbeat lines arrive</span></div>
+        <div class="check"><span class="badge" id="c-wire">—</span><span>MCU ↔ module UART: the module answered <code>AT</code> at boot</span></div>
+        <div class="check"><span class="badge" id="c-ping">—</span><span>PC → robot → PC: every ping echoed intact</span></div>
+        <div class="check"><span class="badge" id="c-burst">—</span><span>Robot → PC bulk: every burst line intact</span></div>
+      </div>
+      <div class="stats" id="hb">No heartbeat yet</div>
+    </div>
+
+    <div class="panel">
+      <h2>Module report (read at boot, nothing was changed)</h2>
+      <div class="row" style="margin-bottom: 8px"><button id="info" class="secondary" disabled>Ask again</button></div>
+      <table id="report"><tr><td colspan="2" class="muted">Connect to read it</td></tr></table>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="panel">
+      <h2>Ping echo</h2>
+      <div class="row">
+        <label>count <input type="number" id="ping-count" value="50" min="1"></label>
+        <label>timeout ms <input type="number" id="ping-timeout" value="3000" min="100"></label>
+        <button id="ping" disabled>Run</button>
+      </div>
+      <div class="stats" id="ping-stats"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Burst from the robot</h2>
+      <div class="row">
+        <label>lines <input type="number" id="burst-count" value="100" min="1" max="10000"></label>
+        <label>payload <input type="number" id="burst-size" value="32" min="1" max="200"></label>
+        <button id="burst" disabled>Run</button>
+      </div>
+      <div class="stats" id="burst-stats"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Log</h2>
+    <div class="row" style="margin-bottom: 8px">
+      <input type="text" id="line" placeholder="line to send, e.g. PING hello" style="flex: 1; min-width: 200px">
+      <button id="send" disabled>Send</button>
+      <label><input type="checkbox" id="show-hb"> show heartbeats</label>
+      <button id="clear" class="secondary">Clear</button>
+    </div>
+    <div id="log"></div>
+  </div>
+</main>
+
+<script>
+const SERVICE = 0xffe0;
+const CHARACTERISTIC = 0xffe1;
+const CHUNK = 20;
+const CHUNK_GAP_MS = 80;
+
+const $ = (id) => document.getElementById(id);
+const encoder = new TextEncoder();
+const decoder = new TextDecoder();
+
+let device = null;
+let characteristic = null;
+let pending = '';
+let writeQueue = Promise.resolve();
+const lineListeners = new Set();
+
+function log(text, kind = 'sys') {
+  const box = $('log');
+  const stick = box.scrollTop + box.clientHeight >= box.scrollHeight - 4;
+  const row = document.createElement('div');
+  row.className = kind;
+  row.textContent = `${new Date().toISOString().slice(11, 23)} ${kind === 'tx' ? '→' : kind === 'rx' ? '←' : '·'} ${text}`;
+  box.appendChild(row);
+  while (box.childElementCount > 2000) box.firstChild.remove();
+  if (stick) box.scrollTop = box.scrollHeight;
+}
+
+function setCheck(id, state, title = '') {
+  const badge = $(id);
+  badge.className = `badge ${state}`;
+  badge.textContent = { pass: 'PASS', fail: 'FAIL', run: '…', '': '—' }[state];
+  badge.title = title;
+}
+
+function setConnected(connected) {
+  $('status').textContent = connected ? 'Connected' : 'Disconnected';
+  $('connect').disabled = connected;
+  for (const id of ['disconnect', 'info', 'ping', 'burst', 'send']) $(id).disabled = !connected;
+}
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+function write(text) {
+  const bytes = encoder.encode(text);
+  writeQueue = writeQueue.then(async () => {
+    if (!characteristic) return;
+    try {
+      await characteristic.writeValueWithoutResponse(bytes);
+      return;
+    } catch (error) {
+      if (bytes.length <= CHUNK) throw error;
+      log(`single ${bytes.length} byte write refused (${error.message}), sending ${CHUNK} byte chunks ${CHUNK_GAP_MS} ms apart`, 'err');
+    }
+    for (let i = 0; i < bytes.length; i += CHUNK) {
+      if (i > 0) await sleep(CHUNK_GAP_MS);
+      await characteristic.writeValueWithoutResponse(bytes.slice(i, i + CHUNK));
+    }
+  }).catch((error) => log(`write failed: ${error.message}`, 'err'));
+  return writeQueue;
+}
+
+function sendLine(line) {
+  log(line, 'tx');
+  return write(`${line}\n`);
+}
+
+function waitForLine(predicate, timeoutMs) {
+  return new Promise((resolve) => {
+    const listener = (line, time) => {
+      if (!predicate(line)) return;
+      clearTimeout(timer);
+      lineListeners.delete(listener);
+      resolve({ line, time });
+    };
+    const timer = setTimeout(() => { lineListeners.delete(listener); resolve(null); }, timeoutMs);
+    lineListeners.add(listener);
+  });
+}
+
+let report = [];
+let heartbeats = 0;
+let lastHeartbeat = null;
+
+function onLine(line) {
+  const time = performance.now();
+  const isHeartbeat = line.startsWith('HB ');
+  if (!isHeartbeat || $('show-hb').checked) {
+    if (!line.startsWith('B ') || $('show-hb').checked) log(line, 'rx');
+  }
+
+  if (isHeartbeat) {
+    heartbeats++;
+    lastHeartbeat = Date.now();
+    $('hb').textContent = `heartbeats ${heartbeats}  last: ${line}`;
+    setCheck('c-hb', 'pass');
+  } else if (line.startsWith('INFO ')) {
+    const body = line.slice(5);
+    if (body === 'END') renderReport();
+    else report.push(body);
+  }
+
+  for (const listener of [...lineListeners]) listener(line, time);
+}
+
+function onNotification(event) {
+  pending += decoder.decode(new Uint8Array(event.target.value.buffer), { stream: true });
+  let index;
+  while ((index = pending.indexOf('\n')) >= 0) {
+    onLine(pending.slice(0, index).replace(/\r$/, ''));
+    pending = pending.slice(index + 1);
+  }
+  if (pending.length > 4096) {
+    log(`dropping ${pending.length} bytes with no line end: ${JSON.stringify(pending.slice(0, 80))}`, 'err');
+    pending = '';
+  }
+}
+
+function renderReport() {
+  const table = $('report');
+  table.innerHTML = '';
+  for (const entry of report) {
+    const split = entry.indexOf('=');
+    const row = table.insertRow();
+    row.insertCell().textContent = split < 0 ? entry : entry.slice(0, split);
+    row.insertCell().textContent = split < 0 ? '' : entry.slice(split + 1);
+  }
+  const module = report.find((entry) => entry.startsWith('module='));
+  setCheck('c-wire', module === 'module=answered' ? 'pass' : 'fail');
+  report = [];
+}
+
+async function askInfo() {
+  report = [];
+  setCheck('c-wire', 'run');
+  await sendLine('INFO');
+  const end = await waitForLine((line) => line === 'INFO END', 5000);
+  if (!end) {
+    setCheck('c-wire', 'fail', 'no INFO reply: the robot never saw the request');
+    log('no INFO reply in 5 s: module → robot direction (PA11) or the robot is not running the test', 'err');
+  }
+}
+
+async function connect() {
+  if (!navigator.bluetooth) {
+    log('Web Bluetooth is unavailable: use Chrome or Edge, from http://localhost or a file', 'err');
+    return;
+  }
+  try {
+    const options = $('all').checked
+      ? { acceptAllDevices: true, optionalServices: [SERVICE] }
+      : { filters: [{ services: [SERVICE] }, { namePrefix: 'HM' }, { namePrefix: 'Micras' }], optionalServices: [SERVICE] };
+    device = await navigator.bluetooth.requestDevice(options);
+    device.addEventListener('gattserverdisconnected', onDisconnected);
+    $('device').textContent = `${device.name || '(no name)'}  id ${device.id}`;
+    log(`connecting to ${device.name || device.id}`);
+    setCheck('c-gatt', 'run');
+
+    const server = await device.gatt.connect();
+    const service = await server.getPrimaryService(SERVICE);
+    characteristic = await service.getCharacteristic(CHARACTERISTIC);
+    const p = characteristic.properties;
+    log(`FFE1 properties: read=${p.read} write=${p.write} writeWithoutResponse=${p.writeWithoutResponse} notify=${p.notify}`);
+    characteristic.addEventListener('characteristicvaluechanged', onNotification);
+    await characteristic.startNotifications();
+    setCheck('c-gatt', 'pass');
+    setConnected(true);
+    log('connected, notifications on');
+
+    setCheck('c-hb', 'run');
+    const beat = await waitForLine((line) => line.startsWith('HB '), 3000);
+    if (!beat) {
+      setCheck('c-hb', 'fail', 'no heartbeat in 3 s');
+      log('no heartbeat in 3 s: robot → module direction, baud rate or firmware', 'err');
+    }
+    await askInfo();
+  } catch (error) {
+    log(`connection failed: ${error.message}`, 'err');
+    setCheck('c-gatt', 'fail', error.message);
+    setConnected(false);
+  }
+}
+
+function onDisconnected() {
+  log('disconnected', 'err');
+  characteristic = null;
+  pending = '';
+  setConnected(false);
+}
+
+const ALPHABET = 'abcdefghijklmnopqrstuvwxyz0123456789';
+const PING_SIZES = [1, 8, 19, 20, 21, 40, 100, 200];
+
+function randomText(size) {
+  let text = '';
+  for (let i = 0; i < size; i++) text += ALPHABET[Math.floor(Math.random() * ALPHABET.length)];
+  return text;
+}
+
+async function runPing() {
+  const count = Number($('ping-count').value);
+  const timeout = Number($('ping-timeout').value);
+  const rtts = [];
+  let lost = 0;
+  let corrupt = 0;
+  $('ping').disabled = true;
+  setCheck('c-ping', 'run');
+
+  for (let i = 0; i < count && characteristic; i++) {
+    const payload = randomText(PING_SIZES[i % PING_SIZES.length]);
+    const line = `PING ${i} ${payload}`;
+    const expected = `PONG ${i} ${payload}`;
+    const start = performance.now();
+    const reply = waitForLine((l) => l.startsWith(`PONG ${i} `) || l.startsWith('ERR'), timeout);
+    log(line, 'tx');
+    await write(`${line}\n`);
+    const result = await reply;
+    if (!result) {
+      lost++;
+      log(`ping ${i} lost`, 'err');
+    } else if (result.line !== expected) {
+      corrupt++;
+      log(`ping ${i} corrupt: ${result.line}`, 'err');
+    } else {
+      rtts.push(result.time - start);
+    }
+    $('ping-stats').textContent = pingSummary(i + 1, rtts, lost, corrupt);
+  }
+
+  const ok = rtts.length === count;
+  setCheck('c-ping', ok ? 'pass' : 'fail');
+  $('ping').disabled = !characteristic;
+}
+
+function pingSummary(sent, rtts, lost, corrupt) {
+  const sorted = [...rtts].sort((a, b) => a - b);
+  const pick = (q) => (sorted.length ? sorted[Math.min(sorted.length - 1, Math.floor(q * sorted.length))].toFixed(0) : '-');
+  const mean = sorted.length ? (sorted.reduce((a, b) => a + b, 0) / sorted.length).toFixed(0) : '-';
+  return `sent ${sent}  ok ${rtts.length}  lost ${lost}  corrupt ${corrupt}\n` +
+         `round trip ms  min ${pick(0)}  median ${pick(0.5)}  mean ${mean}  p95 ${pick(0.95)}  max ${pick(1)}`;
+}
+
+function burstPayload(sequence, size) {
+  let text = '';
+  for (let i = 0; i < size; i++) text += String.fromCharCode(97 + ((sequence + i) % 26));
+  return text;
+}
+
+async function runBurst() {
+  const count = Number($('burst-count').value);
+  const size = Number($('burst-size').value);
+  const seen = new Set();
+  let corrupt = 0;
+  let bytes = 0;
+  let first = null;
+  let last = null;
+  $('burst').disabled = true;
+  setCheck('c-burst', 'run');
+
+  const listener = (line, time) => {
+    if (!line.startsWith('B ')) return;
+    const match = /^B (\d+) ([a-z]*)$/.exec(line);
+    first ??= time;
+    last = time;
+    bytes += line.length + 1;
+    if (!match || match[2] !== burstPayload(Number(match[1]), size)) {
+      corrupt++;
+      log(`burst corrupt: ${line}`, 'err');
+      return;
+    }
+    seen.add(Number(match[1]));
+  };
+  lineListeners.add(listener);
+
+  await sendLine(`BURST ${count} ${size}`);
+  const end = await waitForLine((line) => line.startsWith('BEND ') || line.startsWith('ERR'), 10000 + count * (size + 12) * 2);
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  lineListeners.delete(listener);
+
+  const missing = [];
+  for (let i = 0; i < count && missing.length < 20; i++) if (!seen.has(i)) missing.push(i);
+  const seconds = first !== null && last > first ? (last - first) / 1000 : 0;
+  const robotMs = end && end.line.startsWith('BEND ') ? Number(end.line.split(' ')[2]) : null;
+  $('burst-stats').textContent =
+    `${end ? end.line : 'no BEND from the robot'}\n` +
+    `received ${seen.size}/${count}  corrupt ${corrupt}  missing ${count - seen.size}${missing.length ? ` (first: ${missing.join(', ')})` : ''}\n` +
+    `throughput at the PC ${seconds ? (bytes / seconds).toFixed(0) : '-'} B/s` +
+    (robotMs !== null ? `, robot queued it in ${robotMs} ms` : '');
+  setCheck('c-burst', end && seen.size === count && corrupt === 0 ? 'pass' : 'fail');
+  $('burst').disabled = !characteristic;
+}
+
+$('connect').onclick = connect;
+$('disconnect').onclick = () => device?.gatt?.disconnect();
+$('info').onclick = askInfo;
+$('ping').onclick = runPing;
+$('burst').onclick = runBurst;
+$('clear').onclick = () => { $('log').innerHTML = ''; };
+$('send').onclick = () => {
+  const line = $('line').value;
+  if (/^AT/i.test(line)) { log('not sent: the module treats text starting with AT as a command', 'err'); return; }
+  sendLine(line);
+  $('line').value = '';
+};
+$('line').addEventListener('keydown', (event) => { if (event.key === 'Enter') $('send').click(); });
+setInterval(() => {
+  if (characteristic && lastHeartbeat && Date.now() - lastHeartbeat > 3000) {
+    setCheck('c-hb', 'fail', 'heartbeats stopped');
+  }
+}, 1000);
+</script>
+</body>
+</html>
