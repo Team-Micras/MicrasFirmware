@@ -205,7 +205,25 @@ constexpr float wall_slow_filter_cutoff{4.0F};
  */
 constexpr float wall_sensors_range{0.25F};
 
-constexpr core::WallSensorsIndex wall_sensors_index{
+/**
+ * @brief Index of each wall sensor in the readings of the wall sensors.
+ */
+struct WallSensorsIndex {
+    /**
+     * @brief Index of the sensor named after where it looks.
+     */
+    ///@{
+    uint8_t left_front{};
+    uint8_t left{};
+    uint8_t right{};
+    uint8_t right_front{};
+    ///@}
+};
+
+/**
+ * @brief Where each wall sensor of the robot is in the readings of the wall sensors.
+ */
+constexpr WallSensorsIndex wall_sensors_index{
     .left_front = 0,
     .left = 1,
     .right = 2,
@@ -250,11 +268,12 @@ using Mission = TMission<maze_width, maze_height>;
  * @brief Fraction of the available traction a run asks for, without and with the boost switch.
  *
  * @note In a turn the tires slide sideways in proportion to the grip they are asked for, which the
- * pose estimate only predicts. Boost stops at 0.65 of the traction for that reason.
+ * pose estimate only predicts. Boost stops at 0.7 of the traction for that reason: at 0.75 the risky
+ * turns slide the robot into the walls.
  */
 ///@{
-constexpr float normal_utilization{0.6F};
-constexpr float boost_utilization{0.65F};
+constexpr float normal_utilization{0.65F};
+constexpr float boost_utilization{0.7F};
 
 ///@}
 
@@ -359,9 +378,12 @@ const nav::WallModel::Config wall_model_config{
 /**
  * @brief Configuration of the localizer.
  *
- * @note Ranges only correct the pose out to 120 mm. The beam of an emitter is 11.75 mm above the
+ * @note Ranges only correct the pose out to 120 mm. The beam of an emitter is 11.8 mm above the
  * floor and a few degrees wide, so farther out part of it lands on the floor before the wall and
  * the reading comes out long.
+ *
+ * @note An edge moves the pose by at most 3 mm. At 3 m/s an edge timed a millisecond off is 3 mm
+ * off, and a jump of 8 mm made the controller ask the motors for their whole supply at once.
  */
 const nav::Localizer::Config localizer_config{
     .model = robot_model,
@@ -383,7 +405,7 @@ const nav::Localizer::Config localizer_config{
     .edge_window = 0.025F,
     .edge_speed = 0.1F,
     .edge_range = 0.12F,
-    .max_edge_correction = 0.01F,
+    .max_edge_correction = 0.003F,
     .range_tolerance = 0.015F,
     .relative_range_tolerance = 0.15F,
     .recovery_rejections = static_cast<uint16_t>(0.05F * wall_sensors_frequency),
@@ -391,11 +413,17 @@ const nav::Localizer::Config localizer_config{
     .speed_window = speed_window,
 };
 
+/**
+ * @brief Configuration of the controller.
+ *
+ * @note The forward loop closes at 40 Hz. At 50 Hz a correction of the pose by a few millimeters at
+ * 3 m/s took the whole supply at once, and the jolt read as a crash.
+ */
 const nav::Controller::Config controller_config{
     .model = robot_model,
     .linear =
         {
-            .natural_frequency = 50.0F,
+            .natural_frequency = 40.0F,
             .damping = 0.8F,
             .max_error = 0.03F,
         },
@@ -450,7 +478,7 @@ const nav::Mission::Config mission_config{
             .scan_step = 0.002F,
             .length_weight = 10.0F,
             .convergence = 0.0002F,
-            .lateral_share = 0.8F,
+            .lateral_share = 0.9F,
             .max_sweeps = 12,
             .samples_per_step = line_samples_per_iteration,
         },

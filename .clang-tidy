@@ -58,7 +58,8 @@ ImplementationFileExtensions:
   - cc
   - cpp
   - cxx
-HeaderFilterRegex: '(include|config)/.*\.hpp$'
+HeaderFilterRegex: '(include|config)/.*\.(hpp|tpp)$'
+ExcludeHeaderFilterRegex: '(_deps|external)/'
 FormatStyle: file
 CheckOptions:
   # The vendor HAL module headers are not standalone; they require stm32<family>xx_hal.h to have

@@ -1,0 +1,6 @@
+---
+# The firmware's own headers are linted by the robot build, which compiles them for the robot; the
+# simulation's build lints the headers of sim/.
+InheritParentConfig: true
+HeaderFilterRegex: 'sim/include/.*\.hpp$'
+...

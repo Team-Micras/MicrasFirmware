@@ -5,9 +5,15 @@
 .cache/
 .idea/
 build/
-docs/
+docs/*
+!docs/*.md
 cube/*
 !cube/*.ioc
+
+# The robot build needs only micras-lib's sources
+external/micras-simulation/
+external/*/.git
+external/*/build/
 
 .devcontainer.json
 .gitignore

@@ -1,0 +1,7 @@
+---
+# The test macros expand into branches that count against the cognitive complexity of every test
+# case, whatever the test itself does
+InheritParentConfig: true
+Checks:
+  -readability-function-cognitive-complexity,
+...

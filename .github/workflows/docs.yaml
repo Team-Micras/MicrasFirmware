@@ -1,33 +1,32 @@
 name: Publish documentation
 
+# The documentation is built on every push and pull request, and published from main only
 on:
   push:
-    branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
 
 permissions:
   contents: read
 
-# Only one deployment at a time, and in-flight ones are allowed to finish
 concurrency:
-  group: pages
-  cancel-in-progress: false
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
+# A push to a branch of this repository is checked once by its push run, so a pull request only runs
+# here when it comes from a fork
 jobs:
-  publish:
-    name: 📝 Build and publish to GitHub Pages
+  build:
+    name: 📝 Build the documentation
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
+    if: github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name != github.repository && !github.event.pull_request.draft)
     steps:
       - name: 🔀 Checkout
         uses: actions/checkout@v7
+        with:
+          submodules: true
 
       - name: 🗃️ Restore generated cube files
         id: cube
@@ -49,10 +48,29 @@ jobs:
           docker cp docs:/project/docs/html html/
 
       - name: 📦 Upload Pages artifact
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v5
         with:
           path: html/
 
+  publish:
+    name: 🚀 Publish to GitHub Pages
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    # Only one deployment at a time, and in-flight ones are allowed to finish
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
       - name: 🚀 Deploy to GitHub Pages
         id: deploy
         uses: actions/deploy-pages@v5

@@ -35,7 +35,7 @@ Project Variables:
     BUILD_TYPE:         Set the project build type
                         Possible values: Debug, Release, RelWithDebInfo, MinSizeRel (default: Release)
     BOARD_VERSION:      Set the board revision to build for, must match a cube/micras_<version>.ioc file
-                        Possible values: v0, v1 (default: v1)
+                        Possible values: v1 (default: v1)
 
 Current configuration:
     PROJECT NAME    =   ${CMAKE_PROJECT_NAME}
