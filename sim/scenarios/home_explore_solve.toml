@@ -1,0 +1,34 @@
+# The home maze run as the robot runs it today: the fan off, a short press explores and
+# comes back to the start, and once it is idle a long press runs the fastest route found.
+# Needs a build configured with MICRAS_MAZE=home and the drawing sim/mazes/home4x4.txt,
+# whose start is (3, 0) open to the north and whose goal is (2, 3).
+robot = "micras"
+arena = "home4x4"
+seconds = 300
+seed = 1
+
+# Where the firmware expects to be placed (constants.hpp start_offset): its origin
+# 40 mm plus half a wall in front of the back wall's center line, in the start cell.
+[start]
+x = 0.63
+y = 0.04755
+yaw_deg = 90.0
+
+[[events]]
+at = 0.5
+press = "button"
+for = 0.25
+
+[[events]]
+at = 5.0
+when = "state"
+equals = "IDLE"
+press = "button"
+for = 1.0
+
+[stop]
+when = "state"
+equals = "IDLE"
+after = 5.0
+count = 2
+abort = "ERROR"
