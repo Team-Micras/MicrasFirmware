@@ -251,6 +251,48 @@ static_assert(
     "a filter cannot have its cutoff above half of the rate it is sampled at"
 );
 
+/**
+ * @brief Command of each wheel, in percent of the supply.
+ */
+struct WheelCommand {
+    float left;
+    float right;
+};
+
+/**
+ * @brief Steps of the check of the polarity, and how long each one is driven, in seconds.
+ *
+ * @note Each wheel forward and then backward, at a low and then at twice that command, one wheel at
+ * a time, with a rest after each step. The low command is about where the bridge, at its 100 kHz,
+ * starts to deliver any pulse at all, so the two levels show both the direction and how the speed
+ * of a free wheel grows with the command. Meant for a robot on a stand: on the floor each step turns
+ * the robot by about a quarter of a turn.
+ */
+///@{
+constexpr float polarity_command{10.0F};
+constexpr float polarity_step_duration{0.4F};
+
+constexpr std::array<WheelCommand, 16> polarity_steps{{
+    {.left = polarity_command, .right = 0.0F},
+    {.left = 0.0F, .right = 0.0F},
+    {.left = 2.0F * polarity_command, .right = 0.0F},
+    {.left = 0.0F, .right = 0.0F},
+    {.left = -polarity_command, .right = 0.0F},
+    {.left = 0.0F, .right = 0.0F},
+    {.left = -2.0F * polarity_command, .right = 0.0F},
+    {.left = 0.0F, .right = 0.0F},
+    {.left = 0.0F, .right = polarity_command},
+    {.left = 0.0F, .right = 0.0F},
+    {.left = 0.0F, .right = 2.0F * polarity_command},
+    {.left = 0.0F, .right = 0.0F},
+    {.left = 0.0F, .right = -polarity_command},
+    {.left = 0.0F, .right = 0.0F},
+    {.left = 0.0F, .right = -2.0F * polarity_command},
+    {.left = 0.0F, .right = 0.0F},
+}};
+
+///@}
+
 /*****************************************
  * Template Instantiations
  *****************************************/
@@ -416,8 +458,9 @@ const nav::Localizer::Config localizer_config{
 /**
  * @brief Configuration of the controller.
  *
- * @note The forward loop closes at 40 Hz. At 50 Hz a correction of the pose by a few millimeters at
- * 3 m/s took the whole supply at once, and the jolt read as a crash.
+ * @note The natural frequencies are angular, in rad/s: the forward loop closes at 40 rad/s, 6.4 Hz.
+ * At 50 rad/s a correction of the pose by a few millimeters at 3 m/s took the whole supply at once,
+ * and the jolt read as a crash.
  */
 const nav::Controller::Config controller_config{
     .model = robot_model,

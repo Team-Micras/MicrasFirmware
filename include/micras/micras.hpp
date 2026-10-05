@@ -25,6 +25,8 @@
 #include "micras/nav/wall_model.hpp"
 #include "micras/states/calibrate.hpp"
 #include "micras/states/calibrate_gyroscope.hpp"
+#include "micras/states/check_polarity.hpp"
+#include "micras/states/check_sensors.hpp"
 #include "micras/states/error.hpp"
 #include "micras/states/identify.hpp"
 #include "micras/states/idle.hpp"
@@ -49,16 +51,21 @@ namespace micras {
 class Micras : public comm::ICommandHandler {
 public:
     /**
-     * @brief Procedures that an extra long press of the button can start, chosen by the switches.
+     * @brief Procedures that an extra long press of the button or the MAINTAIN command can start.
      *
-     * @note With the racing line, boost and risky switches off it is the calibration of the wall
-     * sensors. The racing line switch alone selects the identification of the drive train and the
-     * boost switch alone the calibration of the gyroscope scale.
+     * @note For the button they are chosen by the switches: with the racing line, boost and risky
+     * switches off it is the calibration of the wall sensors, the racing line switch alone selects
+     * the identification of the drive train and the boost switch alone the calibration of the
+     * gyroscope scale. The checks of the sensors and of the polarity are only reachable from the
+     * link, whose command names the procedure.
      */
     enum class Maintenance : uint8_t {
         WALL_SENSORS = 0,
         DRIVE = 1,
         GYROSCOPE = 2,
+        SENSORS = 3,
+        POLARITY = 4,
+        NUMBER_OF_PROCEDURES = 5,
     };
 
     /**
@@ -66,6 +73,11 @@ public:
      *
      * @note These are edges, not levels: each one happens once, when it arrives. Everything that
      * is a level, like the run profile, is a writable variable instead.
+     *
+     * @note STOP is accepted in every state. A robot that is moving stops with the STOPPED fault in
+     * the error state, so that what stopped it stays visible, and one that waits to move goes back
+     * to idle. RESUME leaves the error state for idle, unless the initialization failed. MAINTAIN
+     * starts the procedure its argument names, one of Maintenance, whatever the switches say.
      */
     enum class Command : uint8_t {
         EXPLORE = 0,
@@ -73,6 +85,9 @@ public:
         CALIBRATE = 2,
         SAVE = 3,
         RESET = 4,
+        STOP = 5,
+        RESUME = 6,
+        MAINTAIN = 7,
     };
 
     /**
@@ -83,6 +98,7 @@ public:
         CRASH = 1,
         SATURATION = 2,
         IMU = 3,
+        STOPPED = 4,
     };
 
     /**
@@ -142,11 +158,45 @@ public:
     void set_objective(core::Objective objective);
 
     /**
-     * @brief Get the procedure the switches select for an extra long press of the button.
+     * @brief Take the procedure the next maintenance runs.
+     *
+     * @note The one the MAINTAIN command asked for, which is forgotten once taken, and otherwise the
+     * one the switches select.
      *
      * @return The procedure.
      */
-    Maintenance get_maintenance() const;
+    Maintenance take_maintenance();
+
+    /**
+     * @brief Check if the link asked the robot to stop.
+     *
+     * @note The request is forgotten once the robot is stopped, in idle or in the error state.
+     *
+     * @return True if the robot has to stop.
+     */
+    bool is_stop_requested() const;
+
+    /**
+     * @brief Leave the error state, turning off the LED it turned on.
+     */
+    void leave_error();
+
+    /**
+     * @brief Turn the sensors on for the check of the sensors.
+     */
+    void start_sensor_check();
+
+    /**
+     * @brief Start the check of the polarity of the motors and the encoders.
+     */
+    void start_polarity_check();
+
+    /**
+     * @brief Advance the check of the polarity by one iteration.
+     *
+     * @return True if every step of the check has been driven.
+     */
+    bool check_polarity();
 
     /**
      * @brief Get the robot ready to move: sensors on, and the fan too if what follows uses it.
@@ -322,6 +372,12 @@ private:
     /**
      * @brief Values in the variable pool that no object holds at a stable address.
      *
+     * @note The state is the id of the state machine's current state, one of State. The
+     * initialization status has one bit per check of check_initialization that failed, in the order
+     * of InitCheck, so a robot that boots into the error state says why. The motor command is the
+     * linear and angular share of the supply last applied, in percent. The wall flags hold whether
+     * each sensor's reading is valid in the low four bits and whether it is blind in the high four.
+     *
      * @note Some of what is worth watching is computed on the way out of its owner: the battery is
      * scaled into volts, the deviations of the estimate come out of its covariance. Publishing means
      * copying those into somewhere that stays put. The route time is zero while no route is planned.
@@ -330,6 +386,11 @@ private:
      * procedure ends.
      */
     struct Telemetry {
+        uint8_t                                        state{};
+        uint16_t                                       init_status{};
+        std::array<float, 2>                           motor_command{};
+        std::array<float, nav::number_of_wall_sensors> wall_intensities{};
+        uint8_t                                        wall_flags{};
         std::array<float, 3>                           angular_velocity{};
         std::array<float, 3>                           linear_acceleration{};
         float                                          battery_voltage{};
@@ -351,6 +412,30 @@ private:
         bool                                           gyroscope_scale_valid{};
         float                                          gyroscope_scale{};
     };
+
+    /**
+     * @brief Checks of the initialization, as the bits of the initialization status.
+     */
+    enum class InitCheck : uint8_t {
+        WATCHDOG_RESET = 0,
+        CPU_FREQUENCY = 1,
+        FAN = 2,
+        LOCOMOTION = 3,
+        TORQUE_SENSORS = 4,
+        ARGB = 5,
+        BUZZER = 6,
+        IMU = 7,
+        ROTARY_SENSOR_LEFT = 8,
+        ROTARY_SENSOR_RIGHT = 9,
+        WALL_SENSORS = 10,
+    };
+
+    /**
+     * @brief Run every check of the initialization.
+     *
+     * @return One bit per failed check, in the order of InitCheck, so zero if every check passed.
+     */
+    uint16_t get_init_status() const;
 
     /**
      * @brief Register every variable the robot exposes, and load the ones the flash memory holds.
@@ -515,6 +600,8 @@ private:
     WaitState               wait_for_gyroscope_state{State::WAIT_FOR_GYROSCOPE, *this, State::CALIBRATE_GYROSCOPE};
     CalibrateGyroscopeState calibrate_gyroscope_state{State::CALIBRATE_GYROSCOPE, *this};
     ErrorState              error_state{State::ERROR, *this};
+    CheckSensorsState       check_sensors_state{State::CHECK_SENSORS, *this};
+    CheckPolarityState      check_polarity_state{State::CHECK_POLARITY, *this};
     ///@}
 
     /**
@@ -564,6 +651,24 @@ private:
      * nobody expects it.
      */
     uint8_t run_profile{};
+
+    /**
+     * @brief Procedure the MAINTAIN command asked for, until the next maintenance takes it.
+     */
+    std::optional<Maintenance> requested_maintenance;
+
+    /**
+     * @brief Whether the link asked the robot to stop, until the robot is stopped.
+     */
+    bool stop_requested{};
+
+    /**
+     * @brief Step of the check of the polarity being driven, and the time it has been driven for.
+     */
+    ///@{
+    uint8_t polarity_step{};
+    float   polarity_step_time{};
+    ///@}
 
     /**
      * @brief Current type of calibration being performed.

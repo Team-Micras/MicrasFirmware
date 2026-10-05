@@ -55,7 +55,10 @@ Micras::Micras() :
     this->fsm.add_state(this->wait_for_gyroscope_state);
     this->fsm.add_state(this->calibrate_gyroscope_state);
     this->fsm.add_state(this->error_state);
+    this->fsm.add_state(this->check_sensors_state);
+    this->fsm.add_state(this->check_polarity_state);
 
+    this->telemetry.init_status = this->get_init_status();
     this->register_variables();
 
     this->startup_extension.reset();
@@ -74,6 +77,20 @@ void Micras::register_variables() {
     for (uint8_t i = 0; i < nav::number_of_wall_sensors; i++) {
         this->variables.add("wall_dark/", sensor_names.at(i), this->wall_sensors.get_reading(i).dark, {.stream = true});
     }
+
+    for (uint8_t i = 0; i < nav::number_of_wall_sensors; i++) {
+        this->variables.add(
+            "wall_intensity/", sensor_names.at(i), this->telemetry.wall_intensities.at(i), {.stream = true}
+        );
+    }
+
+    this->variables.add("", "wall_flags", this->telemetry.wall_flags, {.stream = true});
+    this->variables.add("fsm/", "state", this->telemetry.state, {.stream = true});
+    this->variables.add("", "init_status", this->telemetry.init_status, {});
+    this->variables.add("wheel/", "left", this->measurements.left_wheel_angle, {.stream = true});
+    this->variables.add("wheel/", "right", this->measurements.right_wheel_angle, {.stream = true});
+    this->variables.add("motor/", "linear", this->telemetry.motor_command.at(0), {.stream = true});
+    this->variables.add("motor/", "angular", this->telemetry.motor_command.at(1), {.stream = true});
 
     this->variables.add("imu/", "gyro_x", this->telemetry.angular_velocity.at(0), {.stream = true});
     this->variables.add("imu/", "gyro_y", this->telemetry.angular_velocity.at(1), {.stream = true});
@@ -205,12 +222,34 @@ void Micras::update() {
 }
 
 bool Micras::check_initialization() const {
-    return not hal::Mcu::was_reset_by_watchdog() and hal::Mcu::is_cpu_frequency_supported() and
-           /* this->battery.was_initialized() and */ this->fan.was_initialized() and
-           this->locomotion.was_initialized() and this->torque_sensors.was_initialized() and
-           this->argb.was_initialized() and this->buzzer.was_initialized() and this->imu.was_initialized() and
-           this->rotary_sensor_left.was_initialized() and this->rotary_sensor_right.was_initialized() and
-           this->wall_sensors.was_initialized();
+    return this->get_init_status() == 0;
+}
+
+uint16_t Micras::get_init_status() const {
+    const std::array<std::pair<InitCheck, bool>, 11> checks{{
+        {InitCheck::WATCHDOG_RESET, not hal::Mcu::was_reset_by_watchdog()},
+        {InitCheck::CPU_FREQUENCY, hal::Mcu::is_cpu_frequency_supported()},
+        // {InitCheck::BATTERY, this->battery.was_initialized()},
+        {InitCheck::FAN, this->fan.was_initialized()},
+        {InitCheck::LOCOMOTION, this->locomotion.was_initialized()},
+        {InitCheck::TORQUE_SENSORS, this->torque_sensors.was_initialized()},
+        {InitCheck::ARGB, this->argb.was_initialized()},
+        {InitCheck::BUZZER, this->buzzer.was_initialized()},
+        {InitCheck::IMU, this->imu.was_initialized()},
+        {InitCheck::ROTARY_SENSOR_LEFT, this->rotary_sensor_left.was_initialized()},
+        {InitCheck::ROTARY_SENSOR_RIGHT, this->rotary_sensor_right.was_initialized()},
+        {InitCheck::WALL_SENSORS, this->wall_sensors.was_initialized()},
+    }};
+
+    uint16_t status = 0;
+
+    for (const auto& [check, passed] : checks) {
+        if (not passed) {
+            status |= static_cast<uint16_t>(1U << std::to_underlying(check));
+        }
+    }
+
+    return status;
 }
 
 void Micras::stop() {
@@ -218,6 +257,8 @@ void Micras::stop() {
     this->locomotion.stop();
     this->locomotion.disable();
     this->fan.stop();
+    this->telemetry.motor_command = {};
+    this->stop_requested = false;
 }
 
 bool Micras::acknowledge_event(Interface::Event event) {
@@ -236,7 +277,13 @@ void Micras::set_objective(core::Objective objective) {
     this->objective = objective;
 }
 
-Micras::Maintenance Micras::get_maintenance() const {
+Micras::Maintenance Micras::take_maintenance() {
+    if (this->requested_maintenance.has_value()) {
+        const Maintenance requested = this->requested_maintenance.value();
+        this->requested_maintenance.reset();
+        return requested;
+    }
+
     const bool racing_line = this->is_selected(Interface::Profile::RACING_LINE);
     const bool boost = this->is_selected(Interface::Profile::BOOST);
     const bool risky = this->is_selected(Interface::Profile::RISKY);
@@ -250,6 +297,48 @@ Micras::Maintenance Micras::get_maintenance() const {
     }
 
     return Maintenance::WALL_SENSORS;
+}
+
+bool Micras::is_stop_requested() const {
+    return this->stop_requested;
+}
+
+void Micras::leave_error() {
+    this->led.turn_off();
+}
+
+void Micras::start_sensor_check() {
+    this->torque_sensors.calibrate();
+    this->wall_sensors.turn_on();
+}
+
+void Micras::start_polarity_check() {
+    this->clear_faults();
+    this->polarity_step = 0;
+    this->polarity_step_time = 0.0F;
+    this->locomotion.enable();
+}
+
+bool Micras::check_polarity() {
+    this->polarity_step_time += this->elapsed_time;
+
+    if (this->polarity_step_time >= polarity_step_duration) {
+        this->polarity_step++;
+        this->polarity_step_time = 0.0F;
+    }
+
+    if (this->polarity_step >= polarity_steps.size()) {
+        this->locomotion.stop();
+        this->telemetry.motor_command = {};
+        return true;
+    }
+
+    const WheelCommand& step = polarity_steps.at(this->polarity_step);
+
+    this->locomotion.set_wheel_command(step.left, step.right);
+    this->telemetry.motor_command = {(step.left + step.right) / 2.0F, (step.right - step.left) / 2.0F};
+
+    return false;
 }
 
 void Micras::prepare(bool run) {
@@ -293,12 +382,18 @@ nav::Mission::Status Micras::run() {
         this->follow(this->mission.get_reference());
     } else {
         this->locomotion.stop();
+        this->telemetry.motor_command = {};
     }
 
     return status;
 }
 
 bool Micras::check_fault() {
+    if (this->stop_requested) {
+        this->fault = Fault::STOPPED;
+        return true;
+    }
+
     const bool over_threshold =
         std::hypot(this->measurements.acceleration.x, this->measurements.acceleration.y) > crash_acceleration;
 
@@ -384,7 +479,9 @@ void Micras::start_identification() {
 bool Micras::identify() {
     const nav::Controller::Command command = this->drive_identification.update(this->measurements, this->elapsed_time);
 
-    this->locomotion.set_command(command.forward, command.rotation);
+    const proxy::Locomotion::Command applied = this->locomotion.set_command(command.forward, command.rotation);
+
+    this->telemetry.motor_command = {applied.linear, applied.angular};
 
     if (not this->drive_identification.is_finished()) {
         return false;
@@ -467,6 +564,8 @@ void Micras::follow(const nav::Reference& reference) {
         this->controller.update(reference, this->localizer.get_state(), this->elapsed_time);
     const proxy::Locomotion::Command applied = this->locomotion.set_command(command.forward, command.rotation);
 
+    this->telemetry.motor_command = {applied.linear, applied.angular};
+
     if (applied.linear != command.forward or applied.angular != command.rotation) {
         this->saturated_iterations++;
         this->saturated_streak = static_cast<uint16_t>(std::min(this->saturated_streak + 1, 65535));
@@ -482,6 +581,18 @@ void Micras::clear_faults() {
 }
 
 void Micras::publish() {
+    this->telemetry.state = this->fsm.get_current_state_id();
+    this->telemetry.wall_flags = 0;
+
+    for (uint8_t i = 0; i < nav::number_of_wall_sensors; i++) {
+        const proxy::WallSensors::Reading& reading = this->wall_sensors.get_reading(i);
+
+        this->telemetry.wall_intensities.at(i) = this->wall_sensors.get_intensity(i);
+        this->telemetry.wall_flags |= static_cast<uint8_t>(
+            (reading.valid ? 1U << i : 0U) | (reading.blind ? 1U << (i + nav::number_of_wall_sensors) : 0U)
+        );
+    }
+
     this->telemetry.angular_velocity = {
         this->imu.get_angular_velocity(proxy::Imu::Axis::X),
         this->imu.get_angular_velocity(proxy::Imu::Axis::Y),
@@ -552,9 +663,33 @@ comm::CommandResult Micras::handle_command(uint8_t code, uint32_t argument) {
 
             this->localizer.reset(this->mission.get_start_pose(), this->measurements);
             return comm::CommandResult::OK;
+
+        case Command::STOP:
+            if (not this->is_idle() and this->fsm.get_current_state_id() != std::to_underlying(State::ERROR)) {
+                this->stop_requested = true;
+            }
+
+            return comm::CommandResult::OK;
+
+        case Command::RESUME:
+            if (this->fsm.get_current_state_id() != std::to_underlying(State::ERROR) or
+                not this->check_initialization()) {
+                return comm::CommandResult::REFUSED;
+            }
+
+            this->send_event(Interface::Event::RESUME);
+            return comm::CommandResult::OK;
+
+        case Command::MAINTAIN:
+            if (not this->is_idle() or argument >= std::to_underlying(Maintenance::NUMBER_OF_PROCEDURES)) {
+                return comm::CommandResult::REFUSED;
+            }
+
+            this->requested_maintenance = static_cast<Maintenance>(argument);
+            this->send_event(Interface::Event::CALIBRATE);
+            return comm::CommandResult::OK;
     }
 
-    static_cast<void>(argument);
     return comm::CommandResult::UNKNOWN;
 }
 }  // namespace micras
