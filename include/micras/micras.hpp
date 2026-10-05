@@ -25,6 +25,7 @@
 #include "micras/nav/wall_model.hpp"
 #include "micras/states/calibrate.hpp"
 #include "micras/states/calibrate_gyroscope.hpp"
+#include "micras/states/check_crosstalk.hpp"
 #include "micras/states/check_polarity.hpp"
 #include "micras/states/check_sensors.hpp"
 #include "micras/states/error.hpp"
@@ -56,8 +57,8 @@ public:
      * @note For the button they are chosen by the switches: with the racing line, boost and risky
      * switches off it is the calibration of the wall sensors, the racing line switch alone selects
      * the identification of the drive train and the boost switch alone the calibration of the
-     * gyroscope scale. The checks of the sensors and of the polarity are only reachable from the
-     * link, whose command names the procedure.
+     * gyroscope scale. The checks of the sensors, of the polarity and of the crosstalk are only
+     * reachable from the link, whose command names the procedure.
      */
     enum class Maintenance : uint8_t {
         WALL_SENSORS = 0,
@@ -65,7 +66,8 @@ public:
         GYROSCOPE = 2,
         SENSORS = 3,
         POLARITY = 4,
-        NUMBER_OF_PROCEDURES = 5,
+        CROSSTALK = 5,
+        NUMBER_OF_PROCEDURES = 6,
     };
 
     /**
@@ -197,6 +199,18 @@ public:
      * @return True if every step of the check has been driven.
      */
     bool check_polarity();
+
+    /**
+     * @brief Start the check of the crosstalk of the wall sensors, with every emitter off.
+     */
+    void start_crosstalk_check();
+
+    /**
+     * @brief Advance the check of the crosstalk by one iteration.
+     *
+     * @return True once every mode has been lit for its whole duration.
+     */
+    bool check_crosstalk();
 
     /**
      * @brief Get the robot ready to move: sensors on, and the fan too if what follows uses it.
@@ -377,6 +391,7 @@ private:
      * of InitCheck, so a robot that boots into the error state says why. The motor command is the
      * linear and angular share of the supply last applied, in percent. The wall flags hold whether
      * each sensor's reading is valid in the low four bits and whether it is blind in the high four.
+     * The crosstalk mode is the one the check of the crosstalk lights, see crosstalk_modes.
      *
      * @note Some of what is worth watching is computed on the way out of its owner: the battery is
      * scaled into volts, the deviations of the estimate come out of its covariance. Publishing means
@@ -391,6 +406,7 @@ private:
         std::array<float, 2>                           motor_command{};
         std::array<float, nav::number_of_wall_sensors> wall_intensities{};
         uint8_t                                        wall_flags{};
+        uint8_t                                        crosstalk_mode{};
         std::array<float, 3>                           angular_velocity{};
         std::array<float, 3>                           linear_acceleration{};
         float                                          battery_voltage{};
@@ -602,6 +618,7 @@ private:
     ErrorState              error_state{State::ERROR, *this};
     CheckSensorsState       check_sensors_state{State::CHECK_SENSORS, *this};
     CheckPolarityState      check_polarity_state{State::CHECK_POLARITY, *this};
+    CheckCrosstalkState     check_crosstalk_state{State::CHECK_CROSSTALK, *this};
     ///@}
 
     /**
@@ -669,6 +686,11 @@ private:
     uint8_t polarity_step{};
     float   polarity_step_time{};
     ///@}
+
+    /**
+     * @brief Time the current mode of the check of the crosstalk has been lit for.
+     */
+    float crosstalk_mode_time{};
 
     /**
      * @brief Current type of calibration being performed.

@@ -12,7 +12,7 @@ Commands:
   write NAME VALUE               write a variable (only the writable ones)
   command CODE|NAME [ARG]        send a command (explore, solve, calibrate, save, reset, stop, resume,
                                  maintain, or a number); maintain takes the procedure: walls, drive,
-                                 gyroscope, sensors, polarity
+                                 gyroscope, sensors, polarity, crosstalk
   stream NAME... [--rate HZ] [--seconds S] [--out FILE.csv] [--until-state STATE]
                                  stream up to 16 variables as one group, one CSV row per sample,
                                  with the robot's sequence number and timestamp
@@ -71,7 +71,7 @@ SEVERITIES = ["DEBUG", "INFO", "WARNING", "ERROR"]
 
 COMMANDS = {"explore": 0, "solve": 1, "calibrate": 2, "save": 3, "reset": 4, "stop": 5, "resume": 6, "maintain": 7}
 
-PROCEDURES = {"walls": 0, "drive": 1, "gyroscope": 2, "sensors": 3, "polarity": 4}
+PROCEDURES = {"walls": 0, "drive": 1, "gyroscope": 2, "sensors": 3, "polarity": 4, "crosstalk": 5}
 
 STATES = [
     "INIT",
@@ -89,6 +89,7 @@ STATES = [
     "ERROR",
     "CHECK_SENSORS",
     "CHECK_POLARITY",
+    "CHECK_CROSSTALK",
 ]
 
 

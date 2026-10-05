@@ -31,7 +31,8 @@ enum class State : uint8_t {
     ERROR = 12,                // Error state.
     CHECK_SENSORS = 13,        // Sensors on with the robot still, for checking them from the link.
     CHECK_POLARITY = 14,       // Driving each wheel each way in turn, for checking motors and encoders.
-    NUMBER_OF_STATES = 15
+    CHECK_CROSSTALK = 15,      // Lighting one wall emitter at a time, for measuring the light each receiver takes.
+    NUMBER_OF_STATES = 16
 };
 
 /**

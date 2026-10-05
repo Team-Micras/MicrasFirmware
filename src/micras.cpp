@@ -57,6 +57,7 @@ Micras::Micras() :
     this->fsm.add_state(this->error_state);
     this->fsm.add_state(this->check_sensors_state);
     this->fsm.add_state(this->check_polarity_state);
+    this->fsm.add_state(this->check_crosstalk_state);
 
     this->telemetry.init_status = this->get_init_status();
     this->register_variables();
@@ -85,6 +86,7 @@ void Micras::register_variables() {
     }
 
     this->variables.add("", "wall_flags", this->telemetry.wall_flags, {.stream = true});
+    this->variables.add("crosstalk/", "mode", this->telemetry.crosstalk_mode, {.stream = true});
     this->variables.add("fsm/", "state", this->telemetry.state, {.stream = true});
     this->variables.add("", "init_status", this->telemetry.init_status, {});
     this->variables.add("wheel/", "left", this->measurements.left_wheel_angle, {.stream = true});
@@ -337,6 +339,38 @@ bool Micras::check_polarity() {
 
     this->locomotion.set_wheel_command(step.left, step.right);
     this->telemetry.motor_command = {(step.left + step.right) / 2.0F, (step.right - step.left) / 2.0F};
+
+    return false;
+}
+
+void Micras::start_crosstalk_check() {
+    this->wall_sensors.turn_off();
+    this->telemetry.crosstalk_mode = 0;
+    this->crosstalk_mode_time = 0.0F;
+}
+
+bool Micras::check_crosstalk() {
+    this->crosstalk_mode_time += this->elapsed_time;
+
+    if (this->crosstalk_mode_time < crosstalk_mode_duration) {
+        return false;
+    }
+
+    this->crosstalk_mode_time = 0.0F;
+    this->telemetry.crosstalk_mode++;
+
+    if (this->telemetry.crosstalk_mode >= crosstalk_modes) {
+        this->wall_sensors.turn_off();
+        this->telemetry.crosstalk_mode = 0;
+        return true;
+    }
+
+    for (uint8_t i = 0; i < nav::number_of_wall_sensors; i++) {
+        const bool alone = this->telemetry.crosstalk_mode == i + 1;
+        const bool all = this->telemetry.crosstalk_mode == crosstalk_modes - 1;
+
+        this->wall_sensors.set_emitter(i, alone or all);
+    }
 
     return false;
 }

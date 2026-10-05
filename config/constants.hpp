@@ -11,6 +11,7 @@
 #include <limits>
 #include <numbers>
 
+#include "maze_config.hpp"
 #include "micras/core/butterworth_filter.hpp"
 #include "micras/core/types.hpp"
 #include "micras/nav/controller.hpp"
@@ -22,7 +23,6 @@
 #include "micras/nav/mission.hpp"
 #include "micras/nav/motion_limits.hpp"
 #include "micras/nav/wall_model.hpp"
-#include "maze_config.hpp"
 #include "robot.hpp"
 #include "turn_margins.hpp"
 
@@ -290,6 +290,18 @@ constexpr std::array<WheelCommand, 16> polarity_steps{{
     {.left = 0.0F, .right = -2.0F * polarity_command},
     {.left = 0.0F, .right = 0.0F},
 }};
+
+///@}
+
+/**
+ * @brief Modes of the check of the crosstalk, and how long each one is lit, in seconds.
+ *
+ * @note Mode 0 has every emitter off, mode i + 1 the emitter of sensor i alone, and the last mode
+ * all of them. A reading settles in a few milliseconds, so most of each mode is steady.
+ */
+///@{
+constexpr uint8_t crosstalk_modes{nav::number_of_wall_sensors + 2};
+constexpr float   crosstalk_mode_duration{1.0F};
 
 ///@}
 
