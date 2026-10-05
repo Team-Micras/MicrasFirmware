@@ -22,9 +22,18 @@ file(GLOB MICRAS_APP_CONFIG_SOURCES CONFIGURE_DEPENDS
 # directory.
 set(MICRAS_APP_GENERATED_DIRECTORY ${CMAKE_BINARY_DIR}/generated)
 
+# The maze the robot runs in, from config/mazes: its size, start, goal, cell size and wall thickness.
+# The simulation and its baselines run the classic one.
+set(MICRAS_MAZE "classic" CACHE STRING "Maze the firmware is built for, a directory of config/mazes")
+
+if(NOT EXISTS ${MICRAS_APP_ROOT}/config/mazes/${MICRAS_MAZE}/maze_config.hpp)
+    message(FATAL_ERROR "No maze at config/mazes/${MICRAS_MAZE}/maze_config.hpp for MICRAS_MAZE=${MICRAS_MAZE}")
+endif()
+
 set(MICRAS_APP_INCLUDE_DIRECTORIES
     ${MICRAS_APP_ROOT}/include
     ${MICRAS_APP_ROOT}/config
     ${MICRAS_APP_ROOT}/config/targets/${BOARD_VERSION}
+    ${MICRAS_APP_ROOT}/config/mazes/${MICRAS_MAZE}
     ${MICRAS_APP_GENERATED_DIRECTORY}
 )

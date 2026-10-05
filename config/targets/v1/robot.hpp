@@ -7,12 +7,13 @@
 
 #include <numbers>
 
+#include "maze_config.hpp"
 #include "micras/nav/robot_model.hpp"
 
 namespace micras {
 /**
  * @brief Physical description of the Micras robot, on the v2 chassis (MicrasHardware, chassis-v2),
- * and of the classic maze.
+ * and of the maze it runs in, which maze_config.hpp describes.
  *
  * @note These are the constants to measure on the robot: every speed, acceleration, turn shape,
  * feed forward gain and sensing window of the navigation is computed from them. The geometry comes
@@ -69,11 +70,7 @@ namespace micras {
  * - The gyroscope scale comes from the scale calibration procedure.
  */
 constexpr nav::RobotModel robot_model{
-    .maze =
-        {
-            .cell_size = 0.18F,
-            .wall_thickness = 0.0126F,
-        },
+    .maze = maze_geometry,
     .chassis =
         {
             .mass = 0.087F,

@@ -5,6 +5,7 @@
 #ifndef MICRAS_CONSTANTS_HPP
 #define MICRAS_CONSTANTS_HPP
 
+#include <algorithm>
 #include <array>
 #include <cstdint>
 #include <limits>
@@ -21,6 +22,7 @@
 #include "micras/nav/mission.hpp"
 #include "micras/nav/motion_limits.hpp"
 #include "micras/nav/wall_model.hpp"
+#include "maze_config.hpp"
 #include "robot.hpp"
 #include "turn_margins.hpp"
 
@@ -29,8 +31,6 @@ namespace micras {
  * Constants
  *****************************************/
 
-constexpr uint8_t  maze_width{16};
-constexpr uint8_t  maze_height{16};
 constexpr uint32_t loop_time_us{125};
 constexpr uint8_t  max_variables{96};
 
@@ -375,18 +375,9 @@ constexpr std::array<nav::RunProfile, 4> map_profiles{{
  * Configurations
  *****************************************/
 
-constexpr nav::GridPose maze_start{.position = {.x = 0, .y = 0}, .orientation = nav::Side::UP};
-
-constexpr std::array<nav::GridPoint, 4> maze_goal{{
-    {.x = maze_width / 2, .y = maze_height / 2},
-    {.x = (maze_width - 1) / 2, .y = maze_height / 2},
-    {.x = maze_width / 2, .y = (maze_height - 1) / 2},
-    {.x = (maze_width - 1) / 2, .y = (maze_height - 1) / 2},
-}};
-
 static_assert(
-    nav::Maze::contains(maze_start.position) and nav::Maze::contains(std::get<0>(maze_goal)) and
-        nav::Maze::contains(std::get<3>(maze_goal)),
+    nav::Maze::contains(maze_start.position) and not maze_goal.empty() and
+        std::ranges::all_of(maze_goal, [](const nav::GridPoint& cell) { return nav::Maze::contains(cell); }),
     "the start and the goal have to be inside the maze"
 );
 
