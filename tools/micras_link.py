@@ -699,10 +699,11 @@ def run_stream(session: Session, args, printing: bool = False):
                 finished[0] = True
 
     def start_group():
+        last_sequence[0] = None
+        last_timestamp[0] = None
         session.on_samples(0, variables, on_sample)
         achieved = session.define_group(0, variables, args.rate)
         session.log(f"streaming {len(variables)} variables at {achieved:.1f} Hz")
-        last_sequence[0] = None
 
     deadline = time.monotonic() + args.seconds if args.seconds else None
 
