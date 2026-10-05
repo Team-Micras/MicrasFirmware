@@ -18,9 +18,13 @@ file(GLOB MICRAS_APP_CONFIG_SOURCES CONFIGURE_DEPENDS
 )
 
 # The board directory goes on the include path, so that "target.hpp" resolves to it and nothing
-# has to name the board
+# has to name the board. The headers the build generates, the turns of two bends, are in the build
+# directory.
+set(MICRAS_APP_GENERATED_DIRECTORY ${CMAKE_BINARY_DIR}/generated)
+
 set(MICRAS_APP_INCLUDE_DIRECTORIES
     ${MICRAS_APP_ROOT}/include
     ${MICRAS_APP_ROOT}/config
     ${MICRAS_APP_ROOT}/config/targets/${BOARD_VERSION}
+    ${MICRAS_APP_GENERATED_DIRECTORY}
 )

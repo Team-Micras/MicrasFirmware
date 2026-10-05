@@ -70,7 +70,6 @@ Each is a CMake target over a script of `scripts/` that takes its paths as argum
 | `sim_record_baseline` | the tests, both runs, and the baseline, over the previous one |
 | `sim_check_flash` | an exploration, then a run booted from the flash it saved |
 | `sim_check` | the Micras gate: the tests, the flash, both checked runs, the baseline and the runs' health |
-| `sim_turn_designs` | the turns of two bends, designed into `config/two_bend_turns.hpp` |
 | `sim_robot_report` | `robot.toml` against the firmware's `robot.hpp`, field by field |
 | `sim_wall_calibration` | each wall sensor's gain for `robot.toml` (`build/host/sim/micras_wall_calibration --sweep` shows the distances) |
 | `sim_serve` | an exploration started over the link, open to micras-monitor on `ws://localhost:8080` |
@@ -134,7 +133,7 @@ The inputs a scenario can press or set are `button` and the four DIP switches (`
 | `micras_sim_micras` | `src/`: the simulator's `Target`, the bindings and the pool variables; links `micras_app`, `micras::proxy_models` and `micras::sim_app` |
 | `micras_sim` | `src/main.cpp`: one call to `micras::sim::run` |
 | `micras_wall_calibration`, `micras_robot_report` | `tools/`, over the engine and the firmware's configuration |
-| `micras_turn_designer` | `tools/turn_designer.cpp`, over `micras::nav` and the configuration's headers only |
+| `micras_turn_designer` | `tools/turn_designer.cpp`, over `micras::nav` and the configuration's headers only; the build runs it into `generated/two_bend_turns.hpp` whenever it is rebuilt, and so does the robot build, with a host project of its own (`cmake/turn_designer/`) |
 | `micras_sim_tests` | `tests/`: the host HAL on the Micras board, the SPI slot on its buses and the firmware's SPI chip proxies over the chip models (doctest) |
 
 Everything of the firmware compiles unchanged. The simulator's firmware thread runs

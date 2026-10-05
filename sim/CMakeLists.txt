@@ -154,6 +154,10 @@ target_link_libraries(micras_turn_designer PRIVATE
     micras::nav
 )
 
+include(${PROJECT_SOURCE_DIR}/cmake/two_bend_turns.cmake)
+micras_add_two_bend_turns(micras_turn_designer "${MICRAS_APP_GENERATED_DIRECTORY}")
+add_dependencies(micras_app micras_two_bend_turns)
+
 micras_apply_warnings(micras_host_board micras_app micras_sim_micras micras_sim micras_wall_calibration
     micras_robot_report micras_turn_designer WERROR ${MICRAS_WERROR}
 )
@@ -173,6 +177,8 @@ include(${PROJECT_SOURCE_DIR}/cmake/style.cmake)
 
 file(GLOB_RECURSE SIM_LINT_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 generate_lint_target(SIM_LINT_SOURCES)
+add_dependencies(lint micras_two_bend_turns)
+add_dependencies(lint_fix micras_two_bend_turns)
 
 ###############################################################################
 ## Recipes: the runs, the contest, the baseline and the robot tools
@@ -271,13 +277,6 @@ add_custom_target(sim_check
     VERBATIM USES_TERMINAL
 )
 
-add_custom_target(sim_turn_designs
-    COMMAND "${MICRAS_SIM_SCRIPTS}/turn_designs.sh" "$<TARGET_FILE:micras_turn_designer>"
-            "${PROJECT_SOURCE_DIR}/config/two_bend_turns.hpp"
-    COMMENT "Designing the turns of two bends into the firmware's config/two_bend_turns.hpp"
-    VERBATIM USES_TERMINAL
-)
-
 add_custom_target(sim_robot_report
     COMMAND "$<TARGET_FILE:micras_robot_report>"
     COMMENT "robot.toml against the firmware's robot.hpp"
@@ -310,6 +309,5 @@ endforeach()
 add_dependencies(sim_check micras_sim_tests)
 add_dependencies(sim_record_baseline micras_sim_tests)
 
-add_dependencies(sim_turn_designs micras_turn_designer)
 add_dependencies(sim_robot_report micras_robot_report)
 add_dependencies(sim_wall_calibration micras_wall_calibration)

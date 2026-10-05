@@ -127,8 +127,32 @@ generate_lint_target(LINT_SOURCES)
 ## Configuration computed when the firmware is compiled
 ###############################################################################
 
+# The turns of two bends are designed on the host before the firmware is compiled: the search is far
+# too long for the compiler. The designer is a host program, so it is built by a project of its own
+# with the host compilers.
+set(MICRAS_HOST_C_COMPILER "gcc-15" CACHE STRING "Host C compiler the turn designer is built with")
+set(MICRAS_HOST_CXX_COMPILER "g++-15" CACHE STRING "Host C++ compiler the turn designer is built with")
+
+include(ExternalProject)
+
+ExternalProject_Add(micras_two_bend_turns
+    SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cmake/turn_designer"
+    BINARY_DIR "${CMAKE_BINARY_DIR}/turn_designer"
+    CMAKE_ARGS
+        -DCMAKE_C_COMPILER=${MICRAS_HOST_C_COMPILER}
+        -DCMAKE_CXX_COMPILER=${MICRAS_HOST_CXX_COMPILER}
+        -DCMAKE_BUILD_TYPE=Release
+        -DBOARD_VERSION=${BOARD_VERSION}
+        -DMICRAS_TWO_BEND_TURNS_DIRECTORY=${MICRAS_APP_GENERATED_DIRECTORY}
+    INSTALL_COMMAND ""
+    BUILD_ALWAYS ON
+)
+
+add_dependencies(lint micras_two_bend_turns)
+add_dependencies(lint_fix micras_two_bend_turns)
+
 # The turns are designed in one source, compiled once for the executable and every test, since
-# designing them takes the compiler most of a gigabyte and several seconds
+# placing and checking them takes the compiler most of a gigabyte and several seconds
 add_library(micras_config OBJECT
     ${MICRAS_APP_CONFIG_SOURCES}
 )
@@ -140,6 +164,8 @@ target_include_directories(micras_config PRIVATE
 target_link_libraries(micras_config PRIVATE
     micras::nav
 )
+
+add_dependencies(micras_config micras_two_bend_turns)
 
 micras_apply_warnings(micras_config WERROR ${MICRAS_WERROR})
 
