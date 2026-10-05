@@ -15,7 +15,8 @@ namespace micras {
  *
  * @note For checking from the link that each motor turns its own wheel the way it is told, and that
  * the encoder of that wheel and the gyroscope see it turn that way. Meant for the robot on a stand,
- * with its wheels in the air.
+ * with its wheels in the air, so no fault stops it: what the sensors do while the motors run is
+ * what it is there to show. STOP ends it.
  */
 class CheckPolarityState : public BaseState {
 public:

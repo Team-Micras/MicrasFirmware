@@ -32,7 +32,7 @@ namespace micras {
  *****************************************/
 
 constexpr uint32_t loop_time_us{125};
-constexpr uint8_t  max_variables{96};
+constexpr uint8_t  max_variables{128};
 
 /**
  * @brief Size of the buffer the radio receives into.

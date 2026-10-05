@@ -713,6 +713,12 @@ private:
     uint16_t imu_silence{};
 
     /**
+     * @brief Longest run of iterations without a new sample of the inertial measurement unit since
+     * the last run or procedure that moves started.
+     */
+    uint16_t longest_imu_silence{};
+
+    /**
      * @brief Fault that last stopped the robot, or none since the last run started.
      */
     Fault fault{Fault::NONE};

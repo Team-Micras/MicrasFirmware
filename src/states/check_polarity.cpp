@@ -15,10 +15,10 @@ void CheckPolarityState::on_entry() {
 }
 
 uint8_t CheckPolarityState::execute() {
-    if (this->micras.check_fault()) {
-        return std::to_underlying(State::ERROR);
+    if (this->micras.is_stop_requested() or this->micras.check_polarity()) {
+        return std::to_underlying(State::IDLE);
     }
 
-    return this->micras.check_polarity() ? std::to_underlying(State::IDLE) : this->get_id();
+    return this->get_id();
 }
 }  // namespace micras

@@ -105,6 +105,16 @@ void Micras::register_variables() {
     this->variables.add("", "failed_saves", this->telemetry.failed_saves, {});
     this->variables.add("", "fault", this->fault, {});
 
+    const proxy::Imu::Diagnostics& imu_bus = this->imu.get_diagnostics();
+
+    this->variables.add("imu_bus/", "samples", imu_bus.samples, {.stream = true});
+    this->variables.add("imu_bus/", "stale", imu_bus.stale, {.stream = true});
+    this->variables.add("imu_bus/", "rejected", imu_bus.rejected, {.stream = true});
+    this->variables.add("imu_bus/", "failed", imu_bus.failed, {.stream = true});
+    this->variables.add("imu_bus/", "busy", imu_bus.busy, {.stream = true});
+    this->variables.add("imu_bus/", "last_rejected_status", imu_bus.last_rejected_status, {.stream = true});
+    this->variables.add("imu_bus/", "longest_silence", this->longest_imu_silence, {.stream = true});
+
     this->variables.add("loop/", "elapsed_time", this->elapsed_time, {.stream = true});
     this->variables.add("loop/", "worst_time_us", this->worst_loop_time_us, {.stream = true});
     this->variables.add("loop/", "missed_ticks", this->missed_ticks, {.stream = true});
@@ -212,6 +222,7 @@ void Micras::update() {
     this->measurements = this->measure();
     this->imu_silence =
         this->measurements.imu_is_new ? 0 : static_cast<uint16_t>(std::min(this->imu_silence + 1, 65535));
+    this->longest_imu_silence = std::max(this->longest_imu_silence, this->imu_silence);
     this->localizer.predict(this->measurements, this->elapsed_time);
 
     this->fsm.update();
@@ -609,6 +620,7 @@ void Micras::follow(const nav::Reference& reference) {
 }
 
 void Micras::clear_faults() {
+    this->longest_imu_silence = 0;
     this->crash_count = 0;
     this->saturated_streak = 0;
     this->fault = Fault::NONE;
