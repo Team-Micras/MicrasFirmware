@@ -32,9 +32,9 @@ name = "micras"
 timestep = { value = 0.000125, source = "measured: tire contact, penetration and the explore trace unchanged at 62.5 and 31.25 us (v1)" }
 
 [chassis]
-mass = { value = 0.0743, source = "CAD v2 and estimate: 87.1 g for the whole robot less the two 6.4 g wheel assemblies; includes the 15 g populated board (estimate: weigh it), three 6 g cells (estimate), three 7 g motors (measured), 2 g of wires and 2.8 g of screws, inserts and nuts (estimates); weigh the robot" }
-center_of_mass = { value = [0.00005, 0.0, 0.0181], source = "CAD v2: Battery.x = -9.52 puts the whole robot's center of mass 0.05 mm ahead of the axle, within what the estimated masses can tell; balance the robot on its wheels to find which way it rests" }
-inertia = { value = [2.05e-5, 3.81e-5, 3.53e-5], source = "CAD v2: about the center of mass, from the part volumes; Ixz = 5.2e-6 left out (principal axes 17 deg off in pitch); Ixx and Izz less 2.09e-6, since the simulation puts each wheel's 6.4 g at the tire center (y 22.8 mm) and its real center of mass is at y 18.8 mm (magnet, axle and gear inboard); measure yaw with a torsion pendulum" }
+mass = { value = 0.0652, source = "measured: 78 g for the whole robot without its fan, less the two 6.4 g wheel assemblies; the fan stays off the robot for now" }
+center_of_mass = { value = [-0.00197, 0.0, 0.0181], source = "CAD v2 less the fan: Battery.x = -9.52 put the robot with its fan 0.05 mm ahead of the axle, and the 9 g of the fan 17.5 mm ahead of the axle move it 2 mm back without it; balance the robot on its wheels to find which way it rests" }
+inertia = { value = [2.05e-5, 3.53e-5, 3.25e-5], source = "CAD v2 less the fan: about the center of mass, from the part volumes, less the 9 g fan 17.5 mm ahead of the axle in pitch and yaw; Ixz = 5.2e-6 left out (principal axes 17 deg off in pitch); Ixx and Izz less 2.09e-6, since the simulation puts each wheel's 6.4 g at the tire center (y 22.8 mm) and its real center of mass is at y 18.8 mm (magnet, axle and gear inboard); measure yaw with a torsion pendulum" }
 outline = { value = [[0.0535, 0.0150], [0.03456, 0.02447], [0.0323, 0.0250], [-0.0365, 0.0250], [-0.0365, -0.0250], [0.0323, -0.0250], [0.03456, -0.02447], [0.0535, -0.0150]], source = "CAD: KiCad board edge, nose chamfers at 26.6 deg, fillets as corners (unchanged board)" }
 board_bottom = { value = 0.001, source = "CAD v2: Board.bottom_z" }
 board_top = { value = 0.0020412, source = "CAD v2: 1.0412 mm FR-4" }
@@ -263,9 +263,9 @@ radius = { value = 0.0015, source = "CAD v2: BumperParams.nose_r" }
 friction = { value = 0.15, source = "estimate: a PTFE glide on a painted floor, 0.05 to 0.2 in tables; measure by tilting the robot on its glides" }
 
 [wheels]
-radius = { value = 0.0110412, source = "CAD v2: params.wheel_d = 2 * axle_z, the 2 mm tire stretched over the 18.31 mm hub to 1.89 mm; measure the rolling radius by driving a known distance" }
+radius = { value = 0.01125, source = "measured: 22.5 mm over the tires; calibrate the rolling radius by driving a known distance" }
 width = { value = 0.003465, source = "CAD v2: params.tire_w, the tire cut to the hub's channel" }
-track = { value = 0.045535, source = "CAD v2: params.track, tire center to tire center (tires 0.5 mm inside the board's sides)" }
+track = { value = 0.045, source = "measured: tire center to tire center; calibrate by spinning a known number of turns" }
 mass = { value = 0.0064, source = "CAD v2 and estimate: brass 36T wheel gear 4.3 g (estimated from its volume: weigh it), hub 0.65 g, tire 0.5 g, magnet 0.42 g, axle 0.32 g, magnet cup, race spacer and the bearings' inner rings; 2.7 g with the printed stand-in gear" }
 spin_inertia = { value = 2.89e-7, source = "CAD v2: about the axle, the brass gear 61 % of it; 1.23e-7 with the printed stand-in gear" }
 friction = { value = 1.0, source = "estimate: 2 mm tire band on a maze floor; measure by tilting" }

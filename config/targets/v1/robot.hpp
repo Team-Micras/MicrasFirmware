@@ -22,14 +22,14 @@ namespace micras {
  * sim/robot.toml holds the same quantities as the physical truth of the simulation, each with its
  * source.
  *
- * - The mass, 87 g, and the yaw inertia are estimates from the volumes of the v2 parts with their
- *   densities, the measured 7 g of each of the three motors, about 6 g for each of the three cells,
- *   15 g for the populated board and 2.8 g of screws, inserts and nuts. A scale settles the mass,
- *   and the drive identification the inertia.
+ * - The robot runs without its fan for now, which takes about 9 g off the 87 g the v2 model
+ *   predicts with it: 78 g on a scale. The yaw inertia is the model's estimate from the volumes of
+ *   the parts with their densities, less the fan motor 17.5 mm ahead of the axle; the drive
+ *   identification settles it.
  * - The tires are 2 mm silicone bands stretched over 18.3 mm hubs into a channel between two
- *   flanges: the wheel radius, 11.04 mm, is that of the model. The track width is the distance
- *   between the centers of the tires. Driving a known distance and a known number of turns
- *   calibrates both. The tires flatten under load and the wheels roll on a smaller radius: the
+ *   flanges. The wheel radius is half of the 22.5 mm measured over the tires, against the 22.08 mm
+ *   of the model, and the track width the 45 mm measured between their centers. Driving a known
+ *   distance and a known number of turns calibrates both. The tires flatten under load and the wheels roll on a smaller radius: the
  *   rolling compliance is that of the simulated tire, 77 um less per newton on a tire (29 um at
  *   the 0.43 N of the fan off, 58 um at the 0.73 N of the fan on), still to measure on the v2
  *   tires by driving a known distance with the fan on and off.
@@ -73,11 +73,11 @@ constexpr nav::RobotModel robot_model{
     .maze = maze_geometry,
     .chassis =
         {
-            .mass = 0.087F,
-            .yaw_inertia = 4.24e-5F,
-            .wheel_radius = 0.01104F,
+            .mass = 0.078F,
+            .yaw_inertia = 3.96e-5F,
+            .wheel_radius = 0.01125F,
             .rolling_compliance = 77e-6F,
-            .track_width = 0.04554F,
+            .track_width = 0.045F,
             .half_width = 0.0257F,
             .front_length = 0.0567F,
             .rear_length = 0.0365F,
