@@ -626,6 +626,24 @@ def run_command(session: Session, args):
     print(f"command {args.code} ({code}, {args.argument}): {session.command(code, args.argument)}")
 
 
+def reopen(session: Session, args, deadline: float | None) -> bool:
+    """Connect again after the link dropped, into the same session, until the deadline."""
+    session.transport.close()
+
+    while deadline is None or time.monotonic() < deadline:
+        try:
+            session.transport = WebSocketClient(args.url) if args.sim else BleBridge(args.ble, session.log)
+            session.buffer.clear()
+            session.connect()
+            return True
+        except (ConnectionError, TimeoutError, OSError) as error:
+            session.log(f"reconnecting failed: {error}")
+            session.transport.close()
+            time.sleep(1.0)
+
+    return False
+
+
 def run_stream(session: Session, args, printing: bool = False):
     variables = session.resolve(args.names)
     state_variable = session.by_name.get("fsm/state")
@@ -637,18 +655,37 @@ def run_stream(session: Session, args, printing: bool = False):
         if state_variable and state_variable not in variables:
             variables.append(state_variable)
 
-    rows = []
+    file = open(args.out, "w", newline="") if args.out else None
+    writer = csv.writer(file) if file else None
+
+    if writer:
+        writer.writerow(["sequence", "time_us", "host_s", *[v.name for v in variables]])
+
+    started = time.monotonic()
+    count = [0]
     last_sequence = [None]
+    last_timestamp = [None]
     gaps = [0]
     finished = [False]
     left_stop_state = [False]
 
     def on_sample(sequence, timestamp, values):
+        if last_timestamp[0] is not None and timestamp < last_timestamp[0]:
+            session.log("the robot's clock went back: it restarted")
+            last_sequence[0] = None
+
         if last_sequence[0] is not None:
             gaps[0] += (sequence - last_sequence[0] - 1) & 0xFFFF
 
         last_sequence[0] = sequence
-        rows.append([sequence, timestamp, *values])
+        last_timestamp[0] = timestamp
+        count[0] += 1
+
+        if writer:
+            writer.writerow([sequence, timestamp, f"{time.monotonic() - started:.3f}", *values])
+
+            if count[0] % 20 == 0:
+                file.flush()
 
         if printing:
             print(" ".join(f"{v.name}={format_value(v, x)}" for v, x in zip(variables, values)), flush=True)
@@ -661,33 +698,45 @@ def run_stream(session: Session, args, printing: bool = False):
             elif left_stop_state[0]:
                 finished[0] = True
 
-    session.on_samples(0, variables, on_sample)
-    achieved = session.define_group(0, variables, args.rate)
-    session.log(f"streaming {len(variables)} variables at {achieved:.1f} Hz")
-
-    if args.command:
-        code = COMMANDS[args.command] if args.command in COMMANDS else int(args.command, 0)
-        session.log(f"command {args.command} {args.argument}: {session.command(code, args.argument)}")
+    def start_group():
+        session.on_samples(0, variables, on_sample)
+        achieved = session.define_group(0, variables, args.rate)
+        session.log(f"streaming {len(variables)} variables at {achieved:.1f} Hz")
+        last_sequence[0] = None
 
     deadline = time.monotonic() + args.seconds if args.seconds else None
 
     try:
+        start_group()
+
+        if args.command:
+            code = COMMANDS[args.command] if args.command in COMMANDS else int(args.command, 0)
+            session.log(f"command {args.command} {args.argument}: {session.command(code, args.argument)}")
+
         while not finished[0] and (deadline is None or time.monotonic() < deadline):
-            session.poll()
+            try:
+                session.poll()
+            except (ConnectionError, OSError) as error:
+                session.log(f"link lost at {time.monotonic() - started:.1f} s: {error}")
+
+                if not reopen(session, args, deadline):
+                    break
+
+                session.log(f"link back at {time.monotonic() - started:.1f} s")
+                start_group()
     except KeyboardInterrupt:
         pass
     finally:
-        session.disable_group(0)
+        try:
+            session.disable_group(0)
+        except (ConnectionError, OSError, TimeoutError):
+            pass
 
-    session.log(f"{len(rows)} samples, {gaps[0]} lost by sequence, {session.dropped_frames} corrupt frames")
+        if file:
+            file.close()
+            session.log(f"wrote {args.out}")
 
-    if args.out:
-        with open(args.out, "w", newline="") as file:
-            writer = csv.writer(file)
-            writer.writerow(["sequence", "time_us", *[v.name for v in variables]])
-            writer.writerows(rows)
-
-        session.log(f"wrote {args.out}")
+    session.log(f"{count[0]} samples, {gaps[0]} lost by sequence, {session.dropped_frames} corrupt frames")
 
 
 def main():
