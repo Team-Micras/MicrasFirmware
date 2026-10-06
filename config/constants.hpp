@@ -301,9 +301,12 @@ constexpr auto polarity_steps{[] {
  *
  * @note A spread over the maximum means the robot moved, or something was in front of a sensor,
  * while it was being calibrated, and the result is not kept. An offset is a reading of nearly
- * nothing, whose spread is taken against the noise floor of the sensors instead.
+ * nothing, whose standard deviation is taken against the noise floor of the sensors instead. It can
+ * be slightly negative: each emitter's current disturbs the supply its receiver shares, which reads
+ * the receiver's own lit scan a little below its dark one even with no light reaching it.
  */
 ///@{
+constexpr float min_wall_offset{-0.05F};
 constexpr float max_wall_offset{0.5F};
 constexpr float min_gyroscope_scale{0.9F};
 constexpr float max_gyroscope_scale{1.1F};

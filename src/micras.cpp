@@ -207,7 +207,8 @@ void Micras::apply_calibration() {
             wall_sensors_config.noise_floor, wall_sensors_config.max_reading
         );
         const std::optional<float> offset = CalibrationRecord::choose(
-            this->calibration_record.wall_offsets.at(i), wall_sensors_config.offsets.at(i), 0.0F, max_wall_offset
+            this->calibration_record.wall_offsets.at(i), wall_sensors_config.offsets.at(i), min_wall_offset,
+            max_wall_offset
         );
 
         if (reference.has_value()) {
@@ -415,9 +416,9 @@ bool Micras::calibrate_offsets() {
 
     for (uint8_t i = 0; i < nav::number_of_wall_sensors; i++) {
         const float offset = this->wall_sensors.get_offset(i);
-        const float spread = this->wall_sensors.get_calibration_spread(i);
 
-        if (offset <= max_wall_offset and spread * offset <= wall_sensors_config.noise_floor) {
+        if (offset >= min_wall_offset and offset <= max_wall_offset and
+            this->wall_sensors.get_calibration_deviation(i) <= wall_sensors_config.noise_floor) {
             CalibrationRecord::record(
                 this->calibration_record.wall_offsets.at(i), offset, wall_sensors_config.offsets.at(i)
             );
