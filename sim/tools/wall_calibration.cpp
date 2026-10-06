@@ -121,11 +121,12 @@ static Sample sample(const RobotDescription& robot, std::string_view drawing, do
                     const char* name = mj_id2name(world.model(), mjOBJ_GEOM, geom);
                     return Maze::reflectance(name == nullptr ? "" : name, config);
                 },
+            .schedule = {},
         },
         {.seed = 1, .ideal = true},
     };
 
-    Clock clock = Clock::from_model(world.timestep(), 125);
+    Clock clock = Clock::from_model(world.timestep(), micras::loop_time_us);
     clock.advance();
     sensors.sample(world, clock);
     clock.advance();

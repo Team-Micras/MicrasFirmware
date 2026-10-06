@@ -326,7 +326,7 @@ emitter_intensity = { value = 1.8, source = "datasheet and CAD: 1100 mW/sr at 10
 receiver_half_angle_deg = { value = 10.0, source = "datasheet: TPS601A" }
 receiver_responsivity = { value = 4.0e-4, source = "datasheet: TPS601A rank B, mid range; the rank is unknown" }
 load_resistance = { value = 1000.0, source = "CAD" }
-saturation_voltage = { value = 2.9, source = "CAD" }
+saturation_voltage = { value = 3.08, source = "robot: the front receivers stop at 0.931-0.939 of the full scale facing a wall at 40 mm" }
 adc_reference = { value = 3.3, source = "firmware" }
 adc_max_counts = { value = 65535.0, source = "firmware: 16-bit, 8x oversampled and shifted by 3" }
 adc_noise_counts = { value = 20.0, source = "estimate" }
@@ -354,7 +354,7 @@ emitter = { value = [0.05201, 0.014626, 0.011791], source = "CAD v2: W2, SFH 455
 receiver = { value = [0.051851, 0.014467, 0.005291], source = "CAD v2: W2, TPS601A lens tip" }
 yaw_deg = { value = 45.0, source = "CAD" }
 group = { value = 1, source = "firmware: TIM4 channel 2, inverted" }
-gain = { value = 3.8539, source = "calibrated: target.hpp reference_readings over the simulated reading at the calibration pose (tools/wall_calibration)" }
+gain = { value = 10.8164, source = "calibrated: target.hpp reference_readings over the simulated reading at the calibration pose (tools/wall_calibration)" }
 
 [[wall_sensors.sensors]]
 name = "right"
@@ -362,7 +362,7 @@ emitter = { value = [0.052011, -0.014627, 0.011791], source = "CAD v2: W3, SFH 4
 receiver = { value = [0.051852, -0.014468, 0.005291], source = "CAD v2: W3, TPS601A lens tip" }
 yaw_deg = { value = -45.0, source = "CAD" }
 group = { value = 0, source = "firmware: TIM4 channel 3, not inverted" }
-gain = { value = 4.2363, source = "calibrated: target.hpp reference_readings over the simulated reading at the calibration pose (tools/wall_calibration)" }
+gain = { value = 9.9499, source = "calibrated: target.hpp reference_readings over the simulated reading at the calibration pose (tools/wall_calibration)" }
 
 [[wall_sensors.sensors]]
 name = "right_front"

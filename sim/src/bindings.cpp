@@ -124,7 +124,7 @@ static std::function<std::optional<WallSensors::Schedule>()>
                 return half == 0 ? burst.first : burst.second;
             }
 
-            return burst.table.subspan(static_cast<std::size_t>((half - 2) % length) * registers, registers);
+            return burst.table.subspan(((half - 2) % length) * registers, registers);
         };
 
         const std::span<const uint32_t> before = row(end);
@@ -141,7 +141,7 @@ static std::function<std::optional<WallSensors::Schedule>()>
             lit.at(emitter) = inverted == overflow and on(before[emitter]) and on(after[emitter]);
         }
 
-        const std::size_t position = static_cast<std::size_t>(end % length);
+        const std::size_t position = end % length;
         const std::size_t frame = length / 2;
 
         return WallSensors::Schedule{

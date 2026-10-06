@@ -383,12 +383,13 @@ const proxy::TorqueSensors::Config torque_sensors_config = {
  * reading of every sensor each millisecond, and each emitter is lit at one end of five, 15 % of the
  * time, well within the rating of its series resistor.
  *
- * @note The reference readings are placeholders, until the first calibration in the setup of the
- * README replaces them. They come from a calibration of April 2025, from before that setup, so the
- * diagonal ones may be those of the wall ahead, at about half the reference distance. The
- * calibration is not saved, so every boot starts from these. The reference distances are what the
- * geometry of the sensors says they measure in that setup: the front sensors facing a wall from the
- * center of a cell, the diagonal ones in a corridor with no wall ahead.
+ * @note The diagonal reference readings are those of the calibration in the setup of the README, in
+ * the home maze with the sensors fired one at a time and no caps on the sensors. The front ones are
+ * still placeholders, from a calibration of April 2025 with the caps: without them the front
+ * receivers reach their ceiling at the center of a cell facing a wall, and that pose cannot give
+ * them. The reference distances are what the geometry of the sensors says they measure in that
+ * setup: the front sensors facing a wall from the center of a cell, the diagonal ones in a
+ * corridor with no wall ahead.
  *
  * @note The offsets, what each sensor reads with nothing in front of it, are zero here, which is
  * what the simulation, whose sensors leak no light inside the robot, needs. On the robot they come
@@ -398,6 +399,11 @@ const proxy::TorqueSensors::Config torque_sensors_config = {
  * towards about 3.1 V, 94 % of the full scale. Above a dark reading of 80 % there is less room left
  * than a wall at the reference distance of the dimmest sensor adds, and the sensor is taken as
  * blind.
+ *
+ * @note Lit by its emitter, a receiver stops where its phototransistor saturates, which varies from
+ * one to the other: on the robot the front ones stop at 93 to 94 % of the full scale facing a wall
+ * from the center of a cell, and the diagonal ones at 88 to 90 % in the same pose. A reading at 85 %
+ * or more, its dark part included, is taken as saturated.
  *
  * @note Each emitter lens sits 6.5 mm above its receiver lens (the v2 sensor caps), and the
  * TPS601A receiver halves its sensitivity 10 degrees off its axis (datasheet). The receiver therefore
@@ -459,8 +465,8 @@ const proxy::WallSensors::Config wall_sensors_config = {
     .reference_readings =
         {
             0.413F,
-            0.161F,
-            0.177F,
+            0.4519F,
+            0.4157F,
             0.230F,
         },
     .offsets = {0.0F, 0.0F, 0.0F, 0.0F},
@@ -474,7 +480,7 @@ const proxy::WallSensors::Config wall_sensors_config = {
     .receiver_offset = 0.0065F,
     .receiver_half_angle = 10.0F * std::numbers::pi_v<float> / 180.0F,
     .noise_floor = 0.002F,
-    .max_reading = 0.95F,
+    .max_reading = 0.85F,
     .max_distance = wall_sensors_range,
     .blind_reading = 0.8F,
     .wall_distance = 0.12F,
