@@ -386,6 +386,10 @@ const proxy::TorqueSensors::Config torque_sensors_config = {
  * geometry of the sensors says they measure in that setup: the front sensors facing a wall from the
  * center of a cell, the diagonal ones in a corridor with no wall ahead.
  *
+ * @note The offsets, what each sensor reads with nothing in front of it, are zero here, which is
+ * what the simulation, whose sensors leak no light inside the robot, needs. On the robot they come
+ * from the calibration in open air, which the flash memory keeps (see CalibrationRecord).
+ *
  * @note The receiver is an emitter follower from the 3.3 V rail, so ambient light raises its output
  * towards about 3.1 V, 94 % of the full scale. Above a dark reading of 80 % there is less room left
  * than a wall at the reference distance of the dimmest sensor adds, and the sensor is taken as
@@ -450,6 +454,7 @@ const proxy::WallSensors::Config wall_sensors_config = {
             0.177F,
             0.230F,
         },
+    .offsets = {0.0F, 0.0F, 0.0F, 0.0F},
     .reference_distances =
         {
             nav::WallModel{wall_model_config}.get_centered_range(wall_sensors_index.left_front),

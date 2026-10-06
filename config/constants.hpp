@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cstddef>
 #include <cstdint>
 #include <limits>
 #include <numbers>
@@ -265,34 +266,49 @@ struct WheelCommand {
 /**
  * @brief Steps of the check of the polarity, and how long each one is driven, in seconds.
  *
- * @note Each wheel forward and then backward, at a low and then at twice that command, one wheel at
- * a time, with a rest after each step. The low command is about where the bridge, at its 100 kHz,
- * starts to deliver any pulse at all, so the two levels show both the direction and how the speed
- * of a free wheel grows with the command. Meant for a robot on a stand: on the floor each step turns
- * the robot by about a quarter of a turn.
+ * @note Each wheel forward and then backward, one wheel at a time, at commands from the lowest to
+ * the highest of polarity_commands, with a rest after each step. The lowest is about where the
+ * bridge, at its 100 kHz, starts to deliver any pulse at all, so the sweep shows the direction of
+ * each wheel, the command at which it breaks away, and how the speed of a free wheel grows with the
+ * command once it turns. Meant for a robot on a stand: on the floor every step turns it around.
  */
 ///@{
-constexpr float polarity_command{10.0F};
-constexpr float polarity_step_duration{0.4F};
+constexpr std::array<float, 5> polarity_commands{10.0F, 20.0F, 30.0F, 40.0F, 50.0F};
+constexpr float                polarity_step_duration{0.4F};
 
-constexpr std::array<WheelCommand, 16> polarity_steps{{
-    {.left = polarity_command, .right = 0.0F},
-    {.left = 0.0F, .right = 0.0F},
-    {.left = 2.0F * polarity_command, .right = 0.0F},
-    {.left = 0.0F, .right = 0.0F},
-    {.left = -polarity_command, .right = 0.0F},
-    {.left = 0.0F, .right = 0.0F},
-    {.left = -2.0F * polarity_command, .right = 0.0F},
-    {.left = 0.0F, .right = 0.0F},
-    {.left = 0.0F, .right = polarity_command},
-    {.left = 0.0F, .right = 0.0F},
-    {.left = 0.0F, .right = 2.0F * polarity_command},
-    {.left = 0.0F, .right = 0.0F},
-    {.left = 0.0F, .right = -polarity_command},
-    {.left = 0.0F, .right = 0.0F},
-    {.left = 0.0F, .right = -2.0F * polarity_command},
-    {.left = 0.0F, .right = 0.0F},
-}};
+constexpr auto polarity_steps{[] {
+    std::array<WheelCommand, 2 * 2 * 2 * polarity_commands.size()> steps{};
+    std::size_t                                                    step = 0;
+
+    for (const bool left : {true, false}) {
+        for (const float sign : {1.0F, -1.0F}) {
+            for (const float command : polarity_commands) {
+                steps.at(step) = left ? WheelCommand{.left = sign * command, .right = 0.0F} :
+                                        WheelCommand{.left = 0.0F, .right = sign * command};
+                step += 2;
+            }
+        }
+    }
+
+    return steps;
+}()};
+
+///@}
+
+/**
+ * @brief Ranges a measured calibration has to fall in to be used, and the time the wall sensors are
+ * left to settle before their offsets are measured, in seconds.
+ *
+ * @note A spread over the maximum means the robot moved, or something was in front of a sensor,
+ * while it was being calibrated, and the result is not kept. An offset is a reading of nearly
+ * nothing, whose spread is taken against the noise floor of the sensors instead.
+ */
+///@{
+constexpr float max_wall_offset{0.5F};
+constexpr float min_gyroscope_scale{0.9F};
+constexpr float max_gyroscope_scale{1.1F};
+constexpr float max_calibration_spread{0.05F};
+constexpr float offset_settle_time{0.1F};
 
 ///@}
 

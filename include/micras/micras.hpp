@@ -11,6 +11,7 @@
 #include <utility>
 
 #include "constants.hpp"
+#include "micras/calibration_record.hpp"
 #include "micras/comm/link.hpp"
 #include "micras/core/fsm.hpp"
 #include "micras/core/types.hpp"
@@ -25,6 +26,7 @@
 #include "micras/nav/wall_model.hpp"
 #include "micras/states/calibrate.hpp"
 #include "micras/states/calibrate_gyroscope.hpp"
+#include "micras/states/calibrate_offsets.hpp"
 #include "micras/states/check_crosstalk.hpp"
 #include "micras/states/check_polarity.hpp"
 #include "micras/states/check_sensors.hpp"
@@ -57,8 +59,9 @@ public:
      * @note For the button they are chosen by the switches: with the racing line, boost and risky
      * switches off it is the calibration of the wall sensors, the racing line switch alone selects
      * the identification of the drive train and the boost switch alone the calibration of the
-     * gyroscope scale. The checks of the sensors, of the polarity and of the crosstalk are only
-     * reachable from the link, whose command names the procedure.
+     * gyroscope scale. The checks of the sensors, of the polarity and of the crosstalk, and the
+     * calibration of the offsets of the wall sensors, are only reachable from the link, whose
+     * command names the procedure.
      */
     enum class Maintenance : uint8_t {
         WALL_SENSORS = 0,
@@ -67,7 +70,8 @@ public:
         SENSORS = 3,
         POLARITY = 4,
         CROSSTALK = 5,
-        NUMBER_OF_PROCEDURES = 6,
+        WALL_OFFSETS = 6,
+        NUMBER_OF_PROCEDURES = 7,
     };
 
     /**
@@ -204,6 +208,21 @@ public:
     bool check_polarity();
 
     /**
+     * @brief Turn the wall sensors on to measure their offsets, once they settle.
+     */
+    void start_offset_calibration();
+
+    /**
+     * @brief Advance the calibration of the offsets of the wall sensors by one iteration.
+     *
+     * @note Once every sensor is measured, the offsets whose spread is small enough are kept and
+     * saved to the flash memory.
+     *
+     * @return True once the calibration has finished.
+     */
+    bool calibrate_offsets();
+
+    /**
      * @brief Start the check of the crosstalk of the wall sensors, with every emitter off.
      */
     void start_crosstalk_check();
@@ -286,7 +305,7 @@ public:
     bool has_route() const;
 
     /**
-     * @brief Save the maze to the non-volatile storage.
+     * @brief Save the maze and the calibrations to the non-volatile storage.
      *
      * @note This stalls the core for seconds, so it is only to be called with the robot stopped.
      * The LED is on for as long as it lasts, since switching the robot off then loses the saved
@@ -304,6 +323,9 @@ public:
 
     /**
      * @brief Check on the calibration of the wall sensors.
+     *
+     * @note A sensor whose readings spread over the maximum keeps the reference it had. Once both
+     * pairs are done, the references are saved to the flash memory.
      *
      * @return True once the pair of sensors being calibrated is done.
      */
@@ -335,6 +357,9 @@ public:
 
     /**
      * @brief Advance the calibration of the gyroscope scale by one iteration.
+     *
+     * @note A valid scale within its range is used at once and saved to the flash memory, with the
+     * motors stopped, since saving stalls the loop for seconds.
      *
      * @return True if the calibration has finished.
      */
@@ -421,6 +446,7 @@ private:
         float                                          route_time{};
         std::array<float, nav::number_of_wall_sensors> wall_reference_readings{};
         std::array<float, nav::number_of_wall_sensors> wall_calibration_spreads{};
+        std::array<float, nav::number_of_wall_sensors> wall_offsets{};
         bool                                           identification_valid{};
         float                                          breakaway_voltage{};
         nav::DriveIdentification::Axis                 linear_drive{};
@@ -455,6 +481,12 @@ private:
      * @return One bit per failed check, in the order of InitCheck, so zero if every check passed.
      */
     uint16_t get_init_status() const;
+
+    /**
+     * @brief Use the calibrations the flash memory holds wherever the configuration still holds the
+     * value they replaced.
+     */
+    void apply_calibration();
 
     /**
      * @brief Register every variable the robot exposes, and load the ones the flash memory holds.
@@ -619,6 +651,7 @@ private:
     WaitState               wait_for_gyroscope_state{State::WAIT_FOR_GYROSCOPE, *this, State::CALIBRATE_GYROSCOPE};
     CalibrateGyroscopeState calibrate_gyroscope_state{State::CALIBRATE_GYROSCOPE, *this};
     ErrorState              error_state{State::ERROR, *this};
+    CalibrateOffsetsState   calibrate_offsets_state{State::CALIBRATE_OFFSETS, *this};
     CheckSensorsState       check_sensors_state{State::CHECK_SENSORS, *this};
     CheckPolarityState      check_polarity_state{State::CHECK_POLARITY, *this};
     CheckCrosstalkState     check_crosstalk_state{State::CHECK_CROSSTALK, *this};
@@ -694,6 +727,20 @@ private:
      * @brief Time the current mode of the check of the crosstalk has been lit for.
      */
     float crosstalk_mode_time{};
+
+    /**
+     * @brief Time the wall sensors have been on for during the calibration of their offsets, and
+     * whether the measurement started.
+     */
+    ///@{
+    float offset_time{};
+    bool  offset_measuring{};
+    ///@}
+
+    /**
+     * @brief Calibrations measured on the robot, which the flash memory keeps with the maze.
+     */
+    CalibrationRecord calibration_record;
 
     /**
      * @brief Current type of calibration being performed.

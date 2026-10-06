@@ -12,7 +12,9 @@ Commands:
   write NAME VALUE               write a variable (only the writable ones)
   command CODE|NAME [ARG]        send a command (explore, solve, calibrate, save, reset, stop, resume,
                                  maintain, or a number); maintain takes the procedure: walls, drive,
-                                 gyroscope, sensors, polarity, crosstalk
+                                 gyroscope, sensors, polarity, crosstalk, offsets
+  calibration [--write-config]   show the calibrations the robot keeps in its flash, and with
+                                 --write-config put them into target.hpp and robot.hpp, to commit
   stream NAME... [--rate HZ] [--seconds S] [--out FILE.csv] [--until-state STATE]
                                  stream up to 16 variables as one group, one CSV row per sample,
                                  with the robot's sequence number and timestamp
@@ -29,6 +31,7 @@ import csv
 import fnmatch
 import json
 import os
+import re
 import select
 import socket
 import struct
@@ -71,7 +74,12 @@ SEVERITIES = ["DEBUG", "INFO", "WARNING", "ERROR"]
 
 COMMANDS = {"explore": 0, "solve": 1, "calibrate": 2, "save": 3, "reset": 4, "stop": 5, "resume": 6, "maintain": 7}
 
-PROCEDURES = {"walls": 0, "drive": 1, "gyroscope": 2, "sensors": 3, "polarity": 4, "crosstalk": 5}
+PROCEDURES = {"walls": 0, "drive": 1, "gyroscope": 2, "sensors": 3, "polarity": 4, "crosstalk": 5, "offsets": 6}
+
+FIRMWARE = Path(__file__).resolve().parent.parent
+TARGET_CONFIG = FIRMWARE / "config" / "targets" / "v1" / "target.hpp"
+ROBOT_CONFIG = FIRMWARE / "config" / "targets" / "v1" / "robot.hpp"
+WALL_SENSORS = 4
 
 STATES = [
     "INIT",
@@ -90,6 +98,7 @@ STATES = [
     "CHECK_SENSORS",
     "CHECK_POLARITY",
     "CHECK_CROSSTALK",
+    "CALIBRATE_OFFSETS",
 ]
 
 
@@ -741,6 +750,85 @@ def run_stream(session: Session, args, printing: bool = False):
     session.log(f"{count[0]} samples, {gaps[0]} lost by sequence, {session.dropped_frames} corrupt frames")
 
 
+def decode_calibration(blob: bytes) -> dict:
+    """The CalibrationRecord of the firmware: a version, then presence, measured and replaced values."""
+    if not blob or blob[0] != 1 or len(blob) != 1 + (2 * WALL_SENSORS + 1) * 9:
+        raise ValueError(f"unknown calibration record of {len(blob)} bytes")
+
+    values = []
+
+    for index in range(2 * WALL_SENSORS + 1):
+        present, measured, replaced = struct.unpack("<?ff", blob[1 + 9 * index : 10 + 9 * index])
+        values.append({"present": present, "measured": measured, "replaced": replaced})
+
+    return {
+        "reference_readings": values[:WALL_SENSORS],
+        "offsets": values[WALL_SENSORS : 2 * WALL_SENSORS],
+        "gyroscope_scale": values[2 * WALL_SENSORS],
+    }
+
+
+def replace_block(text: str, field: str, values: list[str]) -> str:
+    """Replace the braced list of a designated initializer, such as .reference_readings = {...}."""
+    pattern = re.compile(r"(\." + field + r"\s*=\s*\{)([^}]*)(\})", re.S)
+    match = pattern.search(text)
+
+    if not match:
+        raise ValueError(f"no .{field} in the configuration")
+
+    old = [item.strip() for item in match.group(2).split(",") if item.strip()]
+    new = [values[i] if values[i] is not None else old[i] for i in range(len(old))]
+    return text[: match.start(2)] + ", ".join(new) + text[match.end(2) :]
+
+
+def run_calibration(session: Session, args):
+    (variable,) = session.resolve(["calibration"])
+    reply = session.request(
+        READ,
+        struct.pack("<H", variable.id),
+        VALUE,
+        accept=lambda reply: len(reply) >= 2 and struct.unpack("<H", reply[:2])[0] == variable.id,
+    )
+    record = decode_calibration(reply[2:])
+    in_use = {v.name: session.read(v) for v in session.resolve(["wall_reference/*", "wall_offset/*"])}
+
+    for field, label in (("reference_readings", "wall_reference"), ("offsets", "wall_offset")):
+        for index, value in enumerate(record[field]):
+            stored = f"{value['measured']:.5f} replacing {value['replaced']:.5f}" if value["present"] else "none"
+            print(f"{field}[{index}]: stored {stored}, in use {in_use[f'{label}/{index}']:.5f}")
+
+    scale = record["gyroscope_scale"]
+    print(
+        "gyroscope_scale: stored "
+        + (f"{scale['measured']:.6f} replacing {scale['replaced']:.6f}" if scale["present"] else "none")
+    )
+
+    if not args.write_config:
+        return
+
+    target = TARGET_CONFIG.read_text()
+
+    for field in ("reference_readings", "offsets"):
+        values = [f"{v['measured']:.5f}F" if v["present"] else None for v in record[field]]
+        target = replace_block(target, field, values)
+
+    TARGET_CONFIG.write_text(target)
+
+    if scale["present"]:
+        robot = ROBOT_CONFIG.read_text()
+        robot, count = re.subn(r"(\.gyroscope_scale\s*=\s*)[0-9.eE+-]+F", rf"\g<1>{scale['measured']:.6f}F", robot)
+
+        if count != 1:
+            raise ValueError("no single .gyroscope_scale in robot.hpp")
+
+        ROBOT_CONFIG.write_text(robot)
+
+    print(f"wrote {TARGET_CONFIG.relative_to(FIRMWARE)} and {ROBOT_CONFIG.relative_to(FIRMWARE)}; run clang-format")
+
+    if any(v["present"] and v["measured"] != 0.0 for v in record["offsets"]):
+        print("note: offsets in target.hpp are subtracted in the simulation too, whose sensors leak nothing")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     target = parser.add_mutually_exclusive_group()
@@ -750,6 +838,8 @@ def main():
     commands = parser.add_subparsers(dest="action", required=True)
 
     commands.add_parser("schema")
+    calibration = commands.add_parser("calibration")
+    calibration.add_argument("--write-config", action="store_true")
     read = commands.add_parser("read")
     read.add_argument("names", nargs="+")
     write = commands.add_parser("write")
@@ -785,6 +875,8 @@ def main():
             run_write(session, args)
         elif args.action == "command":
             run_command(session, args)
+        elif args.action == "calibration":
+            run_calibration(session, args)
         else:
             run_stream(session, args, printing=args.action == "watch")
     finally:

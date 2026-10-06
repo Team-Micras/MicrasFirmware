@@ -36,6 +36,7 @@ inline constexpr std::array<std::string_view, std::to_underlying(State::NUMBER_O
     "CHECK_SENSORS",
     "CHECK_POLARITY",
     "CHECK_CROSSTALK",
+    "CALIBRATE_OFFSETS",
 };
 
 static_assert(
@@ -69,6 +70,7 @@ static_assert(state_name(State::ERROR) == "ERROR");
 static_assert(state_name(State::CHECK_SENSORS) == "CHECK_SENSORS");
 static_assert(state_name(State::CHECK_POLARITY) == "CHECK_POLARITY");
 static_assert(state_name(State::CHECK_CROSSTALK) == "CHECK_CROSSTALK");
+static_assert(state_name(State::CALIBRATE_OFFSETS) == "CALIBRATE_OFFSETS");
 }  // namespace micras
 
 #endif  // STATE_NAMES_HPP

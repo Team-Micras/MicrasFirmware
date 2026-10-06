@@ -6,6 +6,7 @@
 #include <array>
 #include <cmath>
 #include <cstdint>
+#include <optional>
 #include <string_view>
 #include <utility>
 
@@ -55,6 +56,7 @@ Micras::Micras() :
     this->fsm.add_state(this->wait_for_gyroscope_state);
     this->fsm.add_state(this->calibrate_gyroscope_state);
     this->fsm.add_state(this->error_state);
+    this->fsm.add_state(this->calibrate_offsets_state);
     this->fsm.add_state(this->check_sensors_state);
     this->fsm.add_state(this->check_polarity_state);
     this->fsm.add_state(this->check_crosstalk_state);
@@ -161,6 +163,7 @@ void Micras::register_variables() {
     for (uint8_t i = 0; i < nav::number_of_wall_sensors; i++) {
         this->variables.add("wall_reference/", sensor_names.at(i), this->telemetry.wall_reference_readings.at(i), {});
         this->variables.add("wall_spread/", sensor_names.at(i), this->telemetry.wall_calibration_spreads.at(i), {});
+        this->variables.add("wall_offset/", sensor_names.at(i), this->telemetry.wall_offsets.at(i), {});
     }
 
     this->variables.add("", "route_time", this->telemetry.route_time, {.stream = true});
@@ -189,10 +192,40 @@ void Micras::register_variables() {
     this->variables.add("", "objective", this->objective, {.stream = true, .write = true, .idle = true});
     this->variables.add("", "run_profile", this->run_profile, {.stream = true, .write = true});
     this->variables.add("", "maze", this->mission.get_maze(), {.persist = true});
+    this->variables.add("", "calibration", this->calibration_record, {.persist = true});
 
     this->link.register_variables(this->variables, "link/");
 
     this->maze_storage.restore(this->variables);
+    this->apply_calibration();
+}
+
+void Micras::apply_calibration() {
+    for (uint8_t i = 0; i < nav::number_of_wall_sensors; i++) {
+        const std::optional<float> reference = CalibrationRecord::choose(
+            this->calibration_record.wall_reference_readings.at(i), wall_sensors_config.reference_readings.at(i),
+            wall_sensors_config.noise_floor, wall_sensors_config.max_reading
+        );
+        const std::optional<float> offset = CalibrationRecord::choose(
+            this->calibration_record.wall_offsets.at(i), wall_sensors_config.offsets.at(i), 0.0F, max_wall_offset
+        );
+
+        if (reference.has_value()) {
+            this->wall_sensors.set_reference_reading(i, reference.value());
+        }
+
+        if (offset.has_value()) {
+            this->wall_sensors.set_offset(i, offset.value());
+        }
+    }
+
+    const std::optional<float> scale = CalibrationRecord::choose(
+        this->calibration_record.gyroscope_scale, robot_model.gyroscope_scale, min_gyroscope_scale, max_gyroscope_scale
+    );
+
+    if (scale.has_value()) {
+        this->localizer.set_gyroscope_scale(scale.value());
+    }
 }
 
 void Micras::update() {
@@ -355,6 +388,53 @@ bool Micras::check_polarity() {
     return false;
 }
 
+void Micras::start_offset_calibration() {
+    this->wall_sensors.turn_on();
+    this->offset_time = 0.0F;
+    this->offset_measuring = false;
+}
+
+bool Micras::calibrate_offsets() {
+    this->offset_time += this->elapsed_time;
+
+    if (not this->offset_measuring) {
+        if (this->offset_time >= offset_settle_time) {
+            for (uint8_t i = 0; i < nav::number_of_wall_sensors; i++) {
+                this->wall_sensors.calibrate_offset(i);
+            }
+
+            this->offset_measuring = true;
+        }
+
+        return false;
+    }
+
+    if (this->wall_sensors.is_calibrating()) {
+        return false;
+    }
+
+    for (uint8_t i = 0; i < nav::number_of_wall_sensors; i++) {
+        const float offset = this->wall_sensors.get_offset(i);
+        const float spread = this->wall_sensors.get_calibration_spread(i);
+
+        if (offset <= max_wall_offset and spread * offset <= wall_sensors_config.noise_floor) {
+            CalibrationRecord::record(
+                this->calibration_record.wall_offsets.at(i), offset, wall_sensors_config.offsets.at(i)
+            );
+        } else {
+            this->wall_sensors.set_offset(
+                i, this->calibration_record.wall_offsets.at(i).present ?
+                       this->calibration_record.wall_offsets.at(i).measured :
+                       wall_sensors_config.offsets.at(i)
+            );
+        }
+    }
+
+    this->wall_sensors.turn_off();
+    this->save_maze();
+    return true;
+}
+
 void Micras::start_crosstalk_check() {
     this->wall_sensors.turn_off();
     this->telemetry.crosstalk_mode = 0;
@@ -506,8 +586,33 @@ bool Micras::calibrate() {
         return false;
     }
 
+    const std::array<uint8_t, 2> pair =
+        this->calibration_type == CalibrationType::SIDE_WALLS ?
+            std::array<uint8_t, 2>{wall_sensors_index.left, wall_sensors_index.right} :
+            std::array<uint8_t, 2>{wall_sensors_index.left_front, wall_sensors_index.right_front};
+
+    for (const uint8_t sensor : pair) {
+        if (this->wall_sensors.get_calibration_spread(sensor) <= max_calibration_spread) {
+            CalibrationRecord::record(
+                this->calibration_record.wall_reference_readings.at(sensor),
+                this->wall_sensors.get_reference_reading(sensor), wall_sensors_config.reference_readings.at(sensor)
+            );
+        } else {
+            this->wall_sensors.set_reference_reading(
+                sensor, this->calibration_record.wall_reference_readings.at(sensor).present ?
+                            this->calibration_record.wall_reference_readings.at(sensor).measured :
+                            wall_sensors_config.reference_readings.at(sensor)
+            );
+        }
+    }
+
     this->calibration_type = this->calibration_type == CalibrationType::SIDE_WALLS ? CalibrationType::FRONT_WALL :
                                                                                      CalibrationType::SIDE_WALLS;
+
+    if (this->calibration_type == CalibrationType::SIDE_WALLS) {
+        this->wall_sensors.turn_off();
+        this->save_maze();
+    }
 
     return true;
 }
@@ -564,6 +669,16 @@ bool Micras::calibrate_gyroscope() {
 
     this->telemetry.gyroscope_scale_valid = this->gyroscope_calibration.is_valid();
     this->telemetry.gyroscope_scale = this->gyroscope_calibration.get_scale();
+
+    const float scale = this->gyroscope_calibration.get_scale();
+
+    if (this->gyroscope_calibration.is_valid() and scale >= min_gyroscope_scale and scale <= max_gyroscope_scale) {
+        this->locomotion.stop();
+        this->locomotion.disable();
+        this->localizer.set_gyroscope_scale(scale);
+        CalibrationRecord::record(this->calibration_record.gyroscope_scale, scale, robot_model.gyroscope_scale);
+        this->save_maze();
+    }
 
     return true;
 }
@@ -663,6 +778,7 @@ void Micras::publish() {
     for (uint8_t i = 0; i < nav::number_of_wall_sensors; i++) {
         this->telemetry.wall_reference_readings.at(i) = this->wall_sensors.get_reference_reading(i);
         this->telemetry.wall_calibration_spreads.at(i) = this->wall_sensors.get_calibration_spread(i);
+        this->telemetry.wall_offsets.at(i) = this->wall_sensors.get_offset(i);
     }
 }
 

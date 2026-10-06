@@ -32,7 +32,8 @@ enum class State : uint8_t {
     CHECK_SENSORS = 13,        // Sensors on with the robot still, for checking them from the link.
     CHECK_POLARITY = 14,       // Driving each wheel each way in turn, for checking motors and encoders.
     CHECK_CROSSTALK = 15,      // Lighting one wall emitter at a time, for measuring the light each receiver takes.
-    NUMBER_OF_STATES = 16
+    CALIBRATE_OFFSETS = 16,    // Measuring what each wall sensor reads with nothing in front of it.
+    NUMBER_OF_STATES = 17
 };
 
 /**

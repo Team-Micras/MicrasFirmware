@@ -49,6 +49,9 @@ uint8_t IdleState::execute() {
             case Micras::Maintenance::CROSSTALK:
                 return std::to_underlying(State::CHECK_CROSSTALK);
 
+            case Micras::Maintenance::WALL_OFFSETS:
+                return std::to_underlying(State::CALIBRATE_OFFSETS);
+
             case Micras::Maintenance::NUMBER_OF_PROCEDURES:
                 break;
         }
