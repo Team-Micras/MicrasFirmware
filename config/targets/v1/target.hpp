@@ -368,16 +368,20 @@ const proxy::TorqueSensors::Config torque_sensors_config = {
 /**
  * @brief Configuration of the wall sensors.
  *
- * @note The emitters fire in two groups, told apart by the inverted flag, so that the two sensors
- * that look forward never light the same patch of wall at once and neither do the two sensors of
- * each side, which sit next to each other.
+ * @note The emitters take turns, one at a time, so that a receiver reads its own emitter alone: on
+ * the robot the 45 degree emitter of each side put 14 to 34 % of a front receiver's light into it
+ * with a wall ahead, and as much as the receiver's own with walls at the sides. The inverted flag
+ * tells the emitters centered on the overflow of the timer from those centered on the underflow,
+ * and the update DMA request of TIM4 relights them in turn, one end after the other (see
+ * TWallSensors).
  *
  * @note The timing is set by the receiver, a phototransistor on a 1 kOhm load that takes some tens
- * of microseconds to follow its emitter. The emitter timer counts up and down in 250 us each way and
- * starts a scan at both ends, so an emitter is on for 30 % of 500 us: 75 us to let the receiver
- * settle before the scan of its group starts, and 75 us for that scan, which takes 66 us. It stays
- * off for the 175 us before the scan that reads it dark. The duty cycle also sets the dissipation
- * of the series resistors of the emitters, which at half of the time would be above their rating.
+ * of microseconds to follow its emitter. The emitter timer counts up and down in 200 us each way and
+ * starts a scan at both ends, and an emitter is lit for 37.5 % of each half around its end: 75 us to
+ * let the receiver settle before the scan starts, and 75 us for the scan, which takes 66 us. The
+ * next end is 125 us after it goes dark. Each emitter is lit at one end of six, 12.5 % of the time,
+ * well within the rating of its series resistor. A half of 200 us is two periods of the control
+ * loop, which the simulation, stepping once per period, needs.
  *
  * @note The reference readings are placeholders, until the first calibration in the setup of the
  * README replaces them. They come from a calibration of April 2025, from before that setup, so the
@@ -436,7 +440,12 @@ const proxy::WallSensors::Config wall_sensors_config = {
             .inverted = true,
         },
     }},
-    .emitter_duty_cycle = 30.0F,
+    .burst =
+        {
+            .init_function = MX_TIM4_Init,
+            .handle = &htim4,
+        },
+    .emitter_duty_cycle = 37.5F,
     .fast_filter =
         {
             .cutoff_frequency = wall_fast_filter_cutoff,

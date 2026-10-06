@@ -92,11 +92,11 @@ constexpr float loop_time{static_cast<float>(loop_time_us) / 1.0e6F};
 /**
  * @brief Rate at which the wall sensors produce a reading, which is the rate their filters run at.
  *
- * @note One reading per period of the emitter timer, which the peripheral configuration makes five
- * periods of the control loop. The wall sensors check this value against the registers of the timer
- * when they start.
+ * @note One reading per cycle of the emitters, which take turns one at a time and leave two ends of
+ * the emitter timer dark: six ends of 200 us, 1.2 ms (see wall_sensors_config). The wall sensors
+ * check this value against the registers of the timer when they start.
  */
-constexpr float wall_sensors_frequency{2000.0F};
+constexpr float wall_sensors_frequency{1.0e6F / (6.0F * 200.0F)};
 
 /**
  * @brief Number of consecutive iterations over the crash acceleration that count as a crash.
@@ -315,8 +315,9 @@ constexpr float offset_settle_time{0.1F};
 /**
  * @brief Modes of the check of the crosstalk, and how long each one is lit, in seconds.
  *
- * @note Mode 0 has every emitter off, mode i + 1 the emitter of sensor i alone, and the last mode
- * all of them. A reading settles in a few milliseconds, so most of each mode is steady.
+ * @note Mode 0 has every emitter off, mode i + 1 publishes the light of the emitter of sensor i in
+ * every receiver, and the last mode the readings as they are. A reading settles in a few
+ * milliseconds, so most of each mode is steady.
  */
 ///@{
 constexpr uint8_t crosstalk_modes{nav::number_of_wall_sensors + 2};

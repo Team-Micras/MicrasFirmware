@@ -11,10 +11,12 @@
 
 namespace micras {
 /**
- * @brief State that lights the emitters of the wall sensors one at a time, then all and none.
+ * @brief State that publishes how much of each emitter's light reaches each receiver, one emitter
+ * at a time, after a mode with every emitter off and before one with the readings as they are.
  *
- * @note For measuring from the link how much of each emitter's light reaches each receiver, with
- * the robot still. The mode being lit is published, so that the readings can be told apart.
+ * @note For measuring from the link, with the robot still. The emitters take turns anyway, so in
+ * the mode of an emitter the intensity of each receiver is read from the scan where that emitter
+ * alone is lit. The mode is published, so that the readings can be told apart.
  */
 class CheckCrosstalkState : public BaseState {
 public:

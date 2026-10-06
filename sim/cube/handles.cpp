@@ -191,7 +191,7 @@ void MX_TIM3_Init() {
 }
 
 void MX_TIM4_Init() {
-    init_timer(htim4, tim4_registers, "htim4", 274, TIM_COUNTERMODE_CENTERALIGNED1, 250);
+    init_timer(htim4, tim4_registers, "htim4", 274, TIM_COUNTERMODE_CENTERALIGNED1, 200);
 }
 
 void MX_TIM5_Init() {

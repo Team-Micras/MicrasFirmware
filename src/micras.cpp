@@ -457,13 +457,7 @@ bool Micras::check_crosstalk() {
         return true;
     }
 
-    for (uint8_t i = 0; i < nav::number_of_wall_sensors; i++) {
-        const bool alone = this->telemetry.crosstalk_mode == i + 1;
-        const bool all = this->telemetry.crosstalk_mode == crosstalk_modes - 1;
-
-        this->wall_sensors.set_emitter(i, alone or all);
-    }
-
+    this->wall_sensors.turn_on();
     return false;
 }
 
@@ -746,10 +740,15 @@ void Micras::publish() {
     this->telemetry.state = this->fsm.get_current_state_id();
     this->telemetry.wall_flags = 0;
 
+    const bool crosstalk = this->fsm.get_current_state_id() == std::to_underlying(State::CHECK_CROSSTALK) and
+                           this->telemetry.crosstalk_mode > 0 and this->telemetry.crosstalk_mode < crosstalk_modes - 1;
+
     for (uint8_t i = 0; i < nav::number_of_wall_sensors; i++) {
         const proxy::WallSensors::Reading& reading = this->wall_sensors.get_reading(i);
 
-        this->telemetry.wall_intensities.at(i) = this->wall_sensors.get_intensity(i);
+        this->telemetry.wall_intensities.at(i) =
+            crosstalk ? this->wall_sensors.get_crosstalk(this->telemetry.crosstalk_mode - 1, i) :
+                        this->wall_sensors.get_intensity(i);
         this->telemetry.wall_flags |= static_cast<uint8_t>(
             (reading.valid ? 1U << i : 0U) | (reading.blind ? 1U << (i + nav::number_of_wall_sensors) : 0U)
         );
