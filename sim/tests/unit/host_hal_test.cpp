@@ -79,7 +79,7 @@ TEST_CASE_FIXTURE(HostHal, "HostHal.RunsTheWallEmittersAtTheirConfiguredFrequenc
     const hal::Pwm emitter{std::get<0>(wall_sensors_config.led_pwms)};
 
     CHECK(emitter.was_initialized());
-    const float cycles = 2.0F * emitter.get_frequency() / static_cast<float>(nav::number_of_wall_sensors + 2);
+    const float cycles = 2.0F * emitter.get_frequency() / static_cast<float>(nav::number_of_wall_sensors + 1);
 
     CHECK_LE(std::abs(cycles - wall_sensors_frequency), 1.0F);
 }

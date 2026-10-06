@@ -379,9 +379,9 @@ const proxy::TorqueSensors::Config torque_sensors_config = {
  * of microseconds to follow its emitter. The emitter timer counts up and down in 200 us each way and
  * starts a scan at both ends, and an emitter is lit for 37.5 % of each half around its end: 75 us to
  * let the receiver settle before the scan starts, and 75 us for the scan, which takes 66 us. The
- * next end is 125 us after it goes dark. Each emitter is lit at one end of six, 12.5 % of the time,
- * well within the rating of its series resistor. A half of 200 us is two periods of the control
- * loop, which the simulation, stepping once per period, needs.
+ * next end is 125 us after it goes dark. A frame of five ends, one per emitter and one dark, gives a
+ * reading of every sensor each millisecond, and each emitter is lit at one end of five, 15 % of the
+ * time, well within the rating of its series resistor.
  *
  * @note The reference readings are placeholders, until the first calibration in the setup of the
  * README replaces them. They come from a calibration of April 2025, from before that setup, so the

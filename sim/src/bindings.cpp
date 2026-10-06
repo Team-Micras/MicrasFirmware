@@ -92,7 +92,8 @@ static hal::host::GpioPort& gpio_port(const hal::Gpio::Config& config) {
  * count, any other around an underflow while its compare value is above zero, in both halves of
  * the count that meet at that end. Counting the updates from zero, the first row of the burst is in
  * force until update 0, the second until update 1, and row k of the table from update k + 1 on. The
- * scans start over with the cycle whenever the firmware arms the burst again.
+ * scans start over with the cycle whenever the firmware arms the burst again, and each half of the
+ * cycle is a frame the firmware reads.
  *
  * @param burst The port of the emitter timer.
  * @return The schedule.
@@ -140,10 +141,14 @@ static std::function<std::optional<WallSensors::Schedule>()>
             lit.at(emitter) = inverted == overflow and on(before[emitter]) and on(after[emitter]);
         }
 
+        const std::size_t position = static_cast<std::size_t>(end % length);
+        const std::size_t frame = length / 2;
+
         return WallSensors::Schedule{
-            .position = static_cast<std::size_t>(end % length),
+            .position = position,
             .length = length,
             .lit = std::move(lit),
+            .last = position % frame == frame - 1,
         };
     };
 }
@@ -285,26 +290,26 @@ MicrasBoard bind_devices(RunContext& context, const WorldInfo& world, MicrasChip
     hal::host::TimerBurstPort& burst = Board::timer_burst(wall_sensors_config.burst.handle);
     burst.bound = true;
 
-    const double scan_period =
-        1.0 / (static_cast<double>(nav::number_of_wall_sensors + 2) * static_cast<double>(wall_sensors_frequency));
+    const double scan_period_us =
+        1.0e6 / (static_cast<double>(nav::number_of_wall_sensors + 1) * static_cast<double>(wall_sensors_frequency));
 
-    board.wall_sensors = add(
-        context,
-        std::make_unique<WallSensors>(
-            context.world,
-            WallSensors::Config{
-                .name = "wall",
-                .description = world.robot->wall_sensors,
-                .scan_ticks = static_cast<uint32_t>(std::lround(scan_period / (context.clock.us_per_tick() * 1e-6))),
-                .emitter_duty = [emitters](std::size_t sensor) { return emitters.at(sensor)->duty_cycle; },
-                .write = [&wall_adc](std::size_t index, uint32_t counts) { wall_adc.write(index, counts); },
-                .finish_sequence = [&wall_adc] { wall_adc.finish_sequence(); },
-                .reflectance = world.reflectance,
-                .schedule = make_emitter_schedule(burst),
-            },
-            context.noise
-        )
-    );
+    board.wall_sensors =
+        add(context,
+            std::make_unique<WallSensors>(
+                context.world,
+                WallSensors::Config{
+                    .name = "wall",
+                    .description = world.robot->wall_sensors,
+                    .scan_ticks = 1,
+                    .emitter_duty = [emitters](std::size_t sensor) { return emitters.at(sensor)->duty_cycle; },
+                    .write = [&wall_adc](std::size_t index, uint32_t counts) { wall_adc.write(index, counts); },
+                    .finish_sequence = [&wall_adc] { wall_adc.finish_sequence(); },
+                    .reflectance = world.reflectance,
+                    .schedule = make_emitter_schedule(burst),
+                    .scan_period_us = scan_period_us,
+                },
+                context.noise
+            ));
 
     hal::host::AdcPort& battery_adc = Board::adc(battery_config.adc.handle);
     battery_adc.bound = true;

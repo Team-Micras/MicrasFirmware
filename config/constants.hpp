@@ -92,11 +92,11 @@ constexpr float loop_time{static_cast<float>(loop_time_us) / 1.0e6F};
 /**
  * @brief Rate at which the wall sensors produce a reading, which is the rate their filters run at.
  *
- * @note One reading per cycle of the emitters, which take turns one at a time and leave two ends of
- * the emitter timer dark: six ends of 200 us, 1.2 ms (see wall_sensors_config). The wall sensors
- * check this value against the registers of the timer when they start.
+ * @note One reading per frame of the emitters, which take turns one at a time and leave one end of
+ * the emitter timer dark: five ends of 200 us, 1 ms (see wall_sensors_config). The wall sensors check
+ * this value against the registers of the timer when they start.
  */
-constexpr float wall_sensors_frequency{1.0e6F / (6.0F * 200.0F)};
+constexpr float wall_sensors_frequency{1.0e6F / (5.0F * 200.0F)};
 
 /**
  * @brief Number of consecutive iterations over the crash acceleration that count as a crash.
