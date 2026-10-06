@@ -270,13 +270,14 @@ struct WheelCommand {
  * @brief Steps of the check of the polarity, and how long each one is driven, in seconds.
  *
  * @note Each wheel forward and then backward, one wheel at a time, at commands from the lowest to
- * the highest of polarity_commands, with a rest after each step. The lowest is about where the
- * bridge, at its 100 kHz, starts to deliver any pulse at all, so the sweep shows the direction of
- * each wheel, the command at which it breaks away, and how the speed of a free wheel grows with the
- * command once it turns. Meant for a robot on a stand: on the floor every step turns it around.
+ * the highest of polarity_commands, with a rest after each step. The steps are fine enough to tell
+ * where each wheel breaks away, which differs between the wheels and the directions. On a stand the
+ * sweep shows the direction of each wheel and how the speed of a free wheel grows with the command;
+ * on the floor every step turns the robot around the wheel that stands still, and the breakaway is
+ * the one under the weight of the robot, which needs about 30 cm of free floor around it.
  */
 ///@{
-constexpr std::array<float, 5> polarity_commands{10.0F, 20.0F, 30.0F, 40.0F, 50.0F};
+constexpr std::array<float, 9> polarity_commands{6.0F, 9.0F, 12.0F, 15.0F, 18.0F, 21.0F, 24.0F, 27.0F, 30.0F};
 constexpr float                polarity_step_duration{0.4F};
 
 constexpr auto polarity_steps{[] {
