@@ -711,6 +711,7 @@ nav::Measurements Micras::measure() const {
         sampled.walls.at(i) = {
             .distance = reading.distance,
             .valid = reading.valid,
+            .saturated = reading.saturated,
             .blind = reading.blind,
             .is_new = reading.is_new,
         };
@@ -765,8 +766,9 @@ void Micras::publish() {
         this->telemetry.wall_intensities.at(i) =
             crosstalk ? this->wall_sensors.get_crosstalk(this->telemetry.crosstalk_mode - 1, i) :
                         this->wall_sensors.get_intensity(i);
-        this->telemetry.wall_flags |= static_cast<uint8_t>(
-            (reading.valid ? 1U << i : 0U) | (reading.blind ? 1U << (i + nav::number_of_wall_sensors) : 0U)
+        this->telemetry.wall_flags |= static_cast<uint16_t>(
+            (reading.valid ? 1U << i : 0U) | (reading.blind ? 1U << (i + nav::number_of_wall_sensors) : 0U) |
+            (reading.saturated ? 1U << (i + 2 * nav::number_of_wall_sensors) : 0U)
         );
     }
 

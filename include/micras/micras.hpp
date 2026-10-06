@@ -420,7 +420,8 @@ private:
      * initialization status has one bit per check of check_initialization that failed, in the order
      * of InitCheck, so a robot that boots into the error state says why. The motor command is the
      * linear and angular share of the supply last applied, in percent. The wall flags hold whether
-     * each sensor's reading is valid in the low four bits and whether it is blind in the high four.
+     * each sensor's reading is valid in the four lowest bits, whether it is blind in the next four
+     * and whether it is saturated in the four after those.
      * The crosstalk mode is the one the check of the crosstalk lights, see crosstalk_modes.
      *
      * @note Some of what is worth watching is computed on the way out of its owner: the battery is
@@ -437,7 +438,7 @@ private:
         uint32_t                                       previous_trace{};
         std::array<float, 2>                           motor_command{};
         std::array<float, nav::number_of_wall_sensors> wall_intensities{};
-        uint8_t                                        wall_flags{};
+        uint16_t                                       wall_flags{};
         uint8_t                                        crosstalk_mode{};
         std::array<float, 3>                           angular_velocity{};
         std::array<float, 3>                           linear_acceleration{};

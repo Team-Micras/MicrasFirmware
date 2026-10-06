@@ -2,10 +2,10 @@
   "target": "micras",
   "scenario": "explore.toml",
   "args": "--scenario explore.toml --seconds 30 --out explore --flash explore/flash.bin",
-  "firmware_sha": "d3a0b336cde5441cba4b9c9ff40635215e4596c0-dirty",
+  "firmware_sha": "e73cb5f2ce5e8f01ee4a4a9fc57d28ae15fc1975-dirty",
   "mujoco_version": "3.14.0",
   "compiler": "GNU 15.2.0",
-  "data_sha256": "96620af9bcba3f8dc99e115f2a3da827e51d42fc9462a20923aef3d2f7db0c80",
+  "data_sha256": "b67d669e602c280aa6e2a81dc6084a450b837139541e7a2884e6037cb023465e",
   "states": [
     [
       0.0401,
@@ -24,11 +24,11 @@
       "RUN"
     ],
     [
-      28.052,
+      28.0826,
       "SAVE"
     ],
     [
-      28.0521,
+      28.0827,
       "WAIT_FOR_RUN"
     ]
   ],
@@ -36,12 +36,12 @@
     "ticks": 300000,
     "warnings_total": 0,
     "collisions": 0,
-    "goal_time": 27.7535,
+    "goal_time": 27.784,
     "stopped_at": null,
     "unbound_ports": 0,
-    "running_time": 24.290899999943388,
-    "max_pose_error": 0.006497377031787352,
-    "rms_across_error": 0.0017137344015724764
+    "running_time": 24.321499999943317,
+    "max_pose_error": 0.0068241891813899235,
+    "rms_across_error": 0.0017214933800291474
   },
   "tolerances": {
     "state_time": 0.25,
