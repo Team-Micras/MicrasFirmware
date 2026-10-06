@@ -602,7 +602,9 @@ bool Micras::calibrate() {
             std::array<uint8_t, 2>{wall_sensors_index.left_front, wall_sensors_index.right_front};
 
     for (const uint8_t sensor : pair) {
-        if (this->wall_sensors.get_calibration_spread(sensor) <= max_calibration_spread) {
+        if (this->wall_sensors.get_calibration_spread(sensor) <= max_calibration_spread and
+            this->wall_sensors.get_reference_reading(sensor) + this->wall_sensors.get_reading(sensor).dark <
+                wall_sensors_config.max_reading) {
             CalibrationRecord::record(
                 this->calibration_record.wall_reference_readings.at(sensor),
                 this->wall_sensors.get_reference_reading(sensor), wall_sensors_config.reference_readings.at(sensor)
