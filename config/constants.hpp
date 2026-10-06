@@ -184,9 +184,12 @@ constexpr uint32_t watchdog_timeout_ms{10};
  * @note Erasing a flash sector stalls the core for around 2 s, and up to 4 s in the worst case,
  * since the flash cannot be read while it is being erased. It also covers the construction of the
  * robot, where the proxies wait for their chips, and the planning of a fast run, whose search is
- * bounded per iteration but whose choice among the candidate routes is done in one.
+ * bounded per iteration but whose choice among the candidate routes is done in one. It is close to
+ * the longest the watchdog allows, 32 s at its largest prescaler: the robot is stopped through all
+ * of these, so a longer window costs nothing, and the watchdog reset the robot during saves within
+ * 8 s.
  */
-constexpr uint32_t stopped_watchdog_timeout_ms{8000};
+constexpr uint32_t stopped_watchdog_timeout_ms{30000};
 
 /**
  * @brief Cutoff frequencies of the sensor filters, in hertz.
@@ -301,7 +304,9 @@ constexpr auto polarity_steps{[] {
  *
  * @note A spread over the maximum means the robot moved, or something was in front of a sensor,
  * while it was being calibrated, and the result is not kept. An offset is a reading of nearly
- * nothing, whose standard deviation is taken against the noise floor of the sensors instead. It can
+ * nothing, whose standard deviation is taken against a bound of its own instead: a lamp flickering
+ * at twice the mains frequency spreads the readings of the sensor that sees the most of it by about
+ * 0.002 of the full scale, which the mean of the calibration averages out. It can
  * be slightly negative: each emitter's current disturbs the supply its receiver shares, which reads
  * the receiver's own lit scan a little below its dark one even with no light reaching it.
  */
@@ -311,6 +316,7 @@ constexpr float max_wall_offset{0.5F};
 constexpr float min_gyroscope_scale{0.9F};
 constexpr float max_gyroscope_scale{1.1F};
 constexpr float max_calibration_spread{0.05F};
+constexpr float max_offset_deviation{0.005F};
 constexpr float offset_settle_time{0.1F};
 
 ///@}

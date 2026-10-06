@@ -62,6 +62,8 @@ Micras::Micras() :
     this->fsm.add_state(this->check_crosstalk_state);
 
     this->telemetry.init_status = this->get_init_status();
+    this->telemetry.reset_flags = hal::Mcu::get_reset_flags();
+    this->telemetry.previous_trace = hal::Mcu::get_previous_trace();
     this->register_variables();
     this->localizer.reset(this->mission.get_start_pose(), this->measure());
 
@@ -92,6 +94,8 @@ void Micras::register_variables() {
     this->variables.add("crosstalk/", "mode", this->telemetry.crosstalk_mode, {.stream = true});
     this->variables.add("fsm/", "state", this->telemetry.state, {.stream = true});
     this->variables.add("", "init_status", this->telemetry.init_status, {});
+    this->variables.add("boot/", "reset_flags", this->telemetry.reset_flags, {});
+    this->variables.add("boot/", "previous_trace", this->telemetry.previous_trace, {});
     this->variables.add("wheel/", "left", this->measurements.left_wheel_angle, {.stream = true});
     this->variables.add("wheel/", "right", this->measurements.right_wheel_angle, {.stream = true});
     this->variables.add("motor/", "linear", this->telemetry.motor_command.at(0), {.stream = true});
@@ -233,6 +237,7 @@ void Micras::update() {
     const uint32_t ticks = this->tick.wait();
 
     this->missed_ticks += ticks - 1;
+    hal::Mcu::set_trace(std::to_underlying(Trace::LOOP));
     this->telemetry_time_us += ticks * loop_time_us;
     this->elapsed_time = static_cast<float>(ticks) * loop_time;
     this->watchdog.refresh();
@@ -418,7 +423,7 @@ bool Micras::calibrate_offsets() {
         const float offset = this->wall_sensors.get_offset(i);
 
         if (offset >= min_wall_offset and offset <= max_wall_offset and
-            this->wall_sensors.get_calibration_deviation(i) <= wall_sensors_config.noise_floor) {
+            this->wall_sensors.get_calibration_deviation(i) <= max_offset_deviation) {
             CalibrationRecord::record(
                 this->calibration_record.wall_offsets.at(i), offset, wall_sensors_config.offsets.at(i)
             );
@@ -550,11 +555,21 @@ bool Micras::has_route() const {
 }
 
 bool Micras::save_maze() {
-    const auto extension = this->watchdog.extend(stopped_watchdog_timeout_ms);
+    hal::Mcu::set_trace(std::to_underlying(Trace::SAVE_STARTED));
 
-    this->led.turn_on();
-    const bool saved = this->maze_storage.save(this->variables);
-    this->led.turn_off();
+    bool saved = false;
+
+    {
+        const auto extension = this->watchdog.extend(stopped_watchdog_timeout_ms);
+
+        hal::Mcu::set_trace(std::to_underlying(Trace::SAVE_WRITING));
+        this->led.turn_on();
+        saved = this->maze_storage.save(this->variables);
+        this->led.turn_off();
+        hal::Mcu::set_trace(std::to_underlying(Trace::SAVE_WRITTEN));
+    }
+
+    hal::Mcu::set_trace(std::to_underlying(Trace::SAVE_DONE));
     this->tick.restart();
 
     if (not saved) {

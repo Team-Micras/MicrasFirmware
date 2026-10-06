@@ -414,7 +414,9 @@ private:
     /**
      * @brief Values in the variable pool that no object holds at a stable address.
      *
-     * @note The state is the id of the state machine's current state, one of State. The
+     * @note The reset flags are those of the reset controller at boot, and the previous trace the
+     * mark the program left before that reset, one of Trace, which tells where a reset by the
+     * watchdog stopped it. The state is the id of the state machine's current state, one of State. The
      * initialization status has one bit per check of check_initialization that failed, in the order
      * of InitCheck, so a robot that boots into the error state says why. The motor command is the
      * linear and angular share of the supply last applied, in percent. The wall flags hold whether
@@ -431,6 +433,8 @@ private:
     struct Telemetry {
         uint8_t                                        state{};
         uint16_t                                       init_status{};
+        uint32_t                                       reset_flags{};
+        uint32_t                                       previous_trace{};
         std::array<float, 2>                           motor_command{};
         std::array<float, nav::number_of_wall_sensors> wall_intensities{};
         uint8_t                                        wall_flags{};
@@ -456,6 +460,18 @@ private:
         float                                          yaw_inertia{};
         bool                                           gyroscope_scale_valid{};
         float                                          gyroscope_scale{};
+    };
+
+    /**
+     * @brief Marks the program leaves where a reset would stop it, which the next boot publishes.
+     */
+    enum class Trace : uint32_t {
+        NONE = 0,
+        LOOP = 1,
+        SAVE_STARTED = 2,
+        SAVE_WRITING = 3,
+        SAVE_WRITTEN = 4,
+        SAVE_DONE = 5,
     };
 
     /**
