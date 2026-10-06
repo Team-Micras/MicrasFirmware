@@ -51,13 +51,17 @@ namespace micras {
  *   speed with the fan on, and comparing where the robot ends with where the odometry says, does.
  * - The motors are 1020 coreless motors (9.61 x 20.3 mm measured), about 18000 rpm with no load at
  *   12 V (owner), run from the 19.63 V boost converter through a 0.5 module spur stage of 7 and 36
- *   teeth. Their torque constant and resistance are estimates from that speed and from a maker's
- *   1020 windings of the same speed: 16.06 ohm is 15.4 of the winding and 0.66 of the bridge and
- *   shunt. The static friction voltage is the estimated no load current of the bare motor, 13 mA,
- *   times that resistance, and leaves out the gears. A free motor on the v1 gears and wheels drew
- *   290 mA at 20 V (owner), about 4.5 W of friction at some 23000 rpm, which grows with speed. These
- *   are 12 V motors on a 19.63 V supply: at 20 V a stalled one draws about 1.2 A, so the limits of
- *   voltage and current matter. The drive identification procedure measures all of these.
+ *   teeth. The torque constant comes from the sweep of the check of the polarity, with the wheels
+ *   in the air: the free left wheel gains 7.6 rad/s per percent of the command, 38.7 rad/s per volt,
+ *   so its back EMF is at most 25.8 mV s/rad at the wheel, 5.0 mN m/A at the motor, against the 6.27
+ *   the no-load speed of the datasheet gave. The resistance is still the estimate from a maker's 1020
+ *   windings of the same speed: 16.06 ohm is 15.4 of the winding and 0.66 of the bridge and shunt.
+ *   The static friction voltage is the command at which that wheel breaks away, 13 % of the supply
+ *   in both directions: it holds both the friction of the drive and the part of each pulse the
+ *   bridge loses at its 100 kHz, which the current sensors would be needed to tell apart. The right
+ *   drive has more friction, up to twice as much backward, and the feedback makes up the difference.
+ *   These are 12 V motors on a 19.63 V supply: at 20 V a stalled one draws about 1.2 A, so the limits
+ *   of voltage and current matter. The drive identification procedure measures all of these.
  * - The position of each wall sensor is the midpoint of the lenses of its emitter and receiver in
  *   the v2 caps (MicrasHardware leds.py and front.py), and the angle is that of the footprint: the
  *   two outer ones are square to the board and the two inner ones turned by 45 degrees. The half
@@ -91,11 +95,11 @@ constexpr nav::RobotModel robot_model{
         },
     .drive =
         {
-            .torque_constant = 0.00627F,
+            .torque_constant = 0.0050F,
             .resistance = 16.06F,
             .gear_ratio = 36.0F / 7.0F,
             .supply_voltage = 19.63F,
-            .static_friction_voltage = 0.21F,
+            .static_friction_voltage = 2.5F,
         },
     .wall_sensors = {{
         {.position = {.x = 0.0429F, .y = 0.0215F}, .angle = 0.0F, .half_angle = 0.09F},
