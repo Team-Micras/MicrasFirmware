@@ -386,15 +386,16 @@ constexpr nav::RunProfile make_run_profile(bool racing_line, bool boost, bool ri
 /**
  * @brief Profile of the search runs, which is where the search speed is set.
  *
- * @note Half of the traction without the fan, up to 1 m/s. Braking for a front wall is what limits
- * it: past half, a front wall that corrects the pose late asks for more braking than the tires give.
+ * @note A third of the traction without the fan, up to 0.3 m/s, the speed of the first searches on
+ * the robot. Braking for a front wall is what limits it: past half of the traction, a front wall
+ * that corrects the pose late asks for more braking than the tires give.
  */
 constexpr nav::RunProfile search_profile{
     .racing_line = false,
     .fan = false,
     .risky = false,
-    .utilization = 0.5F,
-    .max_speed = 1.0F,
+    .utilization = 0.3F,
+    .max_speed = 0.3F,
 };
 
 /**

@@ -2,10 +2,10 @@
   "target": "micras",
   "scenario": "idle.toml",
   "args": "--scenario idle.toml --out idle",
-  "firmware_sha": "e73cb5f2ce5e8f01ee4a4a9fc57d28ae15fc1975-dirty",
+  "firmware_sha": "033b4d3cc7a4565edfbc0ef24dcf8d2fc40c0c56-dirty",
   "mujoco_version": "3.14.0",
   "compiler": "GNU 15.2.0",
-  "data_sha256": "98b74d7cd99b42ef53b5356d2ff854797fef0c1c9ec9a207177c9843cb1a600a",
+  "data_sha256": "d1b0e6d4239a136c708671ec1599498c0626e24c823fd913b7952edbde5ea757",
   "states": [
     [
       0.0401,
