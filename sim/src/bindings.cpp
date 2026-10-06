@@ -273,7 +273,7 @@ MicrasBoard bind_devices(RunContext& context, const WorldInfo& world, MicrasChip
     add(context,
         std::make_unique<CurrentSense>(
             CurrentSense::Config{
-                .currents = {[left] { return left->current(); }, [right] { return right->current(); }},
+                .currents = {[right] { return right->current(); }, [left] { return left->current(); }},
                 .zero_voltage = static_cast<double>(
                     torque_sensors_config.zero_reading * torque_sensors_config.adc.reference_voltage
                 ),

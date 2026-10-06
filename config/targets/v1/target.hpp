@@ -338,6 +338,9 @@ const proxy::RotarySensor::Config rotary_sensor_right_config = {
  * which the ripple averages out whatever its phase. The two motors take 120 us, so four iterations
  * of the control loop out of five find a new pair and next to none is thrown away. The sum of 48 conversions
  * is shifted by six bits, which leaves the full scale at three quarters of the 16 bits.
+ *
+ * @note Sensor 0 measures the bridge on TIM3, which drives the right wheel, and sensor 1 the bridge
+ * on TIM1, which drives the left one (see locomotion_config).
  */
 const proxy::TorqueSensors::Config torque_sensors_config = {
     .adc =
@@ -552,12 +555,35 @@ const proxy::Fan::Config fan_config = {
 /**
  * @brief Configuration of the drive.
  *
+ * @note The motors are wired crossed on the v1 board: the bridge on TIM1 drives the left wheel and
+ * the one on TIM3 the right, and the left motor turns its wheel backward when its first output is
+ * driven, which the check of the polarity showed against the encoders.
+ *
  * @note The motors get no dead zone: the controller's feed-forward already adds the static friction
  * voltage of the robot model, which the drive identification measures, so a dead zone here would
  * count it twice and put a step of its size into every command that crosses zero.
  */
 const proxy::Locomotion::Config locomotion_config = {
     .left_motor =
+        {
+            .backwards_pwm =
+                {
+                    .init_function = MX_TIM1_Init,
+                    .handle = &htim1,
+                    .timer_channel = TIM_CHANNEL_1,
+                    .inverted = false,
+                },
+            .forward_pwm =
+                {
+                    .init_function = MX_TIM1_Init,
+                    .handle = &htim1,
+                    .timer_channel = TIM_CHANNEL_2,
+                    .inverted = false,
+                },
+            .max_stopped_command = 0.2F,
+            .deadzone = 0.0F,
+        },
+    .right_motor =
         {
             .backwards_pwm =
                 {
@@ -571,25 +597,6 @@ const proxy::Locomotion::Config locomotion_config = {
                     .init_function = MX_TIM3_Init,
                     .handle = &htim3,
                     .timer_channel = TIM_CHANNEL_2,
-                    .inverted = false,
-                },
-            .max_stopped_command = 0.2F,
-            .deadzone = 0.0F,
-        },
-    .right_motor =
-        {
-            .backwards_pwm =
-                {
-                    .init_function = MX_TIM1_Init,
-                    .handle = &htim1,
-                    .timer_channel = TIM_CHANNEL_2,
-                    .inverted = false,
-                },
-            .forward_pwm =
-                {
-                    .init_function = MX_TIM1_Init,
-                    .handle = &htim1,
-                    .timer_channel = TIM_CHANNEL_1,
                     .inverted = false,
                 },
             .max_stopped_command = 0.2F,
