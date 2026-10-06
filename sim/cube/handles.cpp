@@ -173,7 +173,7 @@ void MX_SPI3_Init() {
     hspi3.Instance = &spi3_registers;
     hspi3.Init.CLKPolarity = SPI_POLARITY_HIGH;
     hspi3.Init.CLKPhase = SPI_PHASE_2EDGE;
-    hspi3.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;
+    hspi3.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_16;
     hspi3.State = HAL_SPI_STATE_READY;
     micras::hal::host::Board::name_handle(&hspi3, "hspi3");
 }

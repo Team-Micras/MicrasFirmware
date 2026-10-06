@@ -29,7 +29,7 @@ name = "micras"
 
 [integration]
 # One firmware loop; halving it changed neither the contacts nor the trace.
-timestep = { value = 0.000125, source = "measured: tire contact, penetration and the explore trace unchanged at 62.5 and 31.25 us (v1)" }
+timestep = { value = 0.0001, source = "firmware: one loop of 100 us; at 125 us the tire contact, penetration and the explore trace were unchanged at 62.5 and 31.25 us (v1)" }
 
 [chassis]
 mass = { value = 0.0652, source = "measured: 78 g for the whole robot without its fan, less the two 6.4 g wheel assemblies; the fan stays off the robot for now" }

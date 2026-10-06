@@ -137,7 +137,7 @@ The inputs a scenario can press or set are `button` and the four DIP switches (`
 | `micras_sim_tests` | `tests/`: the host HAL on the Micras board, the SPI slot on its buses and the firmware's SPI chip proxies over the chip models (doctest) |
 
 Everything of the firmware compiles unchanged. The simulator's firmware thread runs
-`micras_firmware_main`, and the host timer hands every 125 us over to the world.
+`micras_firmware_main`, and the host timer hands every 100 us over to the world.
 
 ### The Cube layer
 
@@ -220,8 +220,8 @@ Things in `robot.toml` that look arbitrary and are not:
   the Kyosho MZW40-20 compound (Shore 20): the tire sinks 64 um under the 0.43 N it carries without the
   fan, against 75 to 105 um estimated from the compound. With the old 2 ms the hopping wheels hardly
   scrubbed, and a pivot at 0.6 V spun at 3.2 rad/s instead of 1.1.
-- **The timestep is 125 us**, one firmware loop. Halving it changed neither the contacts nor the trace.
-- **The chassis mass is 74.3 g**, not 87: the firmware's 87 g and 4.24e-5 kg m^2 are the whole robot,
+- **The timestep is 100 us**, one firmware loop. Halving the 125 us loop of before changed neither the contacts nor the trace.
+- **The chassis mass is 65.2 g**, not 78: the firmware's 78 g and 3.96e-5 kg m^2 are the whole robot,
   and the wheels are modeled separately.
 - **Each wall sensor has a gain.** `sim_wall_calibration` places the robot where the firmware calibrates
   (centered in a corridor for the side sensors, facing a wall for the front ones) and sets each gain so

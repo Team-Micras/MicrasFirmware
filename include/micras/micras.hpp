@@ -105,6 +105,9 @@ public:
 
     /**
      * @brief Construct a new Micras object.
+     *
+     * @note The estimate of the pose starts where a run starts, in the start cell, rather than at
+     * the corner of the maze: the robot is placed there, and that is where a run expects it.
      */
     Micras();
 

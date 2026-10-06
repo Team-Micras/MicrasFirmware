@@ -61,6 +61,7 @@ Micras::Micras() :
 
     this->telemetry.init_status = this->get_init_status();
     this->register_variables();
+    this->localizer.reset(this->mission.get_start_pose(), this->measure());
 
     this->startup_extension.reset();
     this->tick.restart();

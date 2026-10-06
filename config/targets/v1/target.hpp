@@ -335,8 +335,8 @@ const proxy::RotarySensor::Config rotary_sensor_right_config = {
  * @note The current of a motor ripples at the 100 kHz of its PWM, which the converter does not run
  * in step with, so a single conversion reads wherever in the ripple it happens to land. A reading
  * is therefore the mean of 48 conversions of 1.25 us: 60 us, six whole periods of the PWM, over
- * which the ripple averages out whatever its phase. The two motors take 120 us, so every iteration
- * of the control loop finds a new pair and next to none is thrown away. The sum of 48 conversions
+ * which the ripple averages out whatever its phase. The two motors take 120 us, so four iterations
+ * of the control loop out of five find a new pair and next to none is thrown away. The sum of 48 conversions
  * is shifted by six bits, which leaves the full scale at three quarters of the 16 bits.
  */
 const proxy::TorqueSensors::Config torque_sensors_config = {
@@ -468,9 +468,11 @@ const proxy::WallSensors::Config wall_sensors_config = {
 /**
  * @brief Configuration of the inertial measurement unit.
  *
- * @note The data rate is the one of the control loop. In the high accuracy mode the rates are round
- * numbers, 8 kHz being the fastest, and vary by 1 % with temperature and supply instead of by
- * whatever the oscillator of each part happens to run at.
+ * @note The data rate is the fastest the sensor has, below the 10 kHz of the control loop so that the
+ * reads never lock in phase with the samples (see loop_frequency). In the high accuracy mode the
+ * rates are round numbers, 8 kHz being the fastest, and vary by 1 % with temperature and supply
+ * instead of by whatever the oscillator of each part happens to run at. SPI3 runs at 7.8 MHz, so the
+ * burst that reads a sample holds the sensor's output registers for 18 us of every 100 us.
  *
  * @note The names of the gyroscope filter settings say little: with the first low pass filter
  * enabled, the first setting gives a bandwidth of 281 Hz at this data rate and the fourth one the

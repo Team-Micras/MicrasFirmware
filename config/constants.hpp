@@ -31,7 +31,7 @@ namespace micras {
  * Constants
  *****************************************/
 
-constexpr uint32_t loop_time_us{125};
+constexpr uint32_t loop_time_us{100};
 constexpr uint8_t  max_variables{128};
 
 /**
@@ -74,9 +74,12 @@ constexpr float start_offset{0.04F + robot_model.maze.wall_thickness / 2.0F};
  * @note Derived from the loop period rather than written twice: a filter designed for a sampling
  * rate it is not sampled at is a filter with the wrong cutoff.
  *
- * @note The period is the one of the fastest sensor, the 8 kHz of the inertial measurement unit,
- * since an iteration without a new sample of anything has nothing to compute. The next periods that
- * keep that property are 250 and 500 microseconds, with the data rate of the sensor following.
+ * @note The loop runs at 10 kHz, faster than the 8 kHz of its fastest sensor, the inertial
+ * measurement unit, which it reads once per iteration. At the same rate as the sensor the reads
+ * drift in and out of phase with its samples over tens of milliseconds, and a sample that falls
+ * inside a read is lost, since the sensor holds its output registers while one is in progress: the
+ * samples stopped for up to 100 ms at a time on the robot. At 10 kHz the two beat at 2 kHz, so a lost
+ * sample is followed by a new one within two iterations.
  */
 constexpr float loop_frequency{1.0e6F / static_cast<float>(loop_time_us)};
 
@@ -88,7 +91,7 @@ constexpr float loop_time{static_cast<float>(loop_time_us) / 1.0e6F};
 /**
  * @brief Rate at which the wall sensors produce a reading, which is the rate their filters run at.
  *
- * @note One reading per period of the emitter timer, which the peripheral configuration makes four
+ * @note One reading per period of the emitter timer, which the peripheral configuration makes five
  * periods of the control loop. The wall sensors check this value against the registers of the timer
  * when they start.
  */
