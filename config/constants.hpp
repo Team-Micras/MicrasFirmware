@@ -55,12 +55,13 @@ constexpr uint16_t bluetooth_tx_buffer_size{4096};
 /**
  * @brief Horizontal acceleration, in m/s^2, over which the robot has hit something.
  *
- * @note The tires cannot transmit more than the traction with the fan running, so anything above
- * it came from a wall. The margin covers the noise of the accelerometer and the centripetal and
- * tangential acceleration of the IMU, which is not on the axis of rotation, and the feedback on top
- * of what a fast run plans with the fan.
+ * @note The tires cannot transmit more than the traction, but the accelerometer sees more than
+ * what they transmit: its noise, the centripetal and tangential acceleration of the IMU, which is
+ * not on the axis of rotation, and the jolt of the feedback correcting a sudden error. On the robot,
+ * with the 0.54 the tires hold, such a correction went past 15 m/s^2 without touching anything,
+ * while hitting a wall at the speed of a run stops it in a few millimeters, well above 25 m/s^2.
  */
-constexpr float crash_acceleration{1.25F * robot_model.traction_acceleration(true)};
+constexpr float crash_acceleration{25.0F};
 constexpr float fan_speed{100.0F};
 
 /**

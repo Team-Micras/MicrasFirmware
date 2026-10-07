@@ -110,7 +110,7 @@ void Micras::register_variables() {
     // this->variables.add("", "battery_voltage", this->telemetry.battery_voltage, {.stream = true});
     this->variables.add("", "adc_restarts", this->telemetry.adc_restarts, {});
     this->variables.add("", "failed_saves", this->telemetry.failed_saves, {});
-    this->variables.add("", "fault", this->fault, {});
+    this->variables.add("", "fault", this->fault, {.stream = true});
 
     const proxy::Imu::Diagnostics& imu_bus = this->imu.get_diagnostics();
 
