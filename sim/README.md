@@ -63,7 +63,7 @@ Each is a CMake target over a script of `scripts/` that takes its paths as argum
 | Target | Does |
 |---|---|
 | `sim_run_idle` | the robot switched on and left alone for 4 s -> `runs/idle` |
-| `sim_run_explore` | the first 30 s of an exploration, with its flash -> `runs/explore` |
+| `sim_run_explore` | the first 60 s of an exploration, with its flash -> `runs/explore` |
 | `sim_contest` | the whole contest (`explore_solve`) in every maze at once, and its health |
 | `sim_contest_all` | the same with every switch of the fast run on (`explore_solve_all`) |
 | `sim_compare_baseline` | `runs/idle` and `runs/explore` against `baseline/` |
@@ -86,7 +86,7 @@ alljapan-033-2012-exp-fin, from the simulator.
 ## The gate and the baseline
 
 `sim_check` builds the simulator and the tests, runs the tests of `tests/` through CTest, checks that
-the flash outlives a run, runs the two checked scenarios (idle, and the first 30 s of an exploration),
+the flash outlives a run, runs the two checked scenarios (idle, and the first 60 s of an exploration),
 compares them with `baseline/` and checks their health: no warnings, no collision, no
 non-finite sample, no unbound port, no watchdog expiry, no emergency stop, no dropped byte.
 
@@ -205,7 +205,7 @@ the MJCF from it and composes it with the arena; the composed model is saved to 
 `sim_robot_report` prints them side by side. Today they differ in the emitter half angle (3 deg
 datasheet against 5.2 deg with mounting tolerance), the gyro noise (datasheet against a third more), the
 maze wall thickness (12 mm arena against 12.6 mm) and the outline (the 53.5 by 25 mm board against
-56.7 by 25.7 mm with the bumper and the sensor caps), all on purpose, and in the static friction
+53.5 by 25.7 mm with the sensor caps), all on purpose, and in the static friction
 voltage: 0.80 V of the simulated drive, from a free motor's measured draw, against the bare motor's
 0.21 V, for the drive identification to settle.
 
@@ -229,7 +229,7 @@ Things in `robot.toml` that look arbitrary and are not:
   the readings were about four times low and the localizer corrected against them. `--sweep` shows how
   the firmware's distances then follow the true ones.
 - **Two PTFE glides, 0.1 mm off the floor.** The center of mass is over the axle, so the robot rocks
-  onto its rear glide when it accelerates and onto the one on the bumper when it brakes or the fan
+  onto its rear glide when it accelerates and onto the one under its nose when it brakes or the fan
   pulls. With the bare board edge 1 mm up, the body swung 2 degrees and slammed the rear edge down at
   every change of acceleration; the tires lost the floor, slid, and the odometry ran 20 to 30 mm long
   over a corridor. The glides keep the swing to 0.3 degrees. Two spheres stand in for them. Their
@@ -302,7 +302,7 @@ What the firmware does that the fast modes depend on:
    with the fan on and off measures the real one.
 3. **The fan tips the robot onto its nose.** It pulls 17.5 mm ahead of the axle, and a thin-gap flow
    estimate puts its center of suction at 14 to 16 mm. So a third of the downforce rests on the glide
-   of the bumper, which drags at its friction, 0.15 estimated for PTFE. Scales under the wheels and under
+   under the nose, which drags at its friction, 0.15 estimated for PTFE. Scales under the wheels and under
    the nose, with the fan running, measure the share, and tilting the robot on its glides the friction.
 4. **A wall start is seen early.** Toward the start of a wall a diagonal sensor also lights the wall's
    end face, by the wall thickness times the slope of the beam.

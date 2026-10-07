@@ -8,10 +8,11 @@ seconds = 300
 seed = 1
 
 # Where the firmware expects to be placed (constants.hpp start_offset): its origin
-# 40 mm plus half a wall in front of the back wall's center line, in the start cell.
+# 36.5 mm plus half a wall in front of the back wall's center line, in the start cell,
+# the back of the board against the wall with 0.2 mm to spare.
 [start]
 x = 0.63
-y = 0.04755
+y = 0.04425
 yaw_deg = 90.0
 
 [[events]]

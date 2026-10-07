@@ -64,9 +64,15 @@ constexpr float crash_acceleration{1.25F * robot_model.traction_acceleration(tru
 constexpr float fan_speed{100.0F};
 
 /**
- * @brief Distance from the back edge of the start cell to the axle, with the robot against the wall.
+ * @brief Distance from the back edge of the start cell to the axle, with the robot against the wall,
+ * and how much farther the return parks it.
+ *
+ * @note Backing into its place, the robot stops a few millimeters past where it aims.
  */
-constexpr float start_offset{0.04F + robot_model.maze.wall_thickness / 2.0F};
+///@{
+constexpr float start_offset{robot_model.chassis.rear_length + robot_model.maze.wall_thickness / 2.0F};
+constexpr float park_clearance{0.008F};
+///@}
 
 /**
  * @brief Rate at which the control loop runs, and therefore the rate at which every filter driven
@@ -571,6 +577,7 @@ const nav::Mission::Config mission_config{
     .search_profile = search_profile,
     .map_profiles = map_profiles,
     .start_offset = start_offset,
+    .park_clearance = park_clearance,
     .stop_time = 0.1F,
     .attach_time = 0.5F,
     .look_time = 0.02F,

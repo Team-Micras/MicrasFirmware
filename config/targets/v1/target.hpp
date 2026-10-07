@@ -386,9 +386,9 @@ const proxy::TorqueSensors::Config torque_sensors_config = {
  * @note The diagonal reference readings are those of the calibration in the setup of the README, in
  * the home maze with the sensors fired one at a time and no caps on the sensors. Without the caps
  * the front receivers reach their ceiling up to about 110 mm from a wall, so the center of a cell
- * cannot give their references: they are fitted to the readings of the robot pulled straight back
- * from a wall, from 110 to 200 mm, and are what the receivers would read at the reference distance
- * if they had no ceiling. The reference distances are what the geometry of the sensors says they measure in that
+ * cannot give their references: they are fitted to the readings of the robot rolled straight back
+ * from touching a wall, from 110 to 260 mm, where they then place the wall within 4 mm rms, and are
+ * what the receivers would read at the reference distance if they had no ceiling. The reference distances are what the geometry of the sensors says they measure in that
  * setup: the front sensors facing a wall from the center of a cell, the diagonal ones in a
  * corridor with no wall ahead.
  *
@@ -465,10 +465,10 @@ const proxy::WallSensors::Config wall_sensors_config = {
         },
     .reference_readings =
         {
-            4.390F,
+            3.906F,
             0.4519F,
             0.4157F,
-            3.616F,
+            3.118F,
         },
     .offsets = {0.0F, 0.0F, 0.0F, 0.0F},
     .reference_distances =

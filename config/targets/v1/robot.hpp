@@ -22,20 +22,22 @@ namespace micras {
  * sim/robot.toml holds the same quantities as the physical truth of the simulation, each with its
  * source.
  *
- * - The robot runs without its fan for now, which takes about 9 g off the 87 g the v2 model
- *   predicts with it: 78 g on a scale. The yaw inertia is the model's estimate from the volumes of
- *   the parts with their densities, less the fan motor 17.5 mm ahead of the axle; the drive
- *   identification settles it.
+ * - The robot runs without its fan for now: 78 g on a scale, against the 76.7 g the MicrasHardware
+ *   model predicts without the fan, its mount and their screws (86 g with them), with the brass
+ *   gears. The yaw inertia is that model's, 34.4 g cm^2 about the axle from the volumes of the
+ *   parts with their densities, scaled to the 78 g; the drive identification settles it.
  * - The tires are 2 mm silicone bands stretched over 18.3 mm hubs into a channel between two
- *   flanges. The wheel radius is half of the 22.5 mm measured over the tires, against the 22.08 mm
- *   of the model, and the track width the 45 mm measured between their centers. Driving a known
- *   distance and a known number of turns calibrates both. The tires flatten under load and the wheels roll on a smaller radius: the
+ *   flanges. The wheel radius is the rolling radius measured on the robot, 11.384 mm from rolling it
+ *   by hand over 615 mm between two walls of the maze with the fan off, plus the 29 um its tires
+ *   flatten under that load; the two wheels agree within 0.13 %. The track width is the 45 mm
+ *   measured between their centers, which a known number of turns calibrates. The tires flatten under load and the wheels roll on a smaller radius: the
  *   rolling compliance is that of the simulated tire, 77 um less per newton on a tire (29 um at
  *   the 0.43 N of the fan off, 58 um at the 0.73 N of the fan on), still to measure on the v2
  *   tires by driving a known distance with the fan on and off.
- * - The outline is the rectangle that encloses whatever can touch a wall: the board, with the TPU
- *   bumper 3.2 mm ahead of its nose (56.7 mm ahead of the axle) and the keyway covers of the outer
- *   sensor caps 0.7 mm past its sides.
+ * - The outline is the rectangle that encloses whatever can touch a wall: the board, whose nose is
+ *   53.5 mm ahead of the axle and whose back is 36.5 mm behind it (90 mm long, 89.9 mm measured on
+ *   the robot, which no longer has the TPU bumper), and the keyway covers of the outer sensor caps
+ *   0.7 mm past its sides.
  * - The friction coefficient is an estimate, for a tilt test of the robot on the maze floor to
  *   measure. The fan downforce, about 1 N at full speed, is the prediction of the v2 fan study
  *   (MicrasHardware README: the 26.4 mm impeller on the 18000 rpm motor, with the skirt; the earlier
@@ -78,12 +80,12 @@ constexpr nav::RobotModel robot_model{
     .chassis =
         {
             .mass = 0.078F,
-            .yaw_inertia = 3.96e-5F,
-            .wheel_radius = 0.01125F,
+            .yaw_inertia = 3.49e-5F,
+            .wheel_radius = 0.011413F,
             .rolling_compliance = 77e-6F,
             .track_width = 0.045F,
             .half_width = 0.0257F,
-            .front_length = 0.0567F,
+            .front_length = 0.0535F,
             .rear_length = 0.0365F,
         },
     .traction =
