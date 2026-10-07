@@ -194,7 +194,7 @@ friction = { value = 0.15, source = "estimate: a PTFE glide on a painted floor, 
 [wheels]
 radius = { value = 0.011413, source = "measured: rolling 11.384 mm by hand over 615 mm between two maze walls with the fan off, plus the 29 um the tire model flattens under that load" }
 width = { value = 0.003465, source = "CAD v2: params.tire_w, the tire cut to the hub's channel" }
-track = { value = 0.045, source = "measured: tire center to tire center; calibrate by spinning a known number of turns" }
+track = { value = 0.0472, source = "measured: the wheels turn on 47.2 mm in five turns in place against the gyroscope (45 mm between the tire centers)" }
 mass = { value = 0.0056, source = "MicrasHardware masses: the drilled brass 36T wheel gear 3.3 g, the printed wheel 0.75 g, tire and axle 0.82 g, magnet 0.42 g, magnet cup 0.1 g and the bearings' inner rings" }
 spin_inertia = { value = 2.48e-7, source = "CAD v2 with the brass gear at the 3.3 g MicrasHardware gives it instead of 4.3 g: about the axle, the gear 54 % of it" }
 friction = { value = 0.54, source = "measured: the robot slides sideways on the maze floor at a slope of 28.5 deg" }

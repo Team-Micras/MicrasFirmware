@@ -29,8 +29,9 @@ namespace micras {
  * - The tires are 2 mm silicone bands stretched over 18.3 mm hubs into a channel between two
  *   flanges. The wheel radius is the rolling radius measured on the robot, 11.384 mm from rolling it
  *   by hand over 615 mm between two walls of the maze with the fan off, plus the 29 um its tires
- *   flatten under that load; the two wheels agree within 0.13 %. The track width is the 45 mm
- *   measured between their centers, which a known number of turns calibrates. The tires flatten under load and the wheels roll on a smaller radius: the
+ *   flatten under that load; the two wheels agree within 0.13 %. The track width is the one the
+ *   wheels turn on, 47.2 mm from five turns in place against the gyroscope (whose scale the same
+ *   turns measured at 1.0003 against a wall), wider than the 45 mm between the tire centers. The tires flatten under load and the wheels roll on a smaller radius: the
  *   rolling compliance is that of the simulated tire, 77 um less per newton on a tire (29 um at
  *   the 0.43 N of the fan off, 58 um at the 0.73 N of the fan on), still to measure on the v2
  *   tires by driving a known distance with the fan on and off.
@@ -83,7 +84,7 @@ constexpr nav::RobotModel robot_model{
             .yaw_inertia = 3.49e-5F,
             .wheel_radius = 0.011413F,
             .rolling_compliance = 77e-6F,
-            .track_width = 0.045F,
+            .track_width = 0.0472F,
             .half_width = 0.0257F,
             .front_length = 0.0535F,
             .rear_length = 0.0365F,
