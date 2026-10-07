@@ -364,10 +364,15 @@ using Mission = TMission<maze_width, maze_height>;
  * its plan while the controller corrected, and slid into the wall at 0.58 g: the normal runs ask for
  * 0.3 g of the 0.54 the tires hold without the fan, which leaves that peak below it. The first fast
  * runs on the robot also stop at 1 m/s.
+ *
+ * @note Simulated in the home maze with the 20 mm margin of the turns, 0.6 keeps 16 mm from the
+ * walls under every disturbance tried, and 0.65 only 5 mm: the wheels slip as they speed up on the
+ * first straight, and the edge that ends it corrects only 3 mm of the 15 mm that leaves. At 0.75
+ * every run hits the first turn. Boost stops at 0.65 for that reason.
  */
 ///@{
-constexpr float normal_utilization{0.55F};
-constexpr float boost_utilization{0.7F};
+constexpr float normal_utilization{0.6F};
+constexpr float boost_utilization{0.65F};
 
 ///@}
 
