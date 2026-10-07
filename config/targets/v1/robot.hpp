@@ -38,8 +38,8 @@ namespace micras {
  *   53.5 mm ahead of the axle and whose back is 36.5 mm behind it (90 mm long, 89.9 mm measured on
  *   the robot, which no longer has the TPU bumper), and the keyway covers of the outer sensor caps
  *   0.7 mm past its sides.
- * - The friction coefficient is an estimate, for a tilt test of the robot on the maze floor to
- *   measure. The fan downforce, about 1 N at full speed, is the prediction of the v2 fan study
+ * - The friction coefficient is tan(28.5 deg), the slope at which the robot slides sideways on the
+ *   maze floor, its wheels across the slope. The fan downforce, about 1 N at full speed, is the prediction of the v2 fan study
  *   (MicrasHardware README: the 26.4 mm impeller on the 18000 rpm motor, with the skirt; the earlier
  *   figure was 3 N), for a scale under the robot with the fan running to check. The fan draws
  *   through a 15 mm hole with a 1 mm gap under the whole board, which a thin film skirt taped under
@@ -90,7 +90,7 @@ constexpr nav::RobotModel robot_model{
         },
     .traction =
         {
-            .friction_coefficient = 1.0F,
+            .friction_coefficient = 0.54F,
             .fan_downforce = 1.0F,
             .fan_offset = 0.0175F,
             .lateral_compliance = 0.0048F,

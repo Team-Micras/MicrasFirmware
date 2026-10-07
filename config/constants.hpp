@@ -359,12 +359,13 @@ using Mission = TMission<maze_width, maze_height>;
  *
  * @note In a turn the tires slide sideways in proportion to the grip they are asked for, which the
  * pose estimate only predicts. Boost stops at 0.7 of the traction for that reason: at 0.75 the risky
- * turns slide the robot into the walls. Without the fan the tires slip forward too: past 0.4 the
- * wheels count a third more than the robot travels while it speeds up, and it turns into the
- * corner of the first turn. The first fast runs on the robot also stop at 1 m/s.
+ * turns slide the robot into the walls. On the robot, a turn planned at 0.4 g peaked 45 % above
+ * its plan while the controller corrected, and slid into the wall at 0.58 g: the normal runs ask for
+ * 0.3 g of the 0.54 the tires hold without the fan, which leaves that peak below it. The first fast
+ * runs on the robot also stop at 1 m/s.
  */
 ///@{
-constexpr float normal_utilization{0.4F};
+constexpr float normal_utilization{0.55F};
 constexpr float boost_utilization{0.7F};
 
 ///@}
@@ -400,15 +401,15 @@ constexpr nav::RunProfile make_run_profile(bool racing_line, bool boost, bool ri
 /**
  * @brief Profile of the search runs, which is where the search speed is set.
  *
- * @note A third of the traction without the fan, up to 0.3 m/s, the speed of the first searches on
- * the robot. Braking for a front wall is what limits it: past half of the traction, a front wall
+ * @note 0.3 g, 0.55 of the traction without the fan, up to 0.3 m/s, the speed of the first searches
+ * on the robot. Braking for a front wall is what limits it: past half of the traction, a front wall
  * that corrects the pose late asks for more braking than the tires give.
  */
 constexpr nav::RunProfile search_profile{
     .racing_line = false,
     .fan = false,
     .risky = false,
-    .utilization = 0.3F,
+    .utilization = 0.55F,
     .max_speed = 0.3F,
 };
 
