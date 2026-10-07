@@ -12,6 +12,9 @@
  *       robot.toml, and each is corrected by the ratio of the two readings, so a
  *       calibrated file prints its own gains back.
  *
+ * @note The walls are those of the maze the robot was calibrated in, whose dimensions and
+ *       surfaces mazes/home4x4.toml gives.
+ *
  * @note With --sweep it moves the robot instead: toward and away from the wall
  *       ahead for the front sensors, across the corridor for the side ones. At
  *       each place it prints the range along each sensor's axis and the
@@ -84,6 +87,16 @@ struct Sample {
     std::vector<double> readings;
     std::vector<double> ranges;
 };
+
+/**
+ * @brief Dimensions and surfaces of the maze the robot's sensors were calibrated in.
+ *
+ * @return Those measured beside its drawing.
+ */
+const MazeConfig& calibration_surfaces() {
+    static const MazeConfig config = MazeConfig::load_beside(MICRAS_CALIBRATION_MAZE);
+    return config;
+}
 }  // namespace
 
 /**
@@ -96,8 +109,8 @@ struct Sample {
  * @return Each sensor's lit minus dark reading, as the firmware normalizes it, and its axis range.
  */
 static Sample sample(const RobotDescription& robot, std::string_view drawing, double across = 0.0, double along = 0.0) {
-    const MazeConfig config{};
-    const Maze       maze = Maze::parse(drawing);
+    const MazeConfig& config = calibration_surfaces();
+    const Maze        maze = Maze::parse(drawing);
 
     MujocoWorld world;
     world.build(
@@ -109,21 +122,26 @@ static Sample sample(const RobotDescription& robot, std::string_view drawing, do
     std::vector<uint32_t> counts(2 * robot.wall_sensors.sensors.size());
     WallSensors           sensors{
         world,
-        {
-            .name = "wall",
-            .description = robot.wall_sensors,
-            .scan_ticks = 1,
-            .emitter_duty = [](std::size_t) { return 30.0F; },
-            .write = [&counts](std::size_t index, uint32_t value) { counts.at(index) = value; },
-            .finish_sequence = [] { },
-            .reflectance =
+                  {
+                      .name = "wall",
+                      .description = robot.wall_sensors,
+                      .scan_ticks = 1,
+                      .emitter_duty = [](std::size_t) { return 30.0F; },
+                      .write = [&counts](std::size_t index, uint32_t value) { counts.at(index) = value; },
+                      .finish_sequence = [] {},
+                      .reflectance =
                 [&world, &config](int geom) {
                     const char* name = mj_id2name(world.model(), mjOBJ_GEOM, geom);
                     return Maze::reflectance(name == nullptr ? "" : name, config);
                 },
-            .schedule = {},
+                      .minnaert =
+                [&world, &config](int geom) {
+                    const char* name = mj_id2name(world.model(), mjOBJ_GEOM, geom);
+                    return Maze::minnaert(name == nullptr ? "" : name, config);
+                },
+                      .schedule = {},
         },
-        {.seed = 1, .ideal = true},
+                  {.seed = 1, .ideal = true},
     };
 
     Clock clock = Clock::from_model(world.timestep(), micras::loop_time_us);

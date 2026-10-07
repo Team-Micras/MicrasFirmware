@@ -127,6 +127,7 @@ target_link_libraries(micras_wall_calibration PRIVATE
 
 target_compile_definitions(micras_wall_calibration PRIVATE
     MICRAS_TARGET_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
+    MICRAS_CALIBRATION_MAZE="${CMAKE_CURRENT_SOURCE_DIR}/mazes/home4x4.txt"
 )
 
 add_executable(micras_robot_report

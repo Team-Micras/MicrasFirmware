@@ -275,7 +275,7 @@ emitter = { value = [0.043, 0.0215, 0.011791], source = "CAD v2: W1, SFH 4550 le
 receiver = { value = [0.042775, 0.0215, 0.005291], source = "CAD v2: W1, TPS601A lens tip" }
 yaw_deg = { value = 0.0, source = "CAD" }
 group = { value = 0, source = "firmware: TIM4 channel 1, not inverted" }
-gain = { value = 12.133, source = "calibrated: target.hpp reference_readings over the simulated reading below the ceiling at the calibration pose (tools/wall_calibration)" }
+gain = { value = 11.875, source = "calibrated: 12.133, target.hpp reference_readings over the simulated reading below the ceiling at the calibration pose (tools/wall_calibration), over the 1.0217 the home maze's glossy 15.1 mm walls read at that pose against matte 12 mm ones" }
 
 [[wall_sensors.sensors]]
 name = "left"
@@ -283,7 +283,7 @@ emitter = { value = [0.05201, 0.014626, 0.011791], source = "CAD v2: W2, SFH 455
 receiver = { value = [0.051851, 0.014467, 0.005291], source = "CAD v2: W2, TPS601A lens tip" }
 yaw_deg = { value = 45.0, source = "CAD" }
 group = { value = 1, source = "firmware: TIM4 channel 2, inverted" }
-gain = { value = 6.970, source = "calibrated: target.hpp reference_readings over the simulated reading at the calibration pose (tools/wall_calibration)" }
+gain = { value = 11.848, source = "calibrated: target.hpp reference_readings over the simulated reading at the calibration pose, in the home maze's walls (tools/wall_calibration)" }
 
 [[wall_sensors.sensors]]
 name = "right"
@@ -291,7 +291,7 @@ emitter = { value = [0.052011, -0.014627, 0.011791], source = "CAD v2: W3, SFH 4
 receiver = { value = [0.051852, -0.014468, 0.005291], source = "CAD v2: W3, TPS601A lens tip" }
 yaw_deg = { value = -45.0, source = "CAD" }
 group = { value = 0, source = "firmware: TIM4 channel 3, not inverted" }
-gain = { value = 5.654, source = "calibrated: target.hpp reference_readings over the simulated reading at the calibration pose (tools/wall_calibration)" }
+gain = { value = 9.609, source = "calibrated: target.hpp reference_readings over the simulated reading at the calibration pose, in the home maze's walls (tools/wall_calibration)" }
 
 [[wall_sensors.sensors]]
 name = "right_front"
@@ -299,4 +299,4 @@ emitter = { value = [0.043, -0.0215, 0.011791], source = "CAD v2: W4, SFH 4550 l
 receiver = { value = [0.042775, -0.0215, 0.005291], source = "CAD v2: W4, TPS601A lens tip" }
 yaw_deg = { value = 0.0, source = "CAD" }
 group = { value = 1, source = "firmware: TIM4 channel 4, inverted" }
-gain = { value = 9.402, source = "calibrated: target.hpp reference_readings over the simulated reading below the ceiling at the calibration pose (tools/wall_calibration)" }
+gain = { value = 9.202, source = "calibrated: 9.402, target.hpp reference_readings over the simulated reading below the ceiling at the calibration pose (tools/wall_calibration), over the 1.0217 the home maze's glossy 15.1 mm walls read at that pose against matte 12 mm ones" }

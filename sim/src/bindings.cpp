@@ -305,6 +305,7 @@ MicrasBoard bind_devices(RunContext& context, const WorldInfo& world, MicrasChip
                     .write = [&wall_adc](std::size_t index, uint32_t counts) { wall_adc.write(index, counts); },
                     .finish_sequence = [&wall_adc] { wall_adc.finish_sequence(); },
                     .reflectance = world.reflectance,
+                    .minnaert = world.minnaert,
                     .schedule = make_emitter_schedule(burst),
                     .scan_period_us = scan_period_us,
                 },

@@ -21,10 +21,13 @@ namespace micras {
  *
  * @note The walls are 12 mm thick by the rules. 12.6 mm is what the firmware has always assumed, from
  * a measurement of a competition maze, whose walls are thicker than the rules once painted.
+ *
+ * @note The walls are taken as matte, painted wood, until a competition maze is measured.
  */
 constexpr nav::RobotModel::Maze maze_geometry{
     .cell_size = 0.18F,
     .wall_thickness = 0.0126F,
+    .wall_minnaert = 1.0F,
 };
 
 constexpr uint8_t maze_width{16};

@@ -204,10 +204,15 @@ the MJCF from it and composes it with the arena; the composed model is saved to 
 `robot.hpp` in the firmware is the firmware's *belief*, and the two are never forced equal.
 `sim_robot_report` prints them side by side. Today they differ in the emitter half angle (3 deg
 datasheet against 5.2 deg with mounting tolerance), the gyro noise (datasheet against a third more), the
-maze wall thickness (12 mm arena against 12.6 mm) and the outline (the 53.5 by 25 mm board against
+maze wall thickness (12 mm arena against 12.6 mm, in the classic mazes) and the outline (the 53.5 by 25 mm board against
 53.5 by 25.7 mm with the sensor caps), all on purpose, and in the static friction
 voltage: 0.80 V of the simulated drive, from a free motor's measured draw, against the bare motor's
 0.21 V, for the drive identification to settle.
+
+The home maze has its measured dimensions and surfaces beside its drawing, in `mazes/home4x4.toml`: 15.1 mm
+walls of semi-gloss white melamine, which send a sensor back much more light square on than at an angle.
+Their Minnaert exponent is the one `config/mazes/home/maze_config.hpp` gives the firmware, and the wall
+sensors' gains in `robot.toml` are calibrated against those walls, where the robot calibrated them.
 
 Things in `robot.toml` that look arbitrary and are not:
 
