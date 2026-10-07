@@ -359,13 +359,20 @@ using Mission = TMission<maze_width, maze_height>;
  *
  * @note In a turn the tires slide sideways in proportion to the grip they are asked for, which the
  * pose estimate only predicts. Boost stops at 0.7 of the traction for that reason: at 0.75 the risky
- * turns slide the robot into the walls.
+ * turns slide the robot into the walls. Without the fan the tires slip forward too: past 0.4 the
+ * wheels count a third more than the robot travels while it speeds up, and it turns into the
+ * corner of the first turn. The first fast runs on the robot also stop at 1 m/s.
  */
 ///@{
-constexpr float normal_utilization{0.65F};
+constexpr float normal_utilization{0.4F};
 constexpr float boost_utilization{0.7F};
 
 ///@}
+
+/**
+ * @brief Top speed of a fast run, in m/s.
+ */
+constexpr float run_max_speed{1.0F};
 
 /**
  * @brief Make the profile of a fast run from the switches.
@@ -386,7 +393,7 @@ constexpr nav::RunProfile make_run_profile(bool racing_line, bool boost, bool ri
         .fan = fan,
         .risky = risky,
         .utilization = boost ? boost_utilization : normal_utilization,
-        .max_speed = std::numeric_limits<float>::infinity(),
+        .max_speed = run_max_speed,
     };
 }
 
