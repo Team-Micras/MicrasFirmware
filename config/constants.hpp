@@ -471,7 +471,9 @@ const nav::WallModel::Config wall_model_config{
  *
  * @note Ranges only correct the pose out to 120 mm. The beam of an emitter is 11.8 mm above the
  * floor and a few degrees wide, so farther out part of it lands on the floor before the wall and
- * the reading comes out long.
+ * the reading comes out long. They only correct it while the beam meets the wall within 55 deg of
+ * its perpendicular: turning the robot by hand in a cell, the sensors read within a few
+ * millimeters up to there, and 20 to 60 mm short at 60 to 80 deg.
  *
  * @note An edge moves the pose by at most 3 mm. At 3 m/s an edge timed a millisecond off is 3 mm
  * off, and a jump of 8 mm made the controller ask the motors for their whole supply at once.
@@ -491,6 +493,7 @@ const nav::Localizer::Config localizer_config{
     .range_delay = core::ButterworthFilter::get_delay(wall_fast_filter_cutoff),
     .range_correlation = wall_sensors_frequency / (2.22F * wall_fast_filter_cutoff),
     .max_range = 0.12F,
+    .max_incidence = 55.0F * std::numbers::pi_v<float> / 180.0F,
     .rest_window = 0.1F,
     .edge_deviation = 0.004F,
     .edge_window = 0.025F,
