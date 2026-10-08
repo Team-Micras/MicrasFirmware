@@ -62,7 +62,15 @@ constexpr uint16_t bluetooth_tx_buffer_size{4096};
  * while hitting a wall at the speed of a run stops it in a few millimeters, well above 25 m/s^2.
  */
 constexpr float crash_acceleration{25.0F};
-constexpr float fan_speed{100.0F};
+
+/**
+ * @brief Speed the fan runs at, in percent of the battery.
+ *
+ * @note Half of a charged pack, about 6.2 V, where the MicrasHardware fan study puts the fan's 4 N
+ * with its skirt. At full speed it would reach 14 N and 17 W, and its winding would pass 140 deg C
+ * in five minutes.
+ */
+constexpr float fan_speed{50.0F};
 
 /**
  * @brief Distance from the back edge of the start cell to the axle, with the robot against the wall,
@@ -356,7 +364,8 @@ using Mission = TMission<maze_width, maze_height>;
  *****************************************/
 
 /**
- * @brief Fraction of the available traction a run asks for, without and with the boost switch.
+ * @brief Fraction of the available traction a run asks for, without and with the boost switch, and
+ * the same with the fan running.
  *
  * @note In a turn the tires slide sideways in proportion to the grip they are asked for, which the
  * pose estimate only predicts. Boost stops at 0.7 of the traction for that reason: at 0.75 the risky
@@ -369,10 +378,19 @@ using Mission = TMission<maze_width, maze_height>;
  * walls under every disturbance tried, and 0.65 only 5 mm: the wheels slip as they speed up on the
  * first straight, and the edge that ends it corrects only 3 mm of the 15 mm that leaves. At 0.75
  * every run hits the first turn. Boost stops at 0.65 for that reason.
+ *
+ * @note With the simulated tires holding 0.46, which is what the fast runs on the robot slip like,
+ * and the robot carrying its fan, 0.6 still keeps 12 mm from the walls on tires that hold 0.42. With
+ * the fan running a share of the traction comes from the downforce, which loads the tires without
+ * the weight that has to be sped up: 0.65 keeps 9 mm with the fan making only 0.45 N on tires that
+ * hold 0.42, and 0.7 keeps 7 mm, where without the fan 0.7 hits the walls. At 0.75 the fan making
+ * 0.45 N is not enough.
  */
 ///@{
 constexpr float normal_utilization{0.6F};
 constexpr float boost_utilization{0.65F};
+constexpr float fan_utilization{0.65F};
+constexpr float fan_boost_utilization{0.7F};
 
 ///@}
 
@@ -399,7 +417,8 @@ constexpr nav::RunProfile make_run_profile(bool racing_line, bool boost, bool ri
         .racing_line = racing_line,
         .fan = fan,
         .risky = risky,
-        .utilization = boost ? boost_utilization : normal_utilization,
+        .utilization = fan ? (boost ? fan_boost_utilization : fan_utilization) :
+                             (boost ? boost_utilization : normal_utilization),
         .max_speed = run_max_speed,
     };
 }

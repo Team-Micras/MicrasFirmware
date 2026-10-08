@@ -22,10 +22,12 @@ namespace micras {
  * sim/robot.toml holds the same quantities as the physical truth of the simulation, each with its
  * source.
  *
- * - The robot runs without its fan for now: 78 g on a scale, against the 76.7 g the MicrasHardware
- *   model predicts without the fan, its mount and their screws (86 g with them), with the brass
- *   gears. The yaw inertia is that model's, 34.4 g cm^2 about the axle from the volumes of the
- *   parts with their densities, scaled to the 78 g; the drive identification settles it.
+ * - The robot runs with its fan: 78 g on a scale without it, against the 76.7 g the MicrasHardware
+ *   model predicts without the fan, its mount and their screws, and 86 g with them, with the brass
+ *   gears; the 9.3 g they add make 87.3 g, until the robot is weighed with its fan. The yaw inertia
+ *   is that model's, 34.4 g cm^2 about the axle from the volumes of the parts with their densities,
+ *   scaled to the 78 g, plus the 9.3 g of the fan 17.5 mm ahead of the axle; the drive
+ *   identification settles it.
  * - The tires are 2 mm silicone bands stretched over 18.3 mm hubs into a channel between two
  *   flanges. The wheel radius is the rolling radius measured on the robot, 11.384 mm from rolling it
  *   by hand over 615 mm between two walls of the maze with the fan off, plus the 29 um its tires
@@ -40,15 +42,15 @@ namespace micras {
  *   the robot, which no longer has the TPU bumper), and the keyway covers of the outer sensor caps
  *   0.7 mm past its sides.
  * - The friction coefficient is tan(28.5 deg), the slope at which the robot slides sideways on the
- *   maze floor, its wheels across the slope. The fan downforce, about 1 N at full speed, is the prediction of the v2 fan study
- *   (MicrasHardware README: the 26.4 mm impeller on the 18000 rpm motor, with the skirt; the earlier
- *   figure was 3 N), for a scale under the robot with the fan running to check. The fan draws
- *   through a 15 mm hole with a 1 mm gap under the whole board, which a thin film skirt taped under
- *   its edge closes down to the floor. It pulls over the hole, 17.5 mm ahead of the axle: the
- *   flow through the gap, which leaves the pressure harmonic between the edges of the board and the
- *   hole, puts the center of the suction at 14 to 16 mm. So the robot rests on its nose with the
- *   fan on, on the TPU bumper's lower edge, which carries about a third of the downforce. Scales
- *   under the wheels and under the nose settle both.
+ *   maze floor, its wheels across the slope. The fan runs at half of the battery, about 6.2 V, and
+ *   without its skirt for now, the 1 mm gap under the board open all around: the model of the
+ *   MicrasHardware fan study gives 0.73 to 0.95 N for the impeller printed now and 0.41 to 0.54 N
+ *   for its recommended 22 mm one, from a charged pack to one sagging to 10.5 V, centered 15 mm
+ *   ahead of the axle. A run is planned on 0.5 N, below the impeller printed now even on a sagging
+ *   pack, until a scale under the robot with the fan running settles it. With the skirt the same
+ *   half of the battery makes about 4 N, which this downforce and the margins of the turns would
+ *   have to be redone for. The nose rests on its front skid with the fan on, which carries the
+ *   share of the downforce that the center of the suction leaves it.
  * - The lateral compliance is the simulation's: the tires there slide sideways at 4.8 mm/s per m/s^2
  *   of lateral acceleration, and the real tires are not measured yet. Driving a circle at a known
  *   speed with the fan on, and comparing where the robot ends with where the odometry says, does.
@@ -80,8 +82,8 @@ constexpr nav::RobotModel robot_model{
     .maze = maze_geometry,
     .chassis =
         {
-            .mass = 0.078F,
-            .yaw_inertia = 3.49e-5F,
+            .mass = 0.0873F,
+            .yaw_inertia = 3.78e-5F,
             .wheel_radius = 0.011413F,
             .rolling_compliance = 77e-6F,
             .track_width = 0.0472F,
@@ -92,8 +94,8 @@ constexpr nav::RobotModel robot_model{
     .traction =
         {
             .friction_coefficient = 0.54F,
-            .fan_downforce = 1.0F,
-            .fan_offset = 0.0175F,
+            .fan_downforce = 0.5F,
+            .fan_offset = 0.015F,
             .lateral_compliance = 0.0048F,
         },
     .drive =

@@ -32,9 +32,9 @@ name = "micras"
 timestep = { value = 0.0001, source = "firmware: one loop of 100 us; at 125 us the tire contact, penetration and the explore trace were unchanged at 62.5 and 31.25 us (v1)" }
 
 [chassis]
-mass = { value = 0.0668, source = "measured: 78 g for the whole robot without its fan, less the two 5.6 g wheel assemblies; the fan stays off the robot for now" }
-center_of_mass = { value = [-0.00267, 0.0, 0.0178], source = "MicrasHardware mass_report less the fan, its mount and their screws: the robot at x -2.28, z 16.85 mm, less the wheel assemblies on the axle; balance the robot on its wheels to find which way it rests" }
-inertia = { value = [2.05e-5, 3.53e-5, 2.86e-5], source = "yaw: MicrasHardware mass_report less the fan, its mount and their screws, 34.4 g cm^2 about the axle scaled to 78 g, less the two 5.6 g wheel assemblies the simulation puts at the tire centers (y 22.8 mm), about the chassis center of mass; roll and pitch: CAD v2 less the fan, Ixz = 5.2e-6 left out; measure yaw with a torsion pendulum" }
+mass = { value = 0.0761, source = "measured: 78 g for the whole robot without its fan, less the two 5.6 g wheel assemblies, plus the 9.3 g of the fan, its mount and their screws by the MicrasHardware model (86 against 76.7 g); weigh the robot with its fan" }
+center_of_mass = { value = [-0.00002, 0.0, 0.0176], source = "MicrasHardware mass_report less the fan, its mount and their screws: the robot at x -2.28, z 16.85 mm, less the wheel assemblies on the axle, plus the 9.3 g of the fan at x 17.5, z 15 mm; balance the robot on its wheels to find which way it rests" }
+inertia = { value = [2.11e-5, 3.92e-5, 3.19e-5], source = "yaw: MicrasHardware mass_report less the fan, its mount and their screws, 34.4 g cm^2 about the axle scaled to 78 g, less the two 5.6 g wheel assemblies the simulation puts at the tire centers (y 22.8 mm), about the chassis center of mass, plus the 9.3 g of the fan 17.5 mm ahead of it; roll and pitch: CAD v2 less the fan, plus the fan as a point, Ixz = 5.2e-6 left out; measure yaw with a torsion pendulum" }
 outline = { value = [[0.0535, 0.0150], [0.03456, 0.02447], [0.0323, 0.0250], [-0.0365, 0.0250], [-0.0365, -0.0250], [0.0323, -0.0250], [0.03456, -0.02447], [0.0535, -0.0150]], source = "CAD: KiCad board edge, nose chamfers at 26.6 deg, fillets as corners (unchanged board)" }
 board_bottom = { value = 0.001, source = "CAD v2: Board.bottom_z" }
 board_top = { value = 0.0020412, source = "CAD v2: 1.0412 mm FR-4" }
@@ -197,7 +197,7 @@ width = { value = 0.003465, source = "CAD v2: params.tire_w, the tire cut to the
 track = { value = 0.0472, source = "measured: the wheels turn on 47.2 mm in five turns in place against the gyroscope (45 mm between the tire centers)" }
 mass = { value = 0.0056, source = "MicrasHardware masses: the drilled brass 36T wheel gear 3.3 g, the printed wheel 0.75 g, tire and axle 0.82 g, magnet 0.42 g, magnet cup 0.1 g and the bearings' inner rings" }
 spin_inertia = { value = 2.48e-7, source = "CAD v2 with the brass gear at the 3.3 g MicrasHardware gives it instead of 4.3 g: about the axle, the gear 54 % of it" }
-friction = { value = 0.54, source = "measured: the robot slides sideways on the maze floor at a slope of 28.5 deg" }
+friction = { value = 0.46, source = "robot: after the last turn of the home maze, fast runs 7 and 9 corrected their estimate 13 to 15 mm sideways, the wheel slip of the first straight that the turn moves across, which the simulation gives at 0.45 to 0.46 and only 9 mm at the 0.54 the robot slides sideways at on a slope of 28.5 deg" }
 torsional_friction = { value = 0.0005, source = "estimate: half the contact patch width (v1)" }
 contact_time_constant = { value = 0.011, source = "estimate: the Kyosho MZW40-20 compound, Shore 20 (about 0.7 MPa, 1.4 times stiffer for the confined 1.89 mm layer), sinks 75 to 105 um under the 0.43 N a tire carries without the fan, 4000 to 6000 N/m; 11 ms sinks it 64 um (6600 N/m) and rolls it 29 um short of its radius, 58 um with the fan; measure the rolling radius by driving a known distance with the fan on and off" }
 contact_damping_ratio = { value = 1.0, source = "estimate" }
@@ -237,9 +237,9 @@ output_rate = { value = 8000.0, source = "firmware: high accuracy ODR" }
 clock_error = { value = 0.005, source = "estimate: within the datasheet's +-1 % in high accuracy mode" }
 
 [fan]
-position = { value = [0.0175, 0.0, 0.0023], source = "CAD v2: fan.centre(), the impeller's inlet over the board's 15 mm hole" }
-max_downforce = { value = 1.0, source = "estimate: the v2 fan study (MicrasHardware README) predicts about 1 N with the skirt for the 18k rpm motor and the 26.4 mm impeller (the owner's earlier figure was 3 N); measure on a scale with the fan running" }
-nominal_voltage = { value = 12.3, source = "the charged pack the simulation runs from, so full speed gives max_downforce" }
+position = { value = [0.015, 0.0, 0.0023], source = "MicrasHardware fan study model: without the skirt the suction is centered 14.9 to 16 mm ahead of the axle, behind the hole at 17.5 mm" }
+max_downforce = { value = 0.7, source = "MicrasHardware fan study model, without the skirt at 6.15 V: 0.95 N for the impeller printed now, 0.54 N for the recommended 22 mm one; the middle, until a scale under the robot measures it" }
+nominal_voltage = { value = 6.15, source = "half of the charged pack the simulation runs from, the speed the firmware runs the fan at" }
 time_constant = { value = 0.07, source = "estimate: impeller 9.5e-8 kg m^2 (CAD v2) and rotor 1.3e-8, 15.8 ohm, 6.27 mN m/A: 43 ms for the speed, about 70 ms for the downforce, which goes with its square" }
 
 [battery]
