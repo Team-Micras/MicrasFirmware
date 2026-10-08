@@ -1,0 +1,4 @@
+# The home maze's boards rearranged for the racing line, beside its drawing; what is not given is
+# the simulator's default (the competition rules).
+wall_thickness = { value = 0.0151, source = "measured: the boards are 15 to 15.2 mm" }
+wall_minnaert = { value = 1.83, source = "measured: the white melamine boards are semi-gloss; square on to a board, a diagonal sensor 97.6 mm from it read 66 mm with its calibration at 45 deg, 2.5 times the light of 45 deg against the 1.41 of a matte wall, which Minnaert's law gives for 1.83 (pull-backs at 45 deg give 1.6 to 1.8)" }

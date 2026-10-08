@@ -215,6 +215,8 @@ The home maze has its measured dimensions and surfaces beside its drawing, in `m
 walls of semi-gloss white melamine, which send a sensor back much more light square on than at an angle.
 Their Minnaert exponent is the one `config/mazes/home/maze_config.hpp` gives the firmware, and the wall
 sensors' gains in `robot.toml` are calibrated against those walls, where the robot calibrated them.
+`mazes/race4x4.txt` is the same boards rearranged, with the same start and goal, for a route of four
+sidesteps that the racing line drives in four fifths of the time of the turns.
 
 Things in `robot.toml` that look arbitrary and are not:
 
