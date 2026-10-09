@@ -237,8 +237,8 @@ output_rate = { value = 8000.0, source = "firmware: high accuracy ODR" }
 clock_error = { value = 0.005, source = "estimate: within the datasheet's +-1 % in high accuracy mode" }
 
 [fan]
-position = { value = [0.015, 0.0, 0.0023], source = "MicrasHardware fan study model: without the skirt the suction is centered 14.9 to 16 mm ahead of the axle, behind the hole at 17.5 mm" }
-max_downforce = { value = 0.18, source = "measured: at half of the battery and without the skirt the fan pulled a plate on a scale under the board up by 18 g" }
+position = { value = [0.008, 0.0, 0.0023], source = "MicrasHardware fan study model: under a sealed skirt the suction is centered 7.8 mm ahead of the axle" }
+max_downforce = { value = 1.47, source = "measured: at half of the battery and with its skirt the fan pulled a plate on a scale under the board up by 150 g" }
 nominal_voltage = { value = 6.15, source = "half of the charged pack the simulation runs from, the speed the firmware runs the fan at" }
 time_constant = { value = 0.07, source = "estimate: impeller 9.5e-8 kg m^2 (CAD v2) and rotor 1.3e-8, 15.8 ohm, 6.27 mN m/A: 43 ms for the speed, about 70 ms for the downforce, which goes with its square" }
 

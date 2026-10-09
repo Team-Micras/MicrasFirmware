@@ -208,8 +208,7 @@ maze wall thickness (12 mm arena against 12.6 mm, in the classic mazes) and the 
 53.5 by 25.7 mm with the sensor caps), all on purpose, and in the static friction
 voltage: 0.80 V of the simulated drive, from a free motor's measured draw, against the bare motor's
 0.21 V, for the drive identification to settle. The tires hold 0.46 here, which is how the fast runs on
-the robot slip, against the 0.54 it slides sideways at on a slope, and the fan makes the 0.7 N its model
-gives without the skirt, against the 0.5 N a run is planned on.
+the robot slip, against the 0.54 it slides sideways at on a slope.
 
 The home maze has its measured dimensions and surfaces beside its drawing, in `mazes/home4x4.toml`: 15.1 mm
 walls of semi-gloss white melamine, which send a sensor back much more light square on than at an angle.

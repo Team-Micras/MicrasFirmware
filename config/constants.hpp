@@ -382,16 +382,16 @@ using Mission = TMission<maze_width, maze_height>;
  * @note With the simulated tires holding 0.46, which is what the fast runs on the robot slip like,
  * and the robot carrying its fan, 0.6 still keeps 12 mm from the walls on tires that hold 0.42. With
  * the fan running a share of the traction comes from the downforce, which loads the tires without
- * the weight that has to be sped up. With the 0.18 N the fan makes without its skirt, 0.65 keeps 6
- * mm with only 0.1 N on tires that hold 0.42, and takes the home maze in 2.15 s against 2.39 s
- * without the fan. Boost asks for 0.7 of it, which kept 7 mm planned on 0.5 N with the fan making
- * 0.45 N, and is not tried on the 0.18 N.
+ * the weight that has to be sped up. With the 1.47 N the fan makes with its skirt, 0.6 keeps 5 mm
+ * with only 1 N on tires that hold 0.42 and takes the home maze in 1.62 s against 2.39 s without
+ * the fan, where 0.65 hits a wall. Boost asks for 0.65 of it, which keeps 9 mm with the fan making
+ * only 1 N, and 16 mm on tires that hold 0.42.
  */
 ///@{
 constexpr float normal_utilization{0.6F};
 constexpr float boost_utilization{0.65F};
-constexpr float fan_utilization{0.65F};
-constexpr float fan_boost_utilization{0.7F};
+constexpr float fan_utilization{0.6F};
+constexpr float fan_boost_utilization{0.65F};
 
 ///@}
 
