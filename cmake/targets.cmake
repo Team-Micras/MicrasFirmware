@@ -177,6 +177,7 @@ function(generate_test_targets TEST_FILES)
         target_include_directories(${TEST_NAME} PRIVATE
             tests/include
             config
+            config/mazes/${MICRAS_MAZE}
             ${MICRAS_TARGET_DIRECTORY}
         )
 
