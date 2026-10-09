@@ -43,13 +43,12 @@ namespace micras {
  *   0.7 mm past its sides.
  * - The friction coefficient is tan(28.5 deg), the slope at which the robot slides sideways on the
  *   maze floor, its wheels across the slope. The fan runs at half of the battery, about 6.2 V, and
- *   without its skirt for now, the 1 mm gap under the board open all around: the model of the
- *   MicrasHardware fan study gives 0.73 to 0.95 N for the impeller printed now and 0.41 to 0.54 N
- *   for its recommended 22 mm one, from a charged pack to one sagging to 10.5 V, centered 15 mm
- *   ahead of the axle. A run is planned on 0.5 N, below the impeller printed now even on a sagging
- *   pack, until a scale under the robot with the fan running settles it. With the skirt the same
- *   half of the battery makes about 4 N, which this downforce and the margins of the turns would
- *   have to be redone for. The nose rests on its front skid with the fan on, which carries the
+ *   without its skirt for now, the 1 mm gap under the board open all around: it pulled a plate on a
+ *   scale under the board up by 18 g. The model of the MicrasHardware fan study gives 0.85 N for a
+ *   gap of 0.9 mm and 0.4 N for 1.5 mm, and next to nothing past 2 mm, so the measurement is what
+ *   the gap leaves. Without a skirt the suction is centered 15 mm ahead of the axle. With the skirt
+ *   the same half of the battery makes about 4 N, which this downforce and the margins of the turns
+ *   would have to be redone for. The nose rests on its front skid with the fan on, which carries the
  *   share of the downforce that the center of the suction leaves it.
  * - The lateral compliance is the simulation's: the tires there slide sideways at 4.8 mm/s per m/s^2
  *   of lateral acceleration, and the real tires are not measured yet. Driving a circle at a known
@@ -94,7 +93,7 @@ constexpr nav::RobotModel robot_model{
     .traction =
         {
             .friction_coefficient = 0.54F,
-            .fan_downforce = 0.5F,
+            .fan_downforce = 0.18F,
             .fan_offset = 0.015F,
             .lateral_compliance = 0.0048F,
         },
