@@ -206,8 +206,9 @@ the MJCF from it and composes it with the arena; the composed model is saved to 
 datasheet against 5.2 deg with mounting tolerance), the gyro noise (datasheet against a third more), the
 maze wall thickness (12 mm arena against 12.6 mm, in the classic mazes) and the outline (the 53.5 by 25 mm board against
 53.5 by 25.7 mm with the sensor caps), all on purpose, and in the static friction
-voltage: 0.80 V of the simulated drive, from a free motor's measured draw, against the bare motor's
-0.21 V, for the drive identification to settle. The tires hold 0.46 here, which is how the fast runs on
+voltage: 0.80 V of the simulated drive, from a free motor's measured draw, against the 2.5 V the
+robot's wheel breaks away at, which also holds what the bridge loses of each pulse, for the drive
+identification to settle. The tires hold 0.46 here, which is how the fast runs on
 the robot slip, against the 0.54 it slides sideways at on a slope.
 
 The home maze has its measured dimensions and surfaces beside its drawing, in `mazes/home4x4.toml`: 15.1 mm
@@ -226,34 +227,32 @@ Things in `robot.toml` that look arbitrary and are not:
   sphere. The same separation happens where tires really slide, in a pivot; a tire soft enough
   (`contact_time_constant` 5 ms or more) absorbs it inside its own deflection. 11 ms is the estimate for
   the Kyosho MZW40-20 compound (Shore 20): the tire sinks 64 um under the 0.43 N it carries without the
-  fan, against 75 to 105 um estimated from the compound. With the old 2 ms the hopping wheels hardly
-  scrubbed, and a pivot at 0.6 V spun at 3.2 rad/s instead of 1.1.
-- **The timestep is 100 us**, one firmware loop. Halving the 125 us loop of before changed neither the contacts nor the trace.
-- **The chassis mass is 65.2 g**, not 78: the firmware's 78 g and 3.96e-5 kg m^2 are the whole robot,
-  and the wheels are modeled separately.
+  fan, against 75 to 105 um estimated from the compound. With 2 ms the hopping wheels hardly scrub,
+  and a pivot at 0.6 V spins at 3.2 rad/s instead of 1.1.
+- **The timestep is 100 us**, one firmware loop. Down to 31.25 us the contacts and the trace stay the same.
+- **The chassis mass is 76.1 g**, not 87.3: the firmware's 87.3 g and 3.78e-5 kg m^2 are the whole
+  robot with its fan, and the wheels are modeled separately.
 - **Each wall sensor has a gain.** `sim_wall_calibration` places the robot where the firmware calibrates
   (centered in a corridor for the side sensors, facing a wall for the front ones) and sets each gain so
-  that the simulated reading equals the robot's `reference_readings` in `target.hpp`. Without the gains
-  the readings were about four times low and the localizer corrected against them. `--sweep` shows how
+  that the simulated reading equals the robot's `reference_readings` in `target.hpp`. `--sweep` shows how
   the firmware's distances then follow the true ones.
-- **Two PTFE glides, 0.1 mm off the floor.** The center of mass is over the axle, so the robot rocks
-  onto its rear glide when it accelerates and onto the one under its nose when it brakes or the fan
-  pulls. With the bare board edge 1 mm up, the body swung 2 degrees and slammed the rear edge down at
-  every change of acceleration; the tires lost the floor, slid, and the odometry ran 20 to 30 mm long
-  over a corridor. The glides keep the swing to 0.3 degrees. Two spheres stand in for them. Their
+- **Two PTFE skates, 0.5 mm off the floor with the tires unloaded.** The center of mass is over the
+  axle, so the robot rocks onto its rear skate when it accelerates and onto the one under its nose when
+  it brakes or the fan pulls. A wider swing slams the rear contact down at every change of
+  acceleration, the tires lose the floor and slide, and the odometry runs long. The skates keep the
+  swing to about 1 degree back and 0.6 forward. Two spheres stand in for them. Their
   contacts are frictionless, because a sliding frictional contact separates in MuJoCo like the tires
   above, and the simulator applies their friction, 0.15 for PTFE on a painted floor, as a force against
   their sliding (`friction` of each skid).
 - **The fan pulls straight down**, not along the board's normal: its actuator's reference is a site
   fixed in the world. With the fan on, the board tilts onto its nose and a pull along its normal has a
-  backward part, about 1 % of it. On frictionless skids it rolled the robot 4 mm into the back wall
-  while it waited 5 s for the fan.
-- **The fan's 1 N is the v2 fan study's prediction** (with the skirt; the owner's earlier figure was
-  3 N), at full speed on the charged pack (`nominal_voltage` 12.3 V). The nose carries a third of it,
-  and each tire 0.73 N instead of 0.43. The tires then roll 58 um short of their radius instead of 29,
-  which `robot.hpp` models as 77 um per newton; with the 56 um of the v1 band the odometry ran 4 mm
-  long over a 3 m straight. The same is expected of the real tire, so calibrate the wheel radius with
-  the fan running.
+  backward part, about 1 % of it. On frictionless skids it would roll the robot 4 mm into the back
+  wall while it waits 5 s for the fan.
+- **The fan's 1.47 N is measured**: 150 g on a scale at half of the battery, with the skirt
+  (`nominal_voltage` 6.15 V). Under the sealed skirt its suction is centered 7.8 mm ahead of the axle,
+  so the skate under the nose carries a share and each tire about 1.05 N instead of 0.43. The tires
+  then roll about 70 um short of their radius instead of 29, which `robot.hpp` models as 77 um per
+  newton, so calibrate the wheel radius with the fan running.
 
 ## State of the port
 
@@ -281,12 +280,12 @@ What the firmware does that the fast modes depend on:
 - **The odometry rolls on a radius the load flattens.** With the fan the tires carry four times the
   load.
 - **The search asks for half of the traction, without the fan.** Accelerating tips the robot onto its
-  rear glide, which takes load off the tires.
-- **A fast run asks for 0.65 of the traction, and boost for 0.7.** More slides the tires sideways in the
-  risky turns. Up to 4 m/s on the straights.
+  rear skate, which takes load off the tires.
+- **A fast run asks for 0.6 of the traction, and boost for 0.65; with the fan 0.5 and 0.55.** More
+  slides the tires sideways in the turns. Up to 1 m/s on the straights.
 - **An edge moves the pose by 3 mm at most, and the forward loop closes at 40 Hz.** At 3 m/s an edge
-  timed a millisecond off is 3 mm off, and a larger correction with a stiffer loop took the whole supply
-  at once, a jolt the crash detection read as a wall.
+  timed a millisecond off is 3 mm off, and a larger correction with a stiffer loop takes the whole supply
+  at once, a jolt the crash detection reads as a wall.
 - **The wall observer keeps voting through the search turns**, so the search never stops in a cell to
   look.
 - **A range is corrected for the angle it meets the wall at.** Along a diagonal the diagonal sensors
@@ -308,10 +307,11 @@ What the firmware does that the fast modes depend on:
    `receiver_half_angle`). A bench sweep toward a wall confirms both.
 2. **The rolling radius.** 77 um less per newton on a tire in the simulation. Driving a known distance
    with the fan on and off measures the real one.
-3. **The fan tips the robot onto its nose.** It pulls 17.5 mm ahead of the axle, and a thin-gap flow
-   estimate puts its center of suction at 14 to 16 mm. So a third of the downforce rests on the glide
-   under the nose, which drags at its friction, 0.15 estimated for PTFE. Scales under the wheels and under
-   the nose, with the fan running, measure the share, and tilting the robot on its glides the friction.
+3. **The fan tips the robot onto its nose.** Under its sealed skirt the MicrasHardware fan study
+   centers the suction 7.8 mm ahead of the axle, so the skate under the nose carries the share of the
+   downforce that leaves it, and drags at its friction, 0.15 estimated for PTFE. Scales under the wheels
+   and under the nose, with the fan running, measure the share, and tilting the robot on its skates the
+   friction.
 4. **A wall start is seen early.** Toward the start of a wall a diagonal sensor also lights the wall's
    end face, by the wall thickness times the slope of the beam.
 5. **Past 120 mm the readings come out long**, because part of the beam lands on the floor. The
@@ -321,8 +321,8 @@ What the firmware does that the fast modes depend on:
 7. **The lateral compliance of the tires.** `robot.hpp` has the simulation's 4.8 mm/s per m/s^2. A
    circle of known radius driven at a few speeds with the fan on measures the real one, and the racing
    line depends on it.
-8. **The robot rocks between its glides.** The center of mass is over the axle, so every change of
-   acceleration moves the load from one glide to the other. Above about 10.9 m/s^2 even the fan no longer
+8. **The robot rocks between its skates.** The center of mass is over the axle, so every change of
+   acceleration moves the load from one skate to the other. Above about 10.9 m/s^2 even the fan no longer
    holds the nose down. A slow-motion video of a launch shows how far it swings.
 
 ## Known gaps

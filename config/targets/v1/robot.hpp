@@ -33,13 +33,14 @@ namespace micras {
  *   by hand over 615 mm between two walls of the maze with the fan off, plus the 29 um its tires
  *   flatten under that load; the two wheels agree within 0.13 %. The track width is the one the
  *   wheels turn on, 47.2 mm from five turns in place against the gyroscope (whose scale the same
- *   turns measured at 1.0003 against a wall), wider than the 45 mm between the tire centers. The tires flatten under load and the wheels roll on a smaller radius: the
- *   rolling compliance is that of the simulated tire, 77 um less per newton on a tire (29 um at
- *   the 0.43 N of the fan off, 58 um at the 0.73 N of the fan on), still to measure on the v2
- *   tires by driving a known distance with the fan on and off.
+ *   turns measured at 1.0003 against a wall), wider than the 45 mm between the tire centers. The
+ *   tires flatten under load and the wheels roll on a smaller radius: the rolling compliance is that
+ *   of the simulated tire, 77 um less per newton on a tire (29 um at the 0.43 N a tire carries with
+ *   the fan off, about 70 um at the 1.05 N with the fan on). Driving a known distance with the fan on and
+ *   off measures the real one.
  * - The outline is the rectangle that encloses whatever can touch a wall: the board, whose nose is
  *   53.5 mm ahead of the axle and whose back is 36.5 mm behind it (90 mm long, 89.9 mm measured on
- *   the robot, which no longer has the TPU bumper), and the keyway covers of the outer sensor caps
+ *   the robot, which has no bumper), and the keyway covers of the outer sensor caps
  *   0.7 mm past its sides.
  * - The friction coefficient is tan(28.5 deg), the slope at which the robot slides sideways on the
  *   maze floor, its wheels across the slope. The fan runs at half of the battery, about 6.2 V, and
@@ -52,17 +53,17 @@ namespace micras {
  *   speed with the fan on, and comparing where the robot ends with where the odometry says, does.
  * - The motors are 1020 coreless motors (9.61 x 20.3 mm measured), about 18000 rpm with no load at
  *   12 V (owner), run from the 19.63 V boost converter through a 0.5 module spur stage of 7 and 36
- *   teeth. The torque constant comes from the sweep of the check of the polarity, with the wheels
- *   in the air: the free left wheel gains 7.6 rad/s per percent of the command, 38.7 rad/s per volt,
- *   so its back EMF is at most 25.8 mV s/rad at the wheel, 5.0 mN m/A at the motor, against the 6.27
- *   the no-load speed of the datasheet gave. The resistance is still the estimate from a maker's 1020
- *   windings of the same speed: 16.06 ohm is 15.4 of the winding and 0.66 of the bridge and shunt.
- *   The static friction voltage is the command at which that wheel breaks away, 13 % of the supply
- *   in both directions: it holds both the friction of the drive and the part of each pulse the
- *   bridge loses at its 100 kHz, which the current sensors would be needed to tell apart. The right
- *   drive has more friction, up to twice as much backward, and the feedback makes up the difference.
- *   These are 12 V motors on a 19.63 V supply: at 20 V a stalled one draws about 1.2 A, so the limits
- *   of voltage and current matter. The drive identification procedure measures all of these.
+ *   teeth. The torque constant comes from the sweep of the check of the polarity, with the wheels in
+ *   the air: the free left wheel gains 7.6 rad/s per percent of the command, 38.7 rad/s per volt, so
+ *   its back EMF is at most 25.8 mV s/rad at the wheel, 5.0 mN m/A at the motor. The resistance is
+ *   the estimate from a maker's 1020 windings of the same speed: 16.06 ohm is 15.4 of the
+ *   winding and 0.66 of the bridge and shunt. The static friction voltage is the command at which
+ *   that wheel breaks away, 13 % of the supply in both directions: it holds both the friction of the
+ *   drive and the part of each pulse the bridge loses at its 100 kHz, which the current sensors
+ *   would be needed to tell apart. The right drive has more friction, up to twice as much backward,
+ *   and the feedback makes up the difference. These are 12 V motors on a 19.63 V supply: at 20 V a
+ *   stalled one draws about 1.2 A, so the limits of voltage and current matter. The drive
+ *   identification procedure measures all of these.
  * - The position of each wall sensor is the midpoint of the lenses of its emitter and receiver in
  *   the v2 caps (MicrasHardware leds.py and front.py), and the angle is that of the footprint: the
  *   two outer ones are square to the board and the two inner ones turned by 45 degrees. The half

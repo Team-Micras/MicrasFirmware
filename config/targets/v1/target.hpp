@@ -383,14 +383,15 @@ const proxy::TorqueSensors::Config torque_sensors_config = {
  * reading of every sensor each millisecond, and each emitter is lit at one end of five, 15 % of the
  * time, well within the rating of its series resistor.
  *
- * @note The diagonal reference readings are those of the calibration in the setup of the README, in
- * the home maze with the sensors fired one at a time, in their black PLA caps. The front receivers
+ * @note The diagonal reference readings are those of the calibration in the setup of the README, in the
+ * home maze with the sensors fired one at a time, in their black PLA caps. The front receivers
  * reach their ceiling up to 75 to 80 mm from a wall, so the center of a cell cannot give their
  * references: they are fitted to the readings of the robot rolled straight back from touching a
- * wall, from 105 to 260 mm, where they then place the wall within 2 and 3 mm rms, and are what the
- * receivers would read at the reference distance if they had no ceiling. The reference distances are what the geometry of the sensors says they measure in that
- * setup: the front sensors facing a wall from the center of a cell, the diagonal ones in a
- * corridor with no wall ahead.
+ * wall, from 105 to 260 mm, where they then place the wall within 2 and 3 mm rms, and are what
+ * the receivers would read at the reference distance if they had no ceiling. The reference
+ * distances are what the geometry of the sensors says they measure in that setup: the front
+ * sensors facing a wall from the center of a cell, the diagonal ones in a corridor with no wall
+ * ahead.
  *
  * @note The offsets, what each sensor reads with nothing in front of it, are zero here, which is
  * what the simulation, whose sensors leak no light inside the robot, needs. On the robot they come

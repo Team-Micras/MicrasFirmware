@@ -66,9 +66,9 @@ constexpr float crash_acceleration{25.0F};
 /**
  * @brief Speed the fan runs at, in percent of the battery.
  *
- * @note Half of a charged pack, about 6.2 V, where the MicrasHardware fan study puts the fan's 4 N
- * with its skirt. At full speed it would reach 14 N and 17 W, and its winding would pass 140 deg C
- * in five minutes.
+ * @note Half of a charged pack, about 6.2 V, where the fan pulls 1.47 N with its skirt, 150 g on a
+ * scale. At full speed it would reach 14 N and 17 W, and its winding would pass 140 deg C in five
+ * minutes.
  */
 constexpr float fan_speed{50.0F};
 
@@ -93,8 +93,8 @@ constexpr float park_clearance{0.008F};
  * @note The loop runs at 10 kHz, faster than the 8 kHz of its fastest sensor, the inertial
  * measurement unit, which it reads once per iteration. At the same rate as the sensor the reads
  * drift in and out of phase with its samples over tens of milliseconds, and a sample that falls
- * inside a read is lost, since the sensor holds its output registers while one is in progress: the
- * samples stopped for up to 100 ms at a time on the robot. At 10 kHz the two beat at 2 kHz, so a lost
+ * inside a read is lost, since the sensor holds its output registers while one is in progress,
+ * which stops the samples for up to 100 ms at a time. At 10 kHz the two beat at 2 kHz, so a lost
  * sample is followed by a new one within two iterations.
  */
 constexpr float loop_frequency{1.0e6F / static_cast<float>(loop_time_us)};
@@ -201,8 +201,7 @@ constexpr uint32_t watchdog_timeout_ms{10};
  * robot, where the proxies wait for their chips, and the planning of a fast run, whose search is
  * bounded per iteration but whose choice among the candidate routes is done in one. It is close to
  * the longest the watchdog allows, 32 s at its largest prescaler: the robot is stopped through all
- * of these, so a longer window costs nothing, and the watchdog reset the robot during saves within
- * 8 s.
+ * of these, so a longer window costs nothing.
  */
 constexpr uint32_t stopped_watchdog_timeout_ms{30000};
 
@@ -368,11 +367,9 @@ using Mission = TMission<maze_width, maze_height>;
  * the same with the fan running.
  *
  * @note In a turn the tires slide sideways in proportion to the grip they are asked for, which the
- * pose estimate only predicts. Boost stops at 0.7 of the traction for that reason: at 0.75 the risky
- * turns slide the robot into the walls. On the robot, a turn planned at 0.4 g peaked 45 % above
- * its plan while the controller corrected, and slid into the wall at 0.58 g: the normal runs ask for
- * 0.3 g of the 0.54 the tires hold without the fan, which leaves that peak below it. The first fast
- * runs on the robot also stop at 1 m/s.
+ * pose estimate only predicts. On the robot, a turn planned at 0.4 g peaks 45 % above its plan while
+ * the controller corrects, and slides into the wall at 0.58 g: the normal runs ask for 0.3 g of the
+ * 0.54 the tires hold without the fan, which leaves that peak below it.
  *
  * @note Simulated in the home maze with the 20 mm margin of the turns, 0.6 keeps 16 mm from the
  * walls under every disturbance tried, and 0.65 only 5 mm: the wheels slip as they speed up on the
@@ -383,8 +380,8 @@ using Mission = TMission<maze_width, maze_height>;
  * and the robot carrying its fan, 0.6 still keeps 12 mm from the walls on tires that hold 0.42. With
  * the fan running a share of the traction comes from the downforce, which loads the tires without
  * the weight that has to be sped up. With the 1.47 N the fan makes with its skirt, 0.5 keeps 16 mm
- * in the race maze with only 1 N on tires that hold 0.42, where 0.6 hits a wall and slid the robot
- * into one in its first fan run, and takes the race maze in 1.71 s against 2.42 s without the fan,
+ * in the race maze with only 1 N on tires that hold 0.42, where 0.6 hits a wall, as it does on the
+ * robot, and takes the race maze in 1.71 s against 2.42 s without the fan,
  * 1.40 s on the racing line. Boost asks for 0.55 of it, which keeps 4 mm in the same case.
  */
 ///@{
@@ -397,6 +394,8 @@ constexpr float fan_boost_utilization{0.55F};
 
 /**
  * @brief Top speed of a fast run, in m/s.
+ *
+ * @note The speed the tires and the turns are tried at on the robot.
  */
 constexpr float run_max_speed{1.0F};
 
@@ -432,9 +431,8 @@ constexpr nav::RunProfile make_run_profile(bool racing_line, bool boost, bool ri
 /**
  * @brief Profile of the search runs, which is where the search speed is set.
  *
- * @note 0.3 g, 0.55 of the traction without the fan, up to 0.3 m/s, the speed of the first searches
- * on the robot. Braking for a front wall is what limits it: past half of the traction, a front wall
- * that corrects the pose late asks for more braking than the tires give.
+ * @note 0.3 g, 0.55 of the traction without the fan, up to 0.3 m/s. Braking for a front wall is what limits it: past
+ * half of the traction, a front wall that corrects the pose late asks for more braking than the tires give.
  */
 constexpr nav::RunProfile search_profile{
     .racing_line = false,
@@ -541,8 +539,8 @@ const nav::Localizer::Config localizer_config{
  * @brief Configuration of the controller.
  *
  * @note The natural frequencies are angular, in rad/s: the forward loop closes at 40 rad/s, 6.4 Hz.
- * At 50 rad/s a correction of the pose by a few millimeters at 3 m/s took the whole supply at once,
- * and the jolt read as a crash.
+ * At 50 rad/s a correction of the pose by a few millimeters at 3 m/s takes the whole supply at once,
+ * and the jolt reads as a crash.
  */
 const nav::Controller::Config controller_config{
     .model = robot_model,

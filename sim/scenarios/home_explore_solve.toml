@@ -1,4 +1,4 @@
-# The home maze run as the robot runs it today: the fan off, a short press explores and
+# The home maze run with the fan off: a short press explores and
 # comes back to the start, and once it is idle a long press runs the fastest route found.
 # Needs a build configured with MICRAS_MAZE=home and the drawing sim/mazes/home4x4.txt,
 # whose start is (3, 0) open to the north and whose goal is (2, 3).

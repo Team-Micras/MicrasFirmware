@@ -19,8 +19,8 @@ namespace micras {
  * @note The build selects the maze with MICRAS_MAZE, which puts the directory of that maze on the
  * include path, as the board directory is. This is the one the simulation and its baselines run.
  *
- * @note The walls are 12 mm thick by the rules. 12.6 mm is what the firmware has always assumed, from
- * a measurement of a competition maze, whose walls are thicker than the rules once painted.
+ * @note The walls are 12 mm thick by the rules. 12.6 mm is a measurement of a competition maze, whose walls are thicker
+ * than the rules once painted.
  *
  * @note The walls are taken as matte, painted wood, until a competition maze is measured.
  */
