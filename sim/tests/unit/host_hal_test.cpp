@@ -17,6 +17,7 @@
 #include "micras/hal/host/ports.hpp"
 #include "micras/hal/pwm.hpp"
 #include "micras/hal/timer.hpp"
+#include "micras/nav/robot_model.hpp"
 #include "target.hpp"
 
 namespace micras::sim {

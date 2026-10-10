@@ -3,7 +3,6 @@
  */
 
 #include <array>
-#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <functional>
@@ -22,6 +21,7 @@
 #include "micras/hal/pwm.hpp"
 #include "micras/hal/spi.hpp"
 #include "micras/models/as5047u_model.hpp"
+#include "micras/nav/robot_model.hpp"
 #include "micras/proxy/button.hpp"
 #include "micras/proxy/motor.hpp"
 #include "micras/proxy/rotary_sensor.hpp"
@@ -138,7 +138,7 @@ static std::function<std::optional<WallSensors::Schedule>()>
                 return inverted ? compare <= autoreload : compare > 0;
             };
 
-            lit.at(emitter) = inverted == overflow and on(before[emitter]) and on(after[emitter]);
+            lit.at(emitter) = inverted == overflow and on(sim::at(before, emitter)) and on(sim::at(after, emitter));
         }
 
         const std::size_t position = end % length;

@@ -44,11 +44,12 @@ static volatile float    test_counts_per_turn[2];
 
 // NOLINTEND(*-avoid-c-arrays, cppcoreguidelines-avoid-non-const-global-variables)
 
-static std::array<int32_t, 2> last_angle{-1, -1};
-static std::array<int32_t, 2> unwrapped_angle{};
-static std::array<float, 2>   start_position{};
-
+// NOLINTBEGIN(cppcoreguidelines-pro-bounds-constant-array-index) the probes are plain arrays for STM32CubeMonitor
 static void read_diagnostics(proxy::RotarySensor& rotary_sensor, uint8_t index) {
+    static std::array<int32_t, 2> last_angle{-1, -1};
+    static std::array<int32_t, 2> unwrapped_angle{};
+    static std::array<float, 2>   start_position{};
+
     const std::optional<uint16_t> angle = rotary_sensor.read_register(anglecom_addr);
     const std::optional<uint16_t> errfl = rotary_sensor.read_register(errfl_addr);
     const std::optional<uint16_t> dia = rotary_sensor.read_register(dia_addr);
@@ -94,6 +95,8 @@ static void read_diagnostics(proxy::RotarySensor& rotary_sensor, uint8_t index) 
         test_counts_per_turn[index] = test_counts[index] / test_turns[index];
     }
 }
+
+// NOLINTEND(cppcoreguidelines-pro-bounds-constant-array-index)
 
 int main(int argc, char* argv[]) {
     TestCore::init(argc, argv);

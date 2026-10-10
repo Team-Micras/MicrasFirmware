@@ -39,6 +39,7 @@
 #include <mujoco/mjvisualize.h>
 #include <mujoco/mujoco.h>
 
+#include "constants.hpp"
 #include "micras/sim/arenas/maze.hpp"
 #include "micras/sim/core/clock.hpp"
 #include "micras/sim/core/mujoco_world.hpp"
@@ -88,16 +89,17 @@ struct Sample {
     std::vector<double> ranges;
 };
 
+}  // namespace
+
 /**
  * @brief Dimensions and surfaces of the maze the robot's sensors were calibrated in.
  *
  * @return Those measured beside its drawing.
  */
-const MazeConfig& calibration_surfaces() {
+static const MazeConfig& calibration_surfaces() {
     static const MazeConfig config = MazeConfig::load_beside(MICRAS_CALIBRATION_MAZE);
     return config;
 }
-}  // namespace
 
 /**
  * @brief Read every sensor with its own emitter lit, robot in the middle cell facing up.
@@ -122,26 +124,26 @@ static Sample sample(const RobotDescription& robot, std::string_view drawing, do
     std::vector<uint32_t> counts(2 * robot.wall_sensors.sensors.size());
     WallSensors           sensors{
         world,
-                  {
-                      .name = "wall",
-                      .description = robot.wall_sensors,
-                      .scan_ticks = 1,
-                      .emitter_duty = [](std::size_t) { return 30.0F; },
-                      .write = [&counts](std::size_t index, uint32_t value) { counts.at(index) = value; },
-                      .finish_sequence = [] {},
-                      .reflectance =
+        {
+            .name = "wall",
+            .description = robot.wall_sensors,
+            .scan_ticks = 1,
+            .emitter_duty = [](std::size_t) { return 30.0F; },
+            .write = [&counts](std::size_t index, uint32_t value) { counts.at(index) = value; },
+            .finish_sequence = [] { },
+            .reflectance =
                 [&world, &config](int geom) {
                     const char* name = mj_id2name(world.model(), mjOBJ_GEOM, geom);
                     return Maze::reflectance(name == nullptr ? "" : name, config);
                 },
-                      .minnaert =
+            .minnaert =
                 [&world, &config](int geom) {
                     const char* name = mj_id2name(world.model(), mjOBJ_GEOM, geom);
                     return Maze::minnaert(name == nullptr ? "" : name, config);
                 },
-                      .schedule = {},
+            .schedule = {},
         },
-                  {.seed = 1, .ideal = true},
+        {.seed = 1, .ideal = true},
     };
 
     Clock clock = Clock::from_model(world.timestep(), micras::loop_time_us);

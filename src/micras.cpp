@@ -30,6 +30,7 @@
 #include "micras/proxy/imu.hpp"
 #include "micras/proxy/locomotion.hpp"
 #include "micras/states/base.hpp"
+#include "robot.hpp"
 #include "target.hpp"
 
 namespace micras {

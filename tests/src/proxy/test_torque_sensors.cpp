@@ -2,6 +2,7 @@
  * @file
  */
 
+#include <algorithm>
 #include <array>
 #include <cstdint>
 
@@ -15,21 +16,23 @@
 
 using namespace micras;  // NOLINT(google-build-using-namespace)
 
+namespace {
 struct Step {
     float left;
     float right;
 };
+}  // namespace
 
 static constexpr std::array<Step, 9> steps{{
-    {0.0F, 0.0F},
-    {20.0F, 0.0F},
-    {40.0F, 0.0F},
-    {-40.0F, 0.0F},
-    {0.0F, 0.0F},
-    {0.0F, 20.0F},
-    {0.0F, 40.0F},
-    {0.0F, -40.0F},
-    {0.0F, 0.0F},
+    {.left = 0.0F, .right = 0.0F},
+    {.left = 20.0F, .right = 0.0F},
+    {.left = 40.0F, .right = 0.0F},
+    {.left = -40.0F, .right = 0.0F},
+    {.left = 0.0F, .right = 0.0F},
+    {.left = 0.0F, .right = 20.0F},
+    {.left = 0.0F, .right = 40.0F},
+    {.left = 0.0F, .right = -40.0F},
+    {.left = 0.0F, .right = 0.0F},
 }};
 
 static constexpr uint32_t step_time_ms{1500};
@@ -121,13 +124,10 @@ int main(int argc, char* argv[]) {
                     sum.at(i) += current;
                     test_mean_current[step][i] = sum.at(i) / static_cast<float>(samples);
 
-                    if (current < test_min_current[step][i]) {
-                        test_min_current[step][i] = current;
-                    }
-
-                    if (current > test_max_current[step][i]) {
-                        test_max_current[step][i] = current;
-                    }
+                    const float lowest = test_min_current[step][i];
+                    const float highest = test_max_current[step][i];
+                    test_min_current[step][i] = std::min(lowest, current);
+                    test_max_current[step][i] = std::max(highest, current);
                 }
             }
 

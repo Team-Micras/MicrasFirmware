@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
             watch();
         }
 
-        proxy::Stopwatch stopwatch;
+        const proxy::Stopwatch stopwatch;
 
         while (stopwatch.elapsed_time_ms() < test_hold_time_ms) {
             watch();

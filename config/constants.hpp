@@ -414,12 +414,17 @@ constexpr float run_max_speed{1.0F};
  * @return The profile of the run.
  */
 constexpr nav::RunProfile make_run_profile(bool racing_line, bool boost, bool risky, bool fan) {
+    float utilization = boost ? boost_utilization : normal_utilization;
+
+    if (fan) {
+        utilization = boost ? fan_boost_utilization : fan_utilization;
+    }
+
     return {
         .racing_line = racing_line,
         .fan = fan,
         .risky = risky,
-        .utilization = fan ? (boost ? fan_boost_utilization : fan_utilization) :
-                             (boost ? boost_utilization : normal_utilization),
+        .utilization = utilization,
         .max_speed = run_max_speed,
     };
 }

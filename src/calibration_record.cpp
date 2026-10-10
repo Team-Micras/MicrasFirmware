@@ -2,10 +2,10 @@
  * @file
  */
 
-#include <array>
 #include <bit>
 #include <cstdint>
 #include <optional>
+#include <span>
 #include <vector>
 
 #include "micras/calibration_record.hpp"
@@ -77,28 +77,31 @@ std::vector<uint8_t> CalibrationRecord::serialize() const {
 void CalibrationRecord::deserialize(const uint8_t* serial_data, uint16_t size) {
     *this = {};
 
-    if (size != 1 + number_of_values * value_size or serial_data[0] != version) {
+    std::span<const uint8_t> data{serial_data, size};
+
+    if (data.size() != 1 + number_of_values * value_size or data.front() != version) {
         return;
     }
 
-    const uint8_t* cursor = serial_data + 1;
+    data = data.subspan(1);
 
-    this->for_each([&cursor](Value& value) {
-        value.present = cursor[0] != 0;
+    this->for_each([&data](Value& value) {
+        value.present = data.front() != 0;
 
-        std::array<float*, 2> numbers{&value.measured, &value.replaced};
+        std::span<const uint8_t> bytes = data.subspan(1);
 
-        for (uint8_t i = 0; i < numbers.size(); i++) {
+        for (float* const number : {&value.measured, &value.replaced}) {
             uint32_t bits = 0;
 
-            for (uint8_t byte = 0; byte < 4; byte++) {
-                bits |= static_cast<uint32_t>(cursor[1 + 4 * i + byte]) << (8 * byte);
+            for (uint8_t shift = 0; shift < 32; shift += 8) {
+                bits |= static_cast<uint32_t>(bytes.front()) << shift;
+                bytes = bytes.subspan(1);
             }
 
-            *numbers.at(i) = std::bit_cast<float>(bits);
+            *number = std::bit_cast<float>(bits);
         }
 
-        cursor += value_size;
+        data = data.subspan(value_size);
     });
 }
 }  // namespace micras
