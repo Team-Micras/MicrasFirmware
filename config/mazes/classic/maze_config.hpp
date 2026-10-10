@@ -30,6 +30,19 @@ constexpr nav::RobotModel::Maze maze_geometry{
     .wall_minnaert = 1.0F,
 };
 
+/**
+ * @brief What each wall sensor reads at its reference distance from these walls, over what it reads
+ * from the walls its reference readings were calibrated against (the home maze's semi-gloss
+ * boards), in the order of wall_sensors_index.
+ *
+ * @note Matte walls send a sensor back about as much light square on as the semi-gloss boards, and
+ * 1.7 times as much at 45 degrees, where the diagonal sensors calibrate: those are the simulated
+ * sensors' readings in these walls over their readings in the home maze's, the only source until a
+ * competition maze is measured. A calibration in the maze replaces the references, and this with
+ * them.
+ */
+constexpr std::array<float, nav::number_of_wall_sensors> wall_reference_scale{0.9787F, 1.6999F, 1.6995F, 0.9787F};
+
 constexpr uint8_t maze_width{16};
 constexpr uint8_t maze_height{16};
 

@@ -11,6 +11,8 @@
 #include <utility>
 
 #include "constants.hpp"
+#include "maze_config.hpp"
+#include "micras/calibration_record.hpp"
 #include "micras/comm/link.hpp"
 #include "micras/core/types.hpp"
 #include "micras/core/variable_pool.hpp"
@@ -37,6 +39,10 @@ static const Micras* last_constructed{};
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables) the DMA writes here
 static std::array<uint8_t, bluetooth_rx_buffer_size> bluetooth_rx_buffer;
 static std::array<uint8_t, bluetooth_tx_buffer_size> bluetooth_tx_buffer;
+
+static float configured_reference_reading(uint8_t sensor) {
+    return wall_sensors_config.reference_readings.at(sensor) * wall_reference_scale.at(sensor);
+}
 
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
@@ -207,7 +213,7 @@ void Micras::register_variables() {
 void Micras::apply_calibration() {
     for (uint8_t i = 0; i < nav::number_of_wall_sensors; i++) {
         const std::optional<float> reference = CalibrationRecord::choose(
-            this->calibration_record.wall_reference_readings.at(i), wall_sensors_config.reference_readings.at(i),
+            this->calibration_record.wall_reference_readings.at(i), configured_reference_reading(i),
             wall_sensors_config.noise_floor, wall_sensors_config.max_reading
         );
         const std::optional<float> offset = CalibrationRecord::choose(
@@ -215,9 +221,7 @@ void Micras::apply_calibration() {
             max_wall_offset
         );
 
-        if (reference.has_value()) {
-            this->wall_sensors.set_reference_reading(i, reference.value());
-        }
+        this->wall_sensors.set_reference_reading(i, reference.value_or(configured_reference_reading(i)));
 
         if (offset.has_value()) {
             this->wall_sensors.set_offset(i, offset.value());
@@ -607,13 +611,13 @@ bool Micras::calibrate() {
                 wall_sensors_config.max_reading) {
             CalibrationRecord::record(
                 this->calibration_record.wall_reference_readings.at(sensor),
-                this->wall_sensors.get_reference_reading(sensor), wall_sensors_config.reference_readings.at(sensor)
+                this->wall_sensors.get_reference_reading(sensor), configured_reference_reading(sensor)
             );
         } else {
             this->wall_sensors.set_reference_reading(
                 sensor, this->calibration_record.wall_reference_readings.at(sensor).present ?
                             this->calibration_record.wall_reference_readings.at(sensor).measured :
-                            wall_sensors_config.reference_readings.at(sensor)
+                            configured_reference_reading(sensor)
             );
         }
     }

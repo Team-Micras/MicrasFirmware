@@ -32,6 +32,14 @@ constexpr nav::RobotModel::Maze maze_geometry{
     .wall_minnaert = 1.83F,
 };
 
+/**
+ * @brief What each wall sensor reads at its reference distance from these walls, over what it reads
+ * from the walls its reference readings were calibrated against, in the order of wall_sensors_index.
+ *
+ * @note The reference readings are calibrated against these walls.
+ */
+constexpr std::array<float, nav::number_of_wall_sensors> wall_reference_scale{1.0F, 1.0F, 1.0F, 1.0F};
+
 constexpr uint8_t maze_width{4};
 constexpr uint8_t maze_height{4};
 
