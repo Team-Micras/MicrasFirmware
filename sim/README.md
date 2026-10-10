@@ -265,13 +265,13 @@ carries a saved map into the next run.
 **The whole contest runs clean on ten mazes**, which `sim_contest` shows: a short press explores, the
 firmware comes back to the start on its own and saves the map, and a long press then plans and runs the
 fastest route with the fan. `sim_contest_all` does the same with every switch on (fan, racing line,
-boost, risky), and there too every maze is clean, on four seeds of the whole contest and on fast runs
-started 2 mm and 1 degree off the start pose. Diagonals are always allowed; the second switch selects the
-racing line.
+boost, risky), and there too every maze is clean. Diagonals are always allowed; the second switch selects
+the racing line.
 
-The search takes 48 to 117 s before the fast run starts (explore and return together, 839 s over the ten
-mazes). The fast run takes, with the fan, 5.8 s on maze 1 and 4.8 to 11.3 s on the others, 81.9 s in all;
-with every switch on, 4.9 s on maze 1 and 4.3 to 10.1 s on the others, 72.1 s in all.
+The search, at 0.3 m/s, takes 104 to 227 s before the fast run starts (explore and return together,
+1746 s over the ten mazes). The fast run, at up to 1 m/s, takes with the fan 9.5 s on maze 1 and 9.6 to
+22.7 s on the others, 151.1 s in all; with every switch on, 8.9 s on maze 1 and 9.1 to 21.6 s on the
+others, 141.2 s in all.
 
 What the firmware does that the fast modes depend on:
 
