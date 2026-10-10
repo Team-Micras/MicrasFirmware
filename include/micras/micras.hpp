@@ -108,6 +108,24 @@ public:
     };
 
     /**
+     * @brief Marks the program leaves where a reset would stop it, which the next boot publishes.
+     *
+     * @note ABORT and FAULT are left by the abort and the hard fault handlers. A hard fault adds the
+     * configurable fault status register to its mark, in the bits below the top one, which that
+     * register never sets: the next boot then tells what kind of fault it was.
+     */
+    enum class Trace : uint32_t {
+        NONE = 0,
+        LOOP = 1,
+        SAVE_STARTED = 2,
+        SAVE_WRITING = 3,
+        SAVE_WRITTEN = 4,
+        SAVE_DONE = 5,
+        ABORT = 0x7F000000,
+        FAULT = 0x80000000,
+    };
+
+    /**
      * @brief Construct a new Micras object.
      *
      * @note The estimate of the pose starts where a run starts, in the start cell, rather than at
@@ -461,18 +479,6 @@ private:
         float                                          yaw_inertia{};
         bool                                           gyroscope_scale_valid{};
         float                                          gyroscope_scale{};
-    };
-
-    /**
-     * @brief Marks the program leaves where a reset would stop it, which the next boot publishes.
-     */
-    enum class Trace : uint32_t {
-        NONE = 0,
-        LOOP = 1,
-        SAVE_STARTED = 2,
-        SAVE_WRITING = 3,
-        SAVE_WRITTEN = 4,
-        SAVE_DONE = 5,
     };
 
     /**

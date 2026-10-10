@@ -286,7 +286,6 @@ uint16_t Micras::get_init_status() const {
     const std::array<std::pair<InitCheck, bool>, 11> checks{{
         {InitCheck::WATCHDOG_RESET, not hal::Mcu::was_reset_by_watchdog()},
         {InitCheck::CPU_FREQUENCY, hal::Mcu::is_cpu_frequency_supported()},
-        // {InitCheck::BATTERY, this->battery.was_initialized()},
         {InitCheck::FAN, this->fan.was_initialized()},
         {InitCheck::LOCOMOTION, this->locomotion.was_initialized()},
         {InitCheck::TORQUE_SENSORS, this->torque_sensors.was_initialized()},

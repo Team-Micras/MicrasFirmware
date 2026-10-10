@@ -3,23 +3,12 @@
  */
 
 #include <csignal>
+#include <utility>
 
 #include "micras/hal/gpio.hpp"
 #include "micras/hal/mcu.hpp"
 #include "micras/micras.hpp"
 #include "target.hpp"
-
-/**
- * @brief Marks the abort and the hard fault handlers leave in the trace of the microcontroller.
- *
- * @note A hard fault adds the configurable fault status register to its mark, in the bits below
- * the top one, which that register never sets: the next boot then tells what kind of fault it was.
- */
-///@{
-static constexpr uint32_t abort_trace{0x7F000000};
-static constexpr uint32_t fault_trace{0x80000000};
-
-///@}
 
 /**
  * @brief Bring every actuator to a safe state.
@@ -37,7 +26,7 @@ static void emergency_stop() {
 
 static void signal_handler(int signal) {
     if (signal == SIGABRT) {
-        micras::hal::Mcu::set_trace(abort_trace);
+        micras::hal::Mcu::set_trace(std::to_underlying(micras::Micras::Trace::ABORT));
         emergency_stop();
     }
 }
@@ -52,7 +41,9 @@ extern "C" {
  */
 // NOLINTNEXTLINE(readability-identifier-naming) the name is fixed by the vector table
 void HardFault_Handler() {
-    micras::hal::Mcu::set_trace(fault_trace | micras::hal::Mcu::get_fault_status());
+    micras::hal::Mcu::set_trace(
+        std::to_underlying(micras::Micras::Trace::FAULT) | micras::hal::Mcu::get_fault_status()
+    );
     emergency_stop();
 
     while (true) { }
