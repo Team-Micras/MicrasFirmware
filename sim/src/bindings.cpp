@@ -3,14 +3,15 @@
  */
 
 #include <array>
-#include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <span>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "constants.hpp"
 #include "micras/hal/gpio.hpp"
@@ -20,6 +21,7 @@
 #include "micras/hal/pwm.hpp"
 #include "micras/hal/spi.hpp"
 #include "micras/models/as5047u_model.hpp"
+#include "micras/nav/robot_model.hpp"
 #include "micras/proxy/button.hpp"
 #include "micras/proxy/motor.hpp"
 #include "micras/proxy/rotary_sensor.hpp"
@@ -80,6 +82,75 @@ static hal::host::GpioPort& gpio_port(const hal::Gpio::Config& config) {
     hal::host::GpioPort& port = Board::gpio(config.port, config.pin);
     port.bound = true;
     return port;
+}
+
+/**
+ * @brief Build the schedule of the wall emitters from the table the emitter timer's update DMA loads.
+ *
+ * @note The timer counts up and down from zero and converts at both ends, the first being an
+ * overflow: an inverted output is lit around an overflow while its compare value is within the
+ * count, any other around an underflow while its compare value is above zero, in both halves of
+ * the count that meet at that end. Counting the updates from zero, the first row of the burst is in
+ * force until update 0, the second until update 1, and row k of the table from update k + 1 on. The
+ * scans start over with the cycle whenever the firmware arms the burst again, and each half of the
+ * cycle is a frame the firmware reads.
+ *
+ * @param burst The port of the emitter timer.
+ * @return The schedule.
+ */
+static std::function<std::optional<WallSensors::Schedule>()>
+    make_emitter_schedule(const hal::host::TimerBurstPort& burst) {
+    struct Progress {
+        uint32_t arms{};
+        uint64_t ends{};
+    };
+
+    return [&burst, progress = Progress{}]() mutable -> std::optional<WallSensors::Schedule> {
+        if (not burst.running or burst.first.empty()) {
+            return std::nullopt;
+        }
+
+        if (burst.arms != progress.arms) {
+            progress = {.arms = burst.arms, .ends = 0};
+        }
+
+        const std::size_t registers = burst.first.size();
+        const std::size_t length = burst.table.size() / registers;
+        const uint64_t    end = progress.ends++;
+        const uint32_t    autoreload = wall_sensors_config.burst.handle->Instance->ARR;
+
+        const auto row = [&burst, registers, length](uint64_t half) -> std::span<const uint32_t> {
+            if (half < 2) {
+                return half == 0 ? burst.first : burst.second;
+            }
+
+            return burst.table.subspan(((half - 2) % length) * registers, registers);
+        };
+
+        const std::span<const uint32_t> before = row(end);
+        const std::span<const uint32_t> after = row(end + 1);
+        const bool                      overflow = end % 2 == 0;
+        std::vector<bool>               lit(registers, false);
+
+        for (std::size_t emitter = 0; emitter < registers; emitter++) {
+            const bool inverted = wall_sensors_config.led_pwms.at(emitter).inverted;
+            const auto on = [inverted, autoreload](uint32_t compare) {
+                return inverted ? compare <= autoreload : compare > 0;
+            };
+
+            lit.at(emitter) = inverted == overflow and on(sim::at(before, emitter)) and on(sim::at(after, emitter));
+        }
+
+        const std::size_t position = end % length;
+        const std::size_t frame = length / 2;
+
+        return WallSensors::Schedule{
+            .position = position,
+            .length = length,
+            .lit = std::move(lit),
+            .last = position % frame == frame - 1,
+        };
+    };
 }
 
 /**
@@ -216,24 +287,30 @@ MicrasBoard bind_devices(RunContext& context, const WorldInfo& world, MicrasChip
         emitters.at(sensor) = &pwm_port(wall_sensors_config.led_pwms.at(sensor));
     }
 
-    const double scan_period = 1.0 / (2.0 * static_cast<double>(wall_sensors_frequency));
+    hal::host::TimerBurstPort& burst = Board::timer_burst(wall_sensors_config.burst.handle);
+    burst.bound = true;
 
-    board.wall_sensors = add(
-        context,
-        std::make_unique<WallSensors>(
-            context.world,
-            WallSensors::Config{
-                .name = "wall",
-                .description = world.robot->wall_sensors,
-                .scan_ticks = static_cast<uint32_t>(std::lround(scan_period / (context.clock.us_per_tick() * 1e-6))),
-                .emitter_duty = [emitters](std::size_t sensor) { return emitters.at(sensor)->duty_cycle; },
-                .write = [&wall_adc](std::size_t index, uint32_t counts) { wall_adc.write(index, counts); },
-                .finish_sequence = [&wall_adc] { wall_adc.finish_sequence(); },
-                .reflectance = world.reflectance,
-            },
-            context.noise
-        )
-    );
+    const double scan_period_us =
+        1.0e6 / (static_cast<double>(nav::number_of_wall_sensors + 1) * static_cast<double>(wall_sensors_frequency));
+
+    board.wall_sensors =
+        add(context,
+            std::make_unique<WallSensors>(
+                context.world,
+                WallSensors::Config{
+                    .name = "wall",
+                    .description = world.robot->wall_sensors,
+                    .scan_ticks = 1,
+                    .emitter_duty = [emitters](std::size_t sensor) { return emitters.at(sensor)->duty_cycle; },
+                    .write = [&wall_adc](std::size_t index, uint32_t counts) { wall_adc.write(index, counts); },
+                    .finish_sequence = [&wall_adc] { wall_adc.finish_sequence(); },
+                    .reflectance = world.reflectance,
+                    .minnaert = world.minnaert,
+                    .schedule = make_emitter_schedule(burst),
+                    .scan_period_us = scan_period_us,
+                },
+                context.noise
+            ));
 
     hal::host::AdcPort& battery_adc = Board::adc(battery_config.adc.handle);
     battery_adc.bound = true;
@@ -273,7 +350,7 @@ MicrasBoard bind_devices(RunContext& context, const WorldInfo& world, MicrasChip
     add(context,
         std::make_unique<CurrentSense>(
             CurrentSense::Config{
-                .currents = {[left] { return left->current(); }, [right] { return right->current(); }},
+                .currents = {[right] { return right->current(); }, [left] { return left->current(); }},
                 .zero_voltage = static_cast<double>(
                     torque_sensors_config.zero_reading * torque_sensors_config.adc.reference_voltage
                 ),

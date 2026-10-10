@@ -6,10 +6,13 @@
 #include <array>
 #include <cmath>
 #include <cstdint>
+#include <optional>
 #include <string_view>
 #include <utility>
 
 #include "constants.hpp"
+#include "maze_config.hpp"
+#include "micras/calibration_record.hpp"
 #include "micras/comm/link.hpp"
 #include "micras/core/types.hpp"
 #include "micras/core/variable_pool.hpp"
@@ -27,6 +30,7 @@
 #include "micras/proxy/imu.hpp"
 #include "micras/proxy/locomotion.hpp"
 #include "micras/states/base.hpp"
+#include "robot.hpp"
 #include "target.hpp"
 
 namespace micras {
@@ -36,6 +40,10 @@ static const Micras* last_constructed{};
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables) the DMA writes here
 static std::array<uint8_t, bluetooth_rx_buffer_size> bluetooth_rx_buffer;
 static std::array<uint8_t, bluetooth_tx_buffer_size> bluetooth_tx_buffer;
+
+static float configured_reference_reading(uint8_t sensor) {
+    return wall_sensors_config.reference_readings.at(sensor) * wall_reference_scale.at(sensor);
+}
 
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
@@ -55,8 +63,16 @@ Micras::Micras() :
     this->fsm.add_state(this->wait_for_gyroscope_state);
     this->fsm.add_state(this->calibrate_gyroscope_state);
     this->fsm.add_state(this->error_state);
+    this->fsm.add_state(this->calibrate_offsets_state);
+    this->fsm.add_state(this->check_sensors_state);
+    this->fsm.add_state(this->check_polarity_state);
+    this->fsm.add_state(this->check_crosstalk_state);
 
+    this->telemetry.init_status = this->get_init_status();
+    this->telemetry.reset_flags = hal::Mcu::get_reset_flags();
+    this->telemetry.previous_trace = hal::Mcu::get_previous_trace();
     this->register_variables();
+    this->localizer.reset(this->mission.get_start_pose(), this->measure());
 
     this->startup_extension.reset();
     this->tick.restart();
@@ -75,6 +91,23 @@ void Micras::register_variables() {
         this->variables.add("wall_dark/", sensor_names.at(i), this->wall_sensors.get_reading(i).dark, {.stream = true});
     }
 
+    for (uint8_t i = 0; i < nav::number_of_wall_sensors; i++) {
+        this->variables.add(
+            "wall_intensity/", sensor_names.at(i), this->telemetry.wall_intensities.at(i), {.stream = true}
+        );
+    }
+
+    this->variables.add("", "wall_flags", this->telemetry.wall_flags, {.stream = true});
+    this->variables.add("crosstalk/", "mode", this->telemetry.crosstalk_mode, {.stream = true});
+    this->variables.add("fsm/", "state", this->telemetry.state, {.stream = true});
+    this->variables.add("", "init_status", this->telemetry.init_status, {});
+    this->variables.add("boot/", "reset_flags", this->telemetry.reset_flags, {});
+    this->variables.add("boot/", "previous_trace", this->telemetry.previous_trace, {});
+    this->variables.add("wheel/", "left", this->measurements.left_wheel_angle, {.stream = true});
+    this->variables.add("wheel/", "right", this->measurements.right_wheel_angle, {.stream = true});
+    this->variables.add("motor/", "linear", this->telemetry.motor_command.at(0), {.stream = true});
+    this->variables.add("motor/", "angular", this->telemetry.motor_command.at(1), {.stream = true});
+
     this->variables.add("imu/", "gyro_x", this->telemetry.angular_velocity.at(0), {.stream = true});
     this->variables.add("imu/", "gyro_y", this->telemetry.angular_velocity.at(1), {.stream = true});
     this->variables.add("imu/", "gyro_z", this->telemetry.angular_velocity.at(2), {.stream = true});
@@ -84,7 +117,17 @@ void Micras::register_variables() {
     // this->variables.add("", "battery_voltage", this->telemetry.battery_voltage, {.stream = true});
     this->variables.add("", "adc_restarts", this->telemetry.adc_restarts, {});
     this->variables.add("", "failed_saves", this->telemetry.failed_saves, {});
-    this->variables.add("", "fault", this->fault, {});
+    this->variables.add("", "fault", this->fault, {.stream = true});
+
+    const proxy::Imu::Diagnostics& imu_bus = this->imu.get_diagnostics();
+
+    this->variables.add("imu_bus/", "samples", imu_bus.samples, {.stream = true});
+    this->variables.add("imu_bus/", "stale", imu_bus.stale, {.stream = true});
+    this->variables.add("imu_bus/", "rejected", imu_bus.rejected, {.stream = true});
+    this->variables.add("imu_bus/", "failed", imu_bus.failed, {.stream = true});
+    this->variables.add("imu_bus/", "busy", imu_bus.busy, {.stream = true});
+    this->variables.add("imu_bus/", "last_rejected_status", imu_bus.last_rejected_status, {.stream = true});
+    this->variables.add("imu_bus/", "longest_silence", this->longest_imu_silence, {.stream = true});
 
     this->variables.add("loop/", "elapsed_time", this->elapsed_time, {.stream = true});
     this->variables.add("loop/", "worst_time_us", this->worst_loop_time_us, {.stream = true});
@@ -131,6 +174,7 @@ void Micras::register_variables() {
     for (uint8_t i = 0; i < nav::number_of_wall_sensors; i++) {
         this->variables.add("wall_reference/", sensor_names.at(i), this->telemetry.wall_reference_readings.at(i), {});
         this->variables.add("wall_spread/", sensor_names.at(i), this->telemetry.wall_calibration_spreads.at(i), {});
+        this->variables.add("wall_offset/", sensor_names.at(i), this->telemetry.wall_offsets.at(i), {});
     }
 
     this->variables.add("", "route_time", this->telemetry.route_time, {.stream = true});
@@ -159,16 +203,46 @@ void Micras::register_variables() {
     this->variables.add("", "objective", this->objective, {.stream = true, .write = true, .idle = true});
     this->variables.add("", "run_profile", this->run_profile, {.stream = true, .write = true});
     this->variables.add("", "maze", this->mission.get_maze(), {.persist = true});
+    this->variables.add("", "calibration", this->calibration_record, {.persist = true});
 
     this->link.register_variables(this->variables, "link/");
 
     this->maze_storage.restore(this->variables);
+    this->apply_calibration();
+}
+
+void Micras::apply_calibration() {
+    for (uint8_t i = 0; i < nav::number_of_wall_sensors; i++) {
+        const std::optional<float> reference = CalibrationRecord::choose(
+            this->calibration_record.wall_reference_readings.at(i), configured_reference_reading(i),
+            wall_sensors_config.noise_floor, wall_sensors_config.max_reading
+        );
+        const std::optional<float> offset = CalibrationRecord::choose(
+            this->calibration_record.wall_offsets.at(i), wall_sensors_config.offsets.at(i), min_wall_offset,
+            max_wall_offset
+        );
+
+        this->wall_sensors.set_reference_reading(i, reference.value_or(configured_reference_reading(i)));
+
+        if (offset.has_value()) {
+            this->wall_sensors.set_offset(i, offset.value());
+        }
+    }
+
+    const std::optional<float> scale = CalibrationRecord::choose(
+        this->calibration_record.gyroscope_scale, robot_model.gyroscope_scale, min_gyroscope_scale, max_gyroscope_scale
+    );
+
+    if (scale.has_value()) {
+        this->localizer.set_gyroscope_scale(scale.value());
+    }
 }
 
 void Micras::update() {
     const uint32_t ticks = this->tick.wait();
 
     this->missed_ticks += ticks - 1;
+    hal::Mcu::set_trace(std::to_underlying(Trace::LOOP));
     this->telemetry_time_us += ticks * loop_time_us;
     this->elapsed_time = static_cast<float>(ticks) * loop_time;
     this->watchdog.refresh();
@@ -193,6 +267,7 @@ void Micras::update() {
     this->measurements = this->measure();
     this->imu_silence =
         this->measurements.imu_is_new ? 0 : static_cast<uint16_t>(std::min(this->imu_silence + 1, 65535));
+    this->longest_imu_silence = std::max(this->longest_imu_silence, this->imu_silence);
     this->localizer.predict(this->measurements, this->elapsed_time);
 
     this->fsm.update();
@@ -205,12 +280,33 @@ void Micras::update() {
 }
 
 bool Micras::check_initialization() const {
-    return not hal::Mcu::was_reset_by_watchdog() and hal::Mcu::is_cpu_frequency_supported() and
-           /* this->battery.was_initialized() and */ this->fan.was_initialized() and
-           this->locomotion.was_initialized() and this->torque_sensors.was_initialized() and
-           this->argb.was_initialized() and this->buzzer.was_initialized() and this->imu.was_initialized() and
-           this->rotary_sensor_left.was_initialized() and this->rotary_sensor_right.was_initialized() and
-           this->wall_sensors.was_initialized();
+    return this->get_init_status() == 0;
+}
+
+uint16_t Micras::get_init_status() const {
+    const std::array<std::pair<InitCheck, bool>, 11> checks{{
+        {InitCheck::WATCHDOG_RESET, not hal::Mcu::was_reset_by_watchdog()},
+        {InitCheck::CPU_FREQUENCY, hal::Mcu::is_cpu_frequency_supported()},
+        {InitCheck::FAN, this->fan.was_initialized()},
+        {InitCheck::LOCOMOTION, this->locomotion.was_initialized()},
+        {InitCheck::TORQUE_SENSORS, this->torque_sensors.was_initialized()},
+        {InitCheck::ARGB, this->argb.was_initialized()},
+        {InitCheck::BUZZER, this->buzzer.was_initialized()},
+        {InitCheck::IMU, this->imu.was_initialized()},
+        {InitCheck::ROTARY_SENSOR_LEFT, this->rotary_sensor_left.was_initialized()},
+        {InitCheck::ROTARY_SENSOR_RIGHT, this->rotary_sensor_right.was_initialized()},
+        {InitCheck::WALL_SENSORS, this->wall_sensors.was_initialized()},
+    }};
+
+    uint16_t status = 0;
+
+    for (const auto& [check, passed] : checks) {
+        if (not passed) {
+            status |= static_cast<uint16_t>(1U << std::to_underlying(check));
+        }
+    }
+
+    return status;
 }
 
 void Micras::stop() {
@@ -218,6 +314,8 @@ void Micras::stop() {
     this->locomotion.stop();
     this->locomotion.disable();
     this->fan.stop();
+    this->telemetry.motor_command = {};
+    this->stop_requested = false;
 }
 
 bool Micras::acknowledge_event(Interface::Event event) {
@@ -236,7 +334,13 @@ void Micras::set_objective(core::Objective objective) {
     this->objective = objective;
 }
 
-Micras::Maintenance Micras::get_maintenance() const {
+Micras::Maintenance Micras::take_maintenance() {
+    if (this->requested_maintenance.has_value()) {
+        const Maintenance requested = this->requested_maintenance.value();
+        this->requested_maintenance.reset();
+        return requested;
+    }
+
     const bool racing_line = this->is_selected(Interface::Profile::RACING_LINE);
     const bool boost = this->is_selected(Interface::Profile::BOOST);
     const bool risky = this->is_selected(Interface::Profile::RISKY);
@@ -250,6 +354,121 @@ Micras::Maintenance Micras::get_maintenance() const {
     }
 
     return Maintenance::WALL_SENSORS;
+}
+
+bool Micras::is_stop_requested() const {
+    return this->stop_requested;
+}
+
+void Micras::leave_error() {
+    this->led.turn_off();
+}
+
+void Micras::start_sensor_check() {
+    this->torque_sensors.calibrate();
+    this->wall_sensors.turn_on();
+}
+
+void Micras::start_polarity_check() {
+    this->clear_faults();
+    this->polarity_step = 0;
+    this->polarity_step_time = 0.0F;
+    this->locomotion.enable();
+}
+
+bool Micras::check_polarity() {
+    this->polarity_step_time += this->elapsed_time;
+
+    if (this->polarity_step_time >= polarity_step_duration) {
+        this->polarity_step++;
+        this->polarity_step_time = 0.0F;
+    }
+
+    if (this->polarity_step >= polarity_steps.size()) {
+        this->locomotion.stop();
+        this->telemetry.motor_command = {};
+        return true;
+    }
+
+    const WheelCommand& step = polarity_steps.at(this->polarity_step);
+
+    this->locomotion.set_wheel_command(step.left, step.right);
+    this->telemetry.motor_command = {(step.left + step.right) / 2.0F, (step.right - step.left) / 2.0F};
+
+    return false;
+}
+
+void Micras::start_offset_calibration() {
+    this->wall_sensors.turn_on();
+    this->offset_time = 0.0F;
+    this->offset_measuring = false;
+}
+
+bool Micras::calibrate_offsets() {
+    this->offset_time += this->elapsed_time;
+
+    if (not this->offset_measuring) {
+        if (this->offset_time >= offset_settle_time) {
+            for (uint8_t i = 0; i < nav::number_of_wall_sensors; i++) {
+                this->wall_sensors.calibrate_offset(i);
+            }
+
+            this->offset_measuring = true;
+        }
+
+        return false;
+    }
+
+    if (this->wall_sensors.is_calibrating()) {
+        return false;
+    }
+
+    for (uint8_t i = 0; i < nav::number_of_wall_sensors; i++) {
+        const float offset = this->wall_sensors.get_offset(i);
+
+        if (offset >= min_wall_offset and offset <= max_wall_offset and
+            this->wall_sensors.get_calibration_deviation(i) <= max_offset_deviation) {
+            CalibrationRecord::record(
+                this->calibration_record.wall_offsets.at(i), offset, wall_sensors_config.offsets.at(i)
+            );
+        } else {
+            this->wall_sensors.set_offset(
+                i, this->calibration_record.wall_offsets.at(i).present ?
+                       this->calibration_record.wall_offsets.at(i).measured :
+                       wall_sensors_config.offsets.at(i)
+            );
+        }
+    }
+
+    this->wall_sensors.turn_off();
+    this->save_maze();
+    return true;
+}
+
+void Micras::start_crosstalk_check() {
+    this->wall_sensors.turn_off();
+    this->telemetry.crosstalk_mode = 0;
+    this->crosstalk_mode_time = 0.0F;
+}
+
+bool Micras::check_crosstalk() {
+    this->crosstalk_mode_time += this->elapsed_time;
+
+    if (this->crosstalk_mode_time < crosstalk_mode_duration) {
+        return false;
+    }
+
+    this->crosstalk_mode_time = 0.0F;
+    this->telemetry.crosstalk_mode++;
+
+    if (this->telemetry.crosstalk_mode >= crosstalk_modes) {
+        this->wall_sensors.turn_off();
+        this->telemetry.crosstalk_mode = 0;
+        return true;
+    }
+
+    this->wall_sensors.turn_on();
+    return false;
 }
 
 void Micras::prepare(bool run) {
@@ -293,12 +512,18 @@ nav::Mission::Status Micras::run() {
         this->follow(this->mission.get_reference());
     } else {
         this->locomotion.stop();
+        this->telemetry.motor_command = {};
     }
 
     return status;
 }
 
 bool Micras::check_fault() {
+    if (this->stop_requested) {
+        this->fault = Fault::STOPPED;
+        return true;
+    }
+
     const bool over_threshold =
         std::hypot(this->measurements.acceleration.x, this->measurements.acceleration.y) > crash_acceleration;
 
@@ -334,11 +559,21 @@ bool Micras::has_route() const {
 }
 
 bool Micras::save_maze() {
-    const auto extension = this->watchdog.extend(stopped_watchdog_timeout_ms);
+    hal::Mcu::set_trace(std::to_underlying(Trace::SAVE_STARTED));
 
-    this->led.turn_on();
-    const bool saved = this->maze_storage.save(this->variables);
-    this->led.turn_off();
+    bool saved = false;
+
+    {
+        const auto extension = this->watchdog.extend(stopped_watchdog_timeout_ms);
+
+        hal::Mcu::set_trace(std::to_underlying(Trace::SAVE_WRITING));
+        this->led.turn_on();
+        saved = this->maze_storage.save(this->variables);
+        this->led.turn_off();
+        hal::Mcu::set_trace(std::to_underlying(Trace::SAVE_WRITTEN));
+    }
+
+    hal::Mcu::set_trace(std::to_underlying(Trace::SAVE_DONE));
     this->tick.restart();
 
     if (not saved) {
@@ -365,8 +600,35 @@ bool Micras::calibrate() {
         return false;
     }
 
+    const std::array<uint8_t, 2> pair =
+        this->calibration_type == CalibrationType::SIDE_WALLS ?
+            std::array<uint8_t, 2>{wall_sensors_index.left, wall_sensors_index.right} :
+            std::array<uint8_t, 2>{wall_sensors_index.left_front, wall_sensors_index.right_front};
+
+    for (const uint8_t sensor : pair) {
+        if (this->wall_sensors.get_calibration_spread(sensor) <= max_calibration_spread and
+            this->wall_sensors.get_reference_reading(sensor) + this->wall_sensors.get_reading(sensor).dark <
+                wall_sensors_config.max_reading) {
+            CalibrationRecord::record(
+                this->calibration_record.wall_reference_readings.at(sensor),
+                this->wall_sensors.get_reference_reading(sensor), configured_reference_reading(sensor)
+            );
+        } else {
+            this->wall_sensors.set_reference_reading(
+                sensor, this->calibration_record.wall_reference_readings.at(sensor).present ?
+                            this->calibration_record.wall_reference_readings.at(sensor).measured :
+                            configured_reference_reading(sensor)
+            );
+        }
+    }
+
     this->calibration_type = this->calibration_type == CalibrationType::SIDE_WALLS ? CalibrationType::FRONT_WALL :
                                                                                      CalibrationType::SIDE_WALLS;
+
+    if (this->calibration_type == CalibrationType::SIDE_WALLS) {
+        this->wall_sensors.turn_off();
+        this->save_maze();
+    }
 
     return true;
 }
@@ -384,7 +646,9 @@ void Micras::start_identification() {
 bool Micras::identify() {
     const nav::Controller::Command command = this->drive_identification.update(this->measurements, this->elapsed_time);
 
-    this->locomotion.set_command(command.forward, command.rotation);
+    const proxy::Locomotion::Command applied = this->locomotion.set_command(command.forward, command.rotation);
+
+    this->telemetry.motor_command = {applied.linear, applied.angular};
 
     if (not this->drive_identification.is_finished()) {
         return false;
@@ -422,6 +686,16 @@ bool Micras::calibrate_gyroscope() {
     this->telemetry.gyroscope_scale_valid = this->gyroscope_calibration.is_valid();
     this->telemetry.gyroscope_scale = this->gyroscope_calibration.get_scale();
 
+    const float scale = this->gyroscope_calibration.get_scale();
+
+    if (this->gyroscope_calibration.is_valid() and scale >= min_gyroscope_scale and scale <= max_gyroscope_scale) {
+        this->locomotion.stop();
+        this->locomotion.disable();
+        this->localizer.set_gyroscope_scale(scale);
+        CalibrationRecord::record(this->calibration_record.gyroscope_scale, scale, robot_model.gyroscope_scale);
+        this->save_maze();
+    }
+
     return true;
 }
 
@@ -443,6 +717,7 @@ nav::Measurements Micras::measure() const {
         sampled.walls.at(i) = {
             .distance = reading.distance,
             .valid = reading.valid,
+            .saturated = reading.saturated,
             .blind = reading.blind,
             .is_new = reading.is_new,
         };
@@ -467,6 +742,8 @@ void Micras::follow(const nav::Reference& reference) {
         this->controller.update(reference, this->localizer.get_state(), this->elapsed_time);
     const proxy::Locomotion::Command applied = this->locomotion.set_command(command.forward, command.rotation);
 
+    this->telemetry.motor_command = {applied.linear, applied.angular};
+
     if (applied.linear != command.forward or applied.angular != command.rotation) {
         this->saturated_iterations++;
         this->saturated_streak = static_cast<uint16_t>(std::min(this->saturated_streak + 1, 65535));
@@ -476,12 +753,31 @@ void Micras::follow(const nav::Reference& reference) {
 }
 
 void Micras::clear_faults() {
+    this->longest_imu_silence = 0;
     this->crash_count = 0;
     this->saturated_streak = 0;
     this->fault = Fault::NONE;
 }
 
 void Micras::publish() {
+    this->telemetry.state = this->fsm.get_current_state_id();
+    this->telemetry.wall_flags = 0;
+
+    const bool crosstalk = this->fsm.get_current_state_id() == std::to_underlying(State::CHECK_CROSSTALK) and
+                           this->telemetry.crosstalk_mode > 0 and this->telemetry.crosstalk_mode < crosstalk_modes - 1;
+
+    for (uint8_t i = 0; i < nav::number_of_wall_sensors; i++) {
+        const proxy::WallSensors::Reading& reading = this->wall_sensors.get_reading(i);
+
+        this->telemetry.wall_intensities.at(i) =
+            crosstalk ? this->wall_sensors.get_crosstalk(this->telemetry.crosstalk_mode - 1, i) :
+                        this->wall_sensors.get_intensity(i);
+        this->telemetry.wall_flags |= static_cast<uint16_t>(
+            (reading.valid ? 1U << i : 0U) | (reading.blind ? 1U << (i + nav::number_of_wall_sensors) : 0U) |
+            (reading.saturated ? 1U << (i + 2 * nav::number_of_wall_sensors) : 0U)
+        );
+    }
+
     this->telemetry.angular_velocity = {
         this->imu.get_angular_velocity(proxy::Imu::Axis::X),
         this->imu.get_angular_velocity(proxy::Imu::Axis::Y),
@@ -505,6 +801,7 @@ void Micras::publish() {
     for (uint8_t i = 0; i < nav::number_of_wall_sensors; i++) {
         this->telemetry.wall_reference_readings.at(i) = this->wall_sensors.get_reference_reading(i);
         this->telemetry.wall_calibration_spreads.at(i) = this->wall_sensors.get_calibration_spread(i);
+        this->telemetry.wall_offsets.at(i) = this->wall_sensors.get_offset(i);
     }
 }
 
@@ -552,9 +849,33 @@ comm::CommandResult Micras::handle_command(uint8_t code, uint32_t argument) {
 
             this->localizer.reset(this->mission.get_start_pose(), this->measurements);
             return comm::CommandResult::OK;
+
+        case Command::STOP:
+            if (not this->is_idle() and this->fsm.get_current_state_id() != std::to_underlying(State::ERROR)) {
+                this->stop_requested = true;
+            }
+
+            return comm::CommandResult::OK;
+
+        case Command::RESUME:
+            if (this->fsm.get_current_state_id() != std::to_underlying(State::ERROR) or
+                not this->check_initialization()) {
+                return comm::CommandResult::REFUSED;
+            }
+
+            this->send_event(Interface::Event::RESUME);
+            return comm::CommandResult::OK;
+
+        case Command::MAINTAIN:
+            if (not this->is_idle() or argument >= std::to_underlying(Maintenance::NUMBER_OF_PROCEDURES)) {
+                return comm::CommandResult::REFUSED;
+            }
+
+            this->requested_maintenance = static_cast<Maintenance>(argument);
+            this->send_event(Interface::Event::CALIBRATE);
+            return comm::CommandResult::OK;
     }
 
-    static_cast<void>(argument);
     return comm::CommandResult::UNKNOWN;
 }
 }  // namespace micras

@@ -127,6 +127,7 @@ target_link_libraries(micras_wall_calibration PRIVATE
 
 target_compile_definitions(micras_wall_calibration PRIVATE
     MICRAS_TARGET_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
+    MICRAS_CALIBRATION_MAZE="${CMAKE_CURRENT_SOURCE_DIR}/mazes/home4x4.txt"
 )
 
 add_executable(micras_robot_report
@@ -154,6 +155,10 @@ target_link_libraries(micras_turn_designer PRIVATE
     micras::nav
 )
 
+include(${PROJECT_SOURCE_DIR}/cmake/two_bend_turns.cmake)
+micras_add_two_bend_turns(micras_turn_designer "${MICRAS_APP_GENERATED_DIRECTORY}")
+add_dependencies(micras_app micras_two_bend_turns)
+
 micras_apply_warnings(micras_host_board micras_app micras_sim_micras micras_sim micras_wall_calibration
     micras_robot_report micras_turn_designer WERROR ${MICRAS_WERROR}
 )
@@ -173,6 +178,8 @@ include(${PROJECT_SOURCE_DIR}/cmake/style.cmake)
 
 file(GLOB_RECURSE SIM_LINT_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 generate_lint_target(SIM_LINT_SOURCES)
+add_dependencies(lint micras_two_bend_turns)
+add_dependencies(lint_fix micras_two_bend_turns)
 
 ###############################################################################
 ## Recipes: the runs, the contest, the baseline and the robot tools
@@ -191,7 +198,7 @@ set(MICRAS_SIM_RUNS "${CMAKE_CURRENT_BINARY_DIR}/runs")
 set(MICRAS_SIM_PLUGIN "${CMAKE_CURRENT_SOURCE_DIR}/tools/analysis.py")
 set(MICRAS_SIM_BASELINE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/baseline")
 set(MICRAS_SIM_CHECKED_RUNS idle explore)
-set(MICRAS_SIM_EXPLORE_SECONDS 30)
+set(MICRAS_SIM_EXPLORE_SECONDS 60)
 
 set(MICRAS_SIM_RUN_IDLE
     "${MICRAS_SIM_SCRIPTS}/run_idle.sh" "$<TARGET_FILE:micras_sim>" "${MICRAS_SIM_SCENARIOS}" "${MICRAS_SIM_RUNS}"
@@ -271,13 +278,6 @@ add_custom_target(sim_check
     VERBATIM USES_TERMINAL
 )
 
-add_custom_target(sim_turn_designs
-    COMMAND "${MICRAS_SIM_SCRIPTS}/turn_designs.sh" "$<TARGET_FILE:micras_turn_designer>"
-            "${PROJECT_SOURCE_DIR}/config/two_bend_turns.hpp"
-    COMMENT "Designing the turns of two bends into the firmware's config/two_bend_turns.hpp"
-    VERBATIM USES_TERMINAL
-)
-
 add_custom_target(sim_robot_report
     COMMAND "$<TARGET_FILE:micras_robot_report>"
     COMMENT "robot.toml against the firmware's robot.hpp"
@@ -310,6 +310,5 @@ endforeach()
 add_dependencies(sim_check micras_sim_tests)
 add_dependencies(sim_record_baseline micras_sim_tests)
 
-add_dependencies(sim_turn_designs micras_turn_designer)
 add_dependencies(sim_robot_report micras_robot_report)
 add_dependencies(sim_wall_calibration micras_wall_calibration)

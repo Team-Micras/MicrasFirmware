@@ -201,8 +201,8 @@ TEST_CASE_FIXTURE(SpiSlot, "SpiSlot.CompletesATransferWhenItsLastBitIsOut") {
     CHECK(cs.output);
     CHECK_EQ(chip.events, (std::vector<std::string>{"select", "exchange 17", "deselect"}));
     CHECK_EQ(received.back(), 1);
-    CHECK_GE(elapsed, 35U);
-    CHECK_LE(elapsed, 36U);
+    CHECK_GE(elapsed, 17U);
+    CHECK_LE(elapsed, 18U);
 }
 
 TEST_CASE_FIXTURE(SpiSlot, "SpiSlot.WaitsForTheBusBeforeSelectingAnotherDevice") {
@@ -224,7 +224,7 @@ TEST_CASE_FIXTURE(SpiSlot, "SpiSlot.WaitsForTheBusBeforeSelectingAnotherDevice")
 
     CHECK_EQ(imu.get_transfer(), hal::Spi::Transfer::COMPLETE);
     CHECK_EQ(imu_chip.events.back(), "deselect");
-    CHECK_GE(waited, 35U * (SystemCoreClock / 1000000));
+    CHECK_GE(waited, 17U * (SystemCoreClock / 1000000));
 }
 }  // namespace
 }  // namespace micras::sim

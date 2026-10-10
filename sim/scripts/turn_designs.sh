@@ -1,8 +1,8 @@
 #!/bin/bash
 # turn_designs.sh <turn designer> <header>
 #
-# Designs the turns of two bends and rewrites the firmware's two_bend_turns.hpp, only once the designer
-# succeeded, so a failed search leaves the header as it was.
+# Designs the turns of two bends into the header the build generates, replacing it only once the
+# designer succeeded, so a failed search leaves the header as it was.
 
 set -euo pipefail
 

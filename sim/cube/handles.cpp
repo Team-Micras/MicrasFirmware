@@ -173,7 +173,7 @@ void MX_SPI3_Init() {
     hspi3.Instance = &spi3_registers;
     hspi3.Init.CLKPolarity = SPI_POLARITY_HIGH;
     hspi3.Init.CLKPhase = SPI_PHASE_2EDGE;
-    hspi3.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;
+    hspi3.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_16;
     hspi3.State = HAL_SPI_STATE_READY;
     micras::hal::host::Board::name_handle(&hspi3, "hspi3");
 }
@@ -191,7 +191,7 @@ void MX_TIM3_Init() {
 }
 
 void MX_TIM4_Init() {
-    init_timer(htim4, tim4_registers, "htim4", 274, TIM_COUNTERMODE_CENTERALIGNED1, 250);
+    init_timer(htim4, tim4_registers, "htim4", 274, TIM_COUNTERMODE_CENTERALIGNED1, 200);
 }
 
 void MX_TIM5_Init() {

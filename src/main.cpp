@@ -3,6 +3,7 @@
  */
 
 #include <csignal>
+#include <utility>
 
 #include "micras/hal/gpio.hpp"
 #include "micras/hal/mcu.hpp"
@@ -25,6 +26,7 @@ static void emergency_stop() {
 
 static void signal_handler(int signal) {
     if (signal == SIGABRT) {
+        micras::hal::Mcu::set_trace(std::to_underlying(micras::Micras::Trace::ABORT));
         emergency_stop();
     }
 }
@@ -39,6 +41,9 @@ extern "C" {
  */
 // NOLINTNEXTLINE(readability-identifier-naming) the name is fixed by the vector table
 void HardFault_Handler() {
+    micras::hal::Mcu::set_trace(
+        std::to_underlying(micras::Micras::Trace::FAULT) | micras::hal::Mcu::get_fault_status()
+    );
     emergency_stop();
 
     while (true) { }

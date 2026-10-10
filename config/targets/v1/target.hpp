@@ -335,9 +335,12 @@ const proxy::RotarySensor::Config rotary_sensor_right_config = {
  * @note The current of a motor ripples at the 100 kHz of its PWM, which the converter does not run
  * in step with, so a single conversion reads wherever in the ripple it happens to land. A reading
  * is therefore the mean of 48 conversions of 1.25 us: 60 us, six whole periods of the PWM, over
- * which the ripple averages out whatever its phase. The two motors take 120 us, so every iteration
- * of the control loop finds a new pair and next to none is thrown away. The sum of 48 conversions
+ * which the ripple averages out whatever its phase. The two motors take 120 us, so four iterations
+ * of the control loop out of five find a new pair and next to none is thrown away. The sum of 48 conversions
  * is shifted by six bits, which leaves the full scale at three quarters of the 16 bits.
+ *
+ * @note Sensor 0 measures the bridge on TIM3, which drives the right wheel, and sensor 1 the bridge
+ * on TIM1, which drives the left one (see locomotion_config).
  */
 const proxy::TorqueSensors::Config torque_sensors_config = {
     .adc =
@@ -365,28 +368,44 @@ const proxy::TorqueSensors::Config torque_sensors_config = {
 /**
  * @brief Configuration of the wall sensors.
  *
- * @note The emitters fire in two groups, told apart by the inverted flag, so that the two sensors
- * that look forward never light the same patch of wall at once and neither do the two sensors of
- * each side, which sit next to each other.
+ * @note The emitters take turns, one at a time, so that a receiver reads its own emitter alone: on
+ * the robot the 45 degree emitter of each side put 14 to 34 % of a front receiver's light into it
+ * with a wall ahead, and as much as the receiver's own with walls at the sides. The inverted flag
+ * tells the emitters centered on the overflow of the timer from those centered on the underflow,
+ * and the update DMA request of TIM4 relights them in turn, one end after the other (see
+ * TWallSensors).
  *
  * @note The timing is set by the receiver, a phototransistor on a 1 kOhm load that takes some tens
- * of microseconds to follow its emitter. The emitter timer counts up and down in 250 us each way and
- * starts a scan at both ends, so an emitter is on for 30 % of 500 us: 75 us to let the receiver
- * settle before the scan of its group starts, and 75 us for that scan, which takes 66 us. It stays
- * off for the 175 us before the scan that reads it dark. The duty cycle also sets the dissipation
- * of the series resistors of the emitters, which at half of the time would be above their rating.
+ * of microseconds to follow its emitter. The emitter timer counts up and down in 200 us each way and
+ * starts a scan at both ends, and an emitter is lit for 37.5 % of each half around its end: 75 us to
+ * let the receiver settle before the scan starts, and 75 us for the scan, which takes 66 us. The
+ * next end is 125 us after it goes dark. A frame of five ends, one per emitter and one dark, gives a
+ * reading of every sensor each millisecond, and each emitter is lit at one end of five, 15 % of the
+ * time, well within the rating of its series resistor.
  *
- * @note The reference readings are placeholders, until the first calibration in the setup of the
- * README replaces them. They come from a calibration of April 2025, from before that setup, so the
- * diagonal ones may be those of the wall ahead, at about half the reference distance. The
- * calibration is not saved, so every boot starts from these. The reference distances are what the
- * geometry of the sensors says they measure in that setup: the front sensors facing a wall from the
- * center of a cell, the diagonal ones in a corridor with no wall ahead.
+ * @note The diagonal reference readings are those of the calibration in the setup of the README, in the
+ * home maze with the sensors fired one at a time, in their black PLA caps. The front receivers
+ * reach their ceiling up to 75 to 80 mm from a wall, so the center of a cell cannot give their
+ * references: they are fitted to the readings of the robot rolled straight back from touching a
+ * wall, from 105 to 260 mm, where they then place the wall within 2 and 3 mm rms, and are what
+ * the receivers would read at the reference distance if they had no ceiling. The reference
+ * distances are what the geometry of the sensors says they measure in that setup: the front
+ * sensors facing a wall from the center of a cell, the diagonal ones in a corridor with no wall
+ * ahead.
+ *
+ * @note The offsets, what each sensor reads with nothing in front of it, are zero here, which is
+ * what the simulation, whose sensors leak no light inside the robot, needs. On the robot they come
+ * from the calibration in open air, which the flash memory keeps (see CalibrationRecord).
  *
  * @note The receiver is an emitter follower from the 3.3 V rail, so ambient light raises its output
  * towards about 3.1 V, 94 % of the full scale. Above a dark reading of 80 % there is less room left
  * than a wall at the reference distance of the dimmest sensor adds, and the sensor is taken as
  * blind.
+ *
+ * @note Lit by its emitter, a receiver stops where its phototransistor saturates, which varies from
+ * one to the other: on the robot the front ones stop at 93 to 94 % of the full scale facing a wall
+ * from the center of a cell, and the diagonal ones at 88 to 90 % in the same pose. A reading at 85 %
+ * or more, its dark part included, is taken as saturated.
  *
  * @note Each emitter lens sits 6.5 mm above its receiver lens (the v2 sensor caps), and the
  * TPS601A receiver halves its sensitivity 10 degrees off its axis (datasheet). The receiver therefore
@@ -429,7 +448,12 @@ const proxy::WallSensors::Config wall_sensors_config = {
             .inverted = true,
         },
     }},
-    .emitter_duty_cycle = 30.0F,
+    .burst =
+        {
+            .init_function = MX_TIM4_Init,
+            .handle = &htim4,
+        },
+    .emitter_duty_cycle = 37.5F,
     .fast_filter =
         {
             .cutoff_frequency = wall_fast_filter_cutoff,
@@ -442,11 +466,12 @@ const proxy::WallSensors::Config wall_sensors_config = {
         },
     .reference_readings =
         {
-            0.413F,
-            0.161F,
-            0.177F,
-            0.230F,
+            2.576F,
+            0.2912F,
+            0.2362F,
+            1.996F,
         },
+    .offsets = {0.0F, 0.0F, 0.0F, 0.0F},
     .reference_distances =
         {
             nav::WallModel{wall_model_config}.get_centered_range(wall_sensors_index.left_front),
@@ -457,7 +482,7 @@ const proxy::WallSensors::Config wall_sensors_config = {
     .receiver_offset = 0.0065F,
     .receiver_half_angle = 10.0F * std::numbers::pi_v<float> / 180.0F,
     .noise_floor = 0.002F,
-    .max_reading = 0.95F,
+    .max_reading = 0.85F,
     .max_distance = wall_sensors_range,
     .blind_reading = 0.8F,
     .wall_distance = 0.12F,
@@ -468,9 +493,11 @@ const proxy::WallSensors::Config wall_sensors_config = {
 /**
  * @brief Configuration of the inertial measurement unit.
  *
- * @note The data rate is the one of the control loop. In the high accuracy mode the rates are round
- * numbers, 8 kHz being the fastest, and vary by 1 % with temperature and supply instead of by
- * whatever the oscillator of each part happens to run at.
+ * @note The data rate is the fastest the sensor has, below the 10 kHz of the control loop so that the
+ * reads never lock in phase with the samples (see loop_frequency). In the high accuracy mode the
+ * rates are round numbers, 8 kHz being the fastest, and vary by 1 % with temperature and supply
+ * instead of by whatever the oscillator of each part happens to run at. SPI3 runs at 7.8 MHz, so the
+ * burst that reads a sample holds the sensor's output registers for 18 us of every 100 us.
  *
  * @note The names of the gyroscope filter settings say little: with the first low pass filter
  * enabled, the first setting gives a bandwidth of 281 Hz at this data rate and the fourth one the
@@ -550,12 +577,35 @@ const proxy::Fan::Config fan_config = {
 /**
  * @brief Configuration of the drive.
  *
+ * @note The motors are wired crossed on the v1 board: the bridge on TIM1 drives the left wheel and
+ * the one on TIM3 the right, and the left motor turns its wheel backward when its first output is
+ * driven, which the check of the polarity showed against the encoders.
+ *
  * @note The motors get no dead zone: the controller's feed-forward already adds the static friction
  * voltage of the robot model, which the drive identification measures, so a dead zone here would
  * count it twice and put a step of its size into every command that crosses zero.
  */
 const proxy::Locomotion::Config locomotion_config = {
     .left_motor =
+        {
+            .backwards_pwm =
+                {
+                    .init_function = MX_TIM1_Init,
+                    .handle = &htim1,
+                    .timer_channel = TIM_CHANNEL_1,
+                    .inverted = false,
+                },
+            .forward_pwm =
+                {
+                    .init_function = MX_TIM1_Init,
+                    .handle = &htim1,
+                    .timer_channel = TIM_CHANNEL_2,
+                    .inverted = false,
+                },
+            .max_stopped_command = 0.2F,
+            .deadzone = 0.0F,
+        },
+    .right_motor =
         {
             .backwards_pwm =
                 {
@@ -569,25 +619,6 @@ const proxy::Locomotion::Config locomotion_config = {
                     .init_function = MX_TIM3_Init,
                     .handle = &htim3,
                     .timer_channel = TIM_CHANNEL_2,
-                    .inverted = false,
-                },
-            .max_stopped_command = 0.2F,
-            .deadzone = 0.0F,
-        },
-    .right_motor =
-        {
-            .backwards_pwm =
-                {
-                    .init_function = MX_TIM1_Init,
-                    .handle = &htim1,
-                    .timer_channel = TIM_CHANNEL_2,
-                    .inverted = false,
-                },
-            .forward_pwm =
-                {
-                    .init_function = MX_TIM1_Init,
-                    .handle = &htim1,
-                    .timer_channel = TIM_CHANNEL_1,
                     .inverted = false,
                 },
             .max_stopped_command = 0.2F,

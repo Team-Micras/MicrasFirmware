@@ -30,7 +30,7 @@ uint8_t IdleState::execute() {
     }
 
     if (this->micras.acknowledge_event(Interface::Event::CALIBRATE)) {
-        switch (this->micras.get_maintenance()) {
+        switch (this->micras.take_maintenance()) {
             case Micras::Maintenance::WALL_SENSORS:
                 return std::to_underlying(State::WAIT_FOR_CALIBRATE);
 
@@ -39,6 +39,21 @@ uint8_t IdleState::execute() {
 
             case Micras::Maintenance::GYROSCOPE:
                 return std::to_underlying(State::WAIT_FOR_GYROSCOPE);
+
+            case Micras::Maintenance::SENSORS:
+                return std::to_underlying(State::CHECK_SENSORS);
+
+            case Micras::Maintenance::POLARITY:
+                return std::to_underlying(State::CHECK_POLARITY);
+
+            case Micras::Maintenance::CROSSTALK:
+                return std::to_underlying(State::CHECK_CROSSTALK);
+
+            case Micras::Maintenance::WALL_OFFSETS:
+                return std::to_underlying(State::CALIBRATE_OFFSETS);
+
+            case Micras::Maintenance::NUMBER_OF_PROCEDURES:
+                break;
         }
     }
 
