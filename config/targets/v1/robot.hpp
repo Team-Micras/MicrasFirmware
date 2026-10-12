@@ -52,7 +52,7 @@ constexpr float wheel_counts_per_revolution{16384.0F};
  *   53.5 mm ahead of the axle and whose back is 36.5 mm behind it (90 mm long, 89.9 mm measured on
  *   the robot, which has no bumper), and the keyway covers of the outer sensor caps
  *   0.7 mm past its sides.
- * - The friction coefficient is tan(28.5 deg), the slope at which the robot slides sideways on the
+ * - The friction coefficient is tan(47 deg), the slope at which the robot slides sideways on the
  *   maze floor, its wheels across the slope. The fan runs at half of the battery, about 6.2 V, and
  *   with its skirt it pulled a plate on a scale under the board up by 150 g. The MicrasHardware fan
  *   study centers the suction under a sealed skirt 7.8 mm ahead of the axle. The nose rests on its
@@ -89,8 +89,8 @@ constexpr nav::RobotModel robot_model{
     .maze = maze_geometry,
     .chassis =
         {
-            .mass = 0.0873F,
-            .yaw_inertia = 3.78e-5F,
+            .mass = 0.076F,
+            .yaw_inertia = 3.49e-5F,
             .wheel_radius = 0.011413F,
             .rolling_compliance = 77e-6F,
             .track_width = 0.0472F,
@@ -100,7 +100,7 @@ constexpr nav::RobotModel robot_model{
         },
     .traction =
         {
-            .friction_coefficient = 0.54F,
+            .friction_coefficient = 1.07F,
             .fan_downforce = 1.47F,
             .fan_offset = 0.008F,
             .lateral_compliance = 0.0048F,

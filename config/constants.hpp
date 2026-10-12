@@ -632,9 +632,16 @@ const nav::Mission::Config mission_config{
             .tolerance = 0.015F,
             .relative_tolerance = 0.15F,
             .detection_range = 0.13F,
-            .max_angular_speed = 12.0F,
+            .max_angular_speed = 1.0F,
             .range_delay = core::ButterworthFilter::get_delay(wall_fast_filter_cutoff),
             .votes_to_decide = wall_votes,
+            .sighting_range =
+                {
+                    std::numeric_limits<float>::infinity(),
+                    0.13F,
+                    0.13F,
+                    std::numeric_limits<float>::infinity(),
+                },
         },
     .racing_line =
         {
