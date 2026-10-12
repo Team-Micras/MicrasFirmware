@@ -398,13 +398,16 @@ using Mission = TMission<maze_width, maze_height>;
  *
  * @note In the contest maze, with the fan at half of the battery and 1.2 N of it in the model, 0.45
  * lost the line by 20 to 50 mm through the quick turns of its first two seconds and hit a wall, on
- * the racing line or not. The fan runs ask for 0.35, and 0.45 with boost, up to 2 and 2.5 m/s.
+ * the racing line or not. The fan runs ask for 0.3, and 0.4 with boost, up to 1.8 and 2.2 m/s.
+ *
+ * @note For the contest's official runs every profile asks 0.05 less than the one that ran its maze
+ * clean, 0.4 at 1.5 m/s on the racing line without the fan in 5.7 s.
  */
 ///@{
-constexpr float normal_utilization{0.4F};
-constexpr float boost_utilization{0.45F};
-constexpr float fan_utilization{0.35F};
-constexpr float fan_boost_utilization{0.45F};
+constexpr float normal_utilization{0.35F};
+constexpr float boost_utilization{0.4F};
+constexpr float fan_utilization{0.3F};
+constexpr float fan_boost_utilization{0.4F};
 
 ///@}
 
@@ -417,7 +420,7 @@ constexpr bool fan_mounted{false};
 /**
  * @brief Fraction of the available traction the turbo profile asks for, without the fan.
  */
-constexpr float turbo_utilization{0.45F};
+constexpr float turbo_utilization{0.4F};
 
 /**
  * @brief Top speed of a fast run, in m/s, without and with the boost switch, with the turbo
@@ -425,10 +428,10 @@ constexpr float turbo_utilization{0.45F};
  */
 ///@{
 constexpr float run_max_speed{1.5F};
-constexpr float boost_max_speed{2.0F};
+constexpr float boost_max_speed{1.8F};
 constexpr float turbo_max_speed{1.5F};
-constexpr float fan_max_speed{2.0F};
-constexpr float fan_boost_max_speed{2.5F};
+constexpr float fan_max_speed{1.8F};
+constexpr float fan_boost_max_speed{2.2F};
 
 ///@}
 
