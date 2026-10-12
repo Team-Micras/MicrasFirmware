@@ -577,6 +577,15 @@ void Micras::prepare(bool run) {
     this->torque_sensors.calibrate();
     this->wall_sensors.turn_on();
 
+    if (run) {
+        this->locomotion.enable();
+        this->locomotion.stop();
+    }
+
+    if (run and this->objective != core::Objective::RETURN) {
+        this->localizer.reset(this->mission.get_start_pose(), this->measurements);
+    }
+
     if ((not run or this->objective == core::Objective::SOLVE) and this->get_run_profile().fan) {
         this->fan.enable();
         this->fan.set_speed(fan_speed);
@@ -605,7 +614,10 @@ void Micras::start_run() {
     this->locomotion.enable();
 
     if (this->objective != core::Objective::RETURN) {
-        this->localizer.reset(this->mission.get_start_pose(), this->measurements);
+        nav::Pose start = this->mission.get_start_pose();
+
+        start.orientation = this->localizer.get_pose().orientation;
+        this->localizer.reset(start, this->measurements);
     }
 
     this->mission.start(this->objective);

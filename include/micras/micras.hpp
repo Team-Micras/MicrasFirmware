@@ -276,7 +276,10 @@ public:
      * @brief Get the robot ready to move: sensors on, and the fan too if what follows uses it.
      *
      * @note A fast run and a maintenance procedure run the fan when its switch is on, a search never.
-     * The current sensors are zeroed here, while the motors are still disabled.
+     * The current sensors are zeroed here, with no current through the motors. Before a run the
+     * drivers are enabled with no command, which on the L6205 turns both low sides on and brakes the
+     * wheels against the torque of the fan spinning up, and the pose is set to the start while the
+     * robot still sits as it was placed; the gyroscope follows whatever turn is left through the wait.
      *
      * @param run Whether a run follows, rather than a maintenance procedure.
      */
@@ -307,6 +310,8 @@ public:
 
     /**
      * @brief Start the run of the current objective.
+     *
+     * @note The position goes back to the start, the heading stays the one followed since the wait.
      */
     void start_run();
 
