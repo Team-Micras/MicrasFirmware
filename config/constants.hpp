@@ -618,6 +618,9 @@ const nav::Controller::Config controller_config{
  * without it every search ends. A robot that has not seen the side wall of the cell a turn ends in
  * stops and spins in the middle of the cell to see it, which makes the search a few seconds longer.
  *
+ * @note The racing line keeps 5 mm more from the walls and posts than the turns do, which the
+ * runs of the contest maze, 15 to 28 mm off the line in its curves, asked for.
+ *
  * @note The diagonals only vote a wall there inside the same 130 mm, which takes in the side walls
  * of the cell the robot is in (98 mm at its center). Past it, a diagonal looking across an open
  * side to the next column passes by the post at the end of the wall beyond, and the post read at
@@ -653,8 +656,8 @@ const nav::Mission::Config mission_config{
     .racing_line =
         {
             .spacing = 0.01F,
-            .margin = turn_margin,
-            .least_margin = turn_margin - 0.002F,
+            .margin = turn_margin + 0.005F,
+            .least_margin = turn_margin + 0.003F,
             .trust = 0.03F,
             .scan_step = 0.002F,
             .length_weight = 10.0F,

@@ -55,10 +55,9 @@ constexpr float wheel_counts_per_revolution{16384.0F};
  * - The friction coefficient is tan(47 deg), the slope at which the robot slides sideways on the
  *   maze floor, its wheels across the slope. The fan runs at half of the battery, about 6.2 V, and
  *   with its skirt it pulled a plate on a scale under the board up by 150 g, of which the model
- *   counts 1.2 N: the racing line planned on the whole 1.47 N hit the first post of the contest maze.
- *   The MicrasHardware fan study centers the suction under a sealed skirt 7.8 mm ahead of the axle. The nose rests on its
- *   front skid with the fan on, which carries the share of the downforce that the center of the
- *   suction leaves it.
+ *   counts 1.0 N: the racing line planned on the whole 1.47 N hit the first post of the contest maze.
+ *   The MicrasHardware fan study centers the suction under a sealed skirt 7.8 mm ahead of the axle. The nose rests on
+ * its front skid with the fan on, which carries the share of the downforce that the center of the suction leaves it.
  * - The lateral compliance is the simulation's: the tires there slide sideways at 4.8 mm/s per m/s^2
  *   of lateral acceleration, and the real tires are not measured yet. Driving a circle at a known
  *   speed with the fan on, and comparing where the robot ends with where the odometry says, does.
@@ -102,7 +101,7 @@ constexpr nav::RobotModel robot_model{
     .traction =
         {
             .friction_coefficient = 1.07F,
-            .fan_downforce = 1.2F,
+            .fan_downforce = 1.0F,
             .fan_offset = 0.008F,
             .lateral_compliance = 0.0048F,
         },
