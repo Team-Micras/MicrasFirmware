@@ -43,11 +43,11 @@ static_assert(turn_table.is_valid(), "a turn does not fit in the maze with the n
 static_assert(risky_turn_table.is_valid(), "a turn does not fit in the maze with the risky margin");
 static_assert(
     nav::TurnTable::clears(robot_model, turn_margin, two_bend_designs),
-    "a turn of two bends does not clear the walls with the normal margin: run the turn designer"
+    "a turn of two bends does not clear the walls with the normal margin: the turn designer found none"
 );
 static_assert(
     nav::TurnTable::clears(robot_model, risky_turn_margin, risky_two_bend_designs),
-    "a turn of two bends does not clear the walls with the risky margin: run the turn designer"
+    "a turn of two bends does not clear the walls with the risky margin: the turn designer found none"
 );
 }  // namespace
 

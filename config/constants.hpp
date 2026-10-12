@@ -5,11 +5,14 @@
 #ifndef MICRAS_CONSTANTS_HPP
 #define MICRAS_CONSTANTS_HPP
 
+#include <algorithm>
 #include <array>
+#include <cstddef>
 #include <cstdint>
 #include <limits>
 #include <numbers>
 
+#include "maze_config.hpp"
 #include "micras/core/butterworth_filter.hpp"
 #include "micras/core/types.hpp"
 #include "micras/nav/controller.hpp"
@@ -21,6 +24,7 @@
 #include "micras/nav/mission.hpp"
 #include "micras/nav/motion_limits.hpp"
 #include "micras/nav/wall_model.hpp"
+#include "micras/survey.hpp"
 #include "robot.hpp"
 #include "turn_margins.hpp"
 
@@ -29,10 +33,8 @@ namespace micras {
  * Constants
  *****************************************/
 
-constexpr uint8_t  maze_width{16};
-constexpr uint8_t  maze_height{16};
-constexpr uint32_t loop_time_us{125};
-constexpr uint8_t  max_variables{96};
+constexpr uint32_t loop_time_us{100};
+constexpr uint8_t  max_variables{128};
 
 /**
  * @brief Size of the buffer the radio receives into.
@@ -54,18 +56,44 @@ constexpr uint16_t bluetooth_tx_buffer_size{4096};
 /**
  * @brief Horizontal acceleration, in m/s^2, over which the robot has hit something.
  *
- * @note The tires cannot transmit more than the traction with the fan running, so anything above
- * it came from a wall. The margin covers the noise of the accelerometer and the centripetal and
- * tangential acceleration of the IMU, which is not on the axis of rotation, and the feedback on top
- * of what a fast run plans with the fan.
+ * @note The tires cannot transmit more than the traction, but the accelerometer sees more than
+ * what they transmit: its noise, the centripetal and tangential acceleration of the IMU, which is
+ * not on the axis of rotation, and the jolt of the feedback correcting a sudden error. On the robot,
+ * with the 0.54 the tires hold, such a correction went past 15 m/s^2 without touching anything,
+ * while hitting a wall at the speed of a run stops it in a few millimeters, well above 25 m/s^2.
  */
-constexpr float crash_acceleration{1.25F * robot_model.traction_acceleration(true)};
-constexpr float fan_speed{100.0F};
+constexpr float crash_acceleration{25.0F};
 
 /**
- * @brief Distance from the back edge of the start cell to the axle, with the robot against the wall.
+ * @brief Horizontal acceleration, in m/s^2, over which the robot has hit something while the fan runs
+ * at its full speed; in between, the threshold grows with the downforce.
+ *
+ * @note The downforce lets the tires transmit several times the traction of the robot's weight: 2.94 N
+ * of it let a run at half of the traction launch the robot at 23 m/s^2, past the threshold without
+ * the fan with any jolt of the feedback, where 50 m/s^2 held. The 1.47 N the fan pulls at half of the
+ * battery takes half of that margin.
  */
-constexpr float start_offset{0.04F + robot_model.maze.wall_thickness / 2.0F};
+constexpr float fan_crash_acceleration{37.5F};
+
+/**
+ * @brief Speed the fan runs at, in percent of the battery.
+ *
+ * @note Half of a charged pack, about 6.2 V, where the fan pulls 1.47 N with its skirt, 150 g on a
+ * scale. At full speed it would reach 14 N and 17 W, and its winding would pass 140 deg C in five
+ * minutes.
+ */
+constexpr float fan_speed{50.0F};
+
+/**
+ * @brief Distance from the back edge of the start cell to the axle, with the robot against the wall,
+ * and how much farther the return parks it.
+ *
+ * @note Backing into its place, the robot stops a few millimeters past where it aims.
+ */
+///@{
+constexpr float start_offset{robot_model.chassis.rear_length + robot_model.maze.wall_thickness / 2.0F};
+constexpr float park_clearance{0.008F};
+///@}
 
 /**
  * @brief Rate at which the control loop runs, and therefore the rate at which every filter driven
@@ -74,9 +102,12 @@ constexpr float start_offset{0.04F + robot_model.maze.wall_thickness / 2.0F};
  * @note Derived from the loop period rather than written twice: a filter designed for a sampling
  * rate it is not sampled at is a filter with the wrong cutoff.
  *
- * @note The period is the one of the fastest sensor, the 8 kHz of the inertial measurement unit,
- * since an iteration without a new sample of anything has nothing to compute. The next periods that
- * keep that property are 250 and 500 microseconds, with the data rate of the sensor following.
+ * @note The loop runs at 10 kHz, faster than the 8 kHz of its fastest sensor, the inertial
+ * measurement unit, which it reads once per iteration. At the same rate as the sensor the reads
+ * drift in and out of phase with its samples over tens of milliseconds, and a sample that falls
+ * inside a read is lost, since the sensor holds its output registers while one is in progress,
+ * which stops the samples for up to 100 ms at a time. At 10 kHz the two beat at 2 kHz, so a lost
+ * sample is followed by a new one within two iterations.
  */
 constexpr float loop_frequency{1.0e6F / static_cast<float>(loop_time_us)};
 
@@ -88,11 +119,11 @@ constexpr float loop_time{static_cast<float>(loop_time_us) / 1.0e6F};
 /**
  * @brief Rate at which the wall sensors produce a reading, which is the rate their filters run at.
  *
- * @note One reading per period of the emitter timer, which the peripheral configuration makes four
- * periods of the control loop. The wall sensors check this value against the registers of the timer
- * when they start.
+ * @note One reading per frame of the emitters, which take turns one at a time and leave one end of
+ * the emitter timer dark: five ends of 200 us, 1 ms (see wall_sensors_config). The wall sensors check
+ * this value against the registers of the timer when they start.
  */
-constexpr float wall_sensors_frequency{2000.0F};
+constexpr float wall_sensors_frequency{1.0e6F / (5.0F * 200.0F)};
 
 /**
  * @brief Number of consecutive iterations over the crash acceleration that count as a crash.
@@ -180,9 +211,11 @@ constexpr uint32_t watchdog_timeout_ms{10};
  * @note Erasing a flash sector stalls the core for around 2 s, and up to 4 s in the worst case,
  * since the flash cannot be read while it is being erased. It also covers the construction of the
  * robot, where the proxies wait for their chips, and the planning of a fast run, whose search is
- * bounded per iteration but whose choice among the candidate routes is done in one.
+ * bounded per iteration but whose choice among the candidate routes is done in one. It is close to
+ * the longest the watchdog allows, 32 s at its largest prescaler: the robot is stopped through all
+ * of these, so a longer window costs nothing.
  */
-constexpr uint32_t stopped_watchdog_timeout_ms{8000};
+constexpr uint32_t stopped_watchdog_timeout_ms{30000};
 
 /**
  * @brief Cutoff frequencies of the sensor filters, in hertz.
@@ -251,6 +284,83 @@ static_assert(
     "a filter cannot have its cutoff above half of the rate it is sampled at"
 );
 
+/**
+ * @brief Command of each wheel, in percent of the supply.
+ */
+struct WheelCommand {
+    float left;
+    float right;
+};
+
+/**
+ * @brief Steps of the check of the polarity, and how long each one is driven, in seconds.
+ *
+ * @note Each wheel forward and then backward, one wheel at a time, at commands from the lowest to
+ * the highest of polarity_commands, with a rest after each step. The steps are fine enough to tell
+ * where each wheel breaks away, which differs between the wheels and the directions. On a stand the
+ * sweep shows the direction of each wheel and how the speed of a free wheel grows with the command;
+ * on the floor every step turns the robot around the wheel that stands still, and the breakaway is
+ * the one under the weight of the robot, which needs about 30 cm of free floor around it.
+ */
+///@{
+constexpr std::array<float, 9> polarity_commands{6.0F, 9.0F, 12.0F, 15.0F, 18.0F, 21.0F, 24.0F, 27.0F, 30.0F};
+constexpr float                polarity_step_duration{0.4F};
+
+constexpr auto polarity_steps{[] {
+    std::array<WheelCommand, 2 * 2 * 2 * polarity_commands.size()> steps{};
+    std::size_t                                                    step = 0;
+
+    for (const bool left : {true, false}) {
+        for (const float sign : {1.0F, -1.0F}) {
+            for (const float command : polarity_commands) {
+                steps.at(step) = left ? WheelCommand{.left = sign * command, .right = 0.0F} :
+                                        WheelCommand{.left = 0.0F, .right = sign * command};
+                step += 2;
+            }
+        }
+    }
+
+    return steps;
+}()};
+
+///@}
+
+/**
+ * @brief Ranges a measured calibration has to fall in to be used, and the time the wall sensors are
+ * left to settle before their offsets are measured, in seconds.
+ *
+ * @note A spread over the maximum means the robot moved, or something was in front of a sensor,
+ * while it was being calibrated, and the result is not kept. An offset is a reading of nearly
+ * nothing, whose standard deviation is taken against a bound of its own instead: a lamp flickering
+ * at twice the mains frequency spreads the readings of the sensor that sees the most of it by about
+ * 0.002 of the full scale, which the mean of the calibration averages out. It can
+ * be slightly negative: each emitter's current disturbs the supply its receiver shares, which reads
+ * the receiver's own lit scan a little below its dark one even with no light reaching it.
+ */
+///@{
+constexpr float min_wall_offset{-0.05F};
+constexpr float max_wall_offset{0.5F};
+constexpr float min_gyroscope_scale{0.9F};
+constexpr float max_gyroscope_scale{1.1F};
+constexpr float max_calibration_spread{0.05F};
+constexpr float max_offset_deviation{0.005F};
+constexpr float offset_settle_time{0.1F};
+
+///@}
+
+/**
+ * @brief Modes of the check of the crosstalk, and how long each one is lit, in seconds.
+ *
+ * @note Mode 0 has every emitter off, mode i + 1 publishes the light of the emitter of sensor i in
+ * every receiver, and the last mode the readings as they are. A reading settles in a few
+ * milliseconds, so most of each mode is steady.
+ */
+///@{
+constexpr uint8_t crosstalk_modes{nav::number_of_wall_sensors + 2};
+constexpr float   crosstalk_mode_duration{1.0F};
+
+///@}
+
 /*****************************************
  * Template Instantiations
  *****************************************/
@@ -265,15 +375,63 @@ using Mission = TMission<maze_width, maze_height>;
  *****************************************/
 
 /**
- * @brief Fraction of the available traction a run asks for, without and with the boost switch.
+ * @brief Fraction of the available traction a run asks for, without and with the boost switch, and
+ * the same with the fan running.
  *
  * @note In a turn the tires slide sideways in proportion to the grip they are asked for, which the
- * pose estimate only predicts. Boost stops at 0.7 of the traction for that reason: at 0.75 the risky
- * turns slide the robot into the walls.
+ * pose estimate only predicts. On the robot, a turn planned at 0.4 g peaks 45 % above its plan while
+ * the controller corrects, and slides into the wall at 0.58 g: the normal runs ask for 0.3 g of the
+ * 0.54 the tires hold without the fan, which leaves that peak below it.
+ *
+ * @note Simulated in the home maze with the 20 mm margin of the turns, 0.6 keeps 16 mm from the
+ * walls under every disturbance tried, and 0.65 only 5 mm: the wheels slip as they speed up on the
+ * first straight, and the edge that ends it corrects only 3 mm of the 15 mm that leaves. At 0.75
+ * every run hits the first turn. Boost stops at 0.65 for that reason.
+ *
+ * @note With the simulated tires holding 0.46, which is what the fast runs on the robot slip like,
+ * and the robot carrying its fan, 0.6 still keeps 12 mm from the walls on tires that hold 0.42. With
+ * the fan running a share of the traction comes from the downforce, which loads the tires without
+ * the weight that has to be sped up. With the 1.47 N the fan makes with its skirt, 0.5 keeps 16 mm
+ * in the race maze with only 1 N on tires that hold 0.42, where 0.6 hits a wall, as it does on the
+ * robot, and takes the race maze in 1.71 s against 2.42 s without the fan,
+ * 1.40 s on the racing line. Boost asks for 0.55 of it, which keeps 4 mm in the same case.
+ *
+ * @note In the contest maze, with the fan at half of the battery and 1.2 N of it in the model, 0.45
+ * lost the line by 20 to 50 mm through the quick turns of its first two seconds and hit a wall, on
+ * the racing line or not. The fan runs ask for 0.3, and 0.4 with boost, up to 1.8 and 2.2 m/s.
+ *
+ * @note For the contest's official runs every profile asks 0.05 less than the one that ran its maze
+ * clean, 0.4 at 1.5 m/s on the racing line without the fan in 5.7 s.
  */
 ///@{
-constexpr float normal_utilization{0.65F};
-constexpr float boost_utilization{0.7F};
+constexpr float normal_utilization{0.35F};
+constexpr float boost_utilization{0.4F};
+constexpr float fan_utilization{0.3F};
+constexpr float fan_boost_utilization{0.4F};
+
+///@}
+
+/**
+ * @brief Whether the fan is mounted. Without it the fan switch selects the turbo profile instead,
+ * and the fan never runs.
+ */
+constexpr bool fan_mounted{false};
+
+/**
+ * @brief Fraction of the available traction the turbo profile asks for, without the fan.
+ */
+constexpr float turbo_utilization{0.4F};
+
+/**
+ * @brief Top speed of a fast run, in m/s, without and with the boost switch, with the turbo
+ * profile, and with the fan running, without and with the boost switch.
+ */
+///@{
+constexpr float run_max_speed{1.5F};
+constexpr float boost_max_speed{1.8F};
+constexpr float turbo_max_speed{1.5F};
+constexpr float fan_max_speed{1.8F};
+constexpr float fan_boost_max_speed{2.2F};
 
 ///@}
 
@@ -287,31 +445,43 @@ constexpr float boost_utilization{0.7F};
  * @param racing_line Whether to drive the racing line through the cells of the route instead.
  * @param boost Whether to ask for more of the available traction.
  * @param risky Whether to use the turns designed with the smaller margin.
- * @param fan Whether the fan runs, which adds its downforce to the traction.
+ * @param fan Whether the fan runs, which adds its downforce to the traction, or the turbo profile
+ * when the fan is not mounted.
  * @return The profile of the run.
  */
 constexpr nav::RunProfile make_run_profile(bool racing_line, bool boost, bool risky, bool fan) {
+    float utilization = boost ? boost_utilization : normal_utilization;
+    float max_speed = boost ? boost_max_speed : run_max_speed;
+
+    if (fan and fan_mounted) {
+        utilization = boost ? fan_boost_utilization : fan_utilization;
+        max_speed = boost ? fan_boost_max_speed : fan_max_speed;
+    } else if (fan) {
+        utilization = turbo_utilization;
+        max_speed = turbo_max_speed;
+    }
+
     return {
         .racing_line = racing_line,
-        .fan = fan,
+        .fan = fan and fan_mounted,
         .risky = risky,
-        .utilization = boost ? boost_utilization : normal_utilization,
-        .max_speed = std::numeric_limits<float>::infinity(),
+        .utilization = utilization,
+        .max_speed = max_speed,
     };
 }
 
 /**
  * @brief Profile of the search runs, which is where the search speed is set.
  *
- * @note Half of the traction without the fan, up to 1 m/s. Braking for a front wall is what limits
- * it: past half, a front wall that corrects the pose late asks for more braking than the tires give.
+ * @note 0.3 g, 0.55 of the traction without the fan, up to 0.3 m/s. Braking for a front wall is what limits it: past
+ * half of the traction, a front wall that corrects the pose late asks for more braking than the tires give.
  */
 constexpr nav::RunProfile search_profile{
     .racing_line = false,
     .fan = false,
     .risky = false,
-    .utilization = 0.5F,
-    .max_speed = 1.0F,
+    .utilization = 0.55F,
+    .max_speed = 0.3F,
 };
 
 /**
@@ -333,18 +503,9 @@ constexpr std::array<nav::RunProfile, 4> map_profiles{{
  * Configurations
  *****************************************/
 
-constexpr nav::GridPose maze_start{.position = {.x = 0, .y = 0}, .orientation = nav::Side::UP};
-
-constexpr std::array<nav::GridPoint, 4> maze_goal{{
-    {.x = maze_width / 2, .y = maze_height / 2},
-    {.x = (maze_width - 1) / 2, .y = maze_height / 2},
-    {.x = maze_width / 2, .y = (maze_height - 1) / 2},
-    {.x = (maze_width - 1) / 2, .y = (maze_height - 1) / 2},
-}};
-
 static_assert(
-    nav::Maze::contains(maze_start.position) and nav::Maze::contains(std::get<0>(maze_goal)) and
-        nav::Maze::contains(std::get<3>(maze_goal)),
+    nav::Maze::contains(maze_start.position) and not maze_goal.empty() and
+        std::ranges::all_of(maze_goal, [](const nav::GridPoint& cell) { return nav::Maze::contains(cell); }),
     "the start and the goal have to be inside the maze"
 );
 
@@ -380,7 +541,9 @@ const nav::WallModel::Config wall_model_config{
  *
  * @note Ranges only correct the pose out to 120 mm. The beam of an emitter is 11.8 mm above the
  * floor and a few degrees wide, so farther out part of it lands on the floor before the wall and
- * the reading comes out long.
+ * the reading comes out long. They only correct it while the beam meets the wall within 55 deg of
+ * its perpendicular: turning the robot by hand in a cell, the sensors read within a few
+ * millimeters up to there, and 20 to 60 mm short at 60 to 80 deg.
  *
  * @note An edge moves the pose by at most 3 mm. At 3 m/s an edge timed a millisecond off is 3 mm
  * off, and a jump of 8 mm made the controller ask the motors for their whole supply at once.
@@ -400,6 +563,7 @@ const nav::Localizer::Config localizer_config{
     .range_delay = core::ButterworthFilter::get_delay(wall_fast_filter_cutoff),
     .range_correlation = wall_sensors_frequency / (2.22F * wall_fast_filter_cutoff),
     .max_range = 0.12F,
+    .max_incidence = 55.0F * std::numbers::pi_v<float> / 180.0F,
     .rest_window = 0.1F,
     .edge_deviation = 0.004F,
     .edge_window = 0.025F,
@@ -416,8 +580,9 @@ const nav::Localizer::Config localizer_config{
 /**
  * @brief Configuration of the controller.
  *
- * @note The forward loop closes at 40 Hz. At 50 Hz a correction of the pose by a few millimeters at
- * 3 m/s took the whole supply at once, and the jolt read as a crash.
+ * @note The natural frequencies are angular, in rad/s: the forward loop closes at 40 rad/s, 6.4 Hz.
+ * At 50 rad/s a correction of the pose by a few millimeters at 3 m/s takes the whole supply at once,
+ * and the jolt reads as a crash.
  */
 const nav::Controller::Config controller_config{
     .model = robot_model,
@@ -446,9 +611,21 @@ const nav::Controller::Config controller_config{
  *
  * @note A wall is only voted absent while it would be closer than 130 mm, where a range reads at
  * most 8 mm long (see localizer_config), well inside the tolerance; farther out a wall that is there
- * reads long enough to look missing. The observer keeps voting through the turns of the search, which
- * reach 8 rad/s: the side wall of the cell a turn ends in is only in sight during that turn, and a
- * robot that has not seen it has to stop and spin in the middle of the cell to go on.
+ * reads long enough to look missing. The observer stops voting above 1 rad/s, so not in the turns of
+ * the search: there a diagonal sensor sweeps past the post at the inner corner and reads 20 to 30 mm
+ * short, which matches a wall that is not there. Simulated in 16 by 16 contest mazes with 12 mm walls,
+ * voting through the turns decided such walls until the goal looked unreachable in most of them, and
+ * without it every search ends. A robot that has not seen the side wall of the cell a turn ends in
+ * stops and spins in the middle of the cell to see it, which makes the search a few seconds longer.
+ *
+ * @note The racing line keeps 5 mm more from the walls and posts than the turns do, which the
+ * runs of the contest maze, 15 to 28 mm off the line in its curves, asked for.
+ *
+ * @note The diagonals only vote a wall there inside the same 130 mm, which takes in the side walls
+ * of the cell the robot is in (98 mm at its center). Past it, a diagonal looking across an open
+ * side to the next column passes by the post at the end of the wall beyond, and the post read at
+ * 115 to 200 mm voted that wall there in the 2026-10-12 contest maze, where it was open. The fronts
+ * keep the whole of their range, which is what sees a front wall a cell ahead.
  */
 const nav::Mission::Config mission_config{
     .maze =
@@ -465,15 +642,22 @@ const nav::Mission::Config mission_config{
             .tolerance = 0.015F,
             .relative_tolerance = 0.15F,
             .detection_range = 0.13F,
-            .max_angular_speed = 12.0F,
+            .max_angular_speed = 1.0F,
             .range_delay = core::ButterworthFilter::get_delay(wall_fast_filter_cutoff),
             .votes_to_decide = wall_votes,
+            .sighting_range =
+                {
+                    std::numeric_limits<float>::infinity(),
+                    0.13F,
+                    0.13F,
+                    std::numeric_limits<float>::infinity(),
+                },
         },
     .racing_line =
         {
             .spacing = 0.01F,
-            .margin = turn_margin,
-            .least_margin = turn_margin - 0.002F,
+            .margin = turn_margin + 0.005F,
+            .least_margin = turn_margin + 0.003F,
             .trust = 0.03F,
             .scan_step = 0.002F,
             .length_weight = 10.0F,
@@ -494,6 +678,7 @@ const nav::Mission::Config mission_config{
     .search_profile = search_profile,
     .map_profiles = map_profiles,
     .start_offset = start_offset,
+    .park_clearance = park_clearance,
     .stop_time = 0.1F,
     .attach_time = 0.5F,
     .look_time = 0.02F,
@@ -528,6 +713,23 @@ const nav::GyroscopeCalibration::Config gyroscope_calibration_config{
     .right_sensor = wall_sensors_index.right_front,
     .turns = 5.0F,
     .settle_time = 0.5F,
+};
+
+/**
+ * @brief Configuration of the survey of the wall sensors.
+ *
+ * @note It backs 300 mm away from the wall it starts touching, which takes the fronts out past the
+ * 260 mm their references are fitted to, and 250 mm back toward it after the half turn, which keeps
+ * the back of the robot clear of the wall. At 50 mm/s and a sample every 2 mm, each sensor is read
+ * about 25 times between two samples, and the 275 samples fit in the survey's 320. The robot rests
+ * a second before each pass, for the bias of the gyroscope to be measured again before it moves.
+ */
+const Survey::Config survey_config{
+    .back_distance = 0.30F,
+    .return_distance = 0.25F,
+    .speed = 0.05F,
+    .step = 0.002F,
+    .settle_time = 1.0F,
 };
 }  // namespace micras
 

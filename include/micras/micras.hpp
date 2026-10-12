@@ -11,6 +11,7 @@
 #include <utility>
 
 #include "constants.hpp"
+#include "micras/calibration_record.hpp"
 #include "micras/comm/link.hpp"
 #include "micras/core/fsm.hpp"
 #include "micras/core/types.hpp"
@@ -25,6 +26,10 @@
 #include "micras/nav/wall_model.hpp"
 #include "micras/states/calibrate.hpp"
 #include "micras/states/calibrate_gyroscope.hpp"
+#include "micras/states/calibrate_offsets.hpp"
+#include "micras/states/check_crosstalk.hpp"
+#include "micras/states/check_polarity.hpp"
+#include "micras/states/check_sensors.hpp"
 #include "micras/states/error.hpp"
 #include "micras/states/identify.hpp"
 #include "micras/states/idle.hpp"
@@ -32,7 +37,9 @@
 #include "micras/states/plan.hpp"
 #include "micras/states/run.hpp"
 #include "micras/states/save.hpp"
+#include "micras/states/survey.hpp"
 #include "micras/states/wait.hpp"
+#include "micras/survey.hpp"
 #include "target.hpp"
 
 namespace micras {
@@ -49,16 +56,25 @@ namespace micras {
 class Micras : public comm::ICommandHandler {
 public:
     /**
-     * @brief Procedures that an extra long press of the button can start, chosen by the switches.
+     * @brief Procedures that an extra long press of the button or the MAINTAIN command can start.
      *
-     * @note With the racing line, boost and risky switches off it is the calibration of the wall
-     * sensors. The racing line switch alone selects the identification of the drive train and the
-     * boost switch alone the calibration of the gyroscope scale.
+     * @note For the button they are chosen by the switches: with the racing line, boost and risky
+     * switches off it is the calibration of the wall sensors, the racing line switch alone selects
+     * the identification of the drive train and the boost switch alone the calibration of the
+     * gyroscope scale. The checks of the sensors, of the polarity and of the crosstalk, and the
+     * calibration of the offsets of the wall sensors, are only reachable from the link, whose
+     * command names the procedure.
      */
     enum class Maintenance : uint8_t {
         WALL_SENSORS = 0,
         DRIVE = 1,
         GYROSCOPE = 2,
+        SENSORS = 3,
+        POLARITY = 4,
+        CROSSTALK = 5,
+        WALL_OFFSETS = 6,
+        SURVEY = 7,
+        NUMBER_OF_PROCEDURES = 8,
     };
 
     /**
@@ -66,6 +82,11 @@ public:
      *
      * @note These are edges, not levels: each one happens once, when it arrives. Everything that
      * is a level, like the run profile, is a writable variable instead.
+     *
+     * @note STOP is accepted in every state. A robot that is moving stops with the STOPPED fault in
+     * the error state, so that what stopped it stays visible, and one that waits to move goes back
+     * to idle. RESUME leaves the error state for idle, unless the initialization failed. MAINTAIN
+     * starts the procedure its argument names, one of Maintenance, whatever the switches say.
      */
     enum class Command : uint8_t {
         EXPLORE = 0,
@@ -73,6 +94,9 @@ public:
         CALIBRATE = 2,
         SAVE = 3,
         RESET = 4,
+        STOP = 5,
+        RESUME = 6,
+        MAINTAIN = 7,
     };
 
     /**
@@ -83,10 +107,32 @@ public:
         CRASH = 1,
         SATURATION = 2,
         IMU = 3,
+        STOPPED = 4,
+    };
+
+    /**
+     * @brief Marks the program leaves where a reset would stop it, which the next boot publishes.
+     *
+     * @note ABORT and FAULT are left by the abort and the hard fault handlers. A hard fault adds the
+     * configurable fault status register to its mark, in the bits below the top one, which that
+     * register never sets: the next boot then tells what kind of fault it was.
+     */
+    enum class Trace : uint32_t {
+        NONE = 0,
+        LOOP = 1,
+        SAVE_STARTED = 2,
+        SAVE_WRITING = 3,
+        SAVE_WRITTEN = 4,
+        SAVE_DONE = 5,
+        ABORT = 0x7F000000,
+        FAULT = 0x80000000,
     };
 
     /**
      * @brief Construct a new Micras object.
+     *
+     * @note The estimate of the pose starts where a run starts, in the start cell, rather than at
+     * the corner of the maze: the robot is placed there, and that is where a run expects it.
      */
     Micras();
 
@@ -142,17 +188,98 @@ public:
     void set_objective(core::Objective objective);
 
     /**
-     * @brief Get the procedure the switches select for an extra long press of the button.
+     * @brief Take the procedure the next maintenance runs.
+     *
+     * @note The one the MAINTAIN command asked for, which is forgotten once taken, and otherwise the
+     * one the switches select.
      *
      * @return The procedure.
      */
-    Maintenance get_maintenance() const;
+    Maintenance take_maintenance();
+
+    /**
+     * @brief Check if the link asked the robot to stop.
+     *
+     * @note The request is forgotten once the robot is stopped, in idle or in the error state.
+     *
+     * @return True if the robot has to stop.
+     */
+    bool is_stop_requested() const;
+
+    /**
+     * @brief Leave the error state, turning off the LED it turned on.
+     */
+    void leave_error();
+
+    /**
+     * @brief Turn the sensors on for the check of the sensors.
+     */
+    void start_sensor_check();
+
+    /**
+     * @brief Start the check of the polarity of the motors and the encoders.
+     */
+    void start_polarity_check();
+
+    /**
+     * @brief Advance the check of the polarity by one iteration.
+     *
+     * @return True if every step of the check has been driven.
+     */
+    bool check_polarity();
+
+    /**
+     * @brief Turn the wall sensors on to measure their offsets, once they settle.
+     */
+    void start_offset_calibration();
+
+    /**
+     * @brief Advance the calibration of the offsets of the wall sensors by one iteration.
+     *
+     * @note Once every sensor is measured, the offsets whose spread is small enough are kept and
+     * saved to the flash memory.
+     *
+     * @return True once the calibration has finished.
+     */
+    bool calibrate_offsets();
+
+    /**
+     * @brief Turn the wall sensors on and start the survey from where the robot is.
+     */
+    void start_survey();
+
+    /**
+     * @brief Take the reference readings the link asked for, and record them as calibrations.
+     */
+    void take_reference_requests();
+
+    /**
+     * @brief Advance the survey of the wall sensors by one iteration.
+     *
+     * @return True once the robot is back at rest, with the samples kept for the link to read.
+     */
+    bool survey();
+
+    /**
+     * @brief Start the check of the crosstalk of the wall sensors, with every emitter off.
+     */
+    void start_crosstalk_check();
+
+    /**
+     * @brief Advance the check of the crosstalk by one iteration.
+     *
+     * @return True once every mode has been lit for its whole duration.
+     */
+    bool check_crosstalk();
 
     /**
      * @brief Get the robot ready to move: sensors on, and the fan too if what follows uses it.
      *
      * @note A fast run and a maintenance procedure run the fan when its switch is on, a search never.
-     * The current sensors are zeroed here, while the motors are still disabled.
+     * The current sensors are zeroed here, with no current through the motors. Before a run the
+     * drivers are enabled with no command, which on the L6205 turns both low sides on and brakes the
+     * wheels against the torque of the fan spinning up, and the pose is set to the start while the
+     * robot still sits as it was placed; the gyroscope follows whatever turn is left through the wait.
      *
      * @param run Whether a run follows, rather than a maintenance procedure.
      */
@@ -174,7 +301,17 @@ public:
     void rest();
 
     /**
+     * @brief Blink the LED, which tells that the robot waits to be placed for the next step of a
+     * calibration.
+     *
+     * @param elapsed_ms Time since the wait started, in ms.
+     */
+    void blink(uint32_t elapsed_ms);
+
+    /**
      * @brief Start the run of the current objective.
+     *
+     * @note The position goes back to the start, the heading stays the one followed since the wait.
      */
     void start_run();
 
@@ -219,7 +356,7 @@ public:
     bool has_route() const;
 
     /**
-     * @brief Save the maze to the non-volatile storage.
+     * @brief Save the maze and the calibrations to the non-volatile storage.
      *
      * @note This stalls the core for seconds, so it is only to be called with the robot stopped.
      * The LED is on for as long as it lasts, since switching the robot off then loses the saved
@@ -237,6 +374,9 @@ public:
 
     /**
      * @brief Check on the calibration of the wall sensors.
+     *
+     * @note A sensor whose readings spread over the maximum keeps the reference it had. Once both
+     * pairs are done, the references are saved to the flash memory.
      *
      * @return True once the pair of sensors being calibrated is done.
      */
@@ -268,6 +408,9 @@ public:
 
     /**
      * @brief Advance the calibration of the gyroscope scale by one iteration.
+     *
+     * @note A valid scale within its range is used at once and saved to the flash memory, with the
+     * motors stopped, since saving stalls the loop for seconds.
      *
      * @return True if the calibration has finished.
      */
@@ -322,6 +465,16 @@ private:
     /**
      * @brief Values in the variable pool that no object holds at a stable address.
      *
+     * @note The reset flags are those of the reset controller at boot, and the previous trace the
+     * mark the program left before that reset, one of Trace, which tells where a reset by the
+     * watchdog stopped it. The state is the id of the state machine's current state, one of State. The
+     * initialization status has one bit per check of check_initialization that failed, in the order
+     * of InitCheck, so a robot that boots into the error state says why. The motor command is the
+     * linear and angular share of the supply last applied, in percent. The wall flags hold whether
+     * each sensor's reading is valid in the four lowest bits, whether it is blind in the next four
+     * and whether it is saturated in the four after those.
+     * The crosstalk mode is the one the check of the crosstalk lights, see crosstalk_modes.
+     *
      * @note Some of what is worth watching is computed on the way out of its owner: the battery is
      * scaled into volts, the deviations of the estimate come out of its covariance. Publishing means
      * copying those into somewhere that stays put. The route time is zero while no route is planned.
@@ -330,6 +483,14 @@ private:
      * procedure ends.
      */
     struct Telemetry {
+        uint8_t                                        state{};
+        uint16_t                                       init_status{};
+        uint32_t                                       reset_flags{};
+        uint32_t                                       previous_trace{};
+        std::array<float, 2>                           motor_command{};
+        std::array<float, nav::number_of_wall_sensors> wall_intensities{};
+        uint16_t                                       wall_flags{};
+        uint8_t                                        crosstalk_mode{};
         std::array<float, 3>                           angular_velocity{};
         std::array<float, 3>                           linear_acceleration{};
         float                                          battery_voltage{};
@@ -341,6 +502,7 @@ private:
         float                                          route_time{};
         std::array<float, nav::number_of_wall_sensors> wall_reference_readings{};
         std::array<float, nav::number_of_wall_sensors> wall_calibration_spreads{};
+        std::array<float, nav::number_of_wall_sensors> wall_offsets{};
         bool                                           identification_valid{};
         float                                          breakaway_voltage{};
         nav::DriveIdentification::Axis                 linear_drive{};
@@ -351,6 +513,36 @@ private:
         bool                                           gyroscope_scale_valid{};
         float                                          gyroscope_scale{};
     };
+
+    /**
+     * @brief Checks of the initialization, as the bits of the initialization status.
+     */
+    enum class InitCheck : uint8_t {
+        WATCHDOG_RESET = 0,
+        CPU_FREQUENCY = 1,
+        FAN = 2,
+        LOCOMOTION = 3,
+        TORQUE_SENSORS = 4,
+        ARGB = 5,
+        BUZZER = 6,
+        IMU = 7,
+        ROTARY_SENSOR_LEFT = 8,
+        ROTARY_SENSOR_RIGHT = 9,
+        WALL_SENSORS = 10,
+    };
+
+    /**
+     * @brief Run every check of the initialization.
+     *
+     * @return One bit per failed check, in the order of InitCheck, so zero if every check passed.
+     */
+    uint16_t get_init_status() const;
+
+    /**
+     * @brief Use the calibrations the flash memory holds wherever the configuration still holds the
+     * value they replaced.
+     */
+    void apply_calibration();
 
     /**
      * @brief Register every variable the robot exposes, and load the ones the flash memory holds.
@@ -491,6 +683,7 @@ private:
     nav::Mission              mission{dynamics, wall_model, mission_config};
     nav::DriveIdentification  drive_identification{drive_identification_config};
     nav::GyroscopeCalibration gyroscope_calibration{gyroscope_calibration_config};
+    Survey                    survey_drive{survey_config};
     ///@}
 
     /**
@@ -508,13 +701,19 @@ private:
     RunState                run_state{State::RUN, *this};
     PlanState               plan_state{State::PLAN, *this};
     SaveState               save_state{State::SAVE, *this};
-    WaitState               wait_for_calibrate_state{State::WAIT_FOR_CALIBRATE, *this, State::CALIBRATE};
+    WaitState               wait_for_calibrate_state{State::WAIT_FOR_CALIBRATE, *this, State::CALIBRATE, 5000};
     CalibrateState          calibrate_state{State::CALIBRATE, *this};
     WaitState               wait_for_identify_state{State::WAIT_FOR_IDENTIFY, *this, State::IDENTIFY};
     IdentifyState           identify_state{State::IDENTIFY, *this};
     WaitState               wait_for_gyroscope_state{State::WAIT_FOR_GYROSCOPE, *this, State::CALIBRATE_GYROSCOPE};
     CalibrateGyroscopeState calibrate_gyroscope_state{State::CALIBRATE_GYROSCOPE, *this};
     ErrorState              error_state{State::ERROR, *this};
+    CalibrateOffsetsState   calibrate_offsets_state{State::CALIBRATE_OFFSETS, *this};
+    WaitState               wait_for_survey_state{State::WAIT_FOR_SURVEY, *this, State::SURVEY};
+    SurveyState             survey_state{State::SURVEY, *this};
+    CheckSensorsState       check_sensors_state{State::CHECK_SENSORS, *this};
+    CheckPolarityState      check_polarity_state{State::CHECK_POLARITY, *this};
+    CheckCrosstalkState     check_crosstalk_state{State::CHECK_CROSSTALK, *this};
     ///@}
 
     /**
@@ -566,6 +765,50 @@ private:
     uint8_t run_profile{};
 
     /**
+     * @brief Procedure the MAINTAIN command asked for, until the next maintenance takes it.
+     */
+    std::optional<Maintenance> requested_maintenance;
+
+    /**
+     * @brief Whether the link asked the robot to stop, until the robot is stopped.
+     */
+    bool stop_requested{};
+
+    /**
+     * @brief Reference readings the link asks the wall sensors to take, zero where it asks nothing.
+     *
+     * @note Taken while the robot is idle, and recorded as calibrations, for the next save to keep.
+     */
+    std::array<float, nav::number_of_wall_sensors> reference_requests{};
+
+    /**
+     * @brief Step of the check of the polarity being driven, and the time it has been driven for.
+     */
+    ///@{
+    uint8_t polarity_step{};
+    float   polarity_step_time{};
+    ///@}
+
+    /**
+     * @brief Time the current mode of the check of the crosstalk has been lit for.
+     */
+    float crosstalk_mode_time{};
+
+    /**
+     * @brief Time the wall sensors have been on for during the calibration of their offsets, and
+     * whether the measurement started.
+     */
+    ///@{
+    float offset_time{};
+    bool  offset_measuring{};
+    ///@}
+
+    /**
+     * @brief Calibrations measured on the robot, which the flash memory keeps with the maze.
+     */
+    CalibrationRecord calibration_record;
+
+    /**
      * @brief Current type of calibration being performed.
      */
     CalibrationType calibration_type{CalibrationType::SIDE_WALLS};
@@ -576,6 +819,11 @@ private:
     uint8_t crash_count{};
 
     /**
+     * @brief Share of the fan's full downforce it makes now.
+     */
+    float downforce_share{};
+
+    /**
      * @brief Number of consecutive iterations in which the motors could not deliver the command.
      */
     uint16_t saturated_streak{};
@@ -584,6 +832,12 @@ private:
      * @brief Number of consecutive iterations without a new sample of the inertial measurement unit.
      */
     uint16_t imu_silence{};
+
+    /**
+     * @brief Longest run of iterations without a new sample of the inertial measurement unit since
+     * the last run or procedure that moves started.
+     */
+    uint16_t longest_imu_silence{};
 
     /**
      * @brief Fault that last stopped the robot, or none since the last run started.

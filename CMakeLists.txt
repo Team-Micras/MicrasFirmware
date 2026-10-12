@@ -40,6 +40,12 @@ endif()
 # describe the same board.
 set(MICRAS_TARGET_DIRECTORY "config/targets/${BOARD_VERSION}")
 
+# The magnetic encoders of the robot: one board has AS5047U and the other AS5047D, which speak
+# different SPI protocols and give different quadrature resolutions. The simulation models the
+# AS5047U and ignores this switch.
+set(MICRAS_ROTARY_SENSOR "as5047u" CACHE STRING "Magnetic encoders of the board: as5047u or as5047d")
+set_property(CACHE MICRAS_ROTARY_SENSOR PROPERTY STRINGS as5047u as5047d)
+
 # micras-lib has a switch of its own, MICRAS_LIB_WERROR
 option(MICRAS_WERROR "Treat the warnings of the firmware's own targets as errors" OFF)
 
@@ -74,6 +80,12 @@ else()
     set(CMAKE_SYSTEM_NAME Generic)
     set(CMAKE_SYSTEM_PROCESSOR arm)
     project(${CMAKE_PROJECT_NAME} NONE)
+endif()
+
+if(MICRAS_ROTARY_SENSOR STREQUAL "as5047d")
+    add_compile_definitions(MICRAS_ROTARY_SENSOR_AS5047D)
+elseif(NOT MICRAS_ROTARY_SENSOR STREQUAL "as5047u")
+    message(FATAL_ERROR "MICRAS_ROTARY_SENSOR=${MICRAS_ROTARY_SENSOR} is neither as5047u nor as5047d")
 endif()
 
 include(cmake/utilities.cmake)
@@ -127,8 +139,33 @@ generate_lint_target(LINT_SOURCES)
 ## Configuration computed when the firmware is compiled
 ###############################################################################
 
+# The turns of two bends are designed on the host before the firmware is compiled: the search is far
+# too long for the compiler. The designer is a host program, so it is built by a project of its own
+# with the host compilers.
+set(MICRAS_HOST_C_COMPILER "gcc-15" CACHE STRING "Host C compiler the turn designer is built with")
+set(MICRAS_HOST_CXX_COMPILER "g++-15" CACHE STRING "Host C++ compiler the turn designer is built with")
+
+include(ExternalProject)
+
+ExternalProject_Add(micras_two_bend_turns
+    SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cmake/turn_designer"
+    BINARY_DIR "${CMAKE_BINARY_DIR}/turn_designer"
+    CMAKE_ARGS
+        -DCMAKE_C_COMPILER=${MICRAS_HOST_C_COMPILER}
+        -DCMAKE_CXX_COMPILER=${MICRAS_HOST_CXX_COMPILER}
+        -DCMAKE_BUILD_TYPE=Release
+        -DBOARD_VERSION=${BOARD_VERSION}
+        -DMICRAS_MAZE=${MICRAS_MAZE}
+        -DMICRAS_TWO_BEND_TURNS_DIRECTORY=${MICRAS_APP_GENERATED_DIRECTORY}
+    INSTALL_COMMAND ""
+    BUILD_ALWAYS ON
+)
+
+add_dependencies(lint micras_two_bend_turns)
+add_dependencies(lint_fix micras_two_bend_turns)
+
 # The turns are designed in one source, compiled once for the executable and every test, since
-# designing them takes the compiler most of a gigabyte and several seconds
+# placing and checking them takes the compiler most of a gigabyte and several seconds
 add_library(micras_config OBJECT
     ${MICRAS_APP_CONFIG_SOURCES}
 )
@@ -140,6 +177,8 @@ target_include_directories(micras_config PRIVATE
 target_link_libraries(micras_config PRIVATE
     micras::nav
 )
+
+add_dependencies(micras_config micras_two_bend_turns)
 
 micras_apply_warnings(micras_config WERROR ${MICRAS_WERROR})
 

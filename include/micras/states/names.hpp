@@ -33,6 +33,12 @@ inline constexpr std::array<std::string_view, std::to_underlying(State::NUMBER_O
     "WAIT_FOR_GYROSCOPE",
     "CALIBRATE_GYROSCOPE",
     "ERROR",
+    "CHECK_SENSORS",
+    "CHECK_POLARITY",
+    "CHECK_CROSSTALK",
+    "CALIBRATE_OFFSETS",
+    "WAIT_FOR_SURVEY",
+    "SURVEY",
 };
 
 static_assert(
@@ -63,6 +69,12 @@ static_assert(state_name(State::IDENTIFY) == "IDENTIFY");
 static_assert(state_name(State::WAIT_FOR_GYROSCOPE) == "WAIT_FOR_GYROSCOPE");
 static_assert(state_name(State::CALIBRATE_GYROSCOPE) == "CALIBRATE_GYROSCOPE");
 static_assert(state_name(State::ERROR) == "ERROR");
+static_assert(state_name(State::CHECK_SENSORS) == "CHECK_SENSORS");
+static_assert(state_name(State::CHECK_POLARITY) == "CHECK_POLARITY");
+static_assert(state_name(State::CHECK_CROSSTALK) == "CHECK_CROSSTALK");
+static_assert(state_name(State::CALIBRATE_OFFSETS) == "CALIBRATE_OFFSETS");
+static_assert(state_name(State::WAIT_FOR_SURVEY) == "WAIT_FOR_SURVEY");
+static_assert(state_name(State::SURVEY) == "SURVEY");
 }  // namespace micras
 
 #endif  // STATE_NAMES_HPP

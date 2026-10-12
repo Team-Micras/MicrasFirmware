@@ -28,7 +28,8 @@ public:
         CALIBRATE = 2,
         ERROR = 3,
         PROFILE_MOVED = 4,
-        NUMBER_OF_EVENTS = 5,
+        RESUME = 5,
+        NUMBER_OF_EVENTS = 6,
     };
 
     /**
