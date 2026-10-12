@@ -21,6 +21,10 @@ void WaitState::on_entry() {
 uint8_t WaitState::execute() {
     this->micras.rest();
 
+    if (this->next_state_id == std::to_underlying(State::CALIBRATE)) {
+        this->micras.blink(this->wait_stopwatch.elapsed_time_ms());
+    }
+
     if (this->micras.is_stop_requested()) {
         return std::to_underlying(State::IDLE);
     }

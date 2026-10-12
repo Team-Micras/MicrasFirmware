@@ -590,6 +590,14 @@ void Micras::rest() {
     this->localizer.correct_at_rest(this->measurements, this->elapsed_time);
 }
 
+void Micras::blink(uint32_t elapsed_ms) {
+    if ((elapsed_ms / 100) % 2 == 0) {
+        this->led.turn_on();
+    } else {
+        this->led.turn_off();
+    }
+}
+
 void Micras::start_run() {
     this->clear_faults();
     this->controller.reset();
@@ -685,6 +693,7 @@ bool Micras::save_maze() {
 }
 
 void Micras::start_calibration() {
+    this->led.turn_off();
     this->wall_sensors.turn_on();
 
     if (this->calibration_type == CalibrationType::SIDE_WALLS) {

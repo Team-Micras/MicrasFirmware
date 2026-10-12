@@ -298,6 +298,14 @@ public:
     void rest();
 
     /**
+     * @brief Blink the LED, which tells that the robot waits to be placed for the next step of a
+     * calibration.
+     *
+     * @param elapsed_ms Time since the wait started, in ms.
+     */
+    void blink(uint32_t elapsed_ms);
+
+    /**
      * @brief Start the run of the current objective.
      */
     void start_run();
@@ -688,7 +696,7 @@ private:
     RunState                run_state{State::RUN, *this};
     PlanState               plan_state{State::PLAN, *this};
     SaveState               save_state{State::SAVE, *this};
-    WaitState               wait_for_calibrate_state{State::WAIT_FOR_CALIBRATE, *this, State::CALIBRATE};
+    WaitState               wait_for_calibrate_state{State::WAIT_FOR_CALIBRATE, *this, State::CALIBRATE, 5000};
     CalibrateState          calibrate_state{State::CALIBRATE, *this};
     WaitState               wait_for_identify_state{State::WAIT_FOR_IDENTIFY, *this, State::IDENTIFY};
     IdentifyState           identify_state{State::IDENTIFY, *this};
