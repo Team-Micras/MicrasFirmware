@@ -395,12 +395,16 @@ using Mission = TMission<maze_width, maze_height>;
  * in the race maze with only 1 N on tires that hold 0.42, where 0.6 hits a wall, as it does on the
  * robot, and takes the race maze in 1.71 s against 2.42 s without the fan,
  * 1.40 s on the racing line. Boost asks for 0.55 of it, which keeps 4 mm in the same case.
+ *
+ * @note In the contest maze, with the fan at half of the battery and 1.2 N of it in the model, 0.45
+ * lost the line by 20 to 50 mm through the quick turns of its first two seconds and hit a wall, on
+ * the racing line or not. The fan runs ask for 0.35, and 0.45 with boost, up to 2 and 2.5 m/s.
  */
 ///@{
 constexpr float normal_utilization{0.4F};
 constexpr float boost_utilization{0.45F};
-constexpr float fan_utilization{0.45F};
-constexpr float fan_boost_utilization{0.6F};
+constexpr float fan_utilization{0.35F};
+constexpr float fan_boost_utilization{0.45F};
 
 ///@}
 
@@ -423,8 +427,8 @@ constexpr float turbo_utilization{0.45F};
 constexpr float run_max_speed{1.5F};
 constexpr float boost_max_speed{2.0F};
 constexpr float turbo_max_speed{1.5F};
-constexpr float fan_max_speed{3.0F};
-constexpr float fan_boost_max_speed{3.0F};
+constexpr float fan_max_speed{2.0F};
+constexpr float fan_boost_max_speed{2.5F};
 
 ///@}
 
