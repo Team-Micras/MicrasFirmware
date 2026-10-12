@@ -64,6 +64,8 @@ Micras::Micras() :
     this->fsm.add_state(this->calibrate_gyroscope_state);
     this->fsm.add_state(this->error_state);
     this->fsm.add_state(this->calibrate_offsets_state);
+    this->fsm.add_state(this->wait_for_survey_state);
+    this->fsm.add_state(this->survey_state);
     this->fsm.add_state(this->check_sensors_state);
     this->fsm.add_state(this->check_polarity_state);
     this->fsm.add_state(this->check_crosstalk_state);
@@ -172,12 +174,19 @@ void Micras::register_variables() {
     this->variables.add("localizer/", "recoveries", filter.recoveries, {.stream = true});
 
     for (uint8_t i = 0; i < nav::number_of_wall_sensors; i++) {
+        this->variables.add(
+            "wall_reference_set/", sensor_names.at(i), this->reference_requests.at(i), {.write = true, .idle = true}
+        );
         this->variables.add("wall_reference/", sensor_names.at(i), this->telemetry.wall_reference_readings.at(i), {});
         this->variables.add("wall_spread/", sensor_names.at(i), this->telemetry.wall_calibration_spreads.at(i), {});
         this->variables.add("wall_offset/", sensor_names.at(i), this->telemetry.wall_offsets.at(i), {});
     }
 
     this->variables.add("", "route_time", this->telemetry.route_time, {.stream = true});
+
+    this->variables.add("survey/", "page", this->survey_drive.get_page(), {.write = true, .idle = true});
+    this->variables.add("survey/", "count", this->survey_drive.get_count(), {});
+    this->variables.add("survey/", "data", this->survey_drive, {});
 
     this->variables.add("identification/", "valid", this->telemetry.identification_valid, {});
     this->variables.add("identification/", "breakaway_voltage", this->telemetry.breakaway_voltage, {});
@@ -271,6 +280,11 @@ void Micras::update() {
     this->localizer.predict(this->measurements, this->elapsed_time);
 
     this->fsm.update();
+
+    if (this->is_idle()) {
+        this->take_reference_requests();
+    }
+
     this->publish();
 
     this->link.poll(this->is_idle());
@@ -443,6 +457,62 @@ bool Micras::calibrate_offsets() {
     this->wall_sensors.turn_off();
     this->save_maze();
     return true;
+}
+
+void Micras::start_survey() {
+    this->clear_faults();
+    this->controller.reset();
+    this->wall_sensors.turn_on();
+    this->locomotion.enable();
+    this->survey_drive.start(
+        this->localizer.get_pose(), this->dynamics.get_linear_limits(search_profile).capped(survey_config.speed),
+        this->dynamics.get_angular_limits(search_profile)
+    );
+}
+
+bool Micras::survey() {
+    std::array<float, nav::number_of_wall_sensors> intensities{};
+
+    for (uint8_t i = 0; i < nav::number_of_wall_sensors; i++) {
+        intensities.at(i) = this->wall_sensors.get_intensity(i);
+    }
+
+    if (this->survey_drive.is_resting()) {
+        this->rest();
+    }
+
+    this->follow(this->survey_drive.update(this->localizer.get_pose(), intensities, this->elapsed_time));
+
+    if (not this->survey_drive.is_finished()) {
+        return false;
+    }
+
+    this->locomotion.stop();
+    this->locomotion.disable();
+    this->wall_sensors.turn_off();
+
+    return true;
+}
+
+void Micras::take_reference_requests() {
+    for (uint8_t i = 0; i < nav::number_of_wall_sensors; i++) {
+        const float requested = this->reference_requests.at(i);
+
+        if (requested <= 0.0F) {
+            continue;
+        }
+
+        this->reference_requests.at(i) = 0.0F;
+
+        if (requested < wall_sensors_config.noise_floor or requested > wall_sensors_config.max_reading) {
+            continue;
+        }
+
+        this->wall_sensors.set_reference_reading(i, requested);
+        CalibrationRecord::record(
+            this->calibration_record.wall_reference_readings.at(i), requested, configured_reference_reading(i)
+        );
+    }
 }
 
 void Micras::start_crosstalk_check() {

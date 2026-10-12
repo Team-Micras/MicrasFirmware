@@ -52,6 +52,9 @@ uint8_t IdleState::execute() {
             case Micras::Maintenance::WALL_OFFSETS:
                 return std::to_underlying(State::CALIBRATE_OFFSETS);
 
+            case Micras::Maintenance::SURVEY:
+                return std::to_underlying(State::WAIT_FOR_SURVEY);
+
             case Micras::Maintenance::NUMBER_OF_PROCEDURES:
                 break;
         }

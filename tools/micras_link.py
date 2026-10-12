@@ -74,7 +74,7 @@ SEVERITIES = ["DEBUG", "INFO", "WARNING", "ERROR"]
 
 COMMANDS = {"explore": 0, "solve": 1, "calibrate": 2, "save": 3, "reset": 4, "stop": 5, "resume": 6, "maintain": 7}
 
-PROCEDURES = {"walls": 0, "drive": 1, "gyroscope": 2, "sensors": 3, "polarity": 4, "crosstalk": 5, "offsets": 6}
+PROCEDURES = {"walls": 0, "drive": 1, "gyroscope": 2, "sensors": 3, "polarity": 4, "crosstalk": 5, "offsets": 6, "survey": 7}
 
 FIRMWARE = Path(__file__).resolve().parent.parent
 TARGET_CONFIG = FIRMWARE / "config" / "targets" / "v1" / "target.hpp"

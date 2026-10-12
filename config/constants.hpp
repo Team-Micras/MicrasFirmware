@@ -24,6 +24,7 @@
 #include "micras/nav/mission.hpp"
 #include "micras/nav/motion_limits.hpp"
 #include "micras/nav/wall_model.hpp"
+#include "micras/survey.hpp"
 #include "robot.hpp"
 #include "turn_margins.hpp"
 
@@ -652,6 +653,23 @@ const nav::GyroscopeCalibration::Config gyroscope_calibration_config{
     .right_sensor = wall_sensors_index.right_front,
     .turns = 5.0F,
     .settle_time = 0.5F,
+};
+
+/**
+ * @brief Configuration of the survey of the wall sensors.
+ *
+ * @note It backs 300 mm away from the wall it starts touching, which takes the fronts out past the
+ * 260 mm their references are fitted to, and 250 mm back toward it after the half turn, which keeps
+ * the back of the robot clear of the wall. At 50 mm/s and a sample every 2 mm, each sensor is read
+ * about 25 times between two samples, and the 275 samples fit in the survey's 320. The robot rests
+ * a second before each pass, for the bias of the gyroscope to be measured again before it moves.
+ */
+const Survey::Config survey_config{
+    .back_distance = 0.30F,
+    .return_distance = 0.25F,
+    .speed = 0.05F,
+    .step = 0.002F,
+    .settle_time = 1.0F,
 };
 }  // namespace micras
 

@@ -33,7 +33,9 @@ enum class State : uint8_t {
     CHECK_POLARITY = 14,       // Driving each wheel each way in turn, for checking motors and encoders.
     CHECK_CROSSTALK = 15,      // Lighting one wall emitter at a time, for measuring the light each receiver takes.
     CALIBRATE_OFFSETS = 16,    // Measuring what each wall sensor reads with nothing in front of it.
-    NUMBER_OF_STATES = 17
+    WAIT_FOR_SURVEY = 17,      // Timer for entering the SURVEY state, which the gyroscope bias is measured in.
+    SURVEY = 18,               // Driving along a corridor to measure the wall sensors against known distances.
+    NUMBER_OF_STATES = 19
 };
 
 /**

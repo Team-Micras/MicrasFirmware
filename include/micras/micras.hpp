@@ -37,7 +37,9 @@
 #include "micras/states/plan.hpp"
 #include "micras/states/run.hpp"
 #include "micras/states/save.hpp"
+#include "micras/states/survey.hpp"
 #include "micras/states/wait.hpp"
+#include "micras/survey.hpp"
 #include "target.hpp"
 
 namespace micras {
@@ -71,7 +73,8 @@ public:
         POLARITY = 4,
         CROSSTALK = 5,
         WALL_OFFSETS = 6,
-        NUMBER_OF_PROCEDURES = 7,
+        SURVEY = 7,
+        NUMBER_OF_PROCEDURES = 8,
     };
 
     /**
@@ -239,6 +242,23 @@ public:
      * @return True once the calibration has finished.
      */
     bool calibrate_offsets();
+
+    /**
+     * @brief Turn the wall sensors on and start the survey from where the robot is.
+     */
+    void start_survey();
+
+    /**
+     * @brief Take the reference readings the link asked for, and record them as calibrations.
+     */
+    void take_reference_requests();
+
+    /**
+     * @brief Advance the survey of the wall sensors by one iteration.
+     *
+     * @return True once the robot is back at rest, with the samples kept for the link to read.
+     */
+    bool survey();
 
     /**
      * @brief Start the check of the crosstalk of the wall sensors, with every emitter off.
@@ -650,6 +670,7 @@ private:
     nav::Mission              mission{dynamics, wall_model, mission_config};
     nav::DriveIdentification  drive_identification{drive_identification_config};
     nav::GyroscopeCalibration gyroscope_calibration{gyroscope_calibration_config};
+    Survey                    survey_drive{survey_config};
     ///@}
 
     /**
@@ -675,6 +696,8 @@ private:
     CalibrateGyroscopeState calibrate_gyroscope_state{State::CALIBRATE_GYROSCOPE, *this};
     ErrorState              error_state{State::ERROR, *this};
     CalibrateOffsetsState   calibrate_offsets_state{State::CALIBRATE_OFFSETS, *this};
+    WaitState               wait_for_survey_state{State::WAIT_FOR_SURVEY, *this, State::SURVEY};
+    SurveyState             survey_state{State::SURVEY, *this};
     CheckSensorsState       check_sensors_state{State::CHECK_SENSORS, *this};
     CheckPolarityState      check_polarity_state{State::CHECK_POLARITY, *this};
     CheckCrosstalkState     check_crosstalk_state{State::CHECK_CROSSTALK, *this};
@@ -737,6 +760,13 @@ private:
      * @brief Whether the link asked the robot to stop, until the robot is stopped.
      */
     bool stop_requested{};
+
+    /**
+     * @brief Reference readings the link asks the wall sensors to take, zero where it asks nothing.
+     *
+     * @note Taken while the robot is idle, and recorded as calibrations, for the next save to keep.
+     */
+    std::array<float, nav::number_of_wall_sensors> reference_requests{};
 
     /**
      * @brief Step of the check of the polarity being driven, and the time it has been driven for.
