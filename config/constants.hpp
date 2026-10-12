@@ -65,6 +65,17 @@ constexpr uint16_t bluetooth_tx_buffer_size{4096};
 constexpr float crash_acceleration{25.0F};
 
 /**
+ * @brief Horizontal acceleration, in m/s^2, over which the robot has hit something while the fan runs
+ * at its full speed; in between, the threshold grows with the downforce.
+ *
+ * @note The downforce lets the tires transmit several times the traction of the robot's weight: 2.94 N
+ * of it let a run at half of the traction launch the robot at 23 m/s^2, past the threshold without
+ * the fan with any jolt of the feedback, where 50 m/s^2 held. The 1.47 N the fan pulls at half of the
+ * battery takes half of that margin.
+ */
+constexpr float fan_crash_acceleration{37.5F};
+
+/**
  * @brief Speed the fan runs at, in percent of the battery.
  *
  * @note Half of a charged pack, about 6.2 V, where the fan pulls 1.47 N with its skirt, 150 g on a
@@ -386,19 +397,36 @@ using Mission = TMission<maze_width, maze_height>;
  * 1.40 s on the racing line. Boost asks for 0.55 of it, which keeps 4 mm in the same case.
  */
 ///@{
-constexpr float normal_utilization{0.6F};
-constexpr float boost_utilization{0.65F};
-constexpr float fan_utilization{0.5F};
-constexpr float fan_boost_utilization{0.55F};
+constexpr float normal_utilization{0.4F};
+constexpr float boost_utilization{0.45F};
+constexpr float fan_utilization{0.45F};
+constexpr float fan_boost_utilization{0.6F};
 
 ///@}
 
 /**
- * @brief Top speed of a fast run, in m/s.
- *
- * @note The speed the tires and the turns are tried at on the robot.
+ * @brief Whether the fan is mounted. Without it the fan switch selects the turbo profile instead,
+ * and the fan never runs.
  */
-constexpr float run_max_speed{1.0F};
+constexpr bool fan_mounted{false};
+
+/**
+ * @brief Fraction of the available traction the turbo profile asks for, without the fan.
+ */
+constexpr float turbo_utilization{0.45F};
+
+/**
+ * @brief Top speed of a fast run, in m/s, without and with the boost switch, with the turbo
+ * profile, and with the fan running, without and with the boost switch.
+ */
+///@{
+constexpr float run_max_speed{1.5F};
+constexpr float boost_max_speed{2.0F};
+constexpr float turbo_max_speed{1.5F};
+constexpr float fan_max_speed{3.0F};
+constexpr float fan_boost_max_speed{3.0F};
+
+///@}
 
 /**
  * @brief Make the profile of a fast run from the switches.
@@ -410,22 +438,28 @@ constexpr float run_max_speed{1.0F};
  * @param racing_line Whether to drive the racing line through the cells of the route instead.
  * @param boost Whether to ask for more of the available traction.
  * @param risky Whether to use the turns designed with the smaller margin.
- * @param fan Whether the fan runs, which adds its downforce to the traction.
+ * @param fan Whether the fan runs, which adds its downforce to the traction, or the turbo profile
+ * when the fan is not mounted.
  * @return The profile of the run.
  */
 constexpr nav::RunProfile make_run_profile(bool racing_line, bool boost, bool risky, bool fan) {
     float utilization = boost ? boost_utilization : normal_utilization;
+    float max_speed = boost ? boost_max_speed : run_max_speed;
 
-    if (fan) {
+    if (fan and fan_mounted) {
         utilization = boost ? fan_boost_utilization : fan_utilization;
+        max_speed = boost ? fan_boost_max_speed : fan_max_speed;
+    } else if (fan) {
+        utilization = turbo_utilization;
+        max_speed = turbo_max_speed;
     }
 
     return {
         .racing_line = racing_line,
-        .fan = fan,
+        .fan = fan and fan_mounted,
         .risky = risky,
         .utilization = utilization,
-        .max_speed = run_max_speed,
+        .max_speed = max_speed,
     };
 }
 
@@ -570,9 +604,18 @@ const nav::Controller::Config controller_config{
  *
  * @note A wall is only voted absent while it would be closer than 130 mm, where a range reads at
  * most 8 mm long (see localizer_config), well inside the tolerance; farther out a wall that is there
- * reads long enough to look missing. The observer keeps voting through the turns of the search, which
- * reach 8 rad/s: the side wall of the cell a turn ends in is only in sight during that turn, and a
- * robot that has not seen it has to stop and spin in the middle of the cell to go on.
+ * reads long enough to look missing. The observer stops voting above 1 rad/s, so not in the turns of
+ * the search: there a diagonal sensor sweeps past the post at the inner corner and reads 20 to 30 mm
+ * short, which matches a wall that is not there. Simulated in 16 by 16 contest mazes with 12 mm walls,
+ * voting through the turns decided such walls until the goal looked unreachable in most of them, and
+ * without it every search ends. A robot that has not seen the side wall of the cell a turn ends in
+ * stops and spins in the middle of the cell to see it, which makes the search a few seconds longer.
+ *
+ * @note The diagonals only vote a wall there inside the same 130 mm, which takes in the side walls
+ * of the cell the robot is in (98 mm at its center). Past it, a diagonal looking across an open
+ * side to the next column passes by the post at the end of the wall beyond, and the post read at
+ * 115 to 200 mm voted that wall there in the 2026-10-12 contest maze, where it was open. The fronts
+ * keep the whole of their range, which is what sees a front wall a cell ahead.
  */
 const nav::Mission::Config mission_config{
     .maze =

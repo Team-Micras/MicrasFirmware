@@ -814,6 +814,11 @@ private:
     uint8_t crash_count{};
 
     /**
+     * @brief Share of the fan's full downforce it makes now.
+     */
+    float downforce_share{};
+
+    /**
      * @brief Number of consecutive iterations in which the motors could not deliver the command.
      */
     uint16_t saturated_streak{};

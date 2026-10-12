@@ -298,7 +298,8 @@ void Micras::update() {
     // this->battery.update();
     const float fan_share = this->fan.update() / fan_speed;
 
-    this->localizer.set_downforce(fan_share * fan_share);
+    this->downforce_share = fan_share * fan_share;
+    this->localizer.set_downforce(this->downforce_share);
     this->imu.update();
     this->torque_sensors.update();
     this->wall_sensors.update();
@@ -576,7 +577,7 @@ void Micras::prepare(bool run) {
     this->torque_sensors.calibrate();
     this->wall_sensors.turn_on();
 
-    if ((not run or this->objective == core::Objective::SOLVE) and this->is_selected(Interface::Profile::FAN)) {
+    if ((not run or this->objective == core::Objective::SOLVE) and this->get_run_profile().fan) {
         this->fan.enable();
         this->fan.set_speed(fan_speed);
     }
@@ -634,7 +635,8 @@ bool Micras::check_fault() {
     }
 
     const bool over_threshold =
-        std::hypot(this->measurements.acceleration.x, this->measurements.acceleration.y) > crash_acceleration;
+        std::hypot(this->measurements.acceleration.x, this->measurements.acceleration.y) >
+        crash_acceleration + (this->downforce_share * (fan_crash_acceleration - crash_acceleration));
 
     this->crash_count = over_threshold ? static_cast<uint8_t>(std::min(this->crash_count + 1, 255)) : 0;
 
