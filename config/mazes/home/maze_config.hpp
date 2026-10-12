@@ -7,6 +7,7 @@
 
 #include <array>
 #include <cstdint>
+#include <string_view>
 
 #include "micras/nav/grid_pose.hpp"
 #include "micras/nav/robot_model.hpp"
@@ -37,8 +38,21 @@ constexpr nav::RobotModel::Maze maze_geometry{
  * from the walls its reference readings were calibrated against, in the order of wall_sensors_index.
  *
  * @note The reference readings are calibrated against these walls.
+ *
+ * @note The board with AS5047D encoders has wall sensors of its own: its fronts were fitted to a
+ * pull-back from one of these walls (2.800 and 1.326).
  */
+#ifdef MICRAS_ROTARY_SENSOR_AS5047D
+constexpr std::array<float, nav::number_of_wall_sensors> wall_reference_scale{1.0871F, 1.0F, 1.0F, 0.6644F};
+#else
 constexpr std::array<float, nav::number_of_wall_sensors> wall_reference_scale{1.0F, 1.0F, 1.0F, 1.0F};
+#endif
+
+/**
+ * @brief Drawing of the walls of the maze, when they are known before the run. Empty when the maze
+ * has to be searched.
+ */
+constexpr std::string_view known_maze{};
 
 constexpr uint8_t maze_width{4};
 constexpr uint8_t maze_height{4};

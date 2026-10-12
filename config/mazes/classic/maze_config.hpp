@@ -7,6 +7,7 @@
 
 #include <array>
 #include <cstdint>
+#include <string_view>
 
 #include "micras/nav/grid_pose.hpp"
 #include "micras/nav/robot_model.hpp"
@@ -42,6 +43,12 @@ constexpr nav::RobotModel::Maze maze_geometry{
  * them.
  */
 constexpr std::array<float, nav::number_of_wall_sensors> wall_reference_scale{0.9787F, 1.6999F, 1.6995F, 0.9787F};
+
+/**
+ * @brief Drawing of the walls of the maze, when they are known before the run. Empty when the maze
+ * has to be searched.
+ */
+constexpr std::string_view known_maze{};
 
 constexpr uint8_t maze_width{16};
 constexpr uint8_t maze_height{16};

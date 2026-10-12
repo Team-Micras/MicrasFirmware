@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstddef>
 #include <cstdint>
 #include <optional>
 #include <string_view>
@@ -46,6 +47,35 @@ static float configured_reference_reading(uint8_t sensor) {
 }
 
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
+
+static_assert(
+    known_maze.empty() or known_maze.size() == 1 + ((2 * maze_height) + 1) * ((4 * maze_width) + 2),
+    "the known maze is a drawing of the whole maze, one line of walls and posts above each row of cells"
+);
+
+static void load_known_maze(nav::Maze& maze) {
+    if (known_maze.empty()) {
+        return;
+    }
+
+    constexpr std::size_t  stride{(4 * maze_width) + 2};
+    const std::string_view drawing = known_maze.substr(1);
+
+    maze.reset();
+
+    for (uint8_t y = 0; y < maze_height; y++) {
+        const std::size_t above = static_cast<std::size_t>(maze_height - 1 - y) * 2 * stride;
+        const std::size_t row = above + stride;
+
+        for (uint8_t x = 0; x < maze_width; x++) {
+            const nav::GridPoint cell{.x = x, .y = y};
+            maze.set_wall({.position = cell, .orientation = nav::Side::UP}, drawing.at(above + (4 * x) + 2) == '-');
+            maze.set_wall({.position = cell, .orientation = nav::Side::RIGHT}, drawing.at(row + (4 * x) + 4) == '|');
+        }
+    }
+
+    maze.flood(maze.get_goal());
+}
 
 Micras::Micras() :
     bluetooth{bluetooth_config, bluetooth_rx_buffer, bluetooth_tx_buffer},
@@ -217,6 +247,7 @@ void Micras::register_variables() {
     this->link.register_variables(this->variables, "link/");
 
     this->maze_storage.restore(this->variables);
+    load_known_maze(this->mission.get_maze());
     this->apply_calibration();
 }
 
