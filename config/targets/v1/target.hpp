@@ -226,8 +226,47 @@ const proxy::Buzzer::Config buzzer_config = {
  * Sensors
  *****************************************/
 
+#ifdef MICRAS_ROTARY_SENSOR_AS5047D
 /**
- * @brief Configuration written to the volatile registers of the magnetic encoders.
+ * @brief Configuration written to the volatile registers of the magnetic encoders, AS5047D on this
+ * board, selected by building with MICRAS_ROTARY_SENSOR=as5047d.
+ *
+ * @note ABIRES and ABIBIN select the pulses per revolution of the quadrature output. 512, the
+ * binary resolution with ABIRES at 0, is the finest the AS5047D has, 2048 counts per revolution
+ * against the 16384 of the AS5047U. HYS at 0b10 is 0.175 degrees at that resolution, the closest to
+ * the one 11-bit step of the AS5047U. The proxy reads both fields back after writing them and
+ * derives its scale factor from what the sensor reports, so these values cannot silently disagree
+ * with the odometry.
+ */
+const proxy::RotarySensor::As5047dRegisters rotary_sensor_reg_config = {
+    .zposm = {{
+        .ZPOSM = 0,
+    }},
+    .zposl = {{
+        .ZPOSL = 0,
+        .comp_l_error_en = 0,
+        .comp_h_error_en = 0,
+    }},
+    .settings1 = {{
+        .Factory_setting = 1,
+        .na = 0,
+        .DIR = 0,
+        .UVW_ABI = 0,
+        .DAECDIS = 0,
+        .ABIBIN = 1,
+        .Data_select = 0,
+        .PWMon = 0,
+    }},
+    .settings2 = {{
+        .UVWPP = 0,
+        .HYS = 0b10,
+        .ABIRES = 0b000,
+    }},
+};
+#else
+/**
+ * @brief Configuration written to the volatile registers of the magnetic encoders, AS5047U on this
+ * board unless built with MICRAS_ROTARY_SENSOR=as5047d.
  *
  * @note ABIRES selects the pulses per revolution of the quadrature output. The proxy reads this
  * field back after writing it and derives its scale factor from what the sensor reports, so this
@@ -274,6 +313,7 @@ const proxy::RotarySensor::Registers rotary_sensor_reg_config = {
         .ECC_en = 0,
     }},
 };
+#endif
 
 const proxy::RotarySensor::Config rotary_sensor_left_config = {
     .spi =

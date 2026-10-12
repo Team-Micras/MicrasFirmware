@@ -12,6 +12,16 @@
 
 namespace micras {
 /**
+ * @brief Counts per revolution of the quadrature decoder of a wheel, which the AS5047D of one board
+ * gives eight times coarser than the AS5047U of the other.
+ */
+#ifdef MICRAS_ROTARY_SENSOR_AS5047D
+constexpr float wheel_counts_per_revolution{2048.0F};
+#else
+constexpr float wheel_counts_per_revolution{16384.0F};
+#endif
+
+/**
  * @brief Physical description of the Micras robot, on the v2 chassis (MicrasHardware, chassis-v2),
  * and of the maze it runs in, which maze_config.hpp describes.
  *
@@ -113,7 +123,7 @@ constexpr nav::RobotModel robot_model{
         {
             .gyroscope = 6.5e-5F,
             .gyroscope_bias_walk = 1.0e-4F,
-            .wheel_angle = 2.0F * std::numbers::pi_v<float> / 16384.0F,
+            .wheel_angle = 2.0F * std::numbers::pi_v<float> / wheel_counts_per_revolution,
             .longitudinal_slip = 0.005F,
             .longitudinal_slip_per_acceleration = 0.0005F,
             .lateral_slip = 0.003F,

@@ -19,8 +19,13 @@ using namespace micras;  // NOLINT(google-build-using-namespace)
 static constexpr float    linear_speed{50.0F};
 static constexpr uint32_t read_interval_ms{10};
 static constexpr uint16_t errfl_addr{0x0001};
+#ifdef MICRAS_ROTARY_SENSOR_AS5047D
+static constexpr uint16_t dia_addr{0x3FFC};
+static constexpr uint16_t agc_addr{0x3FFC};
+#else
 static constexpr uint16_t dia_addr{0x3FF5};
 static constexpr uint16_t agc_addr{0x3FF9};
+#endif
 static constexpr uint16_t mag_addr{0x3FFD};
 static constexpr uint16_t anglecom_addr{0x3FFF};
 static constexpr uint16_t angle_mask{0x3FFF};
